@@ -16,8 +16,6 @@ Performance optimization, security patterns, error handling, and proven implemen
 | PreCompact | <5s | LOW | Users waiting but context preservation critical |
 | PreSessionStart | <1s | MEDIUM | One-time initialization acceptable |
 | PostSessionEnd | <1s | LOW | Background cleanup acceptable |
-| PreMessageCreate | <100ms | CRITICAL | Blocks AI response generation |
-| PostMessageCreate | <200ms | MEDIUM | Non-blocking logging/analytics |
 
 ### Early Exit Pattern
 

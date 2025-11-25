@@ -70,12 +70,12 @@ call_tool_chain({
   result: {
     site: {
       id: "...",
-      name: "Example Company",
-      domains: ["example.com", "www.example.com"]
+      name: "A. Nobel & Zn",
+      domains: ["anobel.com", "www.anobel.com"]
     },
     collectionsCount: 21,
     collections: [
-      { id: "...", name: "Brands", slug: "brands" },
+      { id: "...", name: "Merken", slug: "merken" },
       { id: "...", name: "Blog", slug: "blog" },
       { id: "...", name: "Products", slug: "products" }
       // ... more collections
@@ -84,12 +84,12 @@ call_tool_chain({
   logs: [
     "Fetching Webflow sites...",
     "Found 1 site(s)",
-    "Getting collections for: Example Company"
+    "Getting collections for: A. Nobel & Zn"
   ]
 }
 ```
 
-**Key learnings:****
+**Key learnings:**
 - Data from first API call (`sitesResult`) used in second call
 - State persisted throughout execution
 - Console logs captured and returned

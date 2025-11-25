@@ -13,50 +13,7 @@ Unified workflow guidance across 6 specialized code quality skills for frontend 
 
 ---
 
-## 1. 🎯 CAPABILITIES OVERVIEW
-
-This orchestrator operates in three primary phases:
-
-### Phase 1: Implementation
-
-Writing code with proper async handling, validation, and cache-busting.
-
-**Use when**:
-- Starting frontend development work
-- Implementing forms, APIs, DOM manipulation
-- Integrating external libraries or media
-- JavaScript files have been modified
-
-**See**: Section 2 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria) below and [implementation_workflows.md](./references/implementation_workflows.md)
-
-### Phase 2: Debugging
-
-Fixing issues systematically using DevTools and evidence-based debugging.
-
-**Use when**:
-- Encountering console errors or unexpected behavior
-- Deep call stack issues or race conditions
-- Multiple debugging attempts needed
-- Need root cause identification
-
-**See**: Section 2 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria) below and [debugging_workflows.md](./references/debugging_workflows.md)
-
-### Phase 3: Verification (MANDATORY)
-
-Browser testing across viewports before completion claims.
-
-**Use when**:
-- Before ANY completion claim ("works", "fixed", "done", "complete", "passing")
-- After implementing or debugging frontend code
-- Before claiming animations work, layouts are correct, or features are complete
-
-**The Iron Law**: NO COMPLETION CLAIMS WITHOUT FRESH BROWSER VERIFICATION EVIDENCE
-
-**See**: Section 2 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria) below and [verification_workflows.md](./references/verification_workflows.md)
-
----
-
-## 2. 🛠️ WHEN TO USE
+## 1. 🎯 WHEN TO USE
 
 ### Navigation Guide
 
@@ -64,10 +21,13 @@ Browser testing across viewports before completion claims.
 
 **Reference Files** (detailed documentation):
 - [implementation_workflows.md](./references/implementation_workflows.md) - Phase 1: condition-based waiting, defense-in-depth validation, CDN versioning
+- [animation_workflows.md](./references/animation_workflows.md) - Phase 1: CSS vs Motion.dev decision tree, animation patterns, performance, testing
+- [webflow_patterns.md](./references/webflow_patterns.md) - Phase 1/2: Platform limits, collection list patterns, async rendering solutions
 - [performance_patterns.md](./references/performance_patterns.md) - Phase 1: Performance optimization (animations, assets, requests)
 - [security_patterns.md](./references/security_patterns.md) - Phase 1: OWASP Top 10 security checklist (XSS, CSRF, injection prevention)
 - [debugging_workflows.md](./references/debugging_workflows.md) - Phase 2: systematic debugging, root cause tracing
 - [verification_workflows.md](./references/verification_workflows.md) - Phase 3: MANDATORY browser verification
+- [code_quality_standards.md](./references/code_quality_standards.md) - Cross-phase: Naming, initialization, file structure standards
 - [shared_patterns.md](./references/shared_patterns.md) - DevTools, logging, testing, error patterns
 - [devtools_guide.md](./references/devtools_guide.md) - Comprehensive DevTools reference
 - [quick_reference.md](./references/quick_reference.md) - One-page cheat sheet
@@ -81,9 +41,21 @@ Browser testing across viewports before completion claims.
 **Scripts**:
 - CDN versioning: Use manual workflow (see implementation_workflows.md Section 3)
 
-### Phase 1: Implementation
+### Capabilities Overview
 
-**When implementing frontend code:**
+This orchestrator operates in three primary phases:
+
+#### Phase 1: Implementation
+
+Writing code with proper async handling, validation, and cache-busting.
+
+**Use when**:
+- Starting frontend development work
+- Implementing forms, APIs, DOM manipulation
+- Integrating external libraries or media
+- JavaScript files have been modified
+
+**Specific Use Cases:**
 
 **Async/timing issues?** → **Condition-Based Waiting**
 - DOM elements not ready
@@ -103,6 +75,20 @@ Browser testing across viewports before completion claims.
 - Need cache-busting
 - See [implementation_workflows.md](./references/implementation_workflows.md#3-🔄-cdn-version-management)
 
+**Animation implementation needed?** → **Animation Workflows**
+- Deciding CSS vs Motion.dev
+- Implementing entrance animations, hover states
+- In-view triggers, scroll animations
+- Performance optimization, accessibility
+- See [animation_workflows.md](./references/animation_workflows.md)
+
+**Webflow collection lists?** → **Webflow Patterns**
+- Collection list implementation (event delegation, async rendering)
+- Platform limit planning (100 items/list, 40 lists/page)
+- ID duplication workarounds
+- Progressive enhancement patterns
+- See [webflow_patterns.md](./references/webflow_patterns.md)
+
 **Performance optimization needed?** → **Performance Patterns**
 - Animation performance (Motion.dev, CSS animations)
 - Video player optimization (HLS.js)
@@ -117,9 +103,19 @@ Browser testing across viewports before completion claims.
 - Access control validation
 - See [security_patterns.md](./references/security_patterns.md)
 
-### Phase 2: Debugging
+**See**: [implementation_workflows.md](./references/implementation_workflows.md) for complete Phase 1 guidance
 
-**When debugging issues:**
+#### Phase 2: Debugging
+
+Fixing issues systematically using DevTools and evidence-based debugging.
+
+**Use when**:
+- Encountering console errors or unexpected behavior
+- Deep call stack issues or race conditions
+- Multiple debugging attempts needed
+- Need root cause identification
+
+**Specific Use Cases:**
 
 **First debugging attempt?** → **Systematic Debugging**
 - Console errors, layout bugs, animation issues
@@ -134,6 +130,20 @@ Browser testing across viewports before completion claims.
 - Unclear where invalid data originated
 - See [debugging_workflows.md](./references/debugging_workflows.md#2-🔎-root-cause-tracing)
 
+**Webflow-specific issues?** → **Webflow Patterns**
+- Collection list items not rendering
+- Event listeners not working on dynamic items
+- ID duplication causing wrong element targeting
+- Items exceeding 100/list display limit
+- See [webflow_patterns.md](./references/webflow_patterns.md)
+
+**Animation issues?** → **Animation Workflows**
+- Motion.dev not loading (retry pattern)
+- Layout jumps during height animations
+- Jank on scroll-triggered animations
+- Accessibility (reduced motion) not working
+- See [animation_workflows.md](./references/animation_workflows.md#6-🐛-common-issues-and-solutions)
+
 **Performance issues?** → **Performance Debugging**
 - Slow page load
 - Janky animations
@@ -141,7 +151,20 @@ Browser testing across viewports before completion claims.
 - High CPU usage
 - See [debugging_workflows.md](./references/debugging_workflows.md#3-🔍-performance-debugging)
 
-### Phase 3: Verification (MANDATORY)
+**See**: [debugging_workflows.md](./references/debugging_workflows.md) for complete Phase 2 guidance
+
+#### Phase 3: Verification (MANDATORY)
+
+Browser testing across viewports before completion claims.
+
+**Use when**:
+- Before ANY completion claim ("works", "fixed", "done", "complete", "passing")
+- After implementing or debugging frontend code
+- Before claiming animations work, layouts are correct, or features are complete
+
+**The Iron Law**: NO COMPLETION CLAIMS WITHOUT FRESH BROWSER VERIFICATION EVIDENCE
+
+**Specific Use Cases:**
 
 **Use BEFORE claiming**:
 - Animation is working
@@ -153,11 +176,103 @@ Browser testing across viewports before completion claims.
 
 **The Iron Law**: Evidence in browser before claims, always.
 
-See [verification_workflows.md](./references/verification_workflows.md) for complete requirements.
+**See**: [verification_workflows.md](./references/verification_workflows.md) for complete Phase 3 guidance
 
 ---
 
-## 3. ⚙️ HOW TO USE
+## 2. 🗂️ REFERENCES
+
+### Core Framework & Workflows
+| Document | Purpose | Key Insight |
+|----------|---------|-------------|
+| **Workflows Code - Main Workflow** | 3-phase development cycle | **Implementation → Debugging → Verification (MANDATORY)** |
+
+### Bundled Resources
+| Document | Purpose | Key Insight |
+|----------|---------|-------------|
+| **references/implementation_workflows.md** | Phase 1: condition-based waiting, defense-in-depth validation, CDN versioning | Load for async handling patterns and validation |
+| **references/animation_workflows.md** | Phase 1: CSS vs Motion.dev decision tree, animation patterns, performance, testing | Load for animation implementation decisions |
+| **references/webflow_patterns.md** | Phase 1/2: Platform limits, collection list patterns, async rendering solutions | Load for Webflow-specific constraints |
+| **references/performance_patterns.md** | Phase 1: Performance optimization (animations, assets, requests) | Load for optimization strategies |
+| **references/security_patterns.md** | Phase 1: OWASP Top 10 security checklist (XSS, CSRF, injection prevention) | Load for security validation |
+| **references/debugging_workflows.md** | Phase 2: systematic debugging, root cause tracing | Load for Phase 2 debugging workflows |
+| **references/verification_workflows.md** | Phase 3: MANDATORY browser verification | Load for Phase 3 verification (always required) |
+| **references/code_quality_standards.md** | Cross-phase: Naming, initialization, file structure standards | Load for code quality checks across all phases |
+| **references/shared_patterns.md** | DevTools, logging, testing, error patterns | Load for common patterns and tools |
+| **references/devtools_guide.md** | Comprehensive DevTools reference | Load for DevTools usage guidance |
+| **references/quick_reference.md** | One-page cheat sheet | Load for quick navigation and decision support |
+
+### Assets
+| Document | Purpose | Key Insight |
+|----------|---------|-------------|
+| **assets/wait_patterns.js** | Production-ready waiting code | Copy-paste async waiting patterns |
+| **assets/validation_patterns.js** | Validation templates | Copy-paste validation code |
+| **assets/debugging_checklist.md** | Debugging workflow checklist | Phase 2 step-by-step verification |
+| **assets/verification_checklist.md** | Browser testing checklist | Phase 3 mandatory verification steps |
+
+### Smart Routing Logic
+
+```python
+def frontend_development_workflow(task):
+    phase = determine_starting_phase(task)
+
+    if phase == "implementation":
+        code = implement_feature(task, async_patterns=True, validation_rules=apply_validation())
+        review_code_quality(code)
+        if check_for_errors(code):
+            phase = "debugging"
+
+    if phase == "debugging":
+        while has_errors():
+            reproduction = reproduce_in_browser(task, ["chrome", "firefox", "safari"])
+            if not reproduction.success:
+                raise VerificationError("Cannot reproduce")
+
+            evidence = gather_devtools_evidence()
+            root_cause = analyze_root_cause(evidence)
+            fix = apply_fix(root_cause)
+
+            if verify_fix_in_browser(fix).success:
+                break
+
+    browser_results = launch_browser_verification(
+        task,
+        browsers=["chrome", "firefox", "safari"],
+        viewports=["mobile:375x667", "tablet:768x1024", "desktop:1920x1080"],
+        cache_mode="hard_refresh"
+    )
+
+    test_results = test_in_browser(browser_results.browsers, generate_test_cases(task))
+
+    if not test_results.all_passed:
+        gather_fresh_evidence([t for t in test_results if not t.passed])
+        return frontend_development_workflow(task)
+
+    evidence = document_verification_evidence(test_results, browser_results, get_current_timestamp())
+
+    if not is_evidence_fresh(evidence):
+        raise VerificationError("Evidence stale - re-test required")
+
+    return {
+        "status": "complete",
+        "evidence": evidence,
+        "verified_browsers": browser_results.browsers,
+        "timestamp": evidence.timestamp
+    }
+
+
+def determine_starting_phase(task):
+    if task.needs_implementation:
+        return "implementation"
+    elif task.has_errors:
+        return "debugging"
+    else:
+        return "verification"
+```
+
+---
+
+## 3. 🛠️ HOW IT WORKS
 
 ### Development Lifecycle
 
@@ -188,6 +303,7 @@ Implementation → Debugging (if issues) → Verification (MANDATORY)
    - Forces browser cache refresh
 
 See [implementation_workflows.md](./references/implementation_workflows.md) for complete workflows.
+
 
 ### Phase 2: Debugging
 
@@ -227,6 +343,7 @@ See [implementation_workflows.md](./references/implementation_workflows.md) for 
 5. Fix at source, not symptom
 
 See [debugging_workflows.md](./references/debugging_workflows.md) for complete workflows.
+
 
 ### Phase 3: Verification
 
@@ -494,7 +611,17 @@ Every component uses standardized CDN-safe initialization:
 - **Mandatory:** `prefers-reduced-motion` support, `will-change` cleanup
 - **Easing:** `[0.22, 1, 0.36, 1]` (ease-out), `[0.16, 1, 0.3, 1]` (expo-out)
 
-**Full reference:** [animation_strategy.md](../../knowledge/animation_strategy.md)
+**Complete reference:** [animation_workflows.md](./references/animation_workflows.md) - Decision tree, implementation patterns, testing, debugging, and policy
+
+#### Webflow Platform Constraints
+Platform limits enforced by Webflow that affect architecture decisions:
+- **Collection lists:** 100 items display limit per list, 40 lists per page
+- **ID duplication:** Webflow duplicates IDs across collection items
+- **Async rendering:** Collection items render after DOM ready
+- **Event delegation:** Required for dynamic collection items
+- **Production config:** Synchronous JS loading, per-page CSS scope
+
+**Complete reference:** [webflow_patterns.md](./references/webflow_patterns.md) - Platform limits, collection list patterns, async rendering solutions, validation scripts, and constraints
 
 **Quick Integration:** See [code_quality_standards.md Section 6](./references/code_quality_standards.md#6-integration-with-workflows-code) for phase-by-phase integration guide.
 
@@ -507,8 +634,7 @@ Every component uses standardized CDN-safe initialization:
 
 ### Additional Knowledge Base Dependencies
 
-- `.claude/knowledge/webflow_platform_constraints.md` - Platform limitations
-- `.claude/knowledge/code_standards.md` - Naming conventions and file structure
+- `.claude/knowledge/code_standards.md` - Complete naming conventions and file structure (integrated in code_quality_standards.md)
 
 ### External Tools
 
@@ -553,7 +679,7 @@ The workflows-code skill integrates with Chrome DevTools MCP for automated testi
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://anobel.com"
 
 2. Check for errors:
    [Use tool: mcp__chrome_devtools_2__list_console_messages]
@@ -580,67 +706,24 @@ See [shared_patterns.md](./references/shared_patterns.md) for common patterns ac
 
 ---
 
-## 7. 📖 REFERENCES
-
-### Workflow Documentation
-
-**Implementation (Phase 1)**:
-- [implementation_workflows.md](./references/implementation_workflows.md) - Complete Phase 1 workflows
-  - Condition-based waiting patterns
-  - Defense-in-depth validation
-  - CDN version management
-
-**Debugging (Phase 2)**:
-- [debugging_workflows.md](./references/debugging_workflows.md) - Complete Phase 2 workflows
-  - Systematic debugging (4-phase framework)
-  - Root cause tracing techniques
-
-**Verification (Phase 3 - MANDATORY)**:
-- [verification_workflows.md](./references/verification_workflows.md) - Complete Phase 3 requirements
-  - Browser testing matrix
-  - The Iron Law
-  - Verification checklists
-
-**Cross-Workflow Resources**:
-- [code_quality_standards.md](./references/code_quality_standards.md) - Integrated naming, initialization, animation standards
-- [shared_patterns.md](./references/shared_patterns.md) - DevTools, logging, testing, error patterns
-- [devtools_guide.md](./references/devtools_guide.md) - Comprehensive DevTools reference
-- [quick_reference.md](./references/quick_reference.md) - One-page cheat sheet
-
-### Code Templates
-
-- [wait_patterns.js](./assets/wait_patterns.js) - Production-ready waiting code
-- [validation_patterns.js](./assets/validation_patterns.js) - Validation class templates
-
-### Checklists
-
-- [debugging_checklist.md](./assets/debugging_checklist.md) - 4-phase debugging workflow
-- [verification_checklist.md](./assets/verification_checklist.md) - Browser testing checklist
-
-### Scripts
-
-- CDN versioning: Manual workflow documented in [implementation_workflows.md Section 3](./references/implementation_workflows.md#3-🔄-cdn-version-management)
-
----
-
-## 8. 🚀 QUICK START
+## 7. 🚀 QUICK START
 
 ### For Implementation
 
-1. **Read**: This SKILL.md Section 2 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria)
+1. **Read**: This SKILL.md Section 1 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria)
 2. **Navigate**: [implementation_workflows.md](./references/implementation_workflows.md)
 3. **Use Templates**: [wait_patterns.js](./assets/wait_patterns.js), [validation_patterns.js](./assets/validation_patterns.js)
 
 ### For Debugging
 
-1. **Read**: This SKILL.md Section 2 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria)
+1. **Read**: This SKILL.md Section 1 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria)
 2. **Navigate**: [debugging_workflows.md](./references/debugging_workflows.md)
 3. **Use Checklist**: [debugging_checklist.md](./assets/debugging_checklist.md)
 4. **Reference**: [devtools_guide.md](./references/devtools_guide.md)
 
 ### For Verification
 
-1. **Read**: This SKILL.md Section 2 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria)
+1. **Read**: This SKILL.md Section 1 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria)
 2. **Navigate**: [verification_workflows.md](./references/verification_workflows.md)
 3. **Use Checklist**: [verification_checklist.md](./assets/verification_checklist.md)
 
@@ -656,7 +739,7 @@ Need fast navigation? See [quick_reference.md](./references/quick_reference.md)
 
 ---
 
-## 9. 🧭 WHERE AM I? (Phase Detection Helper)
+## 8. 🧭 WHERE AM I? (Phase Detection Helper)
 
 If you're unsure which phase you're in, use this self-assessment:
 
@@ -700,47 +783,4 @@ If you're unsure which phase you're in, use this self-assessment:
 
 ---
 
-## 10. 🔧 TROUBLESHOOTING
-
-### Animation Not Working
-
-**Symptom**: CSS animations don't play, timing issues, or jank on mobile
-
-**Solutions**:
-1. **Check DevTools** - Verify no console errors blocking execution
-2. **Verify conditions** - Ensure trigger elements exist before adding animation classes
-3. **Test mobile timing** - Animations may need longer durations on slower devices
-4. **See**: [implementation_workflows.md](./references/implementation_workflows.md) - Condition-based waiting patterns
-
-### Verification Failing Despite Working Code
-
-**Symptom**: Feature works in testing but verification step finds issues
-
-**Solutions**:
-1. **Clear browser cache** - Old assets may be cached
-2. **Test in clean incognito window** - Eliminates extension/cookie interference
-3. **Check all viewports** - Mobile (375px), Tablet (768px), Desktop (1920px)
-4. **Review console** - ANY errors = verification fails
-5. **See**: [verification_workflows.md](./references/verification_workflows.md) - Complete verification matrix
-
-### Async Code Failing Intermittently
-
-**Symptom**: Works sometimes, fails others; timing-related bugs
-
-**Solutions**:
-1. **Add condition-based waiting** - Never use setTimeout/arbitrary delays
-2. **Verify element existence** - Check DOM element ready before manipulation
-3. **Add timeout limits** - Default 5-10 seconds with clear error messages
-4. **See**: [wait_patterns.js](./assets/wait_patterns.js) - Production-ready waiting code
-
-### DevTools Shows No Errors But Feature Broken
-
-**Symptom**: No console errors, but feature doesn't work as expected
-
-**Solutions**:
-1. **Check Network tab** - Verify all resources loaded (200 status)
-2. **Add console.log statements** - Trace execution flow
-3. **Use breakpoints** - Step through code in Sources tab
-4. **See**: [debugging_workflows.md](./references/debugging_workflows.md) - Systematic debugging approach
-
-**Need more help?** Check reference files in `references/` directory or see Section 7 (REFERENCES)
+**Remember**: This skill orchestrates the complete development lifecycle - Implementation, Debugging, and Verification. All phases integrate to ensure reliable, high-quality frontend code.

@@ -52,7 +52,7 @@ Complete templates for creating hook asset files. Hook assets are working produc
 ## 3. 📂 HOOK ASSET FILE INFORMATION
 
 **`file_name`**: `[hooktype]_[purpose]_example.sh` (e.g., `precompact_context_save_example.sh`)
-**`hook_type`**: [PreCompact | UserPromptSubmit | PreToolUse | PostToolUse | PreMessageCreate | PostMessageCreate | PreSessionStart | PostSessionEnd]
+**`hook_type`**: [PreCompact | UserPromptSubmit | PreToolUse | PostToolUse | PreSessionStart | PostSessionEnd]
 **`can_block`**: [Yes | No]
 **`created`**: [YYYY-MM-DD]
 **`version`**: 1.0.0

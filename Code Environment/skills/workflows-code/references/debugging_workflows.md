@@ -2,6 +2,10 @@
 
 Two systematic approaches to fixing frontend issues using browser DevTools and evidence-based debugging.
 
+**Platform-specific debugging guides:**
+- **Animation issues:** See [animation_workflows.md Section 6](./animation_workflows.md#6-🐛-common-issues-and-solutions) - Motion.dev loading, layout jumps, jank, accessibility
+- **Webflow issues:** See [webflow_patterns.md Section 2](./webflow_patterns.md#2-📚-collection-list-patterns) - Collection lists, async rendering, ID duplication
+
 ---
 
 ## 1. 🔍 SYSTEMATIC DEBUGGING
@@ -51,7 +55,7 @@ Instead of manually opening DevTools, capture console output programmatically:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://anobel.com"
 
 2. List console messages:
    [Use tool: mcp__chrome_devtools_2__list_console_messages]
@@ -71,7 +75,7 @@ Instead of manually opening DevTools, capture console output programmatically:
 {
   "type": "error",
   "text": "Uncaught TypeError: Cannot read property 'play' of null",
-  "url": "https://example.com/video-player.js",
+  "url": "https://anobel.com/video-player.js",
   "lineNumber": 45,
   "columnNumber": 12,
   "stackTrace": "at VideoPlayer.play (video-player.js:45:12)\n  at initialize (app.js:120:5)"
@@ -166,7 +170,7 @@ Instead of manually checking Network tab, capture requests programmatically:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://anobel.com"
 
 2. List network requests:
    [Use tool: mcp__chrome_devtools_2__list_network_requests]
@@ -304,7 +308,7 @@ Instead of manually typing in console, execute JavaScript via MCP tools:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://anobel.com"
 
 2. Test if element exists:
    [Use tool: mcp__chrome_devtools_2__evaluate_script]

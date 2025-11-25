@@ -1,13 +1,13 @@
 ---
 name: create-hooks
-description: Comprehensive hook creation documentation for Claude Code's 8 hook types. Provides templates, payload structures, best practices, testing strategies, and production examples for building custom hooks.
+description: Comprehensive hook creation documentation for Claude Code's 6 hook types. Provides templates, payload structures, best practices, testing strategies, and production examples for building custom hooks.
 allowed-tools: [Read, Write, Edit, Bash]
 version: 1.0.0
 ---
 
 # Hook Creation Specialist
 
-Create custom Claude Code hooks with templates, examples, and testing infrastructure for all 8 hook types.
+Create custom Claude Code hooks with templates, examples, and testing infrastructure for all 6 hook types.
 
 **Core principle**: Hooks = event-driven automation at critical execution points. The right hook type + proper payload handling + security patterns = reliable, performant automation.
 
@@ -15,14 +15,13 @@ Create custom Claude Code hooks with templates, examples, and testing infrastruc
 
 ## 1. 🎯 CAPABILITIES OVERVIEW
 
-This skill provides comprehensive hook creation guidance across Claude Code's 8 hook types, organized into three lifecycle phases:
+This skill provides comprehensive hook creation guidance across Claude Code's 6 hook types, organized into three lifecycle phases:
 
 ### Phase 1: Pre-Execution Hooks (Validation & Preparation)
 
 **PreSessionStart** - Environment validation before session begins
 **UserPromptSubmit** - Keyword detection and auto-triggers before processing
 **PreToolUse** - Safety validation before tool execution
-**PreMessageCreate** - Content filtering before AI response
 **PreCompact** - Context preservation before compaction
 
 **Use when**: Need to validate, prepare, or save state BEFORE actions occur
@@ -32,7 +31,6 @@ This skill provides comprehensive hook creation guidance across Claude Code's 8 
 ### Phase 2: Post-Execution Hooks (Verification & Enhancement)
 
 **PostToolUse** - Auto-formatting and cleanup after tool completion
-**PostMessageCreate** - Logging and analytics after AI responds
 **PostSessionEnd** - Cleanup and archiving after session terminates
 
 **Use when**: Need to enhance, verify, or clean up AFTER actions complete
@@ -57,7 +55,7 @@ Load resources progressively based on your current step in the creation workflow
 
 ### Core Framework
 
-This skill provides comprehensive hook creation guidance for Claude Code's 8 hook types:
+This skill provides comprehensive hook creation guidance for Claude Code's 6 hook types:
 
 | Hook Type | Trigger Point | Can Block? | Common Use Cases |
 |-----------|---------------|------------|------------------|
@@ -65,8 +63,6 @@ This skill provides comprehensive hook creation guidance for Claude Code's 8 hoo
 | **UserPromptSubmit** | User submits message | Yes | Keyword detection, auto-documentation |
 | **PreToolUse** | Before tool execution | Yes | Validation, safety checks |
 | **PostToolUse** | After tool execution | No | Auto-fix, logging |
-| **PreMessageCreate** | Before AI response | Yes | Content filtering, validation |
-| **PostMessageCreate** | After AI response | No | Analytics, archiving |
 | **PreSessionStart** | Before session begins | Yes | Environment setup, validation |
 | **PostSessionEnd** | After session ends | No | Cleanup, archiving |
 
@@ -74,7 +70,7 @@ This skill provides comprehensive hook creation guidance for Claude Code's 8 hoo
 
 | Document | Purpose | Key Insight |
 |----------|---------|-------------|
-| **references/hook_types.md** | Complete documentation for all 8 hook types with payloads and capabilities | Load for hook type selection and payload structure understanding |
+| **references/hook_types.md** | Complete documentation for all 6 hook types with payloads and capabilities | Load for hook type selection and payload structure understanding |
 | **references/hook_creation_guide.md** | Step-by-step hook creation process from planning to deployment | Load for complete implementation workflow guidance |
 | **references/payload_structures.md** | JSON schemas, extraction patterns, and security notes for all hook types | Load for payload parsing and input sanitization |
 | **references/best_practices.md** | Performance optimization, security patterns, error handling strategies | Load for production-ready implementation patterns |
@@ -116,12 +112,6 @@ What do you need to automate?
 ├─ After tool completes? → PostToolUse
 │  (auto-fix, formatting)
 │
-├─ Before AI responds? → PreMessageCreate
-│  (content filtering)
-│
-├─ After AI responds? → PostMessageCreate
-│  (logging, analytics)
-│
 ├─ Session starts? → PreSessionStart
 │  (environment setup)
 │
@@ -138,8 +128,6 @@ def hook_creation_workflow(automation_need):
         "user_submits_message": "UserPromptSubmit",
         "before_tool_runs": "PreToolUse",
         "after_tool_completes": "PostToolUse",
-        "before_ai_responds": "PreMessageCreate",
-        "after_ai_responds": "PostMessageCreate",
         "session_starts": "PreSessionStart",
         "session_ends": "PostSessionEnd"
     }
@@ -192,8 +180,6 @@ HOOK_TYPES = {
     "UserPromptSubmit": "User submits message (keyword triggers, validation)",
     "PreToolUse": "Before tool runs (validation, safety checks)",
     "PostToolUse": "After tool completes (auto-fix, formatting)",
-    "PreMessageCreate": "Before AI responds (content filtering)",
-    "PostMessageCreate": "After AI responds (logging, analytics)",
     "PreSessionStart": "Session starts (environment setup)",
     "PostSessionEnd": "Session ends (cleanup, archiving)"
 }
@@ -210,7 +196,7 @@ This skill provides comprehensive documentation and tooling for creating custom 
 **This file (SKILL.md)**: Essential overview and rules for using this skill
 
 **Core Sections**:
-- [Section 1](CAPABILITIES OVERVIEW) - Understanding the 8 hook types and progressive disclosure model
+- [Section 1](CAPABILITIES OVERVIEW) - Understanding the 6 hook types and progressive disclosure model
 - [Section 2](#2-references) - Resource tables, decision trees, and smart routing diagram
 - [Section 3](#3-when-to-use) - Use cases and applicability guidance
 - [Section 4](#4-how-to-use) - Hook creation workflow and quick start example
@@ -615,7 +601,7 @@ Use these scripts for validation and testing:
 
 Ready to create your first hook? Follow these steps:
 
-1. Read `references/hook_types.md` to understand the 8 hook types
+1. Read `references/hook_types.md` to understand the 6 hook types
 2. Choose the appropriate hook type for your use case
 3. Copy `assets/hook_template.sh` as your starting point
 4. Follow `references/hook_creation_guide.md` for step-by-step instructions

@@ -16,8 +16,6 @@ Claude Code provides 8 hook types that fire at different points in the execution
 | UserPromptSubmit | User message submitted | Yes | <200ms | Keyword triggers, validation |
 | PreToolUse | Before tool execution | Yes | <50ms | Safety checks, validation |
 | PostToolUse | After tool execution | No | <200ms | Auto-fix, formatting |
-| PreMessageCreate | Before AI response | Yes | <100ms | Content filtering |
-| PostMessageCreate | After AI response | No | <200ms | Analytics, logging |
 | PreSessionStart | Session initialization | Yes | <1s | Environment setup |
 | PostSessionEnd | Session termination | No | <1s | Cleanup, archiving |
 
@@ -912,8 +910,6 @@ Use this matrix to select the appropriate hook type:
 | Auto-trigger on keywords | UserPromptSubmit | Detects user intent |
 | Validate bash commands | PreToolUse | Blocks dangerous operations |
 | Format code after edits | PostToolUse | Auto-fix after changes |
-| Filter sensitive content | PreMessageCreate | Blocks before AI sees |
-| Log all responses | PostMessageCreate | Analytics on outputs |
 | Check dependencies | PreSessionStart | Validate environment |
 | Clean up temp files | PostSessionEnd | Cleanup after session |
 

@@ -230,7 +230,7 @@ When continuing work in an existing spec folder (mid-conversation with substanti
    - Metadata completeness (level-specific required fields)
    - Sub-folder organization (README template suggestions)
 
-**Note**: AI agent auto-creates folder. SpecKit users: `/speckit.specify` handles Level 3.
+**Note**: AI agent auto-creates folder. SpecKit users: `/speckit.complete` or `/speckit.plan` handle Level 3.
 
 ---
 
