@@ -1,16 +1,10 @@
 ---
-description: Execute the implementation planning workflow using the plan template to generate design artifacts.
+description: Planning workflow (7 steps) - spec through plan only, no implementation. Supports :auto and :confirm modes
 ---
 
-## Command Purpose: Technical Design & Architecture Planning
+## Smart Command: /speckit.plan
 
-**WHAT IT DOES**: Transforms technology-agnostic requirements (from spec.md) into concrete technical plans including architecture, tech stack decisions, data models, API contracts, and implementation approach.
-
-**WHY IT EXISTS**: Bridges the gap between WHAT (requirements) and HOW (implementation). Creates the technical blueprint that guides task breakdown and actual coding.
-
-**WHEN TO USE**: After spec.md is complete and clarified. This is where engineers translate business requirements into technical solutions, making all major architectural and technology decisions.
-
-**KEY PRINCIPLE**: Design before build. All significant technical decisions (libraries, patterns, data structures, API contracts) are documented and validated against project constitution before any code is written.
+**Purpose**: Execute the SpecKit planning lifecycle from specification through planning. Terminates after creating plan.md - use `/speckit.implement` for implementation phase.
 
 ## User Input
 
@@ -18,163 +12,122 @@ description: Execute the implementation planning workflow using the plan templat
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+## Mode Detection & Routing
 
-## Outline
+### Step 1: Parse Mode Suffix
 
-1. **Setup**: Run `.opencode/speckit/scripts/setup-plan.sh --json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+Detect execution mode from command invocation:
 
-2. **Load context**: Read FEATURE_SPEC and `AGENTS.md (project principles)`. Load IMPL_PLAN template from `.opencode/speckit/templates/plan_template.md`.
+| Pattern | Mode | Behavior |
+|---------|------|----------|
+| `/speckit.plan:auto` | AUTONOMOUS | Execute all steps without user approval gates |
+| `/speckit.plan:confirm` | INTERACTIVE | Pause at each step for user approval |
+| `/speckit.plan` (no suffix) | PROMPT | Ask user to choose mode |
 
-   **Template Preservation**:
-   - Preserve EXACT structure from plan_template.md including:
-     -  Section headers with UPPERCASE names
-     -  HTML comment blocks (keep guidance comments as-is)
-     -  Metadata structure and all fields
-     -  Section numbering (§1-§10) and subsections
-     -  Markdown formatting (tables, lists, code blocks)
-   - Replace ONLY placeholder content ([BRACKETS], NEEDS CLARIFICATION, example values)
-   - Keep all structural elements unchanged
+### Step 2: Mode Selection (when no suffix detected)
 
-3. **Execute plan workflow**: Fill the template structure following this sequence:
-   - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
-   - Fill Constitution Check section from constitution
-   - Evaluate gates (ERROR if violations unjustified)
-   - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
-   - Phase 1: Generate data-model.md, contracts/, quickstart.md
-   - Phase 1: Update agent context by running the agent script
-   - Re-evaluate Constitution Check post-design
+If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
-4. **Stop and report**: Command ends after Phase 1 complete. Report:
-   - Branch name
-   - IMPL_PLAN path (plan.md)
-   - Generated artifacts:
-     - research.md (Phase 0)
-     - data-model.md (Phase 1)
-     - contracts/ directory (Phase 1)
-     - quickstart.md (Phase 1)
-   - Plan sections added:
-     -  Testing Strategy (§5)
-     -  Success Metrics (§6)
-     -  Risk Matrix (§7, imported from spec)
-     -  Dependencies (§8)
-     -  Communication & Review (§9)
-     -  Phases 2-4 outlines (§4)
-   - Template compliance: All plan_template.md sections present
-   - Next step: Run `/speckit.tasks` to generate implementation task breakdown
+**Question**: "How would you like to execute this planning workflow?"
 
-## Phases
+| Option | Mode | Description |
+|--------|------|-------------|
+| **A** | Autonomous | Execute all 7 steps without approval gates. Best for straightforward planning. |
+| **B** | Interactive | Pause at each step for approval. Best for complex features needing discussion. |
 
-### Phase 0: Outline & Research
+**Wait for user response before proceeding.**
 
-1. **Extract unknowns from Technical Context** above:
-   - For each NEEDS CLARIFICATION -> research task
-   - For each dependency -> best practices task
-   - For each integration -> patterns task
+### Step 3: Transform Raw Input
 
-2. **Generate and dispatch research agents**:
+Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
 
-   ```text
-   For each unknown in Technical Context:
-     Task: "Research {unknown} for {feature context}"
-   For each technology choice:
-     Task: "Find best practices for {tech} in {domain}"
-   ```
+**Field Extraction Rules**:
 
-3. **Consolidate findings** in `research.md` using format:
-   - Decision: [what was chosen]
-   - Rationale: [why chosen]
-   - Alternatives considered: [what else evaluated]
+| Field | Pattern Detection | Default If Empty |
+|-------|-------------------|------------------|
+| `git_branch` | "branch: X", "on branch X", "feature/X" | Auto-create feature-{NNN} |
+| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | Auto-create next available |
+| `context` | "using X", "with Y", "tech stack:", "constraints:" | Infer from request |
+| `issues` | "issue:", "bug:", "problem:", "error:" | Discover during workflow |
+| `request` | Primary task description (REQUIRED) | ERROR if completely empty |
+| `environment` | URLs starting with http(s)://, "staging:", "production:" | Skip browser testing |
+| `scope` | File paths, glob patterns, "files:" | Default to specs/** |
 
-**Output**: research.md with all NEEDS CLARIFICATION resolved
+### Step 4: Load & Execute Workflow Prompt
 
-### Phase 1: Design & Contracts
+Based on detected/selected mode:
 
-**Prerequisites:** `research.md` complete
+- **AUTONOMOUS**: Load and execute `.claude/prompts/spec_kit/spec_kit_plan_auto.yaml`
+- **INTERACTIVE**: Load and execute `.claude/prompts/spec_kit/spec_kit_plan_confirm.yaml`
 
-1. **Extract entities from feature spec** -> `data-model.md`:
-   - Entity name, fields, relationships
-   - Validation rules from requirements
-   - State transitions if applicable
+## Workflow Overview (7 Steps)
 
-2. **Generate API contracts** from functional requirements:
-   - For each user action -> endpoint
-   - Use standard REST/GraphQL patterns
-   - Output OpenAPI/GraphQL schema to `/contracts/`
+| Step | Name | Purpose | Outputs |
+|------|------|---------|---------|
+| 1 | Request Analysis | Analyze inputs, define scope | requirement_summary |
+| 2 | Pre-Work Review | Review AGENTS.md, standards | coding_standards_summary |
+| 3 | Specification | Create spec.md | spec.md, feature branch |
+| 4 | Clarification | Resolve ambiguities | updated spec.md |
+| 5 | Quality Checklist | Generate validation checklist | checklists/requirements.md |
+| 6 | Planning | Create technical plan | plan.md, planning-summary.md |
+| 7 | Save Context | Preserve conversation | memory/*.md |
 
-3. **Generate Testing Strategy** -> Add to `plan.md`:
-   - Load Technical Context from plan.md
-   - Detect language/framework from tech stack
-   - Generate test pyramid section:
-     ```
-            /\
-           /E2E\      <- Few, high-value end-to-end tests
-          /------\
-         /  INTEG \   <- More integration tests
-        /----------\
-       /   UNIT     \  <- Many unit tests (foundation)
-      /--------------\
-     ```
-   - Add test tool recommendations based on stack
-   - Define coverage targets (unit ≥70%, integration ≥60%, E2E ≥40%)
-   - Create CI quality gates checklist
+## Key Differences from /speckit.complete
 
-4. **Generate Success Metrics** -> Add to `plan.md`:
-   - Load Success Criteria from spec.md
-   - Convert each criterion to measurable metric
-   - Create tables: Functional, Performance, Quality Metrics
-   - Add measurement methods for each
-   - Include target values and baselines
+- **Terminates after planning** - Does not include task breakdown, analysis, or implementation
+- **Outputs planning-summary.md** instead of implementation-summary.md
+- **Next step guidance** - Recommends `/speckit.implement` when ready to build
+- **Use case** - Planning phase separation, stakeholder review, feasibility analysis
 
-5. **Import Risk Matrix** -> Add to `plan.md`:
-   - Load Risk Assessment section from spec.md
-   - Copy Risk Matrix to plan.md §7
-   - Add implementation-specific mitigations
-   - Cross-reference rollback plan
+## Key Behaviors
 
-6. **Generate Dependencies Tables** -> Add to `plan.md`:
-   - Scan spec.md for dependencies
-   - Categorize: Internal vs. External
-   - Add status tracking columns (Green/Yellow/Red)
-   - Include impact assessment
-   - Reference from Technical Context
+### Autonomous Mode (`:auto`)
+- Executes all steps without user approval gates
+- Self-validates at each checkpoint
+- Makes informed decisions based on best judgment
+- Documents all significant decisions
 
-7. **Generate Communication & Review** -> Add to `plan.md`:
-   - Identify stakeholders from spec.md
-   - Define checkpoint cadence (standups, reviews, demos)
-   - List approval gates
-   - Add review schedule
+### Interactive Mode (`:confirm`)
+- Pauses after each step for user approval
+- Presents options: Approve, Review Details, Modify, Skip
+- Allows course correction throughout planning
 
-**Output**: data-model.md, /contracts/*, quickstart.md, Testing Strategy, Success Metrics, Risk Matrix, Dependencies, Communication sections in plan.md
+## Error Handling
 
-### Phase 2-4: Implementation Phases Outline
+| Condition | Action |
+|-----------|--------|
+| Empty `$ARGUMENTS` | Prompt user: "Please describe what you want to plan" |
+| Missing required field | Apply intelligent default or ask user |
+| Validation failure | Log issue and attempt resolution |
 
-After Phase 1 complete, generate outline sections in plan.md for remaining implementation phases:
+## Templates Used
 
-**Phase 2: Core Implementation**
-- Goal: Implement primary user stories (extract from spec.md priorities P0, P1)
-- Deliverables: List key features from spec.md user stories
-- Owner: [Placeholder - team/individual]
-- Duration: [Estimate based on task count from user stories]
-- Parallel Tasks: Identify independent story implementations with [P] marker
+- `.opencode/speckit/templates/spec_template.md`
+- `.opencode/speckit/templates/plan_template.md`
+- `.opencode/speckit/templates/checklist_template.md`
+- `.opencode/speckit/templates/research_spike_template.md` (optional)
+- `.opencode/speckit/templates/decision_record_template.md` (optional)
 
-**Phase 3: Integration & Testing**
-- Goal: Integrate components, run full test suite
-- Deliverables: Integration tests passing, E2E tests passing, performance benchmarks met
-- Owner: [Placeholder]
-- Duration: [Estimate 20-30% of core implementation time]
-- Parallel Tasks: Independent test suites, documentation updates
+## Completion Report
 
-**Phase 4: Deployment & Monitoring**
-- Goal: Production deployment with observability
-- Deliverables: Production deployment complete, monitoring/alerting configured, documentation finalized
-- Owner: [Placeholder]
-- Duration: [Estimate 10-15% of core implementation time]
-- Parallel Tasks: Documentation finalization, monitoring setup
+After workflow completion, report:
 
-**Note**: These are outline sections. Detailed task breakdown will be generated by `/speckit.tasks` command.
+```
+✅ SpecKit Plan Workflow Finished
 
-## Key rules
+Mode: [AUTONOMOUS/INTERACTIVE]
+Branch: feature-NNN-short-name
+Spec Folder: specs/NNN-short-name/
 
-- Use absolute paths
-- ERROR on gate failures or unresolved clarifications
+Artifacts Created:
+- spec.md (specification with acceptance criteria)
+- plan.md (technical approach and architecture)
+- planning-summary.md (planning overview)
+- checklists/requirements.md (validation checklist)
+- memory/[timestamp]__planning_session.md (context saved)
+
+Next Steps:
+- Review planning documentation
+- Validate technical approach with stakeholders
+- Run /speckit.implement:auto or /speckit.implement:confirm to begin implementation
+```

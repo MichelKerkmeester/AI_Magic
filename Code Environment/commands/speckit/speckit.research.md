@@ -1,16 +1,10 @@
 ---
-description: Generate comprehensive research documentation for deep technical investigation spanning multiple domains.
+description: Research workflow (9 steps) - technical investigation and documentation. Supports :auto and :confirm modes
 ---
 
-## Command Purpose: Comprehensive Technical Research
+## Smart Command: /speckit.research
 
-**WHAT IT DOES**: Creates structured documentation for comprehensive technical research—in-depth investigations that span multiple technical areas, integration points, or technologies before committing to implementation.
-
-**WHY IT EXISTS**: Complex features require thorough understanding across multiple domains before implementation. Research documents provide authoritative reference material that guides architecture decisions, implementation approaches, and team alignment.
-
-**WHEN TO USE**: When facing complex technical challenges requiring investigation across 3+ domains: API integrations, data model design, security architecture, performance optimization strategies, or multi-system coordination.
-
-**KEY PRINCIPLE**: Depth and comprehensiveness. Unlike time-boxed spikes, research documents are meant to be thorough and serve as lasting reference material. The goal is to understand deeply and document completely—not to answer a single question quickly.
+**Purpose**: Conduct comprehensive technical investigation and create research documentation. Use before specification when technical uncertainty exists or to document findings for future reference.
 
 ## User Input
 
@@ -18,262 +12,170 @@ description: Generate comprehensive research documentation for deep technical in
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+## Mode Detection & Routing
 
-## Outline
+### Step 1: Parse Mode Suffix
 
-The text the user typed after `/speckit.research` in the triggering message **is** the research topic or feature to investigate. Use it as the basis for generating research documentation.
+Detect execution mode from command invocation:
 
-Given that research topic, do this:
+| Pattern | Mode | Behavior |
+|---------|------|----------|
+| `/speckit.research:auto` | AUTONOMOUS | Execute all steps without user approval gates |
+| `/speckit.research:confirm` | INTERACTIVE | Pause at each step for user approval |
+| `/speckit.research` (no suffix) | PROMPT | Ask user to choose mode |
 
-1. **Parse Input**:
-   - Extract research topic/feature from $ARGUMENTS
-   - If empty: ERROR "No research topic provided. Please specify what feature or topic you want to investigate."
-   - Identify specific technical domains mentioned
-   - Extract any constraints or focus areas mentioned
+### Step 2: Mode Selection (when no suffix detected)
 
-2. **Setup**:
-   - Run `.opencode/speckit/scripts/check-prerequisites.sh --json` from repo root
-   - Parse JSON for FEATURE_DIR and AVAILABLE_DOCS
-   - Generate short research name from topic (2-4 words, kebab-case)
-   - Assign research number: Find highest RESEARCH-### in FEATURE_DIR, increment by 1 (default: RESEARCH-001)
-   - Create research file: `FEATURE_DIR/research-[###]-[short-name].md`
+If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
-3. **Load Template**:
-   - Load `.opencode/speckit/templates/research_template.md` as structure reference
+**Question**: "How would you like to execute this research workflow?"
 
-4. **Generate Research Document** using template structure:
+| Option | Mode | Description |
+|--------|------|-------------|
+| **A** | Autonomous | Execute all 9 steps without approval gates. Best for focused research topics. |
+| **B** | Interactive | Pause at each step for approval. Best for exploratory research needing direction. |
 
-   a. **Metadata Section (§1)**:
-      ```markdown
-      # Feature Research: [TOPIC] - Comprehensive Technical Investigation
+**Wait for user response before proceeding.**
 
-      Complete research documentation providing in-depth technical analysis, architecture patterns, and implementation guidance.
+### Step 3: Transform Raw Input
 
-      ---
+Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
 
-      ## 1. METADATA
+**Field Extraction Rules**:
 
-      - **Research ID**: RESEARCH-[###]
-      - **Feature/Spec**: [Link to related spec.md or feature name]
-      - **Status**: In Progress
-      - **Date Started**: [TODAY - YYYY-MM-DD]
-      - **Date Completed**: [Leave blank]
-      - **Researcher(s)**: [Extract from context or placeholder]
-      - **Reviewers**: [Placeholder]
-      - **Last Updated**: [TODAY - YYYY-MM-DD]
-      ```
+| Field | Pattern Detection | Default If Empty |
+|-------|-------------------|------------------|
+| `git_branch` | "branch: X", "on branch X", "feature/X" | Auto-create feature-{NNN} |
+| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | Auto-create next available |
+| `context` | "using X", "with Y", "tech stack:", "investigating:" | Infer from request |
+| `issues` | "issue:", "question:", "problem:", "unknown:" | Topics to investigate |
+| `request` | Research topic description (REQUIRED) | ERROR if completely empty |
+| `environment` | URLs, "staging:", "example:" | Skip browser analysis |
+| `scope` | File paths, glob patterns, "focus:" | Default to specs/** |
 
-   b. **Investigation Report (§2)**:
-      - Request Summary: Extract from input
-      - Current Behavior: Analyze existing state if applicable
-      - Key Findings: Placeholder for 3-5 findings
-      - Recommendations: Primary recommendation + alternatives
+### Step 4: Load & Execute Workflow Prompt
 
-   c. **Executive Overview (§3)**:
-      - Executive Summary: High-level summary placeholder
-      - Architecture Diagram: ASCII diagram placeholder
-      - Quick Reference Guide: When to use/not use
-      - Research Sources: Empty table for documentation sources
+Based on detected/selected mode:
 
-   d. **Core Architecture (§4)**:
-      - System Components: Generate 2-3 component templates
-      - Data Flow: Flow diagram placeholder
-      - Integration Points: External/internal systems
-      - Dependencies: Dependency table
+- **AUTONOMOUS**: Load and execute `.claude/prompts/spec_kit/spec_kit_research_auto.yaml`
+- **INTERACTIVE**: Load and execute `.claude/prompts/spec_kit/spec_kit_research_confirm.yaml`
 
-   e. **Technical Specifications (§5)**:
-      - API Documentation: Endpoint/method templates
-      - Attribute Reference: Attribute table
-      - Event Contracts: Event templates
-      - State Management: State structure and transitions
+## Workflow Overview (9 Steps)
 
-   f. **Constraints & Limitations (§6)**:
-      - Platform Limitations: Placeholder
-      - Security Restrictions: Placeholder
-      - Performance Boundaries: Placeholder
-      - Browser Compatibility: Compatibility matrix
-      - Rate Limiting: Rate limit handling
+| Step | Name | Purpose | Outputs |
+|------|------|---------|---------|
+| 1 | Request Analysis | Define research scope | feature_summary, research_objectives |
+| 2 | Pre-Work Review | Review AGENTS.md, standards | principles_established |
+| 3 | Codebase Investigation | Explore existing patterns | current_state_analysis |
+| 4 | External Research | Research docs, best practices | best_practices_summary |
+| 5 | Technical Analysis | Feasibility assessment | technical_specifications |
+| 6 | Quality Checklist | Generate validation checklist | quality_checklist |
+| 7 | Solution Design | Architecture and patterns | solution_architecture |
+| 8 | Research Compilation | Create research.md | research.md |
+| 9 | Save Context | Preserve conversation | memory/*.md |
 
-   g. **Integration Patterns (§7)**:
-      - Third-Party Service Integration: Service templates
-      - Authentication Handling: Auth method placeholder
-      - Error Management: Error categories table
-      - Retry Strategies: Retry configuration
+## Research Document Sections (17 Sections)
 
-   h. **Implementation Guide (§8)**:
-      - Markup Requirements: HTML structure
-      - JavaScript Implementation: Init, core logic, handlers, cleanup
-      - CSS Specifications: Required styles, responsive, dark mode
-      - Configuration Options: Options table
+The generated `research.md` includes:
 
-   i. **Code Examples & Snippets (§9)**:
-      - Initialization Patterns: Basic and advanced
-      - Helper Functions: Function templates
-      - API Usage Examples: Common use cases
-      - Edge Case Handling: Edge case solutions
+1. **Metadata** - Research ID, status, dates, researchers
+2. **Investigation Report** - Request summary, findings, recommendations
+3. **Executive Overview** - Summary, architecture diagram, quick reference
+4. **Core Architecture** - Components, data flow, integration points
+5. **Technical Specifications** - API docs, attributes, events, state
+6. **Constraints & Limitations** - Platform, security, performance, browser
+7. **Integration Patterns** - Third-party, auth, error handling, retry
+8. **Implementation Guide** - Markup, JS, CSS, configuration
+9. **Code Examples** - Initialization, helpers, API usage, edge cases
+10. **Testing & Debugging** - Strategies, approaches, e2e, diagnostics
+11. **Performance** - Optimization, benchmarks, caching
+12. **Security** - Validation, data protection, spam prevention
+13. **Maintenance** - Upgrade paths, compatibility, decision trees
+14. **API Reference** - Attributes, JS API, events, cleanup
+15. **Troubleshooting** - Common issues, errors, solutions, workarounds
+16. **Acknowledgements** - Contributors, resources, tools
+17. **Appendix & Changelog** - Glossary, related docs, history
 
-   j. **Testing & Debugging (§10)**:
-      - Test Strategies: Unit, integration, E2E
-      - Debugging Approaches: Common issues, tools
-      - E2E Test Examples: Test templates
-      - Diagnostic Tools: Debug mode code
+## Key Differences from Other Commands
 
-   k. **Performance Optimization (§11)**:
-      - Optimization Tactics: Tactic templates
-      - Benchmarks: Benchmark table
-      - Rate Limiting Implementation: Code placeholder
-      - Caching Strategies: Cache levels
+- **Does NOT proceed to implementation** - Terminates after research.md
+- **Primary output is research.md** - Comprehensive technical documentation
+- **Use case** - Technical uncertainty, feasibility analysis, documentation
+- **Next steps** - Can feed into `/speckit.plan` or `/speckit.complete`
 
-   l. **Security Considerations (§12)**:
-      - Validation Approach: Input validation
-      - Data Protection: Sensitive data handling
-      - Spam Prevention: Prevention mechanisms
-      - Authentication & Authorization: Auth flow
+## Key Behaviors
 
-   m. **Future-Proofing & Maintenance (§13)**:
-      - Upgrade Paths: Version migration table
-      - Compatibility Matrix: Feature/platform compatibility
-      - Decision Trees: Decision placeholders
-      - SPA Support: SPA compatibility
+### Autonomous Mode (`:auto`)
+- Executes all steps without user approval gates
+- Self-validates research completeness
+- Makes informed decisions on research depth
+- Documents all findings systematically
 
-   n. **API Reference (§14)**:
-      - Attributes Table: Complete attribute reference
-      - JavaScript API: Method documentation
-      - Events Reference: Events table
-      - Cleanup Methods: Cleanup documentation
+### Interactive Mode (`:confirm`)
+- Pauses after each step for user approval
+- Allows redirection of research focus
+- Presents findings for review before proceeding
+- Enables iterative exploration
 
-   o. **Troubleshooting Guide (§15)**:
-      - Common Issues: Issue templates with symptoms/causes/solutions
-      - Error Messages: Error code table
-      - Solutions & Workarounds: Workaround templates
+## Error Handling
 
-   p. **Acknowledgements (§16)**:
-      - Research Contributors: Placeholder
-      - Resources & References: Placeholder
-      - External Tools & Libraries Used: Placeholder
+| Condition | Action |
+|-----------|--------|
+| Empty `$ARGUMENTS` | Prompt user: "Please describe what you want to research" |
+| Unclear research scope | Ask clarifying questions |
+| External sources unavailable | Document limitation, continue with available info |
+| Conflicting findings | Document both perspectives with analysis |
 
-   q. **Appendix**:
-      - Glossary: Term definitions
-      - Related Research: Links to related docs
-      - Change Log Detail: Detailed history if needed
+## Templates Used
 
-   r. **Changelog & Updates**:
-      - Version History: Version table
-      - Recent Updates: Update list
+- `.opencode/speckit/templates/research_template.md`
+- `.opencode/speckit/templates/research_spike_template.md` (optional for time-boxed sub-investigations)
+- `.opencode/speckit/templates/decision_record_template.md` (optional for significant decisions)
 
-5. **Generate Companion Guidance** (optional):
-   - If feature context available (spec.md, plan.md), extract relevant sections
-   - Identify related decisions that might inform research
-   - Suggest specific focus areas based on feature requirements
+## Completion Report
 
-6. **Report Completion**:
-   ```markdown
-   ## Research Document Created
+After workflow completion, report:
 
-   **Research Details:**
-   - Research ID: RESEARCH-[###]
-   - Topic: [Research topic]
-   - File Path: [Full path to research document]
+```
+✅ SpecKit Research Workflow Finished
 
-   **Structure Generated (17 Sections):**
-   - Metadata, Investigation Report, Executive Overview
-   - Core Architecture, Technical Specifications
-   - Constraints & Limitations, Integration Patterns
-   - Implementation Guide, Code Examples
-   - Testing & Debugging, Performance Optimization
-   - Security Considerations, Future-Proofing
-   - API Reference, Troubleshooting Guide
-   - Acknowledgements, Appendix, Changelog
+Mode: [AUTONOMOUS/INTERACTIVE]
+Branch: feature-NNN-short-name
+Spec Folder: specs/NNN-short-name/
 
-   **Next Steps:**
-   1. Review the generated research document structure
-   2. Prioritize sections based on investigation needs
-   3. Fill in sections as research progresses
-   4. Update findings and recommendations
-   5. Consider time-boxed spikes for specific questions:
-      - Run `/speckit.research-spike` for focused experiments
-   6. Create ADR if major decisions emerge:
-      - Run `/speckit.decision` with research findings
-   ```
+Research Summary:
+- Topic: [research topic]
+- Scope: [areas investigated]
+- Key Findings: [count]
+- Recommendations: [count]
 
-## Key Rules
+Artifacts Created:
+- research.md (comprehensive technical documentation)
+- memory/[timestamp]__research_session.md (context saved)
 
-- **Comprehensive Coverage**: Fill all relevant sections (mark N/A for irrelevant ones)
-- **Evidence-Based**: All findings backed by evidence (code, docs, benchmarks)
-- **Progressive Disclosure**: Fill sections incrementally as research progresses
-- **Cross-Reference**: Link to related spikes, specs, and ADRs
-- **Living Document**: Update as understanding evolves
-- **Status Updates**: Update status as research progresses (In Progress -> Completed -> Archived)
+Optional Artifacts (if created):
+- research-spike-[name].md (time-boxed investigations)
+- decision-record-[name].md (architecture decisions)
 
-## Template Compliance
-
-All generated research documents MUST include sections from research_template.md:
-- § 1: Metadata
-- § 2: Investigation Report
-- § 3: Executive Overview
-- § 4: Core Architecture
-- § 5: Technical Specifications
-- § 6: Constraints & Limitations
-- § 7: Integration Patterns
-- § 8: Implementation Guide
-- § 9: Code Examples & Snippets
-- §10: Testing & Debugging
-- §11: Performance Optimization
-- §12: Security Considerations
-- §13: Future-Proofing & Maintenance
-- §14: API Reference
-- §15: Troubleshooting Guide
-- §16: Acknowledgements
-- Appendix & Changelog
+Next Steps:
+- Review research findings
+- Validate technical recommendations
+- Run /speckit.plan or /speckit.complete to proceed with development
+```
 
 ## Examples
 
 **Example 1: Multi-Integration Feature**
 ```
-/speckit.research "Webflow CMS integration with external payment gateway and email service"
-
--> Generates comprehensive research covering:
-   - Webflow API architecture
-   - Payment gateway integration patterns
-   - Email service webhooks
-   - Data flow across all systems
--> Sections prioritized: Integration Patterns, Security, Error Management
+/speckit.research:auto "Webflow CMS integration with external payment gateway and email service"
 ```
 
 **Example 2: Complex Architecture**
 ```
-/speckit.research "Real-time collaboration system with conflict resolution"
-
--> Generates research covering:
-   - WebSocket architecture
-   - Operational transformation algorithms
-   - State synchronization patterns
-   - Offline support strategies
--> Sections prioritized: Core Architecture, State Management, Performance
+/speckit.research:confirm "Real-time collaboration system with conflict resolution"
 ```
 
 **Example 3: Performance-Critical Feature**
 ```
 /speckit.research "Video streaming optimization for mobile browsers"
-
--> Generates research covering:
-   - Adaptive bitrate streaming
-   - Browser codec support
-   - Memory management strategies
-   - Network condition handling
--> Sections prioritized: Performance, Browser Compatibility, Constraints
 ```
-
-## Related Commands
-
-**Before research:**
-- **Create spec**: If feature not yet specified, run `/speckit.specify` first
-
-**During research:**
-- **Time-boxed spike**: For specific questions, run `/speckit.research-spike`
-- **Record decisions**: For architectural choices, run `/speckit.decision`
-
-**After research:**
-- **Update plan**: If research changes approach, update plan.md
-- **Generate tasks**: When ready to implement, run `/speckit.tasks`

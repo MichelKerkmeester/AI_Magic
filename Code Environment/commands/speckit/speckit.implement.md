@@ -1,16 +1,10 @@
 ---
-description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
+description: Implementation workflow (8 steps) - execute pre-planned work. Requires existing plan.md. Supports :auto and :confirm modes
 ---
 
-## Command Purpose: Guided Implementation Execution
+## Smart Command: /speckit.implement
 
-**WHAT IT DOES**: Systematically executes all tasks from tasks.md in dependency order, writing actual code, creating files, and building the feature. Validates checklist completion before starting and tracks progress throughout.
-
-**WHY IT EXISTS**: Transforms planning documents into working software. Provides structured, step-by-step execution that follows the planned approach and ensures all requirements are implemented.
-
-**WHEN TO USE**: After tasks.md is complete, all checklists pass (or user approves proceeding), and analysis shows no critical issues. This is where plans become reality.
-
-**KEY PRINCIPLE**: Plan adherence and quality. Follow the planned approach, implement each task completely before moving to the next, validate work incrementally, and maintain code quality standards throughout execution.
+**Purpose**: Execute implementation of a pre-planned feature. Requires existing spec.md and plan.md from a prior `/speckit.plan` or `/speckit.complete` workflow that was terminated early.
 
 ## User Input
 
@@ -18,127 +12,164 @@ description: Execute the implementation plan by processing and executing all tas
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+## Prerequisites
 
-## Outline
+**REQUIRED**: This command requires existing planning artifacts:
+- `spec.md` - Feature specification
+- `plan.md` - Technical plan
 
-1. Run `.opencode/speckit/scripts/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+**OPTIONAL** (will be created if missing):
+- `tasks.md` - Task breakdown
 
-2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
-   - Scan all checklist files in the checklists/ directory
-   - For each checklist, count:
-     - Total items: All lines matching `- [ ]` or `- [X]` or `- [x]`
-     - Completed items: Lines matching `- [X]` or `- [x]`
-     - Incomplete items: Lines matching `- [ ]`
-   - Create a status table:
+If prerequisites are missing, guide user to run `/speckit.plan` first.
 
-     ```text
-     | Checklist | Total | Completed | Incomplete | Status |
-     |-----------|-------|-----------|------------|--------|
-     | ux.md     | 12    | 12        | 0          |  PASS |
-     | test.md   | 8     | 5         | 3          |  FAIL |
-     | security.md | 6   | 6         | 0          |  PASS |
-     ```
+## Mode Detection & Routing
 
-   - Calculate overall status:
-     - **PASS**: All checklists have 0 incomplete items
-     - **FAIL**: One or more checklists have incomplete items
+### Step 1: Parse Mode Suffix
 
-   - **If any checklist is incomplete**:
-     - Display the table with incomplete item counts
-     - **STOP** and ask: "Some checklists are incomplete. Do you want to proceed with implementation anyway? (yes/no)"
-     - Wait for user response before continuing
-     - If user says "no" or "wait" or "stop", halt execution
-     - If user says "yes" or "proceed" or "continue", proceed to step 3
+Detect execution mode from command invocation:
 
-   - **If all checklists are complete**:
-     - Display the table showing all checklists passed
-     - Automatically proceed to step 3
+| Pattern | Mode | Behavior |
+|---------|------|----------|
+| `/speckit.implement:auto` | AUTONOMOUS | Execute all steps without user approval gates |
+| `/speckit.implement:confirm` | INTERACTIVE | Pause at each step for user approval |
+| `/speckit.implement` (no suffix) | PROMPT | Ask user to choose mode |
 
-3. Load and analyze the implementation context:
-   - **REQUIRED**: Read tasks.md for the complete task list and execution plan
-   - **REQUIRED**: Read plan.md for tech stack, architecture, and file structure
-   - **IF EXISTS**: Read data-model.md for entities and relationships
-   - **IF EXISTS**: Read contracts/ for API specifications and test requirements
-   - **IF EXISTS**: Read research.md for technical decisions and constraints
-   - **IF EXISTS**: Read quickstart.md for integration scenarios
+### Step 2: Mode Selection (when no suffix detected)
 
-4. **Project Setup Verification**:
-   - **REQUIRED**: Create/verify ignore files based on actual project setup:
+If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
-   **Detection & Creation Logic**:
-   - Check if the following command succeeds to determine if the repository is a git repo (create/verify .gitignore if so):
+**Question**: "How would you like to execute this implementation workflow?"
 
-     ```sh
-     git rev-parse --git-dir 2>/dev/null
-     ```
+| Option | Mode | Description |
+|--------|------|-------------|
+| **A** | Autonomous | Execute all 8 steps without approval gates. Best for straightforward implementation. |
+| **B** | Interactive | Pause at each step for approval. Best for complex code changes needing review. |
 
-   - Check if Dockerfile* exists or Docker in plan.md -> create/verify .dockerignore
-   - Check if .eslintrc*or eslint.config.* exists -> create/verify .eslintignore
-   - Check if .prettierrc* exists -> create/verify .prettierignore
-   - Check if .npmrc or package.json exists -> create/verify .npmignore (if publishing)
-   - Check if terraform files (*.tf) exist -> create/verify .terraformignore
-   - Check if .helmignore needed (helm charts present) -> create/verify .helmignore
+**Wait for user response before proceeding.**
 
-   **If ignore file already exists**: Verify it contains essential patterns, append missing critical patterns only
-   **If ignore file missing**: Create with full pattern set for detected technology
+### Step 3: Transform Raw Input
 
-   **Common Patterns by Technology** (from plan.md tech stack):
-   - **Node.js/JavaScript/TypeScript**: `node_modules/`, `dist/`, `build/`, `*.log`, `.env*`
-   - **Python**: `__pycache__/`, `*.pyc`, `.venv/`, `venv/`, `dist/`, `*.egg-info/`
-   - **Java**: `target/`, `*.class`, `*.jar`, `.gradle/`, `build/`
-   - **C#/.NET**: `bin/`, `obj/`, `*.user`, `*.suo`, `packages/`
-   - **Go**: `*.exe`, `*.test`, `vendor/`, `*.out`
-   - **Ruby**: `.bundle/`, `log/`, `tmp/`, `*.gem`, `vendor/bundle/`
-   - **PHP**: `vendor/`, `*.log`, `*.cache`, `*.env`
-   - **Rust**: `target/`, `debug/`, `release/`, `*.rs.bk`, `*.rlib`, `*.prof*`, `.idea/`, `*.log`, `.env*`
-   - **Kotlin**: `build/`, `out/`, `.gradle/`, `.idea/`, `*.class`, `*.jar`, `*.iml`, `*.log`, `.env*`
-   - **C++**: `build/`, `bin/`, `obj/`, `out/`, `*.o`, `*.so`, `*.a`, `*.exe`, `*.dll`, `.idea/`, `*.log`, `.env*`
-   - **C**: `build/`, `bin/`, `obj/`, `out/`, `*.o`, `*.a`, `*.so`, `*.exe`, `Makefile`, `config.log`, `.idea/`, `*.log`, `.env*`
-   - **Swift**: `.build/`, `DerivedData/`, `*.swiftpm/`, `Packages/`
-   - **R**: `.Rproj.user/`, `.Rhistory`, `.RData`, `.Ruserdata`, `*.Rproj`, `packrat/`, `renv/`
-   - **Universal**: `.DS_Store`, `Thumbs.db`, `*.tmp`, `*.swp`, `.vscode/`, `.idea/`
+Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
 
-   **Tool-Specific Patterns**:
-   - **Docker**: `node_modules/`, `.git/`, `Dockerfile*`, `.dockerignore`, `*.log*`, `.env*`, `coverage/`
-   - **ESLint**: `node_modules/`, `dist/`, `build/`, `coverage/`, `*.min.js`
-   - **Prettier**: `node_modules/`, `dist/`, `build/`, `coverage/`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
-   - **Terraform**: `.terraform/`, `*.tfstate*`, `*.tfvars`, `.terraform.lock.hcl`
-   - **Kubernetes/k8s**: `*.secret.yaml`, `secrets/`, `.kube/`, `kubeconfig*`, `*.key`, `*.crt`
+**Field Extraction Rules**:
 
-5. Parse tasks.md structure and extract:
-   - **Task phases**: Setup, Tests, Core, Integration, Polish
-   - **Task dependencies**: Sequential vs parallel execution rules
-   - **Task details**: ID, description, file paths, parallel markers [P]
-   - **Execution flow**: Order and dependency requirements
+| Field | Pattern Detection | Default If Empty |
+|-------|-------------------|------------------|
+| `git_branch` | "branch: X", "on branch X", "feature/X" | Use existing branch from spec folder |
+| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | REQUIRED - must specify or detect |
+| `context` | "using X", "with Y", "constraints:" | Infer from spec folder |
+| `issues` | "issue:", "bug:", "problem:" | Discover during workflow |
+| `request` | Additional instructions | "Conduct comprehensive review and implement" |
+| `environment` | URLs, "staging:", "production:" | Skip browser testing |
+| `scope` | File paths, glob patterns | Default to specs/** |
 
-6. Execute implementation following the task plan:
-   - **Phase-by-phase execution**: Complete each phase before moving to the next
-   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
-   - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
-   - **File-based coordination**: Tasks affecting the same files must run sequentially
-   - **Validation checkpoints**: Verify each phase completion before proceeding
+### Step 4: Load & Execute Workflow Prompt
 
-7. Implementation execution rules:
-   - **Setup first**: Initialize project structure, dependencies, configuration
-   - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
-   - **Core development**: Implement models, services, CLI commands, endpoints
-   - **Integration work**: Database connections, middleware, logging, external services
-   - **Polish and validation**: Unit tests, performance optimization, documentation
+Based on detected/selected mode:
 
-8. Progress tracking and error handling:
-   - Report progress after each completed task
-   - Halt execution if any non-parallel task fails
-   - For parallel tasks [P], continue with successful tasks, report failed ones
-   - Provide clear error messages with context for debugging
-   - Suggest next steps if implementation cannot proceed
-   - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
+- **AUTONOMOUS**: Load and execute `.claude/prompts/spec_kit/spec_kit_implement_auto.yaml`
+- **INTERACTIVE**: Load and execute `.claude/prompts/spec_kit/spec_kit_implement_confirm.yaml`
 
-9. Completion validation:
-   - Verify all required tasks are completed
-   - Check that implemented features match the original specification
-   - Validate that tests pass and coverage meets requirements
-   - Confirm the implementation follows the technical plan
-   - Report final status with summary of completed work
+## Workflow Overview (8 Steps)
 
-Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
+| Step | Name | Purpose | Outputs |
+|------|------|---------|---------|
+| 10 | Review Plan & Spec | Understand requirements | requirements_summary |
+| 11 | Task Breakdown | Create/validate tasks.md | tasks.md |
+| 12 | Analysis | Verify consistency | consistency_report |
+| 13 | Quality Checklist | Validate checklists | checklist_status |
+| 14 | Implementation Check | Verify prerequisites | greenlight |
+| 15 | Development | Execute implementation | code changes |
+| 16 | Completion | Generate summary | implementation-summary.md |
+| 17 | Save Context | Preserve conversation | memory/*.md |
+
+**Note**: Step numbers continue from planning workflow (10-17) to indicate this is a continuation.
+
+## Key Differences from /speckit.complete
+
+- **Requires existing plan** - Won't create spec.md or plan.md
+- **Starts at implementation** - Skips specification and planning phases
+- **Use case** - Separated planning/implementation, team handoffs, phased delivery
+
+## Key Behaviors
+
+### Autonomous Mode (`:auto`)
+- Executes all steps without user approval gates
+- Self-validates at each checkpoint
+- Marks tasks complete as they're finished
+- Documents all implementation decisions
+
+### Interactive Mode (`:confirm`)
+- Pauses after each step for user approval
+- Presents options: Approve, Review Code, Modify, Continue
+- Allows code review at each checkpoint
+
+## Prerequisite Check
+
+Before starting workflow, run:
+```bash
+.opencode/speckit/scripts/check-prerequisites.sh --json --require-tasks --include-tasks
+```
+
+Parse output for:
+- `FEATURE_DIR` - Spec folder path
+- `FEATURE_SPEC` - Path to spec.md
+- `IMPL_PLAN` - Path to plan.md
+- `TASKS` - Path to tasks.md (if exists)
+- `AVAILABLE_DOCS` - List of available artifacts
+
+If prerequisites missing, display:
+```
+⚠️ Prerequisites Missing
+
+Required artifacts not found:
+- spec.md: [FOUND/MISSING]
+- plan.md: [FOUND/MISSING]
+
+Please run /speckit.plan first to create planning artifacts.
+```
+
+## Error Handling
+
+| Condition | Action |
+|-----------|--------|
+| Missing spec.md | ERROR: Guide to /speckit.plan |
+| Missing plan.md | ERROR: Guide to /speckit.plan |
+| Missing tasks.md | Create tasks.md from plan.md |
+| Checklist failures | Prompt user to proceed or fix |
+| Test failures | Log and report, allow user decision |
+
+## Templates Used
+
+- `.opencode/speckit/templates/tasks_template.md`
+- `.opencode/speckit/templates/checklist_template.md`
+
+## Completion Report
+
+After workflow completion, report:
+
+```
+✅ SpecKit Implementation Workflow Finished
+
+Mode: [AUTONOMOUS/INTERACTIVE]
+Branch: feature-NNN-short-name
+Spec Folder: specs/NNN-short-name/
+
+Implementation Summary:
+- Tasks completed: [X/Y]
+- Files modified: [count]
+- Files created: [count]
+- Tests: [PASS/FAIL]
+- Browser validation: [COMPLETE/SKIPPED]
+
+Artifacts Updated/Created:
+- tasks.md (all tasks marked complete)
+- implementation-summary.md (completion report)
+- memory/[timestamp]__implementation_session.md (context saved)
+
+Next Steps:
+- Review implementation summary
+- Run final tests
+- Prepare for code review and PR submission
+```
