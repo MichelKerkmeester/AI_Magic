@@ -1,0 +1,483 @@
+---
+name: mcp-code-mode
+description: MCP orchestration via TypeScript execution for efficient multi-tool workflows. Use Code Mode for ALL MCP tool calls (ClickUp, Notion, Figma, Webflow, Chrome DevTools, etc.). Provides 98.7% context reduction, 60% faster execution, and type-safe invocation. Mandatory for external tool integration.
+allowed-tools: [mcp__code_mode__call_tool_chain, mcp__code_mode__search_tools, mcp__code_mode__list_tools, mcp__code_mode__tool_info]
+version: 1.0.0
+---
+
+# MCP Code Mode
+
+Execute TypeScript code with direct access to 200+ MCP tools through progressive disclosure. Code Mode eliminates context overhead by loading tools on-demand, enabling complex multi-tool workflows in a single execution with state persistence and built-in error handling.
+
+---
+
+## 1. 🎯 WHEN TO USE
+
+### Navigation Guide
+
+**Start here if**:
+- Calling ANY MCP tools (ClickUp, Notion, Figma, Webflow, Chrome DevTools, etc.)
+- Need to orchestrate multiple external tools in one workflow
+- Working with external APIs through MCP servers
+- Managing tasks in project management tools
+- Need type-safe tool invocation with autocomplete
+
+**Go to**:
+- **First time using Code Mode?** → [Section 3: HOW IT WORKS](#3--how-it-works)
+- **Tool naming errors?** → [references/naming_convention.md](references/naming_convention.md) (addresses #1 most common error)
+- **Configuration issues?** → [references/configuration.md](references/configuration.md)
+- **Need examples?** → [references/workflows.md](references/workflows.md)
+- **Architecture questions?** → [references/architecture.md](references/architecture.md)
+
+### Use Code Mode When
+
+**MANDATORY for ALL MCP tool calls**:
+- ✅ Calling ClickUp, Notion, Figma, Webflow, Chrome DevTools, or any other MCP tools
+- ✅ Accessing external APIs through MCP servers
+- ✅ Managing tasks in project management tools
+- ✅ Interacting with design tools, databases, or services
+- ✅ Browser automation and web interactions
+
+**Benefits over traditional tool calling**:
+- 🚀 **98.7% context reduction** - 1.6k tokens vs 141k for 47 tools
+- ⚡ **60% faster execution** - Single execution vs 15+ API round trips
+- 🔗 **State persistence** - Data flows naturally between operations
+- 🛡️ **Type safety** - Full TypeScript support with autocomplete
+- 🎯 **Progressive loading** - Tools discovered on-demand, zero upfront cost
+
+### Do NOT Use Code Mode For
+
+**Use native tools instead**:
+- ❌ File operations (use Read, Write, Edit tools)
+- ❌ Text searching (use Grep tool)
+- ❌ File discovery (use Glob tool)
+- ❌ Bash commands (use Bash tool)
+- ❌ Intent-based code discovery (use mcp-semantic-search skill)
+
+### Common Use Cases
+
+| Scenario | Code Mode Approach | Benefit |
+|----------|-------------------|---------|
+| **Create ClickUp task** | `call_tool_chain({ code: "await clickup.clickup_create_task({...})" })` | Type-safe, single execution |
+| **Multi-tool workflow** | Figma → ClickUp → Webflow in one execution | State persists, 5× faster |
+| **Browser automation** | Chrome DevTools MCP for testing/screenshots | Sandboxed, reliable |
+| **Design-to-implementation** | Fetch Figma design → Create task → Update CMS | Atomic workflow |
+| **External API access** | Any MCP server (Notion, GitHub, etc.) | Progressive tool loading |
+
+---
+
+## 2. 📖 REFERENCES
+
+### Smart Routing Logic
+
+```yaml
+problem_to_resource:
+  tool_naming_error:
+    resource: naming_convention.md
+    priority: CRITICAL
+
+  tool_not_found:
+    resource: naming_convention.md
+    priority: CRITICAL
+
+  setup_config:
+    resource: configuration.md
+    priority: HIGH
+
+  env_vars_not_loading:
+    resource: configuration.md
+    priority: HIGH
+
+  what_tools_available:
+    resource: tool_catalog.md
+    priority: MEDIUM
+
+  mcp_servers_list:
+    resource: tool_catalog.md
+    priority: MEDIUM
+
+  multi_tool_workflow:
+    resource: workflows.md
+    priority: MEDIUM
+
+  error_handling:
+    resource: workflows.md
+    priority: MEDIUM
+
+  how_it_works:
+    resource: architecture.md
+    priority: LOW
+
+  token_economics:
+    resource: architecture.md
+    priority: LOW
+```
+
+### References (Deep-Dive Documentation)
+
+| File | Purpose | When to Load |
+|------|---------|--------------|
+| **[naming_convention.md](references/naming_convention.md)** | Tool naming pattern and common mistakes | ⚠️ **CRITICAL**: Tool naming errors (read first) |
+| **[configuration.md](references/configuration.md)** | .utcp_config.json and .env setup | Setting up Code Mode, adding MCP servers |
+| **[tool_catalog.md](references/tool_catalog.md)** | Complete list of 200+ available tools | Discovering available tools and capabilities |
+| **[workflows.md](references/workflows.md)** | 4 comprehensive workflow examples | Multi-tool orchestration, error handling patterns |
+| **[architecture.md](references/architecture.md)** | System architecture and token economics | Understanding how Code Mode works internally |
+
+### Assets (Templates and Examples)
+
+| File | Purpose | When to Use |
+|------|---------|-------------|
+| **[config_template.md](assets/config_template.md)** | Template .utcp_config.json file | Creating new configuration from scratch |
+| **[env_template.md](assets/env_template.md)** | Template .env file with placeholders | Setting up environment variables |
+
+### Scripts (Validation Tools)
+
+| File | Purpose | When to Use |
+|------|---------|-------------|
+| **[validate_config.py](scripts/validate_config.py)** | Validates .utcp_config.json structure | Before deploying configuration, troubleshooting errors |
+
+**Usage**: `python3 validate_config.py .utcp_config.json --check-env .env`
+
+**Validations performed:**
+- ✅ Valid JSON syntax
+- ✅ Required fields present (`manual_call_templates`)
+- ✅ Valid manual names (JavaScript identifiers, no hyphens/spaces)
+- ✅ No duplicate manual names
+- ✅ MCP server configuration completeness
+- ✅ Environment variable references (`${VAR}` syntax)
+- ✅ Missing `.env` variables (when `--check-env` flag used)
+
+---
+
+## 3. 🛠️ HOW IT WORKS
+
+### Critical Naming Pattern
+
+**The #1 most common error** when using Code Mode is using wrong function names. All MCP tool calls MUST follow this pattern:
+
+```typescript
+{manual_name}.{manual_name}_{tool_name}
+```
+
+**Examples**:
+
+✅ **Correct**:
+```typescript
+await webflow.webflow_sites_list({});
+await clickup.clickup_create_task({...});
+await figma.figma_get_file({...});
+```
+
+❌ **Wrong** (missing manual prefix):
+```typescript
+await webflow.sites_list({});        // Error: Tool not found
+await clickup.create_task({...});    // Error: Tool not found
+```
+
+**See [references/naming_convention.md](references/naming_convention.md) for complete guide with troubleshooting.**
+
+
+### Basic Workflow
+
+**Step 1: Discover Tools**
+
+```typescript
+// Progressive discovery - search for relevant tools
+search_tools({
+  task_description: "clickup task management",
+  limit: 10
+});
+
+// Returns: Tool names and descriptions (minimal tokens)
+// Example: ["clickup.clickup_create_task", "clickup.clickup_get_task", ...]
+```
+
+**Step 2: Call Tools via Code Mode**
+
+```typescript
+// Execute TypeScript with direct tool access
+call_tool_chain({
+  code: `
+    // Note the naming pattern: {manual_name}.{manual_name}_{tool_name}
+    const result = await clickup.clickup_create_task({
+      name: "New Feature",
+      listName: "Development Sprint",
+      description: "Implement user authentication"
+    });
+
+    console.log('Task created:', result.id);
+    return result;
+  `
+});
+```
+
+**Step 3: Multi-Tool Orchestration**
+
+```typescript
+// State persists across tool calls in single execution
+call_tool_chain({
+  code: `
+    // Step 1: Get Figma design
+    const design = await figma.figma_get_file({ fileId: "abc123" });
+
+    // Step 2: Create ClickUp task (design data available)
+    const task = await clickup.clickup_create_task({
+      name: \`Implement: \${design.name}\`,
+      description: \`Design has \${design.document.children.length} components\`
+    });
+
+    // Step 3: Update Webflow CMS (both design and task data available)
+    const cms = await webflow.webflow_collections_items_create_item_live({
+      collection_id: "queue-id",
+      request: {
+        items: [{
+          fieldData: {
+            name: design.name,
+            taskUrl: task.url,
+            status: "In Queue"
+          }
+        }]
+      }
+    });
+
+    return { design, task, cms };
+  `,
+  timeout: 60000  // Extended timeout for complex workflow
+});
+```
+
+---
+
+## 4. 📋 RULES
+
+### ✅ ALWAYS 
+
+- **Use Code Mode for ALL MCP tool calls** - Mandatory for ClickUp, Notion, Figma, Webflow, Chrome DevTools, etc.
+- **Follow naming pattern**: `{manual_name}.{manual_name}_{tool_name}` (see [naming_convention.md](references/naming_convention.md))
+- **Use progressive discovery**: `search_tools()` before calling unknown tools
+- **Use try/catch** for error handling in multi-step workflows
+- **Set appropriate timeouts**: 30s (simple), 60s (complex), 120s+ (very complex)
+- **Console.log progress** in complex workflows for debugging
+- **Structure return values** consistently: `{ success, data, errors, timestamp }`
+
+### ❌ NEVER 
+
+- **Skip Code Mode for MCP tools** - Direct MCP calls cause context exhaustion
+- **Use wrong naming pattern** - `webflow.sites_list` instead of `webflow.webflow_sites_list`
+- **Guess tool names** - Use `search_tools()` to discover correct names
+- **Ignore TypeScript errors** - Type safety prevents runtime errors
+- **Skip error handling** - Unhandled errors crash entire workflow
+- **Use Code Mode for file operations** - Use Read/Write/Edit tools instead
+- **Assume tool availability** - Verify with `list_tools()` first
+
+### ⚠️ ESCALATE IF
+
+- **Tool naming errors persist** after consulting [naming_convention.md](references/naming_convention.md)
+- **Configuration fails to load** - Check [configuration.md](references/configuration.md)
+- **Environment variables not found** - Verify .env file exists and syntax is correct
+- **MCP server fails to start** - Check command/args in .utcp_config.json
+- **Tools not discovered** - Verify manual name matches configuration
+- **Execution timeout** - Increase timeout or break into smaller operations
+- **Need to add new MCP server** - Follow guide in [configuration.md](references/configuration.md)
+
+---
+
+## 5. 🎓 SUCCESS CRITERIA
+
+**Code Mode implementation complete when**:
+
+- ✅ All MCP tool calls use `call_tool_chain` (no direct tool calls)
+- ✅ Tool naming follows `{manual_name}.{manual_name}_{tool_name}` pattern
+- ✅ Progressive discovery used (`search_tools` before calling)
+- ✅ Error handling implemented (try/catch for critical operations)
+- ✅ Console logging tracks workflow progress
+- ✅ Return values structured consistently
+- ✅ Timeouts set appropriately for workflow complexity
+- ✅ Configuration validated (`.utcp_config.json` and `.env` correct)
+- ✅ Type safety verified (no TypeScript errors)
+- ✅ Multi-tool workflows execute atomically (all succeed or all fail)
+
+---
+
+## 6. 🔗 INTEGRATION POINTS
+
+### Cross-Skill Collaboration
+
+**Pairs with mcp-semantic-search**:
+- Use **mcp-semantic-search** for intent-based code discovery
+- Use **mcp-code-mode** for external tool integration
+- Example: Search codebase → Create ClickUp task → Update Notion docs
+
+**Workflow**:
+```typescript
+// 1. Find relevant code using mcp-semantic-search
+search_codebase("authentication implementation");
+
+// 2. Create task using Code Mode
+call_tool_chain({
+  code: `
+    await clickup.clickup_create_task({
+      name: "Refactor authentication",
+      description: "Found in src/auth/..."
+    });
+  `
+});
+```
+
+### Triggers
+
+**Automatic activation when**:
+- User mentions MCP tool names (ClickUp, Notion, Figma, Webflow, etc.)
+- Request involves external tool integration
+- Multi-tool workflow described
+- Browser automation needed (Chrome DevTools)
+
+### Outputs
+
+**What Code Mode produces**:
+- External tool operation results (tasks created, data fetched, etc.)
+- Workflow execution logs (console.log captured)
+- Error details (if failures occur)
+- State snapshots (all variables returned)
+
+---
+
+## 7. 🎯 QUICK REFERENCE
+
+### Essential Commands
+
+```typescript
+// 1. Discover tools
+search_tools({ task_description: "webflow site management", limit: 10 });
+
+// 2. Get tool details
+tool_info({ tool_name: "webflow.webflow_sites_list" });
+
+// 3. List all tools
+list_tools();
+
+// 4. Call single tool
+call_tool_chain({
+  code: `await webflow.webflow_sites_list({})`
+});
+
+// 5. Multi-tool workflow with error handling
+call_tool_chain({
+  code: `
+    try {
+      const result1 = await tool1.tool1_action({...});
+      const result2 = await tool2.tool2_action({...});
+      return { success: true, result1, result2 };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  `,
+  timeout: 60000
+});
+```
+
+### Critical Naming Pattern
+
+```typescript
+{manual_name}.{manual_name}_{tool_name}
+
+// Configuration defines manual name:
+"name": "webflow"  →  webflow.webflow_sites_list()
+"name": "clickup"  →  clickup.clickup_create_task()
+```
+
+### Common Mistakes
+
+| ❌ Wrong | ✅ Correct | Error |
+|---------|-----------|-------|
+| `webflow.sites_list()` | `webflow.webflow_sites_list()` | Missing manual prefix |
+| `webflow.webflow.sites_list()` | `webflow.webflow_sites_list()` | Double dot notation |
+| `webflow.webflowSitesList()` | `webflow.webflow_sites_list()` | camelCase vs snake_case |
+
+### Timeout Guidelines
+
+- **Simple (1-2 tools)**: 30s (default)
+- **Complex (3-5 tools)**: 60s
+- **Very complex (6+ tools)**: 120s+
+
+---
+
+## 8. 📚 ADDITIONAL RESOURCES
+
+### Configuration Files
+
+**Required files**:
+- `.utcp_config.json` - MCP server definitions ([template](assets/config_template.md))
+- `.env` - API keys and tokens ([template](assets/env_template.md))
+
+**Validation**:
+```bash
+python3 scripts/validate_config.py .utcp_config.json --check-env .env
+```
+
+### Performance Metrics
+
+| Metric | Traditional | Code Mode | Improvement |
+|--------|------------|-----------|-------------|
+| **Context tokens** | 141k (47 tools) | 1.6k (200+ tools) | 98.7% reduction |
+| **Execution time** | ~2000ms (4 tools) | ~300ms (4 tools) | 60% faster |
+| **API round trips** | 15+ | 1 | 93% reduction |
+
+### Common MCP Servers
+
+**Available tools by server**:
+- **Webflow**: 40+ tools (sites, collections, pages, CMS)
+- **ClickUp**: 20+ tools (tasks, lists, workspaces)
+- **Figma**: 15+ tools (files, comments, images)
+- **Notion**: 20+ tools (pages, databases, blocks)
+- **Chrome DevTools**: 52 tools (26 tools × 2 instances)
+
+See [references/tool_catalog.md](references/tool_catalog.md) for complete list.
+
+### Example Workflows
+
+**5 comprehensive examples in [references/workflows.md](references/workflows.md)**:
+1. **Webflow** - List Sites and Collections
+2. **ClickUp** - Create and Track Task
+3. **Notion** - Database queries and page creation (uses `notion_API_` prefix)
+4. **Multi-Tool** - Figma → ClickUp → Webflow (complex orchestration)
+5. **Error Handling** - Robust patterns with fallbacks
+
+### Related Skills
+
+- **[mcp-semantic-search](../mcp-semantic-search/SKILL.md)** - Intent-based code discovery (use for finding code by what it does, not keyword matching)
+
+---
+
+## 📦 BUNDLED RESOURCES
+
+### scripts/
+
+**validate_config.py** - Configuration validation tool
+
+Validates `.utcp_config.json` structure, manual names, environment variables, and MCP server configurations.
+
+**Usage**: `python3 scripts/validate_config.py <config-path> --check-env <env-path>`
+
+### references/
+
+**Detailed documentation loaded into context**:
+
+- **naming_convention.md** - Tool naming pattern and troubleshooting (CRITICAL)
+- **configuration.md** - .utcp_config.json and .env setup guide
+- **tool_catalog.md** - Complete catalog of 200+ available tools
+- **workflows.md** - 4 comprehensive workflow examples
+- **architecture.md** - Technical architecture and token economics
+
+### assets/
+
+**Templates for configuration**:
+
+- **config_template.md** - Template .utcp_config.json file
+- **env_template.md** - Template .env file with placeholders
+
+**Usage**: Copy to project root, customize with your credentials and MCP servers
+
+---
+
+**Remember**: This skill operates as a unified execution environment for all MCP tools. It provides context efficiency and type safety for complex multi-tool workflows.

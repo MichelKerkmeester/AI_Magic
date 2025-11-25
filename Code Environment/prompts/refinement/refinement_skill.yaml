@@ -1,0 +1,727 @@
+# ─────────────────────────────────────────────────────────────────
+# FRAMEWORK
+# ─────────────────────────────────────────────────────────────────
+role: Skill Refinement Engineer
+purpose: Analyze, debug, test, and improve Claude Skills using create-documentation Mode 2 standards
+action: Refine skills following the 6-step skill creation workflow while preserving correct behavior and contracts
+core_principle: "Skills are context-aware instruction sets loaded on-demand via progressive disclosure"
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none
+  tracking: progressive_task_checklists
+  validation: final_verification
+
+# ─────────────────────────────────────────────────────────────────
+# USER INPUTS
+# ─────────────────────────────────────────────────────────────────
+user_inputs:
+  git_branch: |
+    [GIT_BRANCH]
+    
+    Git branch name for the work. Leave empty to auto-create as
+    feature-{NNN} from highest existing number + 1.
+  
+  spec_folder: |
+    [SPEC_FOLDER]
+    
+    Spec folder path (e.g., specs/001 or specs/001-feature-name).
+    Leave empty to auto-create next available spec number.
+  
+  skill_name: |
+    [SKILL_NAME]
+    
+    Primary Claude Skill to refine. Examples:
+    - fix-tests
+    - refactor-module
+    - summarize-diff
+    - custom-team-skill-name
+    Leave empty to infer from [SKILL_FILES] or [REQUEST].
+  
+  skill_files: |
+    [SKILL_FILES]
+    
+    Skill definition and implementation files to analyze. Can be:
+    - Single file paths (e.g., skills/fix-tests.yaml)
+    - Multiple paths (one per line) including code or scripts backing the skill
+    - Directories containing related skill definitions and helpers
+    Leave empty to infer from [SKILL_NAME] or repository skill layout.
+  
+  skill_type: |
+    [SKILL_TYPE]
+    
+    Classification of the skill. Examples:
+    - code_editing
+    - code_navigation
+    - test_maintenance
+    - documentation
+    - shell_tool
+    - external_service_integration
+    Leave empty to infer from skill definition, description, and usage.
+  
+  scope: |
+    [FILES]
+    
+    Additional files or folders related to the skill. Can be:
+    - Shared libraries used by the skill (e.g., scripts/lib/*.sh, src/lib/*.ts)
+    - Configuration or risk rules the skill depends on
+    - Test harnesses or corpora for the skill
+    - Multiple paths (one per line) or glob patterns
+    Leave empty to infer from [SKILL_FILES] and standard skill layout.
+  
+  context: |
+    [CONTEXT]
+    
+    Provide background information about why this skill is being refined. Examples:
+    - Real or suspected bugs (e.g., wrong edits, missing validations, flaky behavior)
+    - Performance concerns (slow responses, heavy token usage)
+    - UX concerns (confusing outputs, noisy diffs, poor suggestions)
+    - Integration issues with hooks, MCP tools, or external services
+    Leave empty to infer from skill definition, usage patterns, and tests.
+  
+  issues: |
+    [ISSUES]
+    
+    List specific issues, risks, or questions to address. Examples:
+    - "fix-tests sometimes deletes useful assertions"
+    - "refactor-module produces un-compilable code for large files"
+    - "skill logs are too verbose and clutter the terminal"
+    - "skill does not respect repository-specific conventions"
+    Leave empty to identify during analysis.
+  
+  request: |
+    [REQUEST]
+    
+    Describe the primary analysis and refinement goal. Be specific about:
+    - Whether this is bug investigation, robustness hardening, performance tuning,
+      ergonomics / DX improvements, behavior extension, or a combination
+    - Any constraints (e.g., must not broaden the skill's permissions or side effects)
+    - Success criteria for the refined skill
+    Leave empty to use default:
+    "Analyze the target skill for safety, correctness, usefulness, test coverage, and maintainability,
+    then propose and, if appropriate, implement improvements."
+
+# ─────────────────────────────────────────────────────────────────
+# REQUEST HANDLING
+# ─────────────────────────────────────────────────────────────────
+request_handling:
+  default: "Analyze the target skill for safety, correctness, usefulness, test coverage, and maintainability, then propose and, if appropriate, implement improvements."
+  override: "Use [REQUEST] if provided (replaces default), else use default above."
+
+# ─────────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ─────────────────────────────────────────────────────────────────
+field_handling:
+  spec_id:
+    derive_from: "spec_folder path using pattern specs/{NNN} or specs/{NNN-name}"
+    fallback: "Extract numeric portion or use timestamp if extraction fails"
+  
+  defaults:
+    git_branch_empty: "Auto-create feature-{NNN} from highest +001"
+    spec_folder_empty: "Auto-create specs/{NNN} from highest +001"
+    skill_name_empty: "Infer from skill definition file or directory name"
+    skill_files_empty: "Infer from [SKILL_NAME], [REQUEST], or repo's skills layout"
+    scope_empty: "Use scope_policy.default"
+    context_empty: "Infer from skill definition, usage, README, and tests when present"
+    issues_empty: "Identify during analysis"
+    request_empty: "Use default from request_handling"
+  
+  scope_policy:
+    default: "skills/**/*"
+    rule: >
+      When [SKILL_FILES] include file paths, include those files and their immediate helpers
+      (libraries, configs, and tests). When [SKILL_FILES] include directories, include all
+      relevant skill definitions, runtime implementations, and testing harnesses under them.
+
+# ─────────────────────────────────────────────────────────────────
+# PROGRESSIVE DISCLOSURE MODEL (from create-documentation skill)
+# ─────────────────────────────────────────────────────────────────
+progressive_disclosure:
+  # Skills use three-level loading to minimize context overhead
+  level_1_metadata:
+    content: "SKILL.md name + description (first 100 words)"
+    loaded: always
+    size_target: "~100 words"
+    purpose: "Route skill selection decisions"
+
+  level_2_body:
+    content: "Full SKILL.md body"
+    loaded: when_skill_triggers
+    size_target: "<5000 words"
+    purpose: "Provide operational instructions"
+
+  level_3_references:
+    content: "references/ folder files"
+    loaded: as_needed_via_explicit_reference
+    size_target: unlimited
+    purpose: "Deep-dive technical guidance"
+
+# ─────────────────────────────────────────────────────────────────
+# REQUIRED SKILL.md SECTIONS (from create-documentation skill)
+# ─────────────────────────────────────────────────────────────────
+required_sections:
+  mandatory:
+    - section: "WHEN TO USE"
+      purpose: "Clear activation triggers and use cases"
+      format: "Bullet list of specific scenarios"
+    - section: "HOW IT WORKS"
+      purpose: "Operational workflow steps"
+      format: "Numbered steps or workflow diagram"
+    - section: "RULES"
+      subsections:
+        - "### ✅ ALWAYS"
+        - "### ❌ NEVER"
+        - "### ⚠️ ESCALATE IF"
+      purpose: "Behavioral guardrails"
+
+  recommended:
+    - SUCCESS CRITERIA
+    - INTEGRATION POINTS
+    - EXAMPLES
+
+# ─────────────────────────────────────────────────────────────────
+# WRITING STYLE GUIDELINES (from create-documentation skill)
+# ─────────────────────────────────────────────────────────────────
+writing_style:
+  description:
+    voice: third_person
+    example: "This skill should be used when..."
+    forbidden: "You should use this skill..." # first/second person
+
+  instructions:
+    voice: imperative_or_infinitive
+    examples:
+      - "Validate input format"
+      - "Run check for dependencies"
+      - "Generate output report"
+
+  constraints:
+    - skill_md_under_5000_words
+    - no_angle_brackets_in_description
+    - no_inline_code_in_first_sentence
+
+# ─────────────────────────────────────────────────────────────────
+# BUNDLED RESOURCES ORGANIZATION (from create-documentation skill)
+# ─────────────────────────────────────────────────────────────────
+bundled_resources:
+  scripts:
+    purpose: "Executable code for deterministic, repeatedly-needed operations"
+    examples:
+      - "validate_skill.py"
+      - "package_skill.sh"
+  references:
+    purpose: "Documentation loaded as needed (Level 3)"
+    examples:
+      - "architecture.md"
+      - "troubleshooting.md"
+  assets:
+    purpose: "Files used in output (templates, icons, etc.)"
+    examples:
+      - "skill_template.md"
+      - "hook_template.sh"
+
+# ─────────────────────────────────────────────────────────────────
+# QUALITY TARGETS FOR SKILL.md (from create-documentation skill)
+# ─────────────────────────────────────────────────────────────────
+skill_quality_gates:
+  structure: 100  # strict, no exceptions
+  c7score: 85+    # highly AI-friendly
+  style: 90+      # exemplary compliance
+  overall: 90+    # required for production
+
+  validation:
+    minimal: "Run package_skill.py for basic structure checks"
+    comprehensive: "Run create-documentation validation pipeline"
+
+# ─────────────────────────────────────────────────────────────────
+# COMMON PITFALLS (from skill_creation.md)
+# ─────────────────────────────────────────────────────────────────
+common_pitfalls:
+  generic_descriptions:
+    problem: "Description too vague to trigger correctly"
+    solution: "Include specific keywords and use cases"
+  bloated_skill_md:
+    problem: "SKILL.md exceeds 5000 words, causing context overhead"
+    solution: "Move detailed content to references/"
+  missing_resources:
+    problem: "Scripts or templates referenced but not bundled"
+    solution: "Use package_skill.py to verify completeness"
+  wrong_voice:
+    problem: "Using first/second person in description"
+    solution: "Use third-person: 'This skill...'"
+  emoji_violations:
+    problem: "Emojis on H1 or H4+, or missing on H2"
+    solution: "H1 never, H2 always numbered+emoji, H3 semantic only in RULES"
+
+# ─────────────────────────────────────────────────────────────────
+# SKILL REFERENCES (load for detailed patterns)
+# ─────────────────────────────────────────────────────────────────
+skill_references:
+  skill_creation_workflow: ".claude/skills/create-documentation/references/skill_creation.md"
+  validation_details: ".claude/skills/create-documentation/references/validation.md"
+  core_standards: ".claude/skills/create-documentation/references/core_standards.md"
+
+optimization_philosophy:
+  principle: "Safety, predictability, and usefulness first"
+  approach: "Understand the skill's role, contracts, and context before changing; prefer small, reversible improvements"
+  mandate: "Preserve correct behavior and user expectations while reducing bugs, surprises, and unnecessary token or performance costs"
+
+scope:
+  applies_to: claude_skills_and_helpers
+  targets:
+    - skill_definitions            # e.g., skills/*.yaml definitions, manifest files
+    - skill_runtime_implementations # e.g., scripts, services, or code that skills invoke
+    - skill_configuration          # e.g., risk rules, permissions, environment assumptions
+    - skill_testing_framework      # e.g., skill test runners, prompt corpora, expected-results files
+
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_1_initialization:
+    description: Gather inputs, resolve skill targets, classify the skill, and set refinement goals.
+    input_source: USER_INPUTS_SECTION_ABOVE
+    git_branch: "[GIT_BRANCH] → use or create if empty"
+    spec_folder: "[SPEC_FOLDER] → auto-create if empty"
+    skill_name: "[SKILL_NAME] → primary skill under refinement"
+    skill_files: "[SKILL_FILES] → skill definitions and implementations to analyze"
+    skill_type: "[SKILL_TYPE] → skill classification, infer if empty"
+    context: "[CONTEXT] → infer if empty"
+    issues: "[ISSUES] → identify during analysis"
+    request: "Use [REQUEST] if provided, else use default from request_handling"
+
+    skill_discovery:
+      when_files_provided:
+        - Verify each file exists and is readable.
+        - Identify which files are definitions vs runtime code vs configuration vs tests.
+        - Map relationships between skill definitions and implementations.
+      when_directories_provided:
+        - Enumerate relevant skill definition files (e.g., skills/**/*.yaml).
+        - Identify associated runtime code, helpers, and tests.
+        - Prioritize files directly involved in reported [ISSUES] or [REQUEST].
+
+    initial_assessment:
+      - Clarify whether this is primarily bug investigation, robustness hardening, behavior refinement, or general improvement.
+      - Estimate risk level of changes (read-only vs high-impact skills that write/delete or call services).
+      - Identify whether tests already exist for this skill.
+      - Decide whether branch and spec folder setup should be created or reused.
+
+    outputs:
+      - resolved_skill_targets
+      - skill_type_classification
+      - refinement_goal
+      - risk_profile
+      - initial_plan
+
+  step_2_read_skill_and_context:
+    description: Load the skill definitions, runtime code, and relevant surrounding context.
+    action: Read skill definitions, implementations, helpers, configuration, and testing docs.
+    input: resolved_skill_targets_from_step_1
+    context_integration: "Consider [CONTEXT] and [ISSUES] throughout analysis."
+
+    sources_to_consider:
+      - Primary skill definition file(s) (from [SKILL_FILES]).
+      - Runtime implementations invoked by the skill (scripts, binaries, services).
+      - Shared libraries and helpers used by the skill.
+      - Skill-level README or documentation files (e.g., skills/README.md, docs/skills/*.md).
+      - Testing framework docs and scripts for the skill.
+      - Central config such as risk rules, permissions, environment assumptions, or schemas.
+      - Logs or telemetry that reflect skill usage and outcomes, when available.
+
+    deep_analysis:
+      focus: skill_and_context_loading
+      approach: systematic_file_processing
+      outputs:
+        - skill_definition_map
+        - runtime_implementation_map
+        - configuration_map
+        - logging_and_performance_signals
+        - initial_behavior_hypotheses
+
+    validation: skills_and_context_loaded_successfully
+
+  step_3_analyze_behavior:
+    description: Build a precise behavioral model of the skill, including contracts and edge cases.
+    action: Perform static analysis of skill logic, prompts, and integration points.
+    request_focus: "Prioritize behaviors related to [ISSUES] and [REQUEST]."
+
+    analysis_dimensions:
+      contracts_and_protocols:
+        - Understand how the skill is invoked (inputs: arguments, environment, context) and what outputs it produces.
+        - Document which inputs are mandatory and how absent or malformed inputs are handled.
+        - Record observable outcomes and side effects (file changes, API calls, git operations).
+        - Identify invariants the skill is expected to preserve (e.g., compile-ability, test pass rate).
+      
+      safety_and_security:
+        - Identify operations that can modify or delete data, push to remotes, or call external services.
+        - Check for missing guardrails, validations, or confirmations, especially in destructive paths.
+        - Confirm that the skill respects repository boundaries and least-privilege access.
+        - Verify that error and warning messages are clear, actionable, and do not leak sensitive data.
+      
+      performance_and_token_efficiency:
+        - Look for unnecessary subprocess calls, repeated dependency resolution, or expensive scans.
+        - Check for safe early exits when input is irrelevant or unchanged.
+        - Confirm that prompts and outputs avoid unnecessary verbosity while remaining useful.
+      
+      observability_and_logging:
+        - Evaluate clarity and succinctness of messages the skill prints or returns.
+        - Confirm that high-impact actions are logged with enough detail for future debugging.
+        - Ensure logs and messages are written in consistent styles and locations.
+        - Identify missing debug information that would help future debugging without overwhelming normal use.
+      
+      integration_and_interactions:
+        - Map how this skill depends on hooks, MCP tools, shared libraries, and central configuration.
+        - Identify any coupling to other skills (e.g., shared prompts, shared state, shared caches).
+        - Check compatibility with existing testing frameworks or evaluation harnesses for skills.
+        - Note any assumptions about directories, repository layout, installed tools, or network access.
+
+    deep_analysis:
+      focus: behavioral_modeling_and_risk_assessment
+      approach: structured_static_analysis
+      outputs:
+        - skill_behavior_model
+        - input_output_and_side_effect_summary
+        - safety_and_security_findings
+        - performance_and_logging_findings
+        - integration_map
+        - potential_issue_inventory
+
+    validation: behavioral_analysis_complete
+
+  step_4_reproduce_and_debug:
+    description: Reproduce reported issues or suspected edge cases where possible.
+    action: Design and, when allowed, run minimal test invocations of the skill.
+
+    reproduction_strategy:
+      input_modeling:
+        - Derive minimal invocation scenarios that mimic real skill usage.
+        - Include both expected-success and expected-failure cases.
+        - Explicitly model edge cases from [ISSUES] (e.g., large files, unusual repository layouts, partial configurations).
+      
+      controlled_execution:
+        - When allowed, run the skill (or its runtime implementation) directly with crafted input.
+        - Capture inputs, outputs, logs, and observable side effects.
+        - Compare actual behavior to the behavioral model from step_3.
+      
+      failure_analysis:
+        - For each unexpected behavior, localize the responsible logic or prompt segment.
+        - Distinguish between:
+          - Correct but surprising behavior (documentation or UX problem).
+          - Incorrect or unsafe behavior (bug or missing validation).
+          - Missing behavior (under-powered skill or missing feature).
+          - DX issues (noisy output, unclear instructions, confusing diffs).
+
+    deep_analysis:
+      focus: failure_reproduction_and_root_cause
+      approach: targeted_experiments
+      outputs:
+        - reproduction_cases
+        - execution_traces
+        - root_cause_hypotheses
+        - confirmed_failures_vs_intended_behavior
+
+    validation: reproductions_and_debugging_complete_or_limited_by_environment
+
+  step_5_improvement_design:
+    description: Design improvements to safety, correctness, usefulness, test coverage, and maintainability.
+    action: Propose concrete changes, prioritized by risk and impact.
+
+    design_axes:
+      safety_and_correctness:
+        - Add or refine validations, confirmations, and guardrails for high-impact actions.
+        - Adjust prompts or logic to reduce risky or ambiguous operations.
+        - Ensure error handling paths are explicit, predictable, and well-communicated.
+      
+      usefulness_and_UX:
+        - Improve prompt phrasing, guidance, and examples to better match the skill's intent.
+        - Reduce unnecessary verbosity while preserving essential information.
+        - Make outputs easier to apply (e.g., structured diffs, clear steps, concise summaries).
+      
+      test_coverage_and_regression_protection:
+        - Identify missing test cases for newly discovered edge conditions.
+        - Extend existing test frameworks or add new test harnesses for the skill.
+        - Define expected behavior for each critical scenario, including failure paths.
+      
+      performance_and_efficiency:
+        - Propose ways to reduce redundant filesystem or git operations.
+        - Suggest more efficient logic or early exits where appropriate.
+        - Ensure performance instrumentation remains lightweight and informative.
+      
+      readability_and_maintainability:
+        - Suggest refactors to clarify intent without changing behavior.
+        - Introduce helper functions where repeated logic exists.
+        - Improve comments and documentation explaining non-obvious design choices.
+
+    prioritization:
+      order:
+        - high_risk_bug_fixes
+        - safety_and_security_improvements
+        - test_coverage_expansions
+        - usefulness_and_UX_improvements
+        - performance_and_efficiency_tweaks
+        - readability_and_maintainability_refactors
+
+    outputs:
+      - proposed_change_set
+      - risk_and_impact_assessment
+      - test_plan_updates
+      - migration_notes_if_needed
+
+    validation: improvement_plan_defined
+
+  step_6_implementation_and_tests:
+    description: Implement agreed-upon changes and run tests where appropriate.
+    action: Apply minimal, well-scoped modifications and verify behavior.
+
+    implementation_guidelines:
+      - Make small, focused commits that correspond to logical improvements.
+      - Preserve existing behavior by default; only change behavior where clearly justified.
+      - Keep high-impact vs low-impact skill semantics aligned with the skill's intended role.
+      - Ensure messages and prompts remain condensed and consistent with shared patterns.
+    
+    testing_strategy:
+      existing_tests:
+        - Discover and run existing skill test suites when available.
+        - Compare results to baseline (e.g., stored JSON, golden outputs, or summary files).
+      new_tests:
+        - Add focused tests for newly identified edge cases and failure modes.
+        - Ensure tests document both the input and expected behavior.
+      manual_verification:
+        - For particularly sensitive skills, describe manual verification steps succinctly.
+
+    deep_analysis:
+      focus: behavior_preservation_and_regression_prevention
+      approach: test-driven_verification
+      outputs:
+        - test_results_summary
+        - before_after_behavior_comparison
+        - confirmation_of_fixed_issues
+        - notes_on_any_intentional_behavior_changes
+
+    validation: implementation_and_tests_complete_or_blocked_with_reason_documented
+
+  step_7_report_findings_and_recommendations:
+    description: Summarize analysis, decisions, and recommended next steps.
+    action: Produce a concise but complete report covering behavior, issues, tests, and improvements.
+
+    report_structure:
+      - skill_overview_and_role
+      - behavior_model_summary
+      - issues_and_root_causes
+      - changes_made (if any)
+      - tests_added_or_updated
+      - residual_risks_and_known_limitations
+      - prioritized_recommendations_for_future_improvements
+
+    deep_analysis:
+      focus: change_documentation_and_knowledge_sharing
+      approach: concise_structured_reporting
+      outputs:
+        - skill_refinement_report
+        - test_and_coverage_summary
+        - follow_up_task_list
+
+    validation: report_generated
+
+  step_8_save_context:
+    description: Persist the analysis and refinement context for future work.
+    action: Save conversation, decisions, and test outcomes into the spec folder memory system.
+    invocation: Skill(skill: "save-context")
+
+    outputs:
+      context_file: "[SPEC_FOLDER]/memory/[DD-MM-YY_HH-MM]__skill_refinement_session.md"
+      includes:
+        - Skill behavior model and contracts.
+        - Reproduction inputs and outputs for issues.
+        - Changes made and rationale.
+        - Test coverage summary and key results.
+        - Recommended follow-up work.
+
+    validation: context_saved_successfully
+
+  step_9_branch_integration:
+    name: Branch Integration
+    description: Integrate skill refinements to main branch using a safe, auditable strategy.
+    action: Integrate changes via a conservative git workflow.
+
+    integration_policy:
+      merge_strategy: rebase_then_fast_forward
+      safety_checks:
+        - clean working tree
+        - skill tests and relevant checks pass
+        - no unresolved blockers
+      conflict_policy:
+        on_rebase_conflict: pause and ask for guidance
+        fallback_to_pr: offer to open a PR if user prefers manual resolution
+      steps:
+        - fetch origin
+        - update main (pull --ff-only)
+        - rebase feature branch onto main
+        - fast-forward merge into main
+        - push origin main
+        - after successful integration, offer to delete the feature branch
+          locally and on origin (explicit confirmation required)
+      tagging: optional; only on user request
+
+    deep_analysis:
+      focus: integration_execution_and_risk_control
+      approach: safe_merge_strategy
+      outputs:
+        - integration_status
+        - branch_state
+        - conflict_resolution_log
+        - final_branch_status
+
+    validation: integration_complete
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW TERMINATION
+# ─────────────────────────────────────────────────────────────────
+termination:
+  after_step: 9
+  message: "Skill analysis, debugging, testing, and refinement workflow completed successfully. Terminated after step 9 (branch integration)."
+  next_steps:
+    - Review [SPEC_FOLDER]/skill-refinement-report.md or equivalent summary file if created.
+    - Verify that refined skills behave correctly in real usage scenarios.
+    - Monitor logs, tests, and user feedback for regressions or new opportunities.
+
+  spec_folder_output:
+    - "[SPEC_FOLDER]/skill-refinement-report.md - Skill analysis and refinement summary (if produced)."
+    - "[SPEC_FOLDER]/memory/[timestamp]__skill_refinement_session.md - Session context and decisions."
+
+# ─────────────────────────────────────────────────────────────────
+# DECISION TREES
+# ─────────────────────────────────────────────────────────────────
+decision_trees:
+  refinement_goal:
+    description: Distinguish between bugfix, robustness hardening, behavior extension, and general improvement.
+    nodes:
+      - id: root
+        condition: issues_explicitly_report_bug_or_safety_risk
+        true_next: bugfix_path
+        false_next: improvement_path
+      - id: bugfix_path
+        action: >
+          Prioritize reproducing the bug or unsafe behavior, confirming root cause, and designing a
+          minimal, well-tested fix that does not broaden the skill's scope or permissions unnecessarily.
+      - id: improvement_path
+        action: >
+          Focus on safety, usefulness, test coverage, performance, and maintainability improvements
+          while preserving existing behavior unless clearly justified.
+
+  change_scope:
+    description: Decide how invasive proposed changes should be.
+    steps:
+      - question: Is the skill high-impact (it can modify/delete data, push to remotes, or call external services)?
+        if_yes: treat_changes_as_high_risk
+      - question: Are current issues primarily about messaging / UX / ergonomics?
+        if_yes: prefer_non_behavioral_changes_first
+      - question: Is there adequate test coverage?
+        if_no: add_tests_before_major_refactors
+
+# ─────────────────────────────────────────────────────────────────
+# STRATEGIES
+# ─────────────────────────────────────────────────────────────────
+strategies:
+  safety_and_correctness:
+    - require_clear_validations_for_destructive_or_external_actions
+    - keep_permission_and_scope_decisions_simple_and_auditable
+    - document_any_non_obvious_safety_or_security_decisions
+    - validate_input_shape_and_assumptions_before_executing_actions
+
+  performance_and_token_efficiency:
+    - avoid_unnecessary_git_or_filesystem_scans
+    - short_circuit_when_input_or_state_indicates_no_useful_work
+    - keep_logging_and_outputs_compact_but_informative
+    - reuse_computations_or_caches_where_safe_and_appropriate
+
+  observability_and_logging:
+    - use_consistent_message_styles_and_conventions_if_defined
+    - clearly_distinguish_between_info_warning_and_error
+    - avoid_spamming_logs_for_non_critical_paths
+    - ensure_high_impact_actions_are_loggable_and_traceable
+
+  test_strategy:
+    - add_tests_for_each_confirmed_bug_before_fixing
+    - include_happy_path_edge_case_and_failure_scenarios
+    - keep_test_inputs_small_but_realistic
+    - store_results_in_a_consistent_location_for_regression_comparison
+
+  user_workflow:
+    usage_example: |
+      # Refine a skill that maintains tests
+      /refine-skill skills/fix-tests.yaml
+
+      # Focus on robustness and UX for a code refactoring skill
+      /refine-skill skills/refactor-module.yaml
+
+      # Work on test coverage and safety for a high-impact shell tool skill
+      /refine-skill skills/run-command.yaml
+
+# ─────────────────────────────────────────────────────────────────
+# QUALITY STANDARDS
+# ─────────────────────────────────────────────────────────────────
+quality_standards:
+  must_satisfy_all:
+    - behavior_contracts_preserved_or_explicitly_and_safely_updated
+    - safety_and_security_posture_not_weakened
+    - false_positive_and_false_negative_rates_not_worsened_without_clear_justification
+    - test_coverage_same_or_better_after_changes
+    - logging_and_user_feedback_clarity_same_or_better
+    - performance_not_significantly_degraded_for_common_paths
+
+  verification_test:
+    step_1:
+      question: Do tests and reproductions confirm that intended behavior is preserved or improved?
+      if_no: reject_changes_or_iterate_with_more_tests
+    step_2:
+      question: Have all reported [ISSUES] been addressed or explicitly scoped out?
+      if_no: mark_as_known_limitations_and_document
+    step_3:
+      question: Is the new behavior clearly justified and documented in the report?
+      if_no: refine_documentation_before_completion
+
+  hierarchy:
+    priority_order:
+      - safety_and_correctness
+      - security
+      - test_coverage_and_regression_protection
+      - usefulness_and_UX
+      - performance
+      - ergonomics_and_maintainability
+    rule: >
+      Never sacrifice safety or correctness for convenience. Prefer small,
+      well-tested improvements over large refactors when working on high-impact skills.
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+    - read_skill_definitions_and_related_docs_before_changing_behavior
+    - understand_input_output_and_side_effect_contracts
+    - reproduce_reported_issues_when_possible_before_fixing
+    - add_or_update_tests_for_each_fixed_bug_or_new_edge_case
+    - keep_changes_minimal_and_well_scoped
+    - document_behavior_changes_and_justification_in_the_report
+    - maintain_or_improve_logging_and_user_feedback_clarity
+
+  NEVER:
+    - relax_safety_or_security_checks_without_clear_justification_and_tests
+    - broaden_skill_permissions_or_side_effects_without_considering_risks
+    - significantly_increase_logging_noise_for_normal_paths
+    - assume_environment_capabilities_without_verifying_or_documenting
+    - change_contracts_or_side_effects_silently_without_documentation
+
+  SKILL_SPECIFIC_GUIDELINES:
+    high_impact_skills:
+      - treat_every_behavior_change_as_high_risk
+      - prefer_improving_messages_validations_and_tests_before_changing_core_logic
+      - ensure_failure_and_abort_paths_are_clearly_communicated
+    read_only_or_low_impact_skills:
+      - focus_on_usefulness_observability_and_signal_quality
+      - avoid_performance_or_noise_regressions
+      - ensure_outputs_remain_actionable_for_future_debugging_and_user_decisions

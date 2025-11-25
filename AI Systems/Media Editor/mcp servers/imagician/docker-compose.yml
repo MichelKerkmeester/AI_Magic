@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  imagician:
+    build: .
+    image: imagician:latest
+    container_name: imagician
+    volumes:
+      # Map only the main images directory as specified
+      # REPLACE THIS PATH with your actual Media Editor path
+      - /path/to/your/Media Editor/export/images:/images:rw
+
+    environment:
+      # Set working directory base
+      - IMAGE_PATH=/images
+      - NODE_ENV=production
+
+    # Network mode for MCP communication
+    network_mode: host
+
+    # Keep container running
+    stdin_open: true
+    tty: true
+
+    # Restart policy
+    restart: unless-stopped

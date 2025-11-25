@@ -1,0 +1,478 @@
+# ─────────────────────────────────────────────────────────────────
+# FRAMEWORK
+# ─────────────────────────────────────────────────────────────────
+role: Expert Developer conducting feature research with user approval checkpoints
+purpose: Technical investigation and documentation with user confirmation at each step
+action: Produce research.md via the research workflow with interactive approval gates
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: interactive
+  approvals: user_confirmation_required
+  tracking: progressive_task_checklists
+  validation: continuous_with_user_approval
+
+research_philosophy:
+  principle: "Evidence first, conclusions second"
+  approach: "Comprehensive discovery with cited sources and user input"
+  mandate: "Gather facts, assess credibility, document findings, confirm with user"
+
+# ─────────────────────────────────────────────────────────────────
+# USER INPUTS
+# ─────────────────────────────────────────────────────────────────
+user_inputs:
+  git_branch: |
+    [GIT_BRANCH]
+    Git branch name for the work.
+  
+  spec_folder: |
+    [SPEC_FOLDER]
+    Spec folder path (e.g., specs/001 or specs/001-feature-name).
+  
+  context: |
+    [CONTEXT]
+    Background information for the research.
+  
+  issues: |
+    [ISSUES]
+    Known issues or problems to investigate.
+  
+  request: |
+    [REQUEST]
+    Describe the feature or improvement to research.
+  
+  environment: |
+    [STAGING LINK]
+    Staging or production URL for browser testing.
+  
+  scope: |
+    [FILES]
+    Files or folders to focus on.
+
+# ─────────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ─────────────────────────────────────────────────────────────────
+field_handling:
+  spec_id:
+    derive_from: "spec_folder path using pattern specs/{NNN} or specs/{NNN-name}"
+    fallback: "Extract numeric portion or use timestamp if extraction fails"
+
+  defaults:
+    git_branch_empty: "Auto-create feature-{NNN} from highest +001"
+    spec_folder_empty: "Auto-create specs/{NNN} from highest +001"
+    context_empty: "Infer from [REQUEST] and [STAGING LINK]"
+    issues_empty: "Investigate during workflow"
+    environment_empty: "Skip browser testing steps"
+    scope_empty: "Use scope_policy.default"
+
+  scope_policy:
+    default: "specs/**"
+    rule: "Limit file operations to scope when provided"
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW WITH INTERACTIVE CHECKPOINTS
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_1_request_analysis:
+    input_source: USER_INPUTS_SECTION_ABOVE
+    action: Analyze inputs; define research scope for the spec folder
+    deep_analysis:
+      focus: comprehensive_scoping
+      outputs:
+        - feature_summary
+        - research_objectives
+        - complexity_assessment
+        - key_questions_to_answer
+        - investigation_priorities
+    validation: scope_defined
+    checkpoint:
+      display:
+        step_summary: "Research scope defined"
+        outputs_generated:
+          - "Research objectives"
+          - "Key questions identified"
+          - "Investigation priorities"
+        key_decisions: "Research scope and focus areas"
+      question:
+        prompt: "Step 1 complete: Request Analysis. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Pre-Work Review"
+            action: proceed_to_step_2
+          - label: "Review detailed scope"
+            action: display_detailed_outputs
+          - label: "Modify research scope"
+            action: revise_step_1
+          - label: "Abort workflow"
+            action: terminate_and_save
+
+  step_2_pre_work_review:
+    required_documents:
+      - AGENTS.md
+      - .claude/knowledge/code_standards.md
+      - .claude/knowledge/debugging.md
+    verification: MUST REVIEW
+    validation: principles_established
+    checkpoint:
+      display:
+        step_summary: "Knowledge base reviewed"
+        outputs_generated:
+          - "Relevant standards identified"
+          - "Existing patterns documented"
+          - "Project conventions noted"
+        key_decisions: "Standards guiding research"
+      question:
+        prompt: "Step 2 complete: Pre-Work Review. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Codebase Investigation"
+            action: proceed_to_step_3
+          - label: "Review findings in detail"
+            action: display_detailed_outputs
+          - label: "Skip to specific step"
+            action: skip_to_step
+          - label: "Abort workflow"
+            action: terminate_and_save
+
+  step_3_codebase_investigation:
+    action: Investigate existing codebase and patterns
+    research_areas:
+      - existing_implementations
+      - related_components
+      - current_architecture
+      - code_conventions
+      - dependencies
+    tools:
+      - grep_patterns
+      - file_exploration
+      - dependency_analysis
+    deep_analysis:
+      focus: codebase_pattern_analysis
+      outputs:
+        - current_state_analysis
+        - existing_patterns
+        - technical_constraints
+        - reusable_components
+    validation: codebase_understood
+    checkpoint:
+      display:
+        step_summary: "Codebase investigation complete"
+        outputs_generated:
+          - "Current state analysis"
+          - "Existing patterns documented"
+          - "Technical constraints identified"
+        key_decisions: "Codebase understanding"
+      question:
+        prompt: "Step 3 complete: Codebase Investigation. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to External Research"
+            action: proceed_to_step_4
+          - label: "Continue investigation"
+            action: additional_investigation
+          - label: "Review findings in detail"
+            action: display_detailed_outputs
+          - label: "Skip to specific step"
+            action: skip_to_step
+
+  step_4_external_research:
+    action: Research external documentation and best practices
+    sources:
+      - official_documentation
+      - api_references
+      - community_solutions
+      - industry_standards
+      - similar_implementations
+    chrome_devtools:
+      when: analyzing_live_examples
+    deep_analysis:
+      focus: external_solutions_analysis
+      outputs:
+        - best_practices_summary
+        - external_solutions_analysis
+        - api_specifications
+        - integration_options
+    validation: external_research_complete
+    checkpoint:
+      display:
+        step_summary: "External research complete"
+        outputs_generated:
+          - "Best practices documented"
+          - "API specifications gathered"
+          - "Integration options identified"
+        key_decisions: "External insights"
+      question:
+        prompt: "Step 4 complete: External Research. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Technical Analysis"
+            action: proceed_to_step_5
+          - label: "Continue research"
+            action: additional_research
+          - label: "Review findings in detail"
+            action: display_detailed_outputs
+          - label: "Skip to specific step"
+            action: skip_to_step
+
+  step_5_technical_analysis:
+    action: Perform deep technical analysis and feasibility assessment
+    analysis_areas:
+      - architecture_implications
+      - performance_considerations
+      - security_requirements
+      - accessibility_standards
+      - browser_compatibility
+    deep_analysis:
+      focus: technical_feasibility_analysis
+      outputs:
+        - technical_specifications
+        - constraints_and_limitations
+        - risk_assessment
+        - compatibility_matrix
+    validation: technical_analysis_complete
+    checkpoint:
+      display:
+        step_summary: "Technical analysis complete"
+        outputs_generated:
+          - "Technical specifications"
+          - "Constraints documented"
+          - "Risk assessment"
+          - "Compatibility matrix"
+        key_decisions: "Technical feasibility assessment"
+      question:
+        prompt: "Step 5 complete: Technical Analysis. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Quality Checklist"
+            action: proceed_to_step_6
+          - label: "Continue analysis"
+            action: additional_analysis
+          - label: "Review analysis in detail"
+            action: display_detailed_outputs
+          - label: "Skip to specific step"
+            action: skip_to_step
+
+  step_6_quality_checklist:
+    command: /speckit.checklist
+    outputs:
+      - quality_checklist: generated
+    validation: checklist_generated
+    checkpoint:
+      display:
+        step_summary: "Quality checklist generated"
+        outputs_generated:
+          - "Research quality checklist"
+          - "Validation criteria"
+        key_decisions: "Quality standards for research"
+      question:
+        prompt: "Step 6 complete: Quality Checklist. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Solution Design"
+            action: proceed_to_step_7
+          - label: "Modify checklist"
+            action: edit_checklist
+          - label: "Review checklist"
+            action: display_checklist_content
+          - label: "Skip to specific step"
+            action: skip_to_step
+
+  step_7_solution_design:
+    action: Design solution architecture and integration patterns
+    deliverables:
+      - proposed_architecture
+      - integration_patterns
+      - api_design
+      - data_flow_diagrams
+      - component_interactions
+    chrome_devtools:
+      when: prototyping_solutions
+    deep_analysis:
+      focus: solution_architecture_design
+      outputs:
+        - solution_architecture
+        - implementation_patterns
+        - code_examples
+        - configuration_requirements
+    validation: solution_designed
+    checkpoint:
+      display:
+        step_summary: "Solution design complete"
+        outputs_generated:
+          - "Proposed architecture"
+          - "Integration patterns"
+          - "Code examples"
+        key_decisions: "Recommended approach"
+      question:
+        prompt: "Step 7 complete: Solution Design. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Research Compilation"
+            action: proceed_to_step_8
+          - label: "Refine solution design"
+            action: refine_design
+          - label: "Review design in detail"
+            action: display_detailed_outputs
+          - label: "Add research spike"
+            action: create_research_spike
+
+  step_8_research_compilation:
+    action: Compile comprehensive research documentation
+    deep_analysis:
+      focus: comprehensive_research_document
+      required_sections:
+        - investigation_report
+        - executive_overview
+        - architecture_analysis
+        - technical_specifications
+        - constraints_and_limitations
+        - integration_patterns
+        - implementation_guide
+        - code_examples_and_snippets
+        - testing_strategies
+        - performance_optimization
+        - security_considerations
+        - api_reference
+        - troubleshooting_guide
+    document_structure:
+      format: markdown
+      location: "[SPEC_FOLDER]/research.md"
+    optional_documents:
+      - research-spike-[name].md: "Time-boxed experimentation (copy from .opencode/speckit/templates/research_spike_template.md)"
+      - decision-record-[name].md: "Technical decisions (copy from .opencode/speckit/templates/decision_record_template.md)"
+    validation: documentation_complete
+    checkpoint:
+      display:
+        step_summary: "Research.md compiled"
+        outputs_generated:
+          - "research.md with all sections"
+          - "Code examples"
+          - "Technical recommendations"
+        key_decisions: "Research conclusions and recommendations"
+      question:
+        prompt: "Step 8 complete: Research Compilation. How would you like to proceed?"
+        options:
+          - label: "Approve and save context"
+            action: proceed_to_step_9
+          - label: "Edit research.md"
+            action: edit_research
+          - label: "Add decision record"
+            action: create_decision_record
+          - label: "Review research in detail"
+            action: display_research_content
+
+  step_9_save_context:
+    action: Save conversation context for research documentation
+    invocation: Skill(skill: "save-context")
+    description: |
+      Preserve comprehensive research conversation including:
+      - Investigation methodology and findings
+      - External research sources and citations
+      - Technical analysis and decisions
+      - Solution design rationale
+    outputs:
+      - context_file: "[SPEC_FOLDER]/memory/[DD-MM-YY_HH-MM]__research_session.md"
+      - workflow_flowchart: auto_generated
+      - research_decisions: documented
+    validation: context_saved_successfully
+    checkpoint:
+      display:
+        step_summary: "Research context saved"
+        outputs_generated:
+          - "Context file in memory/"
+          - "Workflow flowchart"
+          - "Research decisions documented"
+        key_decisions: "Complete research record preserved"
+      question:
+        prompt: "Step 9 complete: Context Saved. Research workflow finished!"
+        options:
+          - label: "Finish research workflow"
+            action: complete_workflow
+          - label: "Review all artifacts"
+            action: review_all_artifacts
+          - label: "Continue to specification"
+            action: suggest_specification_workflow
+
+termination:
+  after_step: 9
+  message: "Feature research completed with user approval at all checkpoints."
+
+# ─────────────────────────────────────────────────────────────────
+# QUALITY STANDARDS
+# ─────────────────────────────────────────────────────────────────
+quality_standards:
+  documentation:
+    - production_ready_examples
+    - defensive_programming_patterns
+    - error_handling_strategies
+    - spa_compatibility
+  code_examples:
+    - working_snippets
+    - proper_error_handling
+    - performance_optimized
+    - accessibility_compliant
+    - browser_compatible
+  analysis_depth:
+    - edge_cases_covered
+    - failure_modes_documented
+    - recovery_strategies_defined
+    - monitoring_approaches_specified
+
+# ─────────────────────────────────────────────────────────────────
+# INTERACTIVE EXECUTION GUIDANCE
+# ─────────────────────────────────────────────────────────────────
+interactive_execution:
+  principle: "Execute research workflow with user confirmation at each checkpoint"
+
+  checkpoint_behavior:
+    - Present step summary with outputs
+    - Show key decisions made
+    - List any issues found
+    - Offer multiple choice options
+    - Wait for user selection
+
+  user_options:
+    standard:
+      - approve_and_continue
+      - review_outputs
+      - modify_approach
+      - skip_to_step
+      - abort_workflow
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+    - follow_research_methodology
+    - document_all_findings
+    - validate_technical_feasibility
+    - prompt_for_user_approval_at_checkpoints
+    - present_options_clearly
+    - wait_for_user_decision
+    - generate_comprehensive_documentation
+
+  NEVER:
+    - skip_investigation_steps
+    - ignore_platform_constraints
+    - submit_without_thorough_analysis
+    - proceed_without_user_approval
+    - proceed_to_implementation
+    - invent_new_patterns_when_existing_work
+
+# ─────────────────────────────────────────────────────────────────
+# SUCCESS CRITERIA
+# ─────────────────────────────────────────────────────────────────
+success:
+  research:
+    - Research question thoroughly answered
+    - All relevant sources consulted
+    - Findings comprehensive
+    - User approved at checkpoint
+
+  documentation:
+    - Research.md complete
+    - All sections populated
+    - Examples working
+    - Sources cited
+    - User approved at checkpoint
+
+  quality:
+    - Recommendations actionable
+    - Risks identified
+    - Alternatives considered
+    - User approved at checkpoint

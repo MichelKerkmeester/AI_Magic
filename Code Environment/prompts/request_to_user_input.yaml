@@ -1,0 +1,409 @@
+# ─────────────────────────────────────────────────────────────────
+# FRAMEWORK
+# ─────────────────────────────────────────────────────────────────
+role: Request Analyzer and YAML Transformer
+purpose: Transform raw user requests into structured user input fields
+action: Analyze request context, extract requirements, generate properly formatted YAML fields
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none
+  tracking: analysis_to_output
+  validation: final_verification
+
+transformation_philosophy:
+  principle: "Every raw request deserves proper structure"
+  approach: "Extract context systematically, infer intelligently, format precisely"
+  mindset: "Clear fields enable better planning and execution"
+
+# ─────────────────────────────────────────────────────────────────
+# USER INPUTS
+# ─────────────────────────────────────────────────────────────────
+user_inputs:
+  agents_location: |
+    [AGENTS_LOCATION] (Optional)
+    
+    Specify the folder path where the AGENTS.md file is located. This is particularly
+    useful when VS Code is opened at a parent folder level with multiple subfolders
+    that each have their own AGENTS.md file.
+    
+    If not specified, the agent will search for AGENTS.md starting from the current
+    working directory using the default search order.
+
+  target_prompt: |
+    prompts/z__starter_prompt.yaml
+  
+  raw_request: |
+    [RAW_REQUEST]
+    
+    The raw user request to transform into structured fields for the target prompt. Include all details about:
+    - What needs to be created, changed, or transformed
+    - Specific requirements or approaches
+    - Resources, areas, or scopes mentioned
+    - Goals, objectives, and success criteria
+    - Any constraints or limitations
+    
+    Examples:
+    - "Analyze marketing content across all campaign documents
+       - Identify messaging themes and patterns
+       - Create consistency recommendations
+       - Flag any off-brand language"
+    
+    - "Restructure project documentation
+       - Consolidate overlapping sections
+       - Add missing getting-started guide
+       - Improve navigation and findability"
+    
+    - "Research competitor pricing strategies
+       - Compare feature sets and positioning
+       - Identify market gaps
+       - Recommend pricing tiers"
+    
+    This field is REQUIRED.
+
+# ─────────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ─────────────────────────────────────────────────────────────────
+field_handling:
+  agents_location:
+    required: false
+    type: string
+    note: "Optional path to AGENTS.md folder location"
+
+  target_prompt:
+    required: true
+    type: string
+    note: "Must be a valid path to a prompt YAML file"
+  
+  raw_request:
+    required: true
+    type: string
+    note: "Must contain actionable description of task or request"
+  
+  complexity_assessment:
+    rule: "Evaluate task complexity and scope"
+    factors:
+      - scope: narrow vs broad
+      - complexity: simple vs intricate
+      - duration: hours vs days
+      - review_needs: self-contained vs collaborative
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_1_target_prompt_analysis:
+    purpose: Read and understand the target prompt structure
+    activities:
+      - Read target prompt file from provided path
+      - Identify all user_inputs fields in target prompt
+      - Note field types, defaults, and requirements
+      - Understand prompt's purpose and context
+      - Extract field descriptions and examples
+      - Note any special handling or validation rules
+    outputs:
+      - target_prompt_structure: field_definitions
+      - required_fields: list
+      - optional_fields: list
+      - field_examples: collection
+      - prompt_context: understanding
+
+  step_2_request_parsing:
+    purpose: Extract core requirements from raw request
+    activities:
+      - Identify primary objectives
+      - Note deliverables mentioned
+      - Detect constraints and requirements
+      - Identify scope and boundaries
+      - Recognize patterns (transformation, analysis, creation)
+    outputs:
+      - parsed_objectives: list
+      - mentioned_resources: list
+      - requirement_details: notes
+      - request_type: classification
+
+  step_3_context_analysis:
+    purpose: Build comprehensive context from request
+    activities:
+      - Infer domain context from request details
+      - Extract constraints and requirements from request details
+      - Identify standards or guidelines to follow
+      - Note domain-specific implications
+      - Determine approach strategies if applicable
+    outputs:
+      - domain_context: structured
+      - constraints: list
+      - standards_references: list
+      - considerations: notes
+
+  step_4_field_mapping:
+    purpose: Map parsed request to target prompt's user input fields
+    activities:
+      - Match request elements to prompt fields
+      - Determine which fields are relevant
+      - Identify missing information for required fields
+      - Plan how to structure each field
+      - Note any assumptions needed
+    outputs:
+      - field_mappings: request_to_prompt_fields
+      - required_but_missing: list
+      - assumptions_to_make: list
+
+  step_5_issues_identification:
+    purpose: Identify current state and concerns
+    activities:
+      - Analyze current state described or implied
+      - Note problems to address
+      - Flag potential risks or challenges
+      - Mark unknown factors needing discovery
+      - Document assumptions being made
+    outputs:
+      - current_state: description
+      - concerns: list
+      - unknowns: list
+      - assumptions: list
+
+  step_6_field_generation:
+    purpose: Generate properly formatted content for each field
+    activities:
+      - Create content matching target prompt's format
+      - Use proper YAML pipe literal syntax
+      - Include placeholders where appropriate
+      - Add examples matching prompt style
+      - Follow target prompt's conventions
+      - Format multi-line content using pipe literals (|)
+      - Ensure proper indentation for nested structures
+      - Include contextual examples where applicable
+    outputs:
+      - populated_fields: per_target_prompt_structure
+      - formatted_yaml: proper_syntax
+    validation: fields_properly_formatted
+
+  step_7_decision_making:
+    purpose: Determine complexity level and approach (if applicable)
+    activities:
+      - Assess complexity (scope, scale, risk)
+      - Determine appropriate approach for prompt
+      - Identify output level if applicable
+      - Justify choices with rationale
+    outputs:
+      - decisions: approach_and_complexity
+      - rationales: explanations
+
+  step_8_output_assembly:
+    purpose: Assemble complete user_inputs block for target prompt
+    activities:
+      - Format all fields in proper YAML syntax
+      - Include rationales and notes
+      - Add auto-generation comments where appropriate
+      - Ensure all required fields present
+      - Validate YAML structure
+      - Add key decisions summary
+      - Provide recommendations
+    outputs:
+      - complete_user_inputs_yaml: formatted_block
+      - key_decisions: summary
+      - next_steps: recommendations
+
+  step_9_yaml_validation:
+    purpose: Validate complete YAML structure
+    activities:
+      - Run YAML syntax check
+      - Verify required fields present
+      - Ensure proper formatting
+      - Apply quality standards from AGENTS.md
+    outputs:
+      - yaml_validity: pass | fail
+      - validation_details: notes
+
+# ─────────────────────────────────────────────────────────────────
+# QUALITY & VALIDATION
+# ─────────────────────────────────────────────────────────────────
+quality_standards:
+  completeness_criteria:
+    - all_required_yaml_fields_present
+    - approach_decisions_justified
+    - context_includes_standards_references
+    - issues_section_captures_unknowns
+    - request_has_measurable_objectives
+    - scope_is_specific_and_actionable
+    - rationales_provided_for_decisions
+  
+  validation_checklist:
+    - yaml_syntax_valid
+    - approach_matches_complexity
+    - output_level_appropriate
+    - context_references_agents_md
+    - issues_distinguishes_known_vs_unknown
+    - request_includes_out_of_scope
+    - scope_uses_proper_patterns
+    - all_assumptions_explicitly_stated
+  
+  output_requirements:
+    - complete_user_inputs_yaml_block
+    - key_decisions_summary_included
+    - recommendations_provided
+    - next_steps_clear
+    - proper_markdown_formatting
+
+final_verification:
+  pre_output_checks:
+    structural:
+      - verify_yaml_indentation_correct
+      - verify_all_fields_populated
+      - verify_pipe_literals_used_correctly
+      - verify_comments_formatted_properly
+    
+    content:
+      - verify_approach_has_rationale
+      - verify_context_mentions_standards
+      - verify_issues_marks_unknowns
+      - verify_request_lists_deliverables
+      - verify_scope_is_actionable
+    
+    quality:
+      - verify_decisions_explained
+      - verify_assumptions_stated
+      - verify_next_steps_provided
+      - verify_no_placeholder_text_remains
+
+# ─────────────────────────────────────────────────────────────────
+# ANALYSIS GUIDELINES
+# ─────────────────────────────────────────────────────────────────
+guidelines:
+  context_extraction:
+    domain_context:
+      - Infer domain specifics from mentioned tools/frameworks
+      - Reference AGENTS.md standards and guidelines
+      - Note platform or environmental constraints
+      - Include conventions and patterns
+    
+    constraints:
+      - Performance or quality requirements
+      - Compatibility requirements
+      - Delivery or distribution constraints
+      - Patterns or standards required
+      - Guidelines to follow
+    
+  issues_analysis:
+    current_state:
+      - Existing setup or situation
+      - Current approach or methods
+      - Resources impacted
+      - Integration or connection points
+    
+    concerns:
+      - Transformation risks
+      - Potential disruptions
+      - Compatibility issues
+      - Quality or performance implications
+    
+    unknowns:
+      - Items needing discovery
+      - Unclear requirements
+      - Investigation areas
+      - Mark with UNKNOWN when insufficient data
+
+  request_structuring:
+    objectives:
+      - Start with action verbs
+      - Be specific and measurable
+      - Order by logical sequence
+      - Keep concise
+    
+    deliverables:
+      - Concrete artifacts or outputs
+      - Tangible results
+      - Documentation requirements
+      - Testing deliverables
+    
+    success_criteria:
+      - Measurable outcomes
+      - Quality indicators
+      - Performance targets
+      - Functional requirements met
+    
+    out_of_scope:
+      - Explicit exclusions
+      - Future enhancements
+      - Related but separate work
+      - Prevents scope creep
+
+  scope_definition:
+    patterns:
+      - Use patterns for multiple resources: `docs/**/*.md`
+      - Specific paths for targeted work: `reports/Q4/summary.pdf`
+      - Multiple patterns one per line
+      - Default to relevant areas when unclear
+    
+    examples:
+      - Single resource: `docs/guide.md`
+      - Directory: `content/blog/`
+      - Pattern: `reports/**/*.{pdf,xlsx}`
+      - Multiple: |
+          content/blog/**/*.md
+          assets/images/**/*.png
+          data/**/*.json
+
+# ─────────────────────────────────────────────────────────────────
+# DECISION FRAMEWORKS
+# ─────────────────────────────────────────────────────────────────
+decision_frameworks:
+  complexity_levels:
+    simple:
+      use_when:
+        - Quick tasks (< 1 day)
+        - Minor adjustments or updates
+        - Single-focus changes
+        - Self-contained work
+        - Straightforward execution
+      percentage: "60% of all work"
+    
+    moderate:
+      use_when:
+        - Multi-step tasks (1-3 days)
+        - Coordination needed
+        - Multiple components
+        - Some ambiguity
+        - Requires planning
+      percentage: "30% of all work"
+    
+    complex:
+      use_when:
+        - Large initiatives (≥ 3 days)
+        - Team collaboration required
+        - Multiple integration points
+        - Experimental or uncertain
+        - Significant impact
+      percentage: "10% of all work"
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+    - Parse request carefully for all details
+    - Infer context from domain mentions
+    - Reference AGENTS.md standards
+    - Mark uncertainties explicitly
+    - Default to simple complexity (60% of work)
+    - Include rationales for decisions
+    - Validate YAML syntax
+    - Provide clear next steps
+  
+  NEVER:
+    - Fabricate details not in request
+    - Skip required YAML fields
+    - Use invalid YAML syntax
+    - Omit rationales for choices
+    - Over-complicate simple requests
+    - Forget standards references
+  
+  PREFER:
+    - Simple over complex (default to simple complexity)
+    - Explicit over implicit (state assumptions)
+    - Specific over vague (concrete deliverables)
+    - Actionable over theoretical (clear scope)
+    - Structured over freeform (follow output format)

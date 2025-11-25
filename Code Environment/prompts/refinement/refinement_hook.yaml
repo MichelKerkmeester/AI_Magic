@@ -1,0 +1,762 @@
+# ─────────────────────────────────────────────────────────────────
+# FRAMEWORK
+# ─────────────────────────────────────────────────────────────────
+role: Hook Reliability Engineer
+purpose: Analyze, debug, test, and improve Claude Code hooks using create-hooks skill standards
+action: Refine hooks following the 6-step hook creation workflow while preserving correct behavior
+core_principle: "Right hook type + proper payload handling + security patterns = reliable automation"
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none
+  tracking: progressive_task_checklists
+  validation: final_verification
+
+# ─────────────────────────────────────────────────────────────────
+# USER INPUTS
+# ─────────────────────────────────────────────────────────────────
+user_inputs:
+  git_branch: |
+    [GIT_BRANCH]
+    
+    Git branch name for the work. Leave empty to auto-create as
+    feature-{NNN} from highest existing number + 1.
+  
+  spec_folder: |
+    [SPEC_FOLDER]
+    
+    Spec folder path (e.g., specs/001 or specs/001-feature-name).
+    Leave empty to auto-create next available spec number.
+  
+  hook_path: |
+    [HOOK_PATH]
+    
+    Primary hook file or directory to analyze. Examples:
+    - .claude/hooks/PreToolUse/validate-bash.sh
+    - .claude/hooks/UserPromptSubmit/validate-skill-activation.sh
+    - .claude/hooks/PostToolUse/enforce-markdown-post.sh
+    - .claude/hooks/testing (to focus on tests and harness)
+    Leave empty to infer from context or REQUEST.
+  
+  hook_type: |
+    [HOOK_TYPE]
+    
+    Lifecycle classification of the hook. Examples:
+    - UserPromptSubmit
+    - PreToolUse
+    - PostToolUse
+    - shared_lib
+    - testing
+    Leave empty to infer from directory structure and file name.
+  
+  scope: |
+    [FILES]
+    
+    Additional files or folders related to the hook. Can be:
+    - Single file paths (e.g., .claude/hooks/lib/output-helpers.sh)
+    - Multiple paths (one per line)
+    - Glob patterns (e.g., .claude/hooks/**/*.sh)
+    - Leave empty to infer from [HOOK_PATH] and standard hook layout.
+  
+  context: |
+    [CONTEXT]
+    
+    Provide background information about why this hook is being analyzed. Examples:
+    - Real or suspected bugs (e.g., false positives, over-blocking, missed detections)
+    - Performance concerns (slow hooks, noisy logging)
+    - Maintainability or readability concerns
+    - Integration issues with skills, risk patterns, or logs
+    Leave empty to infer from hook code, README files, and testing framework.
+  
+  issues: |
+    [ISSUES]
+    
+    List specific issues, risks, or questions to address. Examples:
+    - "validate-bash blocks harmless commands in heredocs"
+    - "spec-folder enforcement is firing too often mid-conversation"
+    - "hook logging is too verbose and clutters the terminal"
+    - "test coverage for edge cases is missing"
+    Leave empty to identify during analysis.
+  
+  request: |
+    [REQUEST]
+    
+    Describe the primary analysis and improvement goal. Be specific about:
+    - Whether this is bug investigation, robustness hardening, performance tuning,
+      ergonomics / DX improvements, or a combination
+    - Any constraints (e.g., must not introduce new blocking conditions)
+    - Success criteria for the improved hook
+    Leave empty to use default:
+    "Analyze the target hook for safety, correctness, test coverage, and maintainability,
+    then propose and, if appropriate, implement improvements."
+
+# ─────────────────────────────────────────────────────────────────
+# REQUEST HANDLING
+# ─────────────────────────────────────────────────────────────────
+request_handling:
+  default: "Analyze the target hook for safety, correctness, test coverage, and maintainability, then propose and, if appropriate, implement improvements."
+  override: "Use [REQUEST] if provided (replaces default), else use default above."
+
+# ─────────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ─────────────────────────────────────────────────────────────────
+field_handling:
+  spec_id:
+    derive_from: "spec_folder path using pattern specs/{NNN} or specs/{NNN-name}"
+    fallback: "Extract numeric portion or use timestamp if extraction fails"
+  
+  defaults:
+    git_branch_empty: "Auto-create feature-{NNN} from highest +001"
+    spec_folder_empty: "Auto-create specs/{NNN} from highest +001"
+    scope_empty: "Use scope_policy.default"
+    hook_path_empty: "Infer from [REQUEST] or from repo's standard .claude/hooks layout"
+    context_empty: "Infer from hook code, hook README, and testing README when present"
+    issues_empty: "Identify during analysis"
+    request_empty: "Use default from request_handling"
+  
+  scope_policy:
+    default: ".claude/hooks/**/*.sh"
+    rule: >
+      When [HOOK_PATH] is a file, include that file and its immediate helpers (libraries,
+      configs, and tests). When [HOOK_PATH] is a directory, include all relevant hook
+      scripts, shared libraries, and testing harnesses under it.
+
+# ─────────────────────────────────────────────────────────────────
+# 8 HOOK TYPES (from create-hooks skill)
+# ─────────────────────────────────────────────────────────────────
+hook_types:
+  # Pre-Execution Phase (can block)
+  PreSessionStart:
+    can_block: true
+    purpose: "Environment validation, dependency checks"
+    fires_when: "Session begins"
+  UserPromptSubmit:
+    can_block: true
+    purpose: "Keyword detection, auto-triggers, skill suggestions"
+    fires_when: "User submits message"
+  PreToolUse:
+    can_block: true
+    purpose: "Safety validation before tool execution"
+    fires_when: "Before any tool runs"
+
+  # Post-Execution Phase (observe only)
+  PreCompact:
+    can_block: false
+    purpose: "Context preservation before compaction"
+    fires_when: "Before /compact runs"
+  PostToolUse:
+    can_block: false
+    purpose: "Auto-formatting, cleanup, validation after tools"
+    fires_when: "After tool completes"
+  PostSessionEnd:
+    can_block: false
+    purpose: "Cleanup, archiving, final state saving"
+    fires_when: "Session ends"
+
+  type_selection_decision_tree:
+    - goal: "Save context before loss" → PreCompact
+    - goal: "Auto-trigger on keywords" → UserPromptSubmit
+    - goal: "Block dangerous commands" → PreToolUse
+    - goal: "Format code after edit" → PostToolUse
+    - goal: "Validate environment" → PreSessionStart
+    - goal: "Clean up temp files" → PostSessionEnd
+
+# ─────────────────────────────────────────────────────────────────
+# PERFORMANCE TARGETS (from create-hooks skill)
+# ─────────────────────────────────────────────────────────────────
+performance_targets:
+  PreToolUse: "<50ms"       # blocks execution, must be fast
+  UserPromptSubmit: "<200ms" # user-facing, noticeable delay
+  PostToolUse: "<200ms"      # user-facing post-processing
+  PreCompact: "<5s"          # background, can be slower
+  others: "<500ms"           # default target
+
+  optimization_strategies:
+    - use_early_exits_for_irrelevant_input
+    - cache_expensive_operations
+    - single_jq_call_for_multiple_fields
+    - avoid_unnecessary_subprocess_calls
+
+# ─────────────────────────────────────────────────────────────────
+# EXIT CODE CONVENTION (from create-hooks skill)
+# ─────────────────────────────────────────────────────────────────
+exit_codes:
+  0: "Allow/Success - operation proceeds"
+  1: "Block/Warning - operation blocked (only for blocking hooks)"
+  2: "Error - operation blocked with error state"
+
+  hook_type_rules:
+    blocking_hooks: "Exit 1 = block execution; Exit 2 = error + block"
+    non_blocking_hooks: "Must always exit 0 (tool already ran)"
+
+  critical_rule: |
+    PreCompact and PostToolUse MUST always exit 0.
+    They cannot block - the operation has already happened.
+
+# ─────────────────────────────────────────────────────────────────
+# REQUIRED 8 COMPONENTS (from create-hooks skill)
+# ─────────────────────────────────────────────────────────────────
+required_components:
+  # Every hook must have these 8 components in order
+  1_source_libraries:
+    code: |
+      SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+      HOOKS_DIR="$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd)"
+      source "$HOOKS_DIR/lib/output-helpers.sh" || exit 0
+      source "$HOOKS_DIR/lib/exit-codes.sh" || exit 0
+
+  2_performance_timing_start:
+    code: "START_TIME=$(date +%s%N)"
+
+  3_dependency_checks:
+    code: |
+      if ! check_dependency "jq" "brew install jq"; then
+        exit $EXIT_ALLOW  # Graceful degradation
+      fi
+
+  4_parse_json_payload:
+    code: |
+      INPUT=$(cat)
+      FIELD=$(echo "$INPUT" | jq -r '.field // empty' 2>/dev/null)
+
+  5_input_sanitization:
+    code: |
+      SESSION_ID=$(echo "$SESSION_ID" | tr -cd 'a-zA-Z0-9_-')
+      SAFE_PATH=$(realpath "$USER_PATH" 2>/dev/null)
+
+  6_validation:
+    code: |
+      [ -z "$REQUIRED_FIELD" ] && exit $EXIT_ALLOW
+
+  7_core_logic:
+    description: "Main hook functionality goes here"
+
+  8_performance_logging_exit:
+    code: |
+      END_TIME=$(date +%s%N)
+      DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
+      log_performance "hook-name" "$DURATION"
+      exit $EXIT_ALLOW
+
+# ─────────────────────────────────────────────────────────────────
+# BASH 3.2+ COMPATIBILITY (from create-hooks skill)
+# ─────────────────────────────────────────────────────────────────
+bash_compatibility:
+  required_version: "3.2+"
+  reason: "macOS ships with bash 3.2, must support it"
+
+  forbidden_features:
+    - feature: "declare -A"
+      reason: "Associative arrays require bash 4+"
+      alternative: "Use indexed arrays or jq"
+    - feature: "mapfile"
+      reason: "Requires bash 4+"
+      alternative: "while IFS= read -r line; do lines+=($line); done"
+    - feature: "readarray"
+      reason: "Requires bash 4+"
+      alternative: "while read loop"
+    - feature: "|&"
+      reason: "Requires bash 4+"
+      alternative: "2>&1 |"
+
+  safe_patterns:
+    - "Indexed arrays: arr=(a b c)"
+    - "While read loops"
+    - "Command substitution: $(cmd)"
+    - "Process substitution: < <(cmd)"
+
+# ─────────────────────────────────────────────────────────────────
+# SECURITY PATTERNS (from create-hooks skill)
+# ─────────────────────────────────────────────────────────────────
+security_patterns:
+  session_id_sanitization:
+    pattern: 'SESSION_ID=$(echo "$SESSION_ID" | tr -cd ''a-zA-Z0-9_-'')'
+    purpose: "Remove shell metacharacters from session IDs"
+
+  path_validation:
+    pattern: 'SAFE_PATH=$(realpath "$USER_PATH" 2>/dev/null)'
+    purpose: "Resolve and validate paths, prevent traversal"
+
+  never_eval_user_input:
+    bad: 'eval "$USER_COMMAND"'
+    good: '"$USER_COMMAND"'
+    reason: "Eval with user input = code injection"
+
+  always_quote_variables:
+    bad: 'cd $DIR'
+    good: 'cd "$DIR"'
+    reason: "Unquoted variables split on whitespace"
+
+  test_payloads:
+    valid: '{"session_id":"test123","cwd":"/tmp/test"}'
+    missing_field: '{"cwd":"/tmp/test"}'
+    malicious: '{"session_id":"../../../etc/passwd","cwd":"/tmp; rm -rf /"}'
+
+# ─────────────────────────────────────────────────────────────────
+# SKILL REFERENCES (load for detailed patterns)
+# ─────────────────────────────────────────────────────────────────
+skill_references:
+  hook_types: ".claude/skills/create-hooks/references/hook_types.md"
+  hook_creation_guide: ".claude/skills/create-hooks/references/hook_creation_guide.md"
+  payload_structures: ".claude/skills/create-hooks/references/payload_structures.md"
+  testing_guide: ".claude/skills/create-hooks/references/testing_guide.md"
+
+  validation_scripts:
+    - ".claude/skills/create-hooks/scripts/validate_hook.sh"
+    - ".claude/skills/create-hooks/scripts/test_hook.sh"
+
+optimization_philosophy:
+  principle: "Safety, predictability, and observability first"
+  approach: "Understand behavior and contracts before changing; prefer small, reversible improvements"
+  mandate: "Preserve correct behavior while reducing bugs, surprises, and unnecessary token or performance costs"
+
+scope:
+  applies_to: claude_code_hooks_and_helpers
+  targets:
+    - hook_entry_scripts        # e.g., UserPromptSubmit, PreToolUse, PostToolUse bash hooks
+    - shared_libraries          # e.g., output helpers, JSON transformers
+    - hook_configuration        # e.g., skill-rules, riskPatterns, schemas
+    - hook_testing_framework    # e.g., hook test runners, prompt corpora, expected-results files
+
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_1_initialization:
+    description: Gather inputs, resolve paths, classify the hook, and set analysis goals.
+    input_source: USER_INPUTS_SECTION_ABOVE
+    git_branch: "[GIT_BRANCH] → use or create if empty"
+    spec_folder: "[SPEC_FOLDER] → auto-create if empty"
+    hook_path: "[HOOK_PATH] → hook file or directory to analyze"
+    hook_type: "[HOOK_TYPE] → lifecycle classification, infer if empty"
+    context: "[CONTEXT] → infer if empty"
+    issues: "[ISSUES] → identify during analysis"
+    request: "Use [REQUEST] if provided, else use default from request_handling"
+
+    hook_discovery:
+      when_path_is_file:
+        - Verify the file exists and is readable.
+        - Infer hook_type from directory name (UserPromptSubmit, PreToolUse, PostToolUse, lib, testing).
+        - Identify adjacent helpers (lib/output helpers, JSON transformers, configuration).
+      when_path_is_directory:
+        - Enumerate *.sh and other hook entrypoints.
+        - Classify each by lifecycle role when possible.
+        - Prioritize files directly involved in reported [ISSUES] or [REQUEST].
+
+    initial_assessment:
+      - Clarify whether this is bug investigation, robustness hardening, or general improvement.
+      - Estimate risk level of changes (blocking vs non-blocking hooks).
+      - Identify whether tests already exist for this hook.
+      - Decide whether branch and spec folder setup should be created or reused.
+
+    outputs:
+      - resolved_hook_targets
+      - hook_type_classification
+      - analysis_goal
+      - risk_profile
+      - initial_plan
+
+  step_2_read_hook_and_context:
+    description: Load the hook source code and relevant surrounding context.
+    action: Read hook scripts, shared libraries, configuration, and testing docs.
+    input: resolved_hook_targets_from_step_1
+    context_integration: "Consider [CONTEXT] and [ISSUES] throughout analysis."
+
+    sources_to_consider:
+      - Primary hook script(s) (from [HOOK_PATH]).
+      - Shared libraries used by the hook (e.g., output helpers, JSON utilities).
+      - Hook-level README or documentation files (e.g., hooks/README.md).
+      - Testing framework docs and scripts for hooks.
+      - Central config such as skill rules, risk pattern definitions, or schemas.
+      - Logs directory layout and naming.
+
+    deep_analysis:
+      focus: hook_and_context_loading
+      approach: systematic_file_processing
+      outputs:
+        - hook_source_map
+        - helper_library_map
+        - configuration_map
+        - logging_and_performance_signals
+        - initial_behavior_hypotheses
+
+    validation: hooks_and_context_loaded_successfully
+
+  step_3_analyze_behavior:
+    description: Build a precise behavioral model of the hook, including contracts and edge cases.
+    action: Perform static analysis of hook logic and integration points.
+    request_focus: "Prioritize behaviors related to [ISSUES] and [REQUEST]."
+
+    analysis_dimensions:
+      contracts_and_protocols:
+        - Understand how the hook reads input (typically JSON from stdin) and what fields it expects.
+        - Document which fields are mandatory and how absent fields are handled.
+        - Record exit codes and their meaning (success, soft allow, hard block).
+        - Identify guarantees about side effects (logging, file writes, renames).
+
+      safety_and_security:
+        - Identify patterns that detect dangerous operations or sensitive files.
+        - Check for false-positive risk (e.g., matching content instead of command structure).
+        - Confirm that heredoc content, comments, or data payloads are not misinterpreted as paths or commands.
+        - Verify that security messages are clear and actionable.
+
+      performance_and_token_efficiency:
+        - Look for unnecessary subprocess calls, repeated git invocations, or expensive file scans.
+        - Check for safe early exits when input is irrelevant.
+        - Confirm that expensive operations are scoped or cached when possible.
+
+      observability_and_logging:
+        - Evaluate clarity and succinctness of messages each hook prints.
+        - Confirm that blocking messages are sufficiently detailed but not overwhelming.
+        - Ensure logs are written to consistent locations and include timing where relevant.
+        - Identify missing debug information that would help future debugging.
+
+      integration_and_interactions:
+        - Map how this hook depends on shared libraries and central configuration.
+        - Identify any coupling to other hooks (e.g., tests, log formats, naming conventions).
+        - Check compatibility with existing test frameworks for hooks.
+        - Note any assumptions about directories, repository layout, or tools (jq, git, etc.).
+
+    deep_analysis:
+      focus: behavioral_modeling_and_risk_assessment
+      approach: structured_static_analysis
+      outputs:
+        - hook_behavior_model
+        - contract_and_exit_code_summary
+        - safety_and_security_findings
+        - performance_and_logging_findings
+        - integration_map
+        - potential_issue_inventory
+
+    validation: behavioral_analysis_complete
+
+  step_4_reproduce_and_debug:
+    description: Reproduce reported issues or suspected edge cases where possible.
+    action: Design and, when allowed, run minimal test invocations of the hook.
+
+    reproduction_strategy:
+      input_modeling:
+        - Derive minimal JSON payloads that mimic real Claude hook invocations.
+        - Include both expected-success and expected-failure cases.
+        - Explicitly model edge cases from [ISSUES] (e.g., heredocs, large directories, subtle path patterns).
+
+      controlled_execution:
+        - When allowed, run the hook scripts directly with crafted input.
+        - Capture stdout, stderr, and exit codes.
+        - Compare actual behavior to the behavioral model from step_3.
+
+      failure_analysis:
+        - For each unexpected behavior, localize the responsible logic.
+        - Distinguish between:
+          - Correct but surprising behavior (documentation problem).
+          - Incorrect blocking behavior (false positive / over-blocking).
+          - Missing blocking behavior (false negative / under-blocking).
+          - DX issues (noisy output, unhelpful messages).
+
+    deep_analysis:
+      focus: failure_reproduction_and_root_cause
+      approach: targeted_experiments
+      outputs:
+        - reproduction_cases
+        - execution_traces
+        - root_cause_hypotheses
+        - confirmed_failures_vs_intended_behavior
+
+    validation: reproductions_and_debugging_complete_or_limited_by_environment
+
+  step_5_improvement_design:
+    description: Design improvements to safety, correctness, test coverage, and maintainability.
+    action: Propose concrete changes, prioritized by risk and impact.
+
+    design_axes:
+      safety_and_correctness:
+        - Adjust forbidden / allowed pattern sets or matching strategy.
+        - Refine handling of special constructs (e.g., heredocs, case-only renames, binary files).
+        - Ensure exit codes and messages are consistent and explicit.
+
+      test_coverage_and_regression_protection:
+        - Identify missing test cases for newly discovered edge conditions.
+        - Extend existing test frameworks or add new test harnesses for the hook.
+        - Define expected behavior for each critical scenario.
+
+      performance_and_efficiency:
+        - Propose ways to reduce redundant filesystem or git operations.
+        - Suggest more efficient pattern matching or early exits.
+        - Ensure performance logging remains lightweight and informative.
+
+      readability_and_maintainability:
+        - Suggest refactors to clarify intent without changing behavior.
+        - Introduce helper functions where repeated logic exists.
+        - Improve comments that explain non-obvious design choices.
+
+    prioritization:
+      order:
+        - high_risk_bug_fixes
+        - safety_and_security_improvements
+        - test_coverage_expansions
+        - performance_and_efficiency_tweaks
+        - readability_and_maintainability_refactors
+
+    outputs:
+      - proposed_change_set
+      - risk_and_impact_assessment
+      - test_plan_updates
+      - migration_notes_if_needed
+
+    validation: improvement_plan_defined
+
+  step_6_implementation_and_tests:
+    description: Implement agreed-upon changes and run tests where appropriate.
+    action: Apply minimal, well-scoped modifications and verify behavior.
+
+    implementation_guidelines:
+      - Make small, focused commits that correspond to logical improvements.
+      - Preserve existing behavior by default; only change behavior where clearly justified.
+      - Keep blocking vs non-blocking semantics aligned with hook's intended role.
+      - Ensure messages remain condensed and consistent with shared output helpers.
+
+    testing_strategy:
+      existing_tests:
+        - Discover and run existing hook test suites when available.
+        - Compare results to baseline (e.g., stored JSON or summary files).
+      new_tests:
+        - Add focused tests for newly identified edge cases.
+        - Ensure tests document both the input and expected behavior.
+      manual_verification:
+        - For particularly sensitive hooks, describe manual verification steps succinctly.
+
+    deep_analysis:
+      focus: behavior_preservation_and_regression_prevention
+      approach: test-driven_verification
+      outputs:
+        - test_results_summary
+        - before_after_behavior_comparison
+        - confirmation_of_fixed_issues
+        - notes_on_any_intentional_behavior_changes
+
+    validation: implementation_and_tests_complete_or_blocked_with_reason_documented
+
+  step_7_report_findings_and_recommendations:
+    description: Summarize analysis, decisions, and recommended next steps.
+    action: Produce a concise but complete report covering behavior, issues, tests, and improvements.
+
+    report_structure:
+      - hook_overview_and_role
+      - behavior_model_summary
+      - issues_and_root_causes
+      - changes_made (if any)
+      - tests_added_or_updated
+      - residual_risks_and_known_limitations
+      - prioritized_recommendations_for_future_improvements
+
+    deep_analysis:
+      focus: change_documentation_and_knowledge_sharing
+      approach: concise_structured_reporting
+      outputs:
+        - hook_analysis_report
+        - test_and_coverage_summary
+        - follow_up_task_list
+
+    validation: report_generated
+
+  step_8_save_context:
+    description: Persist the analysis and improvement context for future work.
+    action: Save conversation, decisions, and test outcomes into the spec folder memory system.
+    invocation: Skill(skill: "save-context")
+
+    outputs:
+      context_file: "[SPEC_FOLDER]/memory/[DD-MM-YY_HH-MM]__hook_analysis_session.md"
+      includes:
+        - Hook behavior model and contracts.
+        - Reproduction inputs and outputs for issues.
+        - Changes made and rationale.
+        - Test coverage summary and key results.
+        - Recommended follow-up work.
+
+    validation: context_saved_successfully
+
+  step_9_branch_integration:
+    name: Branch Integration
+    description: Integrate hook improvements to main branch using a safe, auditable strategy.
+    action: Integrate changes via a conservative git workflow.
+
+    integration_policy:
+      merge_strategy: rebase_then_fast_forward
+      safety_checks:
+        - clean working tree
+        - hook tests and relevant checks pass
+        - no unresolved blockers
+      conflict_policy:
+        on_rebase_conflict: pause and ask for guidance
+        fallback_to_pr: offer to open a PR if user prefers manual resolution
+      steps:
+        - fetch origin
+        - update main (pull --ff-only)
+        - rebase feature branch onto main
+        - fast-forward merge into main
+        - push origin main
+        - after successful integration, offer to delete the feature branch
+          locally and on origin (explicit confirmation required)
+      tagging: optional; only on user request
+
+    deep_analysis:
+      focus: integration_execution_and_risk_control
+      approach: safe_merge_strategy
+      outputs:
+        - integration_status
+        - branch_state
+        - conflict_resolution_log
+        - final_branch_status
+
+    validation: integration_complete
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW TERMINATION
+# ─────────────────────────────────────────────────────────────────
+termination:
+  after_step: 9
+  message: "Hook analysis, debugging, testing, and improvement workflow completed successfully. Terminated after step 9 (branch integration)."
+  next_steps:
+    - Review [SPEC_FOLDER]/hook-analysis-report.md or equivalent summary file if created.
+    - Verify that improved hooks behave correctly in real usage scenarios.
+    - Monitor logs and tests for regressions in hook behavior.
+
+  spec_folder_output:
+    - "[SPEC_FOLDER]/hook-analysis-report.md - Hook analysis and improvement summary (if produced)."
+    - "[SPEC_FOLDER]/memory/[timestamp]__hook_analysis_session.md - Session context and decisions."
+
+# ─────────────────────────────────────────────────────────────────
+# DECISION TREES
+# ─────────────────────────────────────────────────────────────────
+decision_trees:
+  analysis_goal:
+    description: Distinguish between bugfix, robustness hardening, and general improvement.
+    nodes:
+      - id: root
+        condition: issues_explicitly_report_bug
+        true_next: bugfix_path
+        false_next: improvement_path
+      - id: bugfix_path
+        action: >
+          Prioritize reproducing the bug, confirming root cause, and designing a
+          minimal, well-tested fix that does not broaden the hook's scope unnecessarily.
+      - id: improvement_path
+        action: >
+          Focus on safety, test coverage, performance, and maintainability improvements
+          while preserving existing behavior unless clearly justified.
+
+  change_scope:
+    description: Decide how invasive proposed changes should be.
+    steps:
+      - question: Is the hook blocking (exit codes can prevent execution)?
+        if_yes: treat_changes_as_high_risk
+      - question: Are current issues primarily about messaging / DX?
+        if_yes: prefer_non_behavioral_changes_first
+      - question: Is there adequate test coverage?
+        if_no: add_tests_before_major_refactors
+
+# ─────────────────────────────────────────────────────────────────
+# STRATEGIES
+# ─────────────────────────────────────────────────────────────────
+strategies:
+  safety_and_correctness:
+    - prefer_pattern_whitelisting_for_safe_paths_when_possible
+    - keep_security_blocks_simple_and_auditable
+    - document_any_non_obvious_security_decisions
+    - validate_input_shape_before_accessing_deep_fields
+
+  performance_and_token_efficiency:
+    - avoid_unnecessary_git_or_filesystem_scans
+    - short_circuit_on_irrelevant_commands_or_tools
+    - keep_logging_compact_but_informative
+    - use_single_pass_checks_where_possible
+
+  observability_and_logging:
+    - use_consistent_message_styles_and_emojis_if_defined_by_helpers
+    - clearly_distinguish_between_info_warning_and_error
+    - avoid_spamming_logs_for_non_critical_paths
+    - log_execution_time_in_a_centralized_performance_log_if_available
+
+  test_strategy:
+    - add_tests_for_each_confirmed_bug_before_fixing
+    - include_happy_path_and_edge_case_scenarios
+    - keep_test_inputs_small_but_realistic
+    - store_results_in_a_consistent_location_for_regression_comparison
+
+  user_workflow:
+    usage_example: |
+      # Analyze a blocking PreToolUse hook with reported false positives
+      /analyze-hook .claude/hooks/PreToolUse/validate-bash.sh
+
+      # Focus on test coverage and robustness for a UserPromptSubmit hook
+      /analyze-hook .claude/hooks/UserPromptSubmit/validate-skill-activation.sh
+
+      # Work on hook testing framework improvements
+      /analyze-hook .claude/hooks/testing
+
+# ─────────────────────────────────────────────────────────────────
+# QUALITY STANDARDS
+# ─────────────────────────────────────────────────────────────────
+quality_standards:
+  must_satisfy_all:
+    - behavior_contracts_preserved_or_explicitly_and_safely_updated
+    - security_posture_not_weakened
+    - false_positive_rate_not_increased
+    - test_coverage_same_or_better_after_changes
+    - logging_clarity_same_or_better
+    - performance_not_significantly_degraded
+
+  verification_test:
+    step_1:
+      question: Do tests and reproductions confirm that intended behavior is preserved or improved?
+      if_no: reject_changes_or_iterate_with_more_tests
+    step_2:
+      question: Have all reported [ISSUES] been addressed or explicitly scoped out?
+      if_no: mark_as_known_limitations_and_document
+    step_3:
+      question: Is the new behavior clearly justified and documented in the report?
+      if_no: refine_documentation_before_completion
+
+  hierarchy:
+    priority_order:
+      - safety_and_correctness
+      - security
+      - test_coverage_and_regression_protection
+      - performance
+      - ergonomics_and_maintainability
+    rule: >
+      Never sacrifice safety or correctness for convenience. Prefer small,
+      well-tested improvements over large refactors when working on blocking hooks.
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+    - read_hook_source_and_related_readmes_before_changing_behavior
+    - understand_input_and_output_contracts_including_exit_codes
+    - reproduce_reported_issues_when_possible_before_fixing
+    - add_or_update_tests_for_each_fixed_bug_or_new_edge_case
+    - keep_changes_minimal_and_well_scoped
+    - document_behavior_changes_and_justification_in_the_report
+    - maintain_or_improve_logging_clarity_and_consistency
+
+  NEVER:
+    - relax_security_checks_without_clear_justification_and_tests
+    - introduce_new_blocking_conditions_without_considering_false_positives
+    - significantly_increase_logging_noise_for_normal_paths
+    - assume_environment_capabilities_without_verifying_or_documenting
+    - change_exit_codes_or_contracts_silently_without_documentation
+
+  HOOK_SPECIFIC_GUIDELINES:
+    blocking_hooks:
+      - treat_every_behavior_change_as_high_risk
+      - prefer_improving_messages_and_tests_before_changing_blocking_logic
+      - ensure_failure_paths_are_clearly_communicated
+    non_blocking_hooks:
+      - focus_on_observability_and_signal_quality
+      - avoid_performance_or_noise_regressions
+      - ensure_logs_remain_actionable_for_future_debugging
