@@ -1,0 +1,82 @@
+{
+  "maxResultPreview": 500,
+  "maxConversationMessages": 100,
+  "maxToolOutputLines": 100,
+  "messageTimeWindow": 300000,
+  "contextPreviewHeadLines": 50,
+  "contextPreviewTailLines": 20,
+  "timezoneOffsetHours": 1
+}
+
+// ─────────────────────────────────────────────────────────────
+// → maxResultPreview (number, default: 500)
+// ─────────────────────────────────────────────────────────────
+// Maximum characters to show when previewing tool results/outputs
+// in the context documentation.
+
+// • Higher values = more detail but larger files
+// • Lower values = more concise but less context
+// • Affects: Tool call previews, bash output, file reads
+//
+// → maxConversationMessages (number, default: 100)
+// ─────────────────────────────────────────────────────────────
+// Maximum number of conversation messages to include in the full
+// conversation section. Prevents extremely long conversations from
+// creating massive documentation files.
+//
+// • Messages beyond this limit are truncated
+// • Most recent messages are always kept
+// • Affects: Size of generated markdown files
+//
+// → maxToolOutputLines (number, default: 100)
+// ─────────────────────────────────────────────────────────────
+// Maximum lines to show from tool output (like bash commands,
+// file reads, grep results, etc.). Long outputs are truncated to
+// this many lines to keep documentation readable.
+//
+// • Prevents huge code dumps in documentation
+// • Shows beginning of output
+// • Adds "... truncated" message when limit exceeded
+//
+// → messageTimeWindow (number, default: 300000)
+// ─────────────────────────────────────────────────────────────
+// Time window in milliseconds for grouping related messages into
+// conversation phases. Messages within this time window are
+// considered part of the same workflow step.
+//
+// • 300000ms = 5 minutes
+// • Gaps longer than this create new phases in workflow diagram
+// • Affects: How conversation is structured in phases
+// • Lower values = more granular phases
+// • Higher values = fewer, broader phases
+//
+// → contextPreviewHeadLines (number, default: 50)
+// ─────────────────────────────────────────────────────────────
+// Number of lines to show from the HEAD (beginning) of truncated
+// file content. When files are too long, show this many lines from
+// the start.
+//
+// • Used for file preview truncation
+// • Shows the beginning of long files
+// • Works together with contextPreviewTailLines
+//
+// → contextPreviewTailLines (number, default: 20)
+// ─────────────────────────────────────────────────────────────
+// Number of lines to show from the TAIL (end) of truncated file
+// content. When files are too long, show this many lines from the end.
+//
+// • Used for file preview truncation
+// • Shows the ending of long files
+// • Combined with HEAD lines gives context from both ends
+//
+// → timezoneOffsetHours (number, default: 0)
+// ─────────────────────────────────────────────────────────────
+// Timezone offset in hours to add to UTC timestamps.
+// Adjusts all generated timestamps to match your local timezone.
+//
+// • Positive values = ahead of UTC (e.g., +1 for CET)
+// • Negative values = behind UTC (e.g., -5 for EST)
+// • 0 = UTC (no adjustment)
+// • Affects: All timestamps in generated documentation
+//
+// ─────────────────────────────────────────────────────────────

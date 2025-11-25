@@ -1,0 +1,204 @@
+# Agent Orchestrator - Quick Reference
+
+One-page decision guide for dynamic sub-agent dispatch.
+
+---
+
+## 1. 🎯 DECISION FLOW
+
+```
+Request → Analyze Complexity → Check Thresholds → Dispatch or Direct
+```
+
+### Complexity Score Thresholds
+- **<40%**: Direct handling (too simple)
+- **40-49%**: Ask user preference
+- **≥50%**: Consider dispatch
+
+### Quick Complexity Calculator
+```
+Domain Count × 30%     (1=0, 2=0.5, 3+=1.0)
+File Count × 25%       (1-2=0, 3-5=0.5, 6+=1.0)
+LOC Estimate × 20%     (<50=0, 50-200=0.5, 200+=1.0)
+Parallel Opp × 15%     (none=0, some=0.5, high=1.0)
+Task Type × 10%        (trivial=0, moderate=0.5, complex=1.0)
+───────────────────────────────────────────────────
+Total Score = Sum of weighted components (0-100%)
+```
+
+---
+
+## 2. ✅ WHEN TO DISPATCH
+
+### AUTO-DISPATCH (Score ≥50%)
+✓ Multi-domain tasks (code + docs + git)
+✓ 3+ independent failures to debug
+✓ Parallel execution opportunities
+✓ Complex feature implementation
+✓ Broad codebase analysis
+
+### Example Requests
+- "Refactor auth system, update docs, and commit"
+- "Fix failing tests in auth, payment, and shipping"
+- "Find all API endpoints and document them"
+
+---
+
+## 3. ❌ WHEN NOT TO DISPATCH
+
+### ALWAYS DIRECT
+✗ Token budget <20%
+✗ Single domain only
+✗ Sequential dependencies only
+✗ Trivial changes (<5 min)
+✗ Single file modifications
+
+### Example Requests
+- "Fix typo in README"
+- "Add missing semicolon"
+- "Build then test"
+- "Change variable name"
+
+---
+
+## 4. 🤝 COLLABORATIVE ZONE (40-49%)
+
+### Ask User:
+```markdown
+This task has medium complexity (X%).
+A) Handle directly - simpler, sequential
+B) Create sub-agents - parallel, potentially faster
+```
+
+---
+
+## 5. 📊 DOMAIN CLUSTERING
+
+| Domain | Core Skills | Tools |
+|--------|------------|-------|
+| **Code** | workflows-code, mcp-semantic-search | Read, Write, Edit, Bash |
+| **Docs** | create-documentation, workflows-conversation | Read, Write, WebSearch |
+| **Git** | workflows-git, workflows-save-context | Bash, Read |
+| **Test** | workflows-code, mcp-semantic-search | Read, Write, Bash |
+| **DevOps** | mcp-code-mode, cli-gemini | Bash, Read, Edit |
+
+---
+
+## 6. 🚀 SUB-AGENT SPEC TEMPLATE
+
+```typescript
+{
+  description: "${domain} task in <10 words",
+  subagent_type: "general-purpose",
+  model: "haiku", // or "sonnet" for complex
+  prompt: "Detailed instructions with skills...",
+  timeout: 300000  // 5 minutes default
+}
+```
+
+### Model Selection
+- **haiku**: Simple tasks, docs, quick fixes
+- **sonnet**: Complex code, debugging
+- **inherit**: Use parent model
+
+---
+
+## 7. 📈 PERFORMANCE TARGETS
+
+- Analysis: <500ms
+- Dispatch: <2s overhead
+- Total overhead: <10% of task time
+- Success rate: >90%
+- Timeout rate: <5%
+
+---
+
+## 8. 🔧 RESOURCE LIMITS
+
+- Max concurrent agents: 5
+- Default timeout: 5 minutes
+- Token budget per agent: 10%
+- Min token budget for dispatch: 20%
+
+---
+
+## 9. 🎬 LIFECYCLE PHASES
+
+```
+1. CREATE → Build spec (500ms)
+2. DISPATCH → Task tool (1s)
+3. EXECUTE → Autonomous (30s-5min)
+4. INTEGRATE → Merge results (500ms)
+5. CLEANUP → Release resources (100ms)
+```
+
+---
+
+## 10. 🚨 ERROR RECOVERY
+
+| Error Type | Recovery Strategy |
+|------------|------------------|
+| Timeout | Use partial results, handle remainder directly |
+| Failure | Retry once, then fallback to direct |
+| Token limit | Abort dispatch, handle directly |
+| Parse error | Use basic skill set, continue degraded |
+
+---
+
+## 11. 📝 LOGGING
+
+```bash
+# Check decisions
+tail -50 .claude/hooks/logs/orchestrator.log
+
+# View skill recommendations
+cat .claude/hooks/logs/skill-recommendations.log
+```
+
+---
+
+## 12. 🎯 COMMON PATTERNS
+
+### Pattern: Multi-Domain Feature
+```
+"Implement X with tests and docs"
+→ 3 agents: code, test, docs
+→ Parallel execution
+→ 60% time savings
+```
+
+### Pattern: Parallel Debugging
+```
+"Fix 3 independent failures"
+→ 3 agents: one per failure
+→ Concurrent investigation
+→ 3x faster resolution
+```
+
+### Pattern: Sequential Task
+```
+"Build, test, then deploy"
+→ No agents (sequential)
+→ Direct handling
+→ Dependencies prevent parallel
+```
+
+---
+
+## 13. 💡 PRO TIPS
+
+1. **Trust the scores** - Tuned from real usage
+2. **When in doubt, ask** - Collaborative mode for borderline cases
+3. **Monitor tokens** - Dispatch disabled <20% budget
+4. **Log everything** - Helps tune thresholds
+5. **Partial > nothing** - Failed agents may still provide value
+
+---
+
+## 14. 🔗 QUICK LINKS
+
+- Full documentation: [SKILL.md](../SKILL.md)
+- Complexity scoring: [complexity_scoring.md](./complexity_scoring.md)
+- Skill clustering: [skill_clustering.md](./skill_clustering.md)
+- Dispatch decisions: [dispatch_decision.md](./dispatch_decision.md)
+- Agent lifecycle: [sub_agent_lifecycle.md](./sub_agent_lifecycle.md)

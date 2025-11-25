@@ -1,0 +1,19 @@
+// GitHub Copilot CLI MCP Server Configuration
+// Location: ~/.copilot/mcp-config.json
+// NOTE: Change the file format back to a normal '.json' AND remove all comments before use - Copilot CLI requires valid JSON
+{
+  "mcpServers": {
+    // Code Mode MCP Server - Provides code execution and UTCP tool integration
+    "code_mode": {
+      "command": "node", // Node.js runtime
+      "args": [
+        "/Users/MCP Servers/code-mode/code-mode-mcp/dist/index.js"
+      ],
+      "env": {
+        // UTCP configuration file path for tool definitions
+        "UTCP_CONFIG_FILE": "/Users/.utcp_config.json"
+      },
+      "tools": ["*"] // Expose all available MCP tools (use array of tool names to restrict)
+    }
+  }
+}

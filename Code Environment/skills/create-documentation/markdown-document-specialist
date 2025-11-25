@@ -1,0 +1,170 @@
+#!/bin/bash
+# ───────────────────────────────────────────────────────────────
+# COMPONENT: MARKDOWN DOCUMENT SPECIALIST CLI
+# ───────────────────────────────────────────────────────────────
+
+set -euo pipefail
+
+# Get script directory (resolves symlinks)
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")" && pwd)"
+ANALYZE_SCRIPT="$SCRIPT_DIR/scripts/analyze_docs.py"
+INIT_SKILL_SCRIPT="$SCRIPT_DIR/scripts/init_skill.py"
+PACKAGE_SKILL_SCRIPT="$SCRIPT_DIR/scripts/package_skill.py"
+VALIDATE_SKILL_SCRIPT="$SCRIPT_DIR/scripts/quick_validate.py"
+
+# Check Python3 availability
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "Error: python3 not found. Install Python 3 to use markdown-document-specialist." >&2
+    exit 1
+fi
+
+# Check if analyze script exists
+if [[ ! -f "$ANALYZE_SCRIPT" ]]; then
+    echo "Error: analyze_docs.py not found at $ANALYZE_SCRIPT" >&2
+    exit 1
+fi
+
+# Show usage
+show_usage() {
+    cat << 'EOF'
+markdown-document-specialist - Document quality and skill creation management
+
+USAGE:
+    # Document Quality Mode
+    markdown-document-specialist [OPTIONS] <file.md>
+    markdown-document-specialist --phase <phase> <file.md>
+
+    # Skill Creation Mode
+    markdown-document-specialist --init-skill <skill-name> [--path <dir>]
+    markdown-document-specialist --package-skill <skill-path> [output-dir]
+    markdown-document-specialist --validate-skill <skill-path>
+
+DOCUMENT QUALITY OPTIONS:
+    --phase enforcement    Run Phase 1: Structure enforcement and analysis
+    --phase optimization   Run Phase 2: Content optimization (future)
+    --phase validation     Run Phase 3: Quality validation (future)
+    --help, -h             Show this help message
+
+SKILL CREATION OPTIONS:
+    --init-skill <name>    Initialize new skill with template
+    --path <dir>           Output directory for skill (default: current dir)
+    --package-skill <path> Package skill into distributable zip
+    --validate-skill <path> Validate skill structure and frontmatter
+
+EXAMPLES:
+    # Document Quality
+    markdown-document-specialist README.md
+    markdown-document-specialist --phase enforcement SKILL.md
+    find docs/ -name "*.md" -exec markdown-document-specialist {} \;
+
+    # Skill Creation
+    markdown-document-specialist --init-skill my-skill --path .claude/skills
+    markdown-document-specialist --package-skill .claude/skills/my-skill
+    markdown-document-specialist --validate-skill .claude/skills/my-skill
+
+For full documentation, see:
+    .claude/skills/markdown-document-specialist/SKILL.md
+    .claude/skills/markdown-document-specialist/references/quick_reference.md
+    .claude/skills/markdown-document-specialist/references/skill_creation.md
+EOF
+}
+
+# Parse command line
+case "${1:-}" in
+    --help|-h|help)
+        show_usage
+        exit 0
+        ;;
+    --init-skill)
+        if [[ $# -lt 2 ]]; then
+            echo "Error: --init-skill requires skill name" >&2
+            echo "Usage: markdown-document-specialist --init-skill <skill-name> [--path <dir>]" >&2
+            exit 1
+        fi
+
+        if [[ ! -f "$INIT_SKILL_SCRIPT" ]]; then
+            echo "Error: init_skill.py not found at $INIT_SKILL_SCRIPT" >&2
+            exit 1
+        fi
+
+        shift
+        python3 "$INIT_SKILL_SCRIPT" "$@"
+        ;;
+    --package-skill)
+        if [[ $# -lt 2 ]]; then
+            echo "Error: --package-skill requires skill path" >&2
+            echo "Usage: markdown-document-specialist --package-skill <skill-path> [output-dir]" >&2
+            exit 1
+        fi
+
+        if [[ ! -f "$PACKAGE_SKILL_SCRIPT" ]]; then
+            echo "Error: package_skill.py not found at $PACKAGE_SKILL_SCRIPT" >&2
+            exit 1
+        fi
+
+        shift
+        python3 "$PACKAGE_SKILL_SCRIPT" "$@"
+        ;;
+    --validate-skill)
+        if [[ $# -lt 2 ]]; then
+            echo "Error: --validate-skill requires skill path" >&2
+            echo "Usage: markdown-document-specialist --validate-skill <skill-path>" >&2
+            exit 1
+        fi
+
+        if [[ ! -f "$VALIDATE_SKILL_SCRIPT" ]]; then
+            echo "Error: quick_validate.py not found at $VALIDATE_SKILL_SCRIPT" >&2
+            exit 1
+        fi
+
+        shift
+        python3 "$VALIDATE_SKILL_SCRIPT" "$@"
+        ;;
+    --phase)
+        if [[ $# -lt 3 ]]; then
+            echo "Error: --phase requires phase name and file path" >&2
+            echo "Usage: markdown-document-specialist --phase <enforcement|optimization|validation> <file.md>" >&2
+            exit 1
+        fi
+
+        PHASE="$2"
+        shift 2
+
+        case "$PHASE" in
+            enforcement)
+                # Phase 1: Run analysis (current Python script functionality)
+                python3 "$ANALYZE_SCRIPT" "$@"
+                ;;
+            optimization)
+                echo "Phase 2 (optimization) not yet implemented." >&2
+                echo "Current: Use Phase 1 (enforcement) to identify issues" >&2
+                exit 1
+                ;;
+            validation)
+                echo "Phase 3 (validation) not yet implemented." >&2
+                echo "Current: Use Phase 1 (enforcement) to analyze quality" >&2
+                exit 1
+                ;;
+            *)
+                echo "Error: Unknown phase '$PHASE'" >&2
+                echo "Valid phases: enforcement, optimization, validation" >&2
+                exit 1
+                ;;
+        esac
+        ;;
+    --*)
+        echo "Error: Unknown option '$1'" >&2
+        echo "Try 'markdown-document-specialist --help' for usage" >&2
+        exit 1
+        ;;
+    "")
+        echo "Error: No file specified" >&2
+        echo "Usage: markdown-document-specialist <file.md>" >&2
+        echo "Try 'markdown-document-specialist --help' for more information" >&2
+        exit 1
+        ;;
+    *)
+        # Direct file analysis (default behavior)
+        python3 "$ANALYZE_SCRIPT" "$@"
+        ;;
+esac

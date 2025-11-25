@@ -1,0 +1,71 @@
+{
+  "load_variables_from": [
+    {
+      "variable_loader_type": "dotenv",
+      "env_file_path": ".env"
+    }
+  ],
+  "tool_repository": {
+    "tool_repository_type": "in_memory"
+  },
+  "tool_search_strategy": {
+    "tool_search_strategy_type": "tag_and_description_word_match"
+  },
+  "manual_call_templates": [
+    {
+      "name": "chrome_devtools_1",
+      "call_template_type": "mcp",
+      "config": {
+        "mcpServers": {
+          "chrome_devtools": {
+            "transport": "stdio",
+            "command": "npx",
+            "args": ["-y", "chrome-devtools-mcp@latest", "--isolated=true"],
+            "env": {}
+          }
+        }
+      }
+    },
+    {
+      "name": "chrome_devtools_2",
+      "call_template_type": "mcp",
+      "config": {
+        "mcpServers": {
+          "chrome_devtools": {
+            "transport": "stdio",
+            "command": "npx",
+            "args": ["-y", "chrome-devtools-mcp@latest", "--isolated=true"],
+            "env": {}
+          }
+        }
+      }
+    },
+    {
+      "name": "semantic_search",
+      "call_template_type": "mcp",
+      "config": {
+        "mcpServers": {
+          "semantic_search": {
+            "transport": "stdio",
+            "command": "/path/to/mcp/venv/bin/python",
+            "args": ["/path/to/mcp/src/server_sqlite.py"],
+            "env": {
+              "MCP_CODEBASE_WORKSPACE": "/path/to/project",
+              "MCP_CODEBASE_DB_PATH": "/path/to/project/.codebase/vectors.db",
+              "MCP_CODEBASE_EMBEDDER_PROVIDER": "openai-compatible",
+              "MCP_CODEBASE_EMBEDDER_API_KEY": "{{ VOYAGE_AI_API_KEY }}",
+              "MCP_CODEBASE_EMBEDDER_BASE_URL": "https://api.voyageai.com/v1",
+              "MCP_CODEBASE_EMBEDDER_MODEL_ID": "voyage-code-3",
+              "MCP_CODEBASE_JUDGE_PROVIDER": "openai-compatible",
+              "MCP_CODEBASE_JUDGE_API_KEY": "{{ VOYAGE_AI_API_KEY }}",
+              "MCP_CODEBASE_JUDGE_BASE_URL": "https://api.voyageai.com/v1",
+              "MCP_CODEBASE_JUDGE_MODEL_ID": "voyage-3",
+              "MCP_CODEBASE_JUDGE_MAX_TOKENS": "1024",
+              "MCP_CODEBASE_JUDGE_TEMPERATURE": "0"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

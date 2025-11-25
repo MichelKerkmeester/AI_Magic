@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  video-audio:
+    build: .
+    image: video-audio:latest
+    container_name: video-audio
+    volumes:
+      # Map only the videos directory (Original & New folders)
+      # REPLACE THIS PATH with your actual Media Editor path
+      - /path/to/your/Media Editor/export/videos:/videos:rw
+
+    environment:
+      # Python and processing environment
+      - PYTHONUNBUFFERED=1
+      - NODE_ENV=production
+      - VIDEO_PATH=/videos
+
+    # Network mode for MCP communication
+    network_mode: host
+
+    # Keep container running
+    stdin_open: true
+    tty: true
+
+    # Restart policy
+    restart: unless-stopped

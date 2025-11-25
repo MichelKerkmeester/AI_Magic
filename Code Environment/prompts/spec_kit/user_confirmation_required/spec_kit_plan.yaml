@@ -1,0 +1,446 @@
+# ─────────────────────────────────────────────────────────────────
+# FRAMEWORK
+# ─────────────────────────────────────────────────────────────────
+role: Expert Developer using GitHub SpecKit for interactive planning
+purpose: Spec-driven planning with user approval at each checkpoint
+action: Run SpecKit from spec to planning with user confirmation at each step
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: interactive
+  approvals: user_confirmation_required
+  tracking: progressive_task_checklists
+  validation: continuous_with_user_approval
+
+planning_philosophy:
+  principle: "Clarity first, completeness second"
+  approach: "Thorough analysis with iterative refinement and user input"
+  mandate: "Define requirements, validate assumptions, plan incrementally, confirm with user"
+
+# ─────────────────────────────────────────────────────────────────
+# USER INPUTS
+# ─────────────────────────────────────────────────────────────────
+user_inputs:
+  git_branch: |
+    [GIT_BRANCH]
+    
+    Git branch name for the work. Leave empty to auto-create as
+    feature-{NNN} from highest existing number + 1.
+  
+  spec_folder: |
+    [SPEC_FOLDER]
+    
+    Spec folder path (e.g., specs/001 or specs/001-feature-name).
+    Leave empty to auto-create next available spec number.
+  
+  context: |
+    [CONTEXT]
+    
+    Provide background information, constraints, or existing documentation
+    that should inform the planning.
+  
+  issues: |
+    [ISSUES]
+    
+    List known issues, problems, or concerns that need to be addressed.
+  
+  request: |
+    [REQUEST]
+    
+    Describe the feature or improvement to plan. Be specific about:
+    - What needs to be built or changed
+    - The problem to solve
+    - Goals and objectives
+    - Success criteria
+  
+  environment: |
+    [STAGING LINK]
+    
+    Staging or production URL for browser testing.
+  
+  scope: |
+    [FILES]
+    
+    Files or folders to focus on.
+
+# ─────────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ─────────────────────────────────────────────────────────────────
+field_handling:
+  spec_id:
+    derive_from: "spec_folder path using pattern specs/{NNN} or specs/{NNN-name}"
+    fallback: "Extract numeric portion or use timestamp if extraction fails"
+
+  defaults:
+    git_branch_empty: "Auto-create feature-{NNN} from highest +001"
+    spec_folder_empty: "Auto-create specs/{NNN} from highest +001"
+    context_empty: "Infer from [REQUEST], [STAGING LINK], and codebase exploration"
+    issues_empty: "Investigate and discover during workflow"
+    environment_empty: "Skip browser testing steps"
+    scope_empty: "Use scope_policy.default"
+
+  scope_policy:
+    default: "specs/**"
+    rule: "Limit file operations to scope when provided"
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW WITH INTERACTIVE CHECKPOINTS
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_1_request_analysis:
+    input_source: USER_INPUTS_SECTION_ABOVE
+    action: Analyze user inputs and define planning scope
+    deep_analysis:
+      focus: comprehensive_requirement_analysis
+      outputs:
+        - requirement_summary
+        - approach_overview
+        - complexity_assessment
+        - key_objectives
+        - success_criteria
+    validation: understanding_confirmed
+    checkpoint:
+      display:
+        step_summary: "Request analyzed and planning scope defined"
+        outputs_generated:
+          - "Requirement summary"
+          - "Complexity assessment"
+          - "Key objectives identified"
+        key_decisions: "Planning scope and approach"
+      question:
+        prompt: "Step 1 complete: Request Analysis. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Pre-Work Review"
+            action: proceed_to_step_2
+          - label: "Review detailed analysis"
+            action: display_detailed_outputs
+          - label: "Modify scope or requirements"
+            action: revise_step_1
+          - label: "Abort workflow"
+            action: terminate_and_save
+
+  step_2_pre_work_review:
+    required_documents:
+      - AGENTS.md
+      - .claude/knowledge/*.md
+    verification: MUST_REVIEW
+    validation: principles_established
+    constitution_check:
+      command: /speckit.constitution
+      when: constitution_missing_or_needs_update
+    deep_analysis:
+      focus: knowledge_base_alignment
+      outputs:
+        - coding_standards_summary
+        - architectural_patterns
+        - project_conventions
+    checkpoint:
+      display:
+        step_summary: "Knowledge base and project standards reviewed"
+        outputs_generated:
+          - "Coding standards summary"
+          - "Architectural patterns"
+          - "Project conventions"
+        key_decisions: "Standards that will guide planning"
+      question:
+        prompt: "Step 2 complete: Pre-Work Review. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Specification"
+            action: proceed_to_step_3
+          - label: "Run constitution update"
+            action: run_constitution_command
+          - label: "Review findings in detail"
+            action: display_detailed_outputs
+          - label: "Skip to specific step"
+            action: skip_to_step
+
+  step_3_specification:
+    command: /speckit.specify [feature-description]
+    outputs:
+      - feature_branch: created
+      - spec.md: acceptance_criteria
+      - location: specs/[NNN-feature]/spec.md
+    optional_documents:
+      - research-spike-[name].md: "Time-boxed research (copy from .opencode/speckit/templates/research_spike_template.md)"
+      - decision-record-[name].md: "Architecture Decision Records (copy from .opencode/speckit/templates/decision_record_template.md)"
+    validation: spec_complete_and_testable
+    chrome_devtools:
+      when: analyzing_existing_features
+    deep_analysis:
+      focus: comprehensive_specification
+      outputs:
+        - feature_scope_definition
+        - acceptance_criteria
+        - technical_constraints
+        - edge_case_analysis
+    checkpoint:
+      display:
+        step_summary: "Feature specification created"
+        outputs_generated:
+          - "spec.md with user stories"
+          - "Acceptance criteria"
+          - "Feature branch"
+        key_decisions: "Feature scope and success metrics"
+      question:
+        prompt: "Step 3 complete: Specification. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Clarification"
+            action: proceed_to_step_4
+          - label: "Edit spec.md"
+            action: edit_specification
+          - label: "Add research spike"
+            action: create_research_spike
+          - label: "Review spec in detail"
+            action: display_spec_content
+
+  step_4_clarification:
+    command: /speckit.clarify
+    outputs:
+      - resolved_ambiguities
+      - clarified_requirements
+      - updated_spec
+    validation: requirements_clear
+    chrome_devtools:
+      when: "[STAGING LINK] provided"
+    spike_option:
+      command: /speckit.research-spike [research-question]
+      when: technical_uncertainty_requires_investigation
+    deep_analysis:
+      focus: ambiguity_resolution
+      outputs:
+        - requirement_refinement
+        - assumption_documentation
+        - risk_identification
+    checkpoint:
+      display:
+        step_summary: "Ambiguities resolved and requirements clarified"
+        outputs_generated:
+          - "Resolved ambiguities"
+          - "Updated spec.md"
+          - "Clarification notes"
+        key_decisions: "Resolved uncertainties"
+      question:
+        prompt: "Step 4 complete: Clarification. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Quality Checklist"
+            action: proceed_to_step_5
+          - label: "Continue clarification"
+            action: additional_clarification
+          - label: "Review changes"
+            action: display_spec_changes
+          - label: "Create research spike"
+            action: create_research_spike
+
+  step_5_quality_checklist:
+    command: /speckit.checklist
+    outputs:
+      - quality_checklist: generated
+    validation: checklist_generated
+    deep_analysis:
+      focus: quality_validation_preparation
+      outputs:
+        - validation_criteria
+        - testing_requirements
+        - quality_gates
+    checkpoint:
+      display:
+        step_summary: "Quality checklist generated"
+        outputs_generated:
+          - "checklist.md"
+          - "Validation criteria"
+          - "Quality gates"
+        key_decisions: "Validation approach"
+      question:
+        prompt: "Step 5 complete: Quality Checklist. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Planning"
+            action: proceed_to_step_6
+          - label: "Modify checklist"
+            action: edit_checklist
+          - label: "Review checklist"
+            action: display_checklist_content
+          - label: "Skip to specific step"
+            action: skip_to_step
+
+  step_6_planning:
+    command: /speckit.plan [context]
+    outputs:
+      - plan.md: technical_approach
+      - dependencies: identified
+      - upstream_docs: reviewed
+    optional_documents:
+      - tasks.md: "Implementation task breakdown (copy from .opencode/speckit/templates/tasks_template.md)"
+      - checklist.md: "Validation checklists (copy from .opencode/speckit/templates/checklist_template.md)"
+    decision_records:
+      command: /speckit.decision [decision-context]
+      when: significant_technical_decision_needs_documentation
+    validation: approach_defined
+    chrome_devtools:
+      when: analyzing_current_implementation
+    deep_analysis:
+      focus: comprehensive_planning
+      outputs:
+        - detailed_technical_approach
+        - implementation_strategy
+        - risk_assessment
+        - dependency_mapping
+        - rollback_strategy
+    final_output:
+      summary_document:
+        location: specs/[NNN-feature]/planning-summary.md
+        required_sections:
+          - feature_overview
+          - technical_approach
+          - dependencies_identified
+          - risks_and_mitigation
+          - recommended_next_steps
+    checkpoint:
+      display:
+        step_summary: "Technical plan and planning summary created"
+        outputs_generated:
+          - "plan.md"
+          - "planning-summary.md"
+          - "Dependencies mapped"
+          - "Risk mitigation"
+        key_decisions: "Architecture and implementation strategy"
+      question:
+        prompt: "Step 6 complete: Planning. How would you like to proceed?"
+        options:
+          - label: "Approve and save context"
+            action: proceed_to_step_7
+          - label: "Edit plan.md"
+            action: edit_plan
+          - label: "Add decision record"
+            action: create_decision_record
+          - label: "Review plan in detail"
+            action: display_plan_content
+
+  step_7_save_context:
+    action: Save conversation context for planning documentation
+    invocation: Skill(skill: "save-context")
+    description: |
+      Preserve comprehensive planning conversation including:
+      - Requirements analysis and clarifications
+      - Technical approach decisions
+      - Architecture discussions and alternatives
+      - Risk assessment and mitigation strategies
+    outputs:
+      - context_file: "specs/[NNN-feature]/memory/[DD-MM-YY_HH-MM]__planning_session.md"
+      - workflow_flowchart: auto_generated
+      - planning_decisions: documented
+    validation: context_saved_successfully
+    checkpoint:
+      display:
+        step_summary: "Planning context saved"
+        outputs_generated:
+          - "Context file in memory/"
+          - "Workflow flowchart"
+          - "Planning decisions documented"
+        key_decisions: "Complete planning record preserved"
+      question:
+        prompt: "Step 7 complete: Context Saved. Planning workflow finished!"
+        options:
+          - label: "Finish planning workflow"
+            action: complete_workflow
+          - label: "Review all artifacts"
+            action: review_all_artifacts
+          - label: "Continue to implementation"
+            action: suggest_implementation_workflow
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW TERMINATION
+# ─────────────────────────────────────────────────────────────────
+termination:
+  after_step: 7
+  message: "Planning phase completed with user approval at all checkpoints."
+  next_steps:
+    - Review planning documentation
+    - Validate technical approach
+    - Use spec_kit_implementation_interactive.yaml for guided implementation
+    - Or use spec_kit_implementation.yaml for autonomous implementation
+
+# ─────────────────────────────────────────────────────────────────
+# QUALITY STANDARDS
+# ─────────────────────────────────────────────────────────────────
+quality_standards:
+  specification:
+    - clear_acceptance_criteria
+    - testable_requirements
+    - edge_cases_identified
+    - dependencies_documented
+  planning:
+    - comprehensive_technical_approach
+    - risk_assessment_complete
+    - implementation_strategy_defined
+    - validation_approach_clear
+  documentation:
+    - spec_complete_and_accurate
+    - plan_detailed_and_actionable
+    - decisions_documented
+    - assumptions_explicit
+
+# ─────────────────────────────────────────────────────────────────
+# INTERACTIVE EXECUTION GUIDANCE
+# ─────────────────────────────────────────────────────────────────
+interactive_execution:
+  principle: "Execute planning workflow with user confirmation at each checkpoint"
+
+  checkpoint_behavior:
+    - Present step summary with outputs
+    - Show key decisions made
+    - List any issues found
+    - Offer multiple choice options
+    - Wait for user selection before proceeding
+
+  user_options:
+    standard:
+      - approve_and_continue
+      - review_outputs
+      - modify_approach
+      - skip_to_step
+      - abort_workflow
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+    - follow_workflow_sequence
+    - document_all_decisions
+    - validate_before_completion
+    - prompt_for_user_approval_at_checkpoints
+    - present_options_clearly
+    - wait_for_user_decision
+    - explore_codebase_thoroughly
+
+  NEVER:
+    - skip_workflow_steps
+    - ignore_blockers
+    - proceed_without_user_approval
+    - skip_browser_analysis_when_url_provided
+    - proceed_beyond_planning
+    - make_unsupported_assumptions
+
+# ─────────────────────────────────────────────────────────────────
+# SUCCESS CRITERIA
+# ─────────────────────────────────────────────────────────────────
+success:
+  specification:
+    - Requirements clearly defined
+    - Acceptance criteria testable
+    - Edge cases identified
+    - User approved at checkpoint
+
+  planning:
+    - Technical approach comprehensive
+    - Implementation strategy clear
+    - Risks assessed and mitigated
+    - User approved at checkpoint
+
+  documentation:
+    - Spec folder complete
+    - Planning-summary.md created
+    - Quality checklist generated
+    - Context saved
+    - User approved at checkpoint

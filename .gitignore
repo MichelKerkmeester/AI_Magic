@@ -1,0 +1,43 @@
+# Git Ignore Configuration
+# Specifies intentionally untracked files that Git should ignore
+
+.DS_Store
+
+# Development
+.env
+.mcp.json
+.utcp_config.json
+opencode.json
+package-lock.json
+package.json
+postcss.config.js
+tailwind.config.js
+tsconfig.json
+node_modules/
+lib/
+
+# IDE and AI folders (ignored at all levels)
+.vscode/
+.claude/
+.opencode/
+
+# Configuration files (ignored at all levels)
+mcp_servers.json
+settings.local.json
+
+# Exception: Allow specific config files in Code Environment
+!Code Environment/mcp.json
+!Code Environment/utcp_config.json
+!Code Environment/opencode.json
+!Code Environment/settings.local.json
+
+# Working directories (ignored at all levels)
+context/
+export/
+memory/
+
+# Archive folder (root level only)
+/z — Archive/
+
+# Complete folder ignore
+AI Systems/Barter

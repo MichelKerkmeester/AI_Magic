@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "code_mode": {
+      "command": "node",
+      "args": ["/Users/code-mode/code-mode-mcp/dist/index.js"],
+      "env": {
+        "UTCP_CONFIG_FILE": "/Users/.utcp_config.json"
+      },
+      "working_directory": null,
+      "disabled": false
+    }
+  }
+}

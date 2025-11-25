@@ -1,0 +1,412 @@
+# ─────────────────────────────────────────────────────────────────
+# FRAMEWORK
+# ─────────────────────────────────────────────────────────────────
+role: Expert Developer using GitHub SpecKit for autonomous planning and spec
+purpose: Spec-driven planning with autonomous execution through step 7
+action: Run SpecKit from spec to planning with continuous self-validation
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none
+  tracking: progressive_task_checklists
+  validation: continuous_self_validation
+
+planning_philosophy:
+  principle: "Clarity first, completeness second"
+  approach: "Thorough analysis with iterative refinement"
+  mandate: "Define requirements, validate assumptions, plan incrementally, execute autonomously"
+
+# ─────────────────────────────────────────────────────────────────
+# USER INPUTS
+# ─────────────────────────────────────────────────────────────────
+user_inputs:
+  git_branch: |
+    [GIT_BRANCH]
+    
+    Git branch name for the work. Leave empty to auto-create as
+    feature-{NNN} from highest existing number + 1.
+  
+  spec_folder: |
+    [SPEC_FOLDER]
+    
+    Spec folder path (e.g., specs/001 or specs/001-feature-name).
+    Leave empty to auto-create next available spec number.
+  
+  context: |
+    [CONTEXT]
+    
+    Provide background information, constraints, or existing documentation
+    that should inform the planning. Examples:
+    - Environment details (staging/production URLs)
+    - Current state of related features
+    - Technical stack and dependencies
+    - Known constraints or limitations
+    Leave empty to infer from REQUEST and environment exploration.
+  
+  issues: |
+    [ISSUES]
+    
+    List known issues, problems, or concerns that need to be addressed.
+    Examples:
+    - Bug reports or error messages
+    - Performance concerns
+    - User feedback or complaints
+    - Technical debt to address
+    Leave empty to discover during analysis.
+  
+  request: |
+    [REQUEST]
+    
+    Describe the feature or improvement to plan. Be specific about:
+    - What needs to be built or changed
+    - The problem to solve
+    - Goals and objectives
+    - Success criteria
+  
+  environment: |
+    [STAGING LINK]
+    
+    Staging or production URL for browser testing. Leave empty to skip
+    browser-based verification steps.
+  
+  scope: |
+    [FILES]
+    
+    Files or folders to focus on. Can be:
+    - Single file path
+    - Multiple paths (one per line)
+    - Glob patterns (e.g., src/**/*.js)
+    - Leave empty to use default scope (specs/**)
+
+# ─────────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ─────────────────────────────────────────────────────────────────
+field_handling:
+  spec_id:
+    derive_from: "spec_folder path using pattern specs/{NNN} or specs/{NNN-name}"
+    fallback: "Extract numeric portion or use timestamp if extraction fails"
+
+  defaults:
+    git_branch_empty: "Auto-create feature-{NNN} from highest +001"
+    spec_folder_empty: "Auto-create specs/{NNN} from highest +001"
+    context_empty: "Infer from [REQUEST], [STAGING LINK], and codebase exploration"
+    issues_empty: "Investigate and discover during workflow"
+    environment_empty: "Skip browser testing steps"
+    scope_empty: "Use scope_policy.default"
+
+  scope_policy:
+    default: "specs/**"
+    rule: "Limit file operations to scope when provided"
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_1_request_analysis:
+    input_source: USER_INPUTS_SECTION_ABOVE
+    git_branch: "[GIT_BRANCH] → auto-create if empty"
+    spec_folder: "[SPEC_FOLDER] → auto-create if empty"
+    context: "[CONTEXT] → infer if empty"
+    issues: "[ISSUES] → discover if empty"
+    request: "[REQUEST] → REQUIRED"
+    environment: "[STAGING LINK] → skip DevTools if empty"
+    scope: "[FILES] → default scope if empty"
+    action: Analyze user inputs autonomously and define planning scope
+    outputs:
+    - requirement_summary
+    - approach_overview
+    - complexity_assessment
+    deep_analysis:
+      focus: comprehensive_requirement_analysis
+      approach: thorough_investigation
+      outputs:
+      - requirement_summary
+      - approach_overview
+      - complexity_assessment
+      - key_objectives
+      - success_criteria
+      - investigation_priorities
+    validation: understanding_confirmed
+
+  step_2_pre_work_review:
+    required_documents:
+    - AGENTS.md
+    - AGENTS.md
+    - .claude/knowledge/*.md
+    verification: MUST_REVIEW
+    validation: principles_established
+    constitution_check:
+      command: /speckit.constitution
+      when: constitution_missing_or_needs_update
+      note: "Initialize or update project constitution if needed"
+      autonomous: true
+    deep_analysis:
+      focus: knowledge_base_alignment
+      approach: systematic_review
+      outputs:
+      - coding_standards_summary
+      - architectural_patterns
+      - project_conventions
+      - constraint_identification
+      - principle_alignment
+
+  step_3_specification:
+    command: /speckit.specify [feature-description]
+    outputs:
+    - feature_branch: created
+    - spec.md: acceptance_criteria
+    - location: specs/[NNN-feature]/spec.md
+    optional_documents:
+      - research-spike-[name].md: "Time-boxed research/experimentation BEFORE implementation (copy from .opencode/speckit/templates/research_spike_template.md)"
+      - decision-record-[name].md: "Architecture Decision Records for significant technical choices (copy from .opencode/speckit/templates/decision_record_template.md)"
+    validation: spec_complete_and_testable
+    chrome_devtools:
+      when: analyzing_existing_features
+      approach: Navigate → Snapshot → Analyze → Document
+      autonomous: true
+    deep_analysis:
+      focus: comprehensive_specification
+      approach: rigorous_requirements_definition
+      outputs:
+      - feature_scope_definition
+      - acceptance_criteria
+      - technical_constraints
+      - dependency_identification
+      - edge_case_analysis
+      - success_metrics
+
+  step_4_clarification:
+    command: /speckit.clarify
+    outputs:
+    - resolved_ambiguities
+    - clarified_requirements
+    - updated_spec
+    validation: requirements_clear
+    chrome_devtools:
+      when: "[STAGING LINK] provided"
+      approach: Navigate → Inspect → Analyze → Clarify
+      capture: current_behavior_screenshots
+      autonomous: true
+    spike_option:
+      command: /speckit.research-spike [research-question]
+      when: technical_uncertainty_requires_investigation
+      note: "Use for time-boxed research before committing to approach"
+      autonomous: true
+    deep_analysis:
+      focus: ambiguity_resolution
+      approach: systematic_clarification
+      outputs:
+      - requirement_refinement
+      - constraint_validation
+      - assumption_documentation
+      - risk_identification
+
+  step_5_quality_checklist:
+    command: /speckit.checklist
+    outputs:
+    - quality_checklist: generated
+    validation: checklist_generated
+    deep_analysis:
+      focus: quality_validation_preparation
+      approach: comprehensive_checklist_design
+      outputs:
+      - validation_criteria
+      - testing_requirements
+      - quality_gates
+
+  step_6_planning:
+    command: /speckit.plan [context]
+    outputs:
+    - plan.md: technical_approach
+    - dependencies: identified
+    - upstream_docs: reviewed
+    optional_documents:
+      - tasks.md: "Implementation task breakdown AFTER plan.md, BEFORE coding (copy from .opencode/speckit/templates/tasks_template.md)"
+      - checklist.md: "Validation & QA checklists when systematic validation needed (copy from .opencode/speckit/templates/checklist_template.md)"
+    decision_records:
+      command: /speckit.decision [decision-context]
+      when: significant_technical_decision_needs_documentation
+      note: "Document architecture decisions with full context and alternatives"
+      autonomous: true
+    validation: approach_defined
+    chrome_devtools:
+      when: analyzing_current_implementation
+      actions:
+      - inspect_network_requests
+      - analyze_dom_structure
+      - review_console_errors
+      - capture_performance_metrics
+      autonomous: true
+    deep_analysis:
+      focus: comprehensive_planning
+      approach: deep_analysis
+      outputs:
+      - detailed_technical_approach
+      - implementation_strategy
+      - risk_assessment
+      - dependency_mapping
+      - integration_patterns
+      - rollback_strategy
+    final_output:
+      summary_document:
+        location: specs/[NNN-feature]/planning-summary.md
+        required_sections:
+        - feature_overview
+        - technical_approach
+        - dependencies_identified
+        - risks_and_mitigation
+        - recommended_next_steps
+      completion_message: Planning phase complete. Technical plan and approach have been documented autonomously.
+
+  step_7_save_context:
+    action: Save conversation context for planning documentation
+    invocation: Skill(skill: "save-context")
+    description: |
+      Preserve comprehensive planning conversation including:
+      - Requirements analysis and clarifications
+      - Technical approach decisions
+      - Architecture discussions and alternatives
+      - Risk assessment and mitigation strategies
+    outputs:
+      - context_file: "specs/[NNN-feature]/memory/[DD-MM-YY_HH-MM]__planning_session.md"
+      - workflow_flowchart: auto_generated
+      - planning_decisions: documented
+    validation: context_saved_successfully
+    note: |
+      Context saved alongside spec.md and plan.md for complete planning record.
+      Captures full planning journey and decision rationale.
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW TERMINATION
+# ─────────────────────────────────────────────────────────────────
+termination:
+  after_step: 7
+  message: "Planning phase completed successfully and autonomously. Workflow terminated after step 7 (save context)."
+  next_steps:
+  - Review planning documentation
+  - Validate technical approach
+  - Use speckit_implementation__autonomous.yaml for autonomous implementation
+  - Or use speckit_implementation.yaml for implementation with existing approval gates
+
+# ─────────────────────────────────────────────────────────────────
+# QUALITY STANDARDS
+# ─────────────────────────────────────────────────────────────────
+quality_standards:
+  specification:
+    - clear_acceptance_criteria
+    - testable_requirements
+    - edge_cases_identified
+    - dependencies_documented
+  
+  planning:
+    - comprehensive_technical_approach
+    - risk_assessment_complete
+    - implementation_strategy_defined
+    - validation_approach_clear
+  
+  documentation:
+    - spec_complete_and_accurate
+    - plan_detailed_and_actionable
+    - decisions_documented
+    - assumptions_explicit
+
+# ─────────────────────────────────────────────────────────────────
+# AUTONOMOUS EXECUTION GUIDANCE
+# ─────────────────────────────────────────────────────────────────
+autonomous_execution:
+  principle: "Execute planning workflow autonomously with self-validation at each step"
+  
+  decision_making:
+    - Analyze requirements thoroughly from user inputs
+    - Explore codebase to understand context
+    - Make informed planning decisions
+    - Document reasoning and alternatives
+    - Proceed with best judgment
+
+  validation_approach:
+    - Self-validate after each planning step
+    - Verify spec completeness and clarity
+    - Ensure technical approach is sound
+    - Validate against quality standards
+    - Document validation results
+
+  uncertainty_handling:
+    - Research codebase patterns thoroughly
+    - Use browser DevTools when staging URL provided
+    - Create spike documents for technical investigation
+    - Document assumptions clearly
+    - Choose conservative approach
+    - Note areas needing implementation validation
+
+  progress_tracking:
+    - Complete workflow steps sequentially
+    - Log planning decisions
+    - Document alternative approaches considered
+    - Track validation results
+    - Maintain clear planning audit trail
+
+  completion_criteria:
+    - All planning steps completed
+    - Spec.md created with acceptance criteria
+    - Plan.md detailed technical approach
+    - Planning-summary.md overview
+    - Quality checklist generated
+    - Context saved
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+    - follow_workflow_sequence
+    - document_all_decisions
+    - validate_before_completion
+    - use_devtools_for_staging_analysis
+    - evidence_before_decisions
+    - self_validate_and_proceed
+    - do_not_prompt_for_user_approval
+    - explore_codebase_thoroughly
+    - document_alternatives_considered
+  
+  NEVER:
+    - skip_workflow_steps
+    - ignore_blockers
+    - proceed_without_validation
+    - skip_browser_analysis_when_url_provided
+    - proceed_beyond_planning
+    - make_unsupported_assumptions
+    - proceed_without_self_validation
+
+  VALIDATION_REQUIRED:
+    - After requirements analysis
+    - After specification creation
+    - After clarification
+    - After planning
+    - Before workflow termination
+
+# ─────────────────────────────────────────────────────────────────
+# SUCCESS CRITERIA
+# ─────────────────────────────────────────────────────────────────
+success:
+  specification:
+    - Requirements clearly defined
+    - Acceptance criteria testable
+    - Edge cases identified
+    - Dependencies documented
+    - Success metrics defined
+
+  planning:
+    - Technical approach comprehensive
+    - Implementation strategy clear
+    - Risks assessed and mitigated
+    - Dependencies mapped
+    - Integration points identified
+
+  documentation:
+    - Spec folder complete
+    - Planning-summary.md created
+    - Quality checklist generated
+    - Context saved
+    - Ready for implementation phase

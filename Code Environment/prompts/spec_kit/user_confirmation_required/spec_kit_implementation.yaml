@@ -1,0 +1,491 @@
+# ─────────────────────────────────────────────────────────────────
+# FRAMEWORK
+# ─────────────────────────────────────────────────────────────────
+role: Expert Developer using GitHub SpecKit for interactive implementation
+purpose: Spec-driven implementation with user approval at each checkpoint
+action: Execute from task breakdown to completion with user confirmation at each step
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: interactive
+  approvals: user_confirmation_required
+  tracking: progressive_task_checklists
+  validation: continuous_with_user_approval
+
+implementation_philosophy:
+  principle: "Correctness first, elegance second"
+  approach: "Systematic execution with continuous validation and user input"
+  mandate: "Build incrementally, test thoroughly, deliver confidently, confirm with user"
+
+# ─────────────────────────────────────────────────────────────────
+# USER INPUTS
+# ─────────────────────────────────────────────────────────────────
+user_inputs:
+  git_branch: |
+    [GIT_BRANCH]
+    Git branch name for the work.
+  
+  spec_folder: |
+    [SPEC_FOLDER]
+    Spec folder path (e.g., specs/001 or specs/001-feature-name).
+  
+  context: |
+    [CONTEXT]
+    Background information for implementation.
+  
+  issues: |
+    [ISSUES]
+    Known issues or concerns from planning phase.
+  
+  request: |
+    [REQUEST]
+    Describe the implementation work.
+  
+  environment: |
+    [STAGING LINK]
+    Staging or production URL for browser testing.
+  
+  scope: |
+    [FILES]
+    Files or folders to work with.
+
+# ─────────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ─────────────────────────────────────────────────────────────────
+field_handling:
+  spec_id:
+    derive_from: "spec_folder path using pattern specs/{NNN} or specs/{NNN-name}"
+    fallback: "Extract numeric portion or use timestamp if extraction fails"
+
+  defaults:
+    git_branch_empty: "Auto-create feature-{NNN} from highest +001"
+    spec_folder_empty: "Auto-create specs/{NNN} from highest +001"
+    context_empty: "Infer from spec folder and codebase exploration"
+    issues_empty: "Investigate and discover during workflow"
+    environment_empty: "Skip browser testing steps"
+    scope_empty: "Use scope_policy.default"
+
+  scope_policy:
+    default: "specs/**"
+    rule: "Limit file operations to scope when provided"
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW WITH INTERACTIVE CHECKPOINTS
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_10_review_plan_and_spec:
+    input_source: USER_INPUTS_SECTION_ABOVE
+    action: Review spec and planning artifacts
+    required_documents:
+      - "[SPEC_FOLDER]/spec.md"
+      - "[SPEC_FOLDER]/plan.md"
+      - "[SPEC_FOLDER]/planning-summary.md"
+    optional_documents:
+      - research-spike-[name].md
+      - decision-record-[name].md
+      - tasks.md
+      - checklist.md
+    review_focus:
+      - understand_feature_requirements
+      - analyze_technical_approach
+      - identify_dependencies
+      - clarify_acceptance_criteria
+    deep_analysis:
+      focus: comprehensive_plan_review
+      outputs:
+        - requirements_summary
+        - technical_approach_understanding
+        - identified_dependencies
+        - implementation_readiness_assessment
+    validation: planning_artifacts_understood
+    checkpoint:
+      display:
+        step_summary: "Planning artifacts reviewed and understood"
+        outputs_generated:
+          - "Requirements summary"
+          - "Technical approach validated"
+          - "Dependencies identified"
+        key_decisions: "Implementation readiness confirmed"
+      question:
+        prompt: "Step 10 complete: Plan Review. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Task Breakdown"
+            action: proceed_to_step_11
+          - label: "Review artifacts in detail"
+            action: display_artifact_contents
+          - label: "Modify understanding"
+            action: revise_review
+          - label: "Go back to planning"
+            action: suggest_planning_workflow
+
+  step_11_task_breakdown:
+    command: /speckit.tasks
+    outputs:
+      - tasks/checklist.md
+      - task_duration: 15_to_60_minutes
+      - tracking_structure: established
+    optional_documents:
+      - checklist.md: "Validation checklists (copy from .opencode/speckit/templates/checklist_template.md)"
+    deep_analysis:
+      focus: comprehensive_task_analysis
+      outputs:
+        - granular_task_list
+        - dependency_chain
+        - priority_ordering
+        - execution_sequence
+    validation: tasks_documented
+    checkpoint:
+      display:
+        step_summary: "Implementation tasks documented"
+        outputs_generated:
+          - "tasks.md with task breakdown"
+          - "Task dependencies mapped"
+          - "Priorities assigned"
+        key_decisions: "Implementation order"
+      question:
+        prompt: "Step 11 complete: Task Breakdown. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Analysis"
+            action: proceed_to_step_12
+          - label: "Modify tasks"
+            action: edit_tasks
+          - label: "Review task breakdown"
+            action: display_tasks_content
+          - label: "Skip to specific step"
+            action: skip_to_step
+
+  step_12_analysis:
+    command: /speckit.analyze
+    outputs:
+      - consistency_report
+      - coverage_verification
+      - alignment_check
+      - gap_analysis
+    validation: consistency_verified
+    chrome_devtools:
+      when: comparing_staging_vs_spec
+    deep_analysis:
+      focus: comprehensive_consistency_check
+      outputs:
+        - spec_vs_implementation_gaps
+        - potential_edge_cases
+        - integration_points
+        - risk_assessment
+    checkpoint:
+      display:
+        step_summary: "Consistency analysis complete"
+        outputs_generated:
+          - "Consistency report"
+          - "Coverage verification"
+          - "Gap analysis"
+        key_decisions: "Issues to address"
+        issues_found: "Inconsistencies or gaps detected"
+      question:
+        prompt: "Step 12 complete: Analysis. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Quality Checklist"
+            action: proceed_to_step_13
+          - label: "Fix identified issues"
+            action: fix_analysis_issues
+          - label: "Review analysis report"
+            action: display_analysis_report
+          - label: "Go back to previous step"
+            action: go_back
+
+  step_13_quality_checklist:
+    command: /speckit.checklist
+    outputs:
+      - quality_checklist: generated
+    validation: checklist_generated
+    deep_analysis:
+      focus: quality_validation_preparation
+      outputs:
+        - validation_criteria
+        - testing_requirements
+        - quality_gates
+        - acceptance_verification
+    checkpoint:
+      display:
+        step_summary: "Quality checklist generated"
+        outputs_generated:
+          - "checklist.md"
+          - "Validation criteria"
+          - "Quality gates"
+        key_decisions: "Validation approach"
+      question:
+        prompt: "Step 13 complete: Quality Checklist. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Implementation Check"
+            action: proceed_to_step_14
+          - label: "Modify checklist"
+            action: edit_checklist
+          - label: "Review checklist"
+            action: display_checklist_content
+          - label: "Skip to specific step"
+            action: skip_to_step
+
+  step_14_implementation_check:
+    command: /speckit.implement [task-id]
+    checks:
+      prerequisites: verified
+      blockers: none
+      environment: ready
+    chrome_devtools:
+      when: validating_environment
+    deep_analysis:
+      focus: pre_implementation_verification
+      outputs:
+        - environment_status
+        - dependency_verification
+        - blocker_identification
+        - readiness_confirmation
+    checkpoint:
+      display:
+        step_summary: "Implementation prerequisites verified"
+        outputs_generated:
+          - "Environment verification"
+          - "Dependencies confirmed"
+          - "Blockers: none"
+        key_decisions: "Ready to implement"
+      question:
+        prompt: "Step 14 complete: Implementation Check. Ready to start development?"
+        options:
+          - label: "Approve and start Development"
+            action: proceed_to_step_15
+          - label: "Resolve blockers first"
+            action: resolve_blockers
+          - label: "Review prerequisites"
+            action: display_prerequisites
+          - label: "Skip to specific step"
+            action: skip_to_step
+
+  step_15_development:
+    approach: implementation_with_checkpoints
+    requirements:
+      - follow: .claude/knowledge/code_standards.md
+      - update: task_checklist_progressively
+      - test: before_commit
+      - validate: continuously
+    checkpoints:
+      major_changes:
+        action: log_progress
+        validation: user_approval
+      issues_found:
+        action: document_resolution
+        validation: verify_fix
+      architecture_change:
+        action: note_deviation
+        validation: verify_alignment
+    chrome_devtools:
+      when: debugging_implementation
+    deep_analysis:
+      focus: iterative_problem_solving
+      outputs:
+        - implementation_decisions
+        - debugging_insights
+        - optimization_opportunities
+        - progressive_verification
+    checkpoint:
+      display:
+        step_summary: "Implementation complete"
+        outputs_generated:
+          - "Code changes"
+          - "Tests passing"
+          - "Browser validation"
+        key_decisions: "Implementation choices"
+        issues_found: "Issues during development"
+      question:
+        prompt: "Step 15 complete: Development. How would you like to proceed?"
+        options:
+          - label: "Approve and continue to Completion Summary"
+            action: proceed_to_step_16
+          - label: "Continue implementation"
+            action: continue_development
+          - label: "Review changes"
+            action: display_changes_summary
+          - label: "Run additional tests"
+            action: run_tests
+
+  step_16_completion:
+    summary_document:
+      location: "[SPEC_FOLDER]/implementation-summary.md"
+      required_sections:
+        - feature_branch_name
+        - files_modified_created
+        - verification_steps_taken
+        - deviations_from_plan
+        - knowledge_base_updates
+        - recommended_next_steps
+        - browser_testing_results
+    final_checklist:
+      - update_task_status: completed
+      - validation_passed: confirmed
+      - summary_created: true
+      - staging_verified: true
+    deep_analysis:
+      focus: comprehensive_completion_review
+      outputs:
+        - implementation_quality_assessment
+        - lessons_learned
+        - technical_debt_noted
+        - validation_results
+    validation: implementation_complete
+    checkpoint:
+      display:
+        step_summary: "Implementation summary created"
+        outputs_generated:
+          - "implementation-summary.md"
+          - "All tasks complete"
+          - "Staging verified"
+        key_decisions: "Final documentation"
+      question:
+        prompt: "Step 16 complete: Completion Summary. How would you like to proceed?"
+        options:
+          - label: "Approve and save context"
+            action: proceed_to_step_17
+          - label: "Edit summary"
+            action: edit_summary
+          - label: "Review all documentation"
+            action: review_all_docs
+          - label: "Add notes"
+            action: add_notes
+
+  step_17_save_context:
+    action: Save conversation context for implementation documentation
+    invocation: Skill(skill: "save-context")
+    description: |
+      Preserve comprehensive implementation conversation including:
+      - Development decisions and rationale
+      - Debugging insights and solutions
+      - Code changes and architecture decisions
+      - Testing and validation results
+    outputs:
+      - context_file: "[SPEC_FOLDER]/memory/[DD-MM-YY_HH-MM]__implementation_session.md"
+      - workflow_flowchart: auto_generated
+      - implementation_decisions: documented
+    validation: context_saved_successfully
+    checkpoint:
+      display:
+        step_summary: "Implementation context saved"
+        outputs_generated:
+          - "Context file in memory/"
+          - "Workflow flowchart"
+          - "Implementation decisions"
+        key_decisions: "Complete implementation record"
+      question:
+        prompt: "Step 17 complete: Context Saved. Implementation workflow finished!"
+        options:
+          - label: "Finish implementation workflow"
+            action: complete_workflow
+          - label: "Review all artifacts"
+            action: review_all_artifacts
+          - label: "Prepare for PR"
+            action: suggest_pr_preparation
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW CONTINUATION
+# ─────────────────────────────────────────────────────────────────
+prerequisites:
+  required_artifacts:
+    - "[SPEC_FOLDER]/spec.md"
+    - "[SPEC_FOLDER]/plan.md"
+    - "[SPEC_FOLDER]/planning-summary.md"
+  verification: MUST EXIST BEFORE PROCEEDING
+  note: This workflow assumes steps 1-6 completed via spec_kit_plan_interactive.yaml
+
+termination:
+  after_step: 17
+  message: "Implementation phase completed with user approval at all checkpoints."
+  next_steps:
+    - Review implementation-summary.md
+    - Verify all changes in staging
+    - Prepare for code review and PR
+    - Update knowledge base if needed
+
+# ─────────────────────────────────────────────────────────────────
+# QUALITY STANDARDS
+# ─────────────────────────────────────────────────────────────────
+quality_standards:
+  code_quality:
+    - follow_project_standards
+    - defensive_programming
+    - proper_error_handling
+    - comprehensive_testing
+  documentation:
+    - inline_code_comments
+    - api_documentation
+    - architectural_decisions
+    - implementation_notes
+  validation:
+    - unit_tests_passing
+    - integration_tests_verified
+    - browser_testing_complete
+    - acceptance_criteria_met
+
+# ─────────────────────────────────────────────────────────────────
+# INTERACTIVE EXECUTION GUIDANCE
+# ─────────────────────────────────────────────────────────────────
+interactive_execution:
+  principle: "Execute implementation with user confirmation at each checkpoint"
+
+  checkpoint_behavior:
+    - Present step summary with outputs
+    - Show key decisions made
+    - List any issues found
+    - Offer multiple choice options
+    - Wait for user selection
+
+  user_options:
+    standard:
+      - approve_and_continue
+      - review_outputs
+      - modify_approach
+      - skip_to_step
+      - abort_workflow
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+    - follow_workflow_sequence
+    - document_all_changes
+    - validate_before_completion
+    - prompt_for_user_approval_at_checkpoints
+    - present_options_clearly
+    - wait_for_user_decision
+    - test_incrementally
+    - follow_code_standards
+
+  NEVER:
+    - skip_workflow_steps
+    - ignore_blockers
+    - submit_without_validation
+    - proceed_without_user_approval
+    - skip_browser_testing
+    - expand_scope_beyond_spec
+    - break_existing_functionality
+
+# ─────────────────────────────────────────────────────────────────
+# SUCCESS CRITERIA
+# ─────────────────────────────────────────────────────────────────
+success:
+  implementation:
+    - All tasks completed
+    - Code follows standards
+    - Tests passing
+    - Browser validation complete
+    - User approved at checkpoint
+
+  documentation:
+    - Implementation summary created
+    - Deviations documented
+    - Context saved
+    - User approved at checkpoint
+
+  quality:
+    - Checklist validated
+    - Acceptance criteria met
+    - Performance acceptable
+    - User approved at checkpoint
