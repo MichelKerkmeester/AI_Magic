@@ -413,10 +413,17 @@ Each should have clear title, narrative explaining what/why, and affected files.
 **Sub-Folder Awareness**:
 - When `.spec-active` marker exists, routes to sub-folder's memory/
 - Marker format: `specs/###-name/sub-folder-name`
-- Marker location: `.claude/.spec-active`
+- Marker location (V9): `.claude/.spec-active.{SESSION_ID}` (session-isolated)
+- Marker location (legacy): `.claude/.spec-active` (fallback when no session ID)
 - Verifies sub-folder exists before using
 - Falls back to root `memory/` if marker invalid
 - Cleans up stale markers automatically
+
+**Session Isolation (V9)**:
+- Each Claude Code session has its own marker file
+- Prevents concurrent sessions from overwriting each other's spec context
+- Session marker cleaned up when session ends
+- Stale markers (>24h) cleaned up on session start
 
 **Versioning Example**:
 ```
@@ -433,7 +440,7 @@ specs/122-skill-standardization/
 ```
 
 **Routing Logic**:
-1. **Hook**: Reads `.spec-active` marker (if exists)
+1. **Hook**: Reads `.spec-active.{SESSION_ID}` marker (V9: session-isolated, falls back to legacy `.spec-active`)
 2. **Hook**: Validates sub-folder path exists within current spec folder
 3. **Hook**: Determines spec target:
    - Sub-folder active: `"###-name/NNN-subfolder"` (full path)

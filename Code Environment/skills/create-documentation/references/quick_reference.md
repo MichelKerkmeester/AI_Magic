@@ -37,6 +37,7 @@ markdown-c7-optimizer --validate document.md
 | Document Type | Min Overall | Min Structure | Min C7Score | Min Style |
 |---------------|-------------|---------------|-------------|-----------|
 | SKILL.md      | 85+         | 100           | 75+         | 85+       |
+| Command       | 85+         | 100           | 75+         | 85+       |
 | Knowledge     | 85+         | 100           | 70+         | 85+       |
 | README        | 80+         | 95+           | 70+         | 80+       |
 | Spec          | 70+         | 90+           | 60+         | 70+       |
@@ -87,6 +88,12 @@ markdown-c7-optimizer --validate document.md
 - Safe auto-fixes only
 - No blocking
 
+**Command** (Strict):
+- YAML frontmatter required (description, argument-hint, allowed-tools)
+- H1 without subtitle
+- Required sections: Purpose, Contract, Instructions, Example Usage
+- Template: `assets/command_template.md`
+
 ---
 
 ## 5. 🛠️ COMMON ISSUES - QUICK FIXES
@@ -119,6 +126,7 @@ markdown-c7-optimizer --validate document.md
 ├── assets/
 │   ├── frontmatter_templates.md (YAML frontmatter examples)
 │   ├── knowledge_base_template.md (knowledge file creation guide)
+│   ├── command_template.md (slash command templates)
 │   ├── llmstxt_templates.md (llms.txt generation examples)
 │   └── skill_md_template.md (SKILL.md file templates)
 └── scripts/

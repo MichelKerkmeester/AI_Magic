@@ -75,7 +75,7 @@ This reference file provides Level 3 deep-dive technical guidance on structure v
 | SKILL | Strict | Required | Required | ❌ Never | ✅ Required (H2) | Yes |
 | llms.txt | Strict | Forbidden | N/A | ❌ Never | ❌ No | Yes |
 | Knowledge | Moderate | Forbidden | Required | ❌ Never | ✅ Yes | Yes |
-| Command | Strict | Required | Forbidden | ❌ Never | ✅ Yes | Yes |
+| Command | Strict | Required | Forbidden | ❌ Never | ❌ Never | Yes |
 | Spec | Loose | Optional | Optional | ❌ Never | ✅ Yes | No |
 | Generic | Flexible | Optional | Optional | ❌ Never | ✅ Yes | No |
 
@@ -169,7 +169,7 @@ markdown-c7-optimizer --validate-only file.md
 
 ---
 
-## 5.5. 🔀 DIVIDER USAGE RULES
+## 6. 🔀 DIVIDER USAGE RULES
 
 ### Horizontal Rule Placement
 
@@ -186,7 +186,7 @@ Content...
 
 **INCORRECT: Never use `---` between H3 subsections**:
 ```markdown
-## 7. 📖 RULES
+## 3. 📖 RULES
 
 ### ✅ ALWAYS
 Content...
@@ -199,7 +199,7 @@ Content...
 
 **Correct approach for H3 subsections**:
 ```markdown
-## 7. 📖 RULES
+## 3. 📖 RULES
 
 ### ✅ ALWAYS
 Content...
@@ -215,7 +215,7 @@ Content...
 
 ---
 
-## 6. 📚 DOCUMENT TYPE REQUIREMENTS
+## 7. 📚 DOCUMENT TYPE REQUIREMENTS
 
 ### Document Type Standards
 
@@ -237,10 +237,33 @@ Quality target: 85+ overall
 
 **Command**:
 ```yaml
-Required frontmatter: description, argument-hint
-Required sections: INPUTS, WORKFLOW, OUTPUTS
-H1 format: "# Command Name" (no subtitle)
+Required frontmatter: description, argument-hint, allowed-tools
+Optional frontmatter: name, model, version, disable-model-invocation
+Required sections: Purpose, Contract, Instructions, Example Usage
+Optional sections: Example Output, Notes, Troubleshooting
+H1 format: "# Command Title" (no subtitle)
+H2 format: "## Section Name" (no number)
 Quality target: 75+ overall
+Template: assets/command_template.md
+
+# EMOJI POLICY: Commands NEVER use emojis
+# - No emoji on H1 (title)
+# - No emoji on H2 (sections)
+# - No emoji on H3/H4 (subsections)
+# - No emoji in body text (unless user data)
+# Rationale: Commands are machine-invoked, clarity over decoration
+
+# Command Types:
+Simple:      Single action, few args
+Workflow:    Multi-step process with phases
+Mode-Based:  Supports :auto/:confirm suffixes
+Destructive: Requires --confirm flag
+Namespace:   Grouped under directory (e.g., /index:search)
+
+# Namespace Pattern:
+Directory:   .claude/commands/[namespace]/
+File:        .claude/commands/[namespace]/[action].md
+Command:     /namespace:action
 ```
 
 **README**:
@@ -265,7 +288,7 @@ Format: Plain text navigation file for LLMs
 
 ---
 
-## 7. 🎨 EMOJI USAGE RULES
+## 8. 🎨 EMOJI USAGE RULES
 
 ### Primary Rule
 
@@ -279,9 +302,9 @@ Format: Plain text navigation file for LLMs
 **Standard H2 emoji assignments**:
 - 🎯 WHEN TO USE, PURPOSE, OBJECTIVE
 - 🛠️ HOW IT WORKS, IMPLEMENTATION
-- 📋 INPUTS, RULES
+- 📋 INPUTS
+- 📖 RULES
 - 🚀 WORKFLOW
-- 📖 RULES (alternative)
 - 🎓 SUCCESS CRITERIA
 - 🔗 INTEGRATION POINTS
 - 🏎️ QUICK REFERENCE
@@ -318,7 +341,7 @@ Format: Plain text navigation file for LLMs
 
 **Correct pattern**:
 ```markdown
-## 7. 📖 RULES
+## 3. 📖 RULES
 
 ### ✅ ALWAYS
 
@@ -416,7 +439,7 @@ Format: Plain text navigation file for LLMs
 
 ---
 
-## REFERENCES
+## 9. 📚 REFERENCES
 
 - Workflow details: [workflows.md](./workflows.md)
 - Optimization patterns: [optimization.md](./optimization.md)

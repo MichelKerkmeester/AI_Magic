@@ -1,10 +1,25 @@
 ---
 description: Full end-to-end SpecKit workflow (12 steps) - supports :auto and :confirm modes
+argument-hint: "[feature-description] [:auto|:confirm]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 ---
 
-## Smart Command: /speckit.complete
+# SpecKit Complete
 
-**Purpose**: Execute the complete SpecKit lifecycle from specification through implementation with save context. Supports two execution modes.
+Execute the complete SpecKit lifecycle from specification through implementation with context preservation. Supports autonomous (`:auto`) and interactive (`:confirm`) execution modes.
+
+---
+
+## Purpose
+
+Run the full 12-step SpecKit workflow: specification, clarification, planning, task breakdown, implementation, and context saving. This is the comprehensive workflow for feature development with full documentation trail.
+
+---
+
+## Contract
+
+**Inputs:** `$ARGUMENTS` — Feature description with optional parameters (branch, scope, context)
+**Outputs:** Complete spec folder with all artifacts + `STATUS=<OK|FAIL|CANCELLED>`
 
 ## User Input
 
@@ -12,9 +27,30 @@ description: Full end-to-end SpecKit workflow (12 steps) - supports :auto and :c
 $ARGUMENTS
 ```
 
-## Mode Detection & Routing
+## Workflow Overview (12 Steps)
 
-### Step 1: Parse Mode Suffix
+| Step | Name | Purpose | Outputs |
+|------|------|---------|---------|
+| 1 | Request Analysis | Analyze inputs, define scope | requirement_summary |
+| 2 | Pre-Work Review | Review AGENTS.md, standards | coding_standards_summary |
+| 3 | Specification | Create spec.md | spec.md, feature branch |
+| 4 | Clarification | Resolve ambiguities | updated spec.md |
+| 5 | Quality Checklist | Generate validation checklist | checklists/requirements.md |
+| 6 | Planning | Create technical plan | plan.md, research.md |
+| 7 | Task Breakdown | Break into tasks | tasks.md |
+| 8 | Analysis | Verify consistency | consistency_report |
+| 9 | Implementation Check | Verify prerequisites | greenlight |
+| 10 | Development | Execute implementation | code changes |
+| 11 | Completion | Generate summary | implementation-summary.md |
+| 12 | Save Context | Preserve conversation | memory/*.md |
+
+---
+
+## Instructions
+
+### Phase 1: Mode Detection & Input Parsing
+
+#### Step 1.1: Parse Mode Suffix
 
 Detect execution mode from command invocation:
 
@@ -24,7 +60,7 @@ Detect execution mode from command invocation:
 | `/speckit.complete:confirm` | INTERACTIVE | Pause at each step for user approval |
 | `/speckit.complete` (no suffix) | PROMPT | Ask user to choose mode |
 
-### Step 2: Mode Selection (when no suffix detected)
+#### Step 1.2: Mode Selection (when no suffix detected)
 
 If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
@@ -37,7 +73,7 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 **Wait for user response before proceeding.**
 
-### Step 3: Transform Raw Input
+#### Step 1.3: Transform Raw Input
 
 Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
 
@@ -83,44 +119,18 @@ user_inputs:
     src/middleware/**
 ```
 
-### Step 4: Load & Execute Workflow Prompt
+#### Step 1.4: Load & Execute Workflow Prompt
 
 Based on detected/selected mode:
 
 - **AUTONOMOUS**: Load and execute `.opencode/prompts/spec_kit/spec_kit_complete_auto.yaml`
 - **INTERACTIVE**: Load and execute `.opencode/prompts/spec_kit/spec_kit_complete_confirm.yaml`
 
-## Workflow Overview (12 Steps)
+### Phase 2: Workflow Execution
 
-| Step | Name | Purpose | Outputs |
-|------|------|---------|---------|
-| 1 | Request Analysis | Analyze inputs, define scope | requirement_summary |
-| 2 | Pre-Work Review | Review AGENTS.md, standards | coding_standards_summary |
-| 3 | Specification | Create spec.md | spec.md, feature branch |
-| 4 | Clarification | Resolve ambiguities | updated spec.md |
-| 5 | Quality Checklist | Generate validation checklist | checklists/requirements.md |
-| 6 | Planning | Create technical plan | plan.md, research.md |
-| 7 | Task Breakdown | Break into tasks | tasks.md |
-| 8 | Analysis | Verify consistency | consistency_report |
-| 9 | Implementation Check | Verify prerequisites | greenlight |
-| 10 | Development | Execute implementation | code changes |
-| 11 | Completion | Generate summary | implementation-summary.md |
-| 12 | Save Context | Preserve conversation | memory/*.md |
+Execute the 12 steps defined in Workflow Overview. Each step produces artifacts that feed into subsequent steps. See prompt files for detailed step-by-step instructions.
 
-## Key Behaviors
-
-### Autonomous Mode (`:auto`)
-- Executes all steps without user approval gates
-- Self-validates at each checkpoint
-- Makes informed decisions based on best judgment
-- Documents all significant decisions
-- Logs deviations from expected patterns
-
-### Interactive Mode (`:confirm`)
-- Pauses after each step for user approval
-- Presents options: Approve, Review Details, Modify, Skip, Abort
-- Documents user decisions at each checkpoint
-- Allows course correction throughout workflow
+---
 
 ## Context Loading
 
@@ -187,6 +197,8 @@ Implementation:
 Next Steps:
 - Review implementation summary
 - Prepare for code review and PR
+
+STATUS=OK PATH=specs/NNN-short-name/
 ```
 
 ## Examples
@@ -205,3 +217,16 @@ Next Steps:
 ```
 /speckit.complete "Refactor the payment processing module" files: src/payments/** src/checkout/**
 ```
+
+---
+
+## Notes
+
+- **Mode Behaviors:**
+  - **Autonomous (`:auto`)**: Executes all steps without user approval gates. Self-validates at each checkpoint. Makes informed decisions based on best judgment. Documents all significant decisions. Logs deviations from expected patterns.
+  - **Interactive (`:confirm`)**: Pauses after each step for user approval. Presents options: Approve, Review Details, Modify, Skip, Abort. Documents user decisions at each checkpoint. Allows course correction throughout workflow.
+
+- **Integration:**
+  - Works with spec folder system for documentation
+  - Plans can feed into `/speckit.implement` workflow
+  - Context saved via workflows-save-context skill

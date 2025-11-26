@@ -221,8 +221,10 @@ ls -d specs/[0-9]*/ | sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n | tail -1
 
 **Mid-conversation** (substantial content exists):
 - Detects real work started (>2 files OR files >1000 bytes)
-- Exits early without prompting
-- Allows conversation to flow uninterrupted
+- **Prompts for spec folder confirmation** (two-stage flow):
+  1. Stage 1: "Continue in this spec folder?" (A/B/D)
+  2. Stage 2: "Load memory files?" (A/B/C/D) - only if A chosen in Stage 1
+- See "Two-Stage Question Flow" section for details
 
 **Option D (Skip):**
 - Creates `.claude/.spec-skip` marker file
@@ -340,41 +342,54 @@ Result: Clean separation of work, independent memory contexts
 - ✅ Backward compatible (works with non-versioned folders)
 
 
-### Memory File Selection & Context Loading
+### Two-Stage Question Flow (Returning to Spec Folder)
 
-When continuing work in an existing spec folder with substantial content, the `enforce-spec-folder` hook automatically presents previous session memory files for loading, enabling seamless context restoration across sessions.
+When returning to an active spec folder, the hook now asks **two separate questions in sequence**:
 
-**Trigger Conditions:**
-- Mid-conversation (spec folder has substantial content)
-- Memory files exist in active `memory/` directory
-- `.spec-active` marker routing (sub-folder aware)
-
-**Selection Options Presented:**
+**Stage 1: Spec Folder Confirmation** (MANDATORY)
 ```
-🧠 PREVIOUS SESSION CONTEXT
+🔴 MANDATORY_USER_QUESTION
+"You have an active spec folder. Continue in '006-commands' or start fresh?"
+  A) Continue in 006-commands (has previous session context)
+  B) Create new spec folder (specs/007-new-feature/)
+  D) Skip documentation (creates .spec-skip marker)
+```
 
-Recent Memory Files:
-  1. 23-11-25_10-10 - feature-work (3h ago)
-  2. 23-11-24_15-30 - planning (1d ago)
-  3. 23-11-23_14-00 - initial-design (2d ago)
+**Stage 2: Memory File Selection** (only if A chosen in Stage 1)
+```
+📁 Spec folder confirmed: 006-commands
 
-⚠️  BLOCKING: Load memory files for context?
-  A) Load most recent (file 1)
+🧠 MEMORY FILES AVAILABLE
+Found 3 previous session file(s):
+  • 26-11-25_08-42__commands.md
+  • 25-11-25_15-30__planning.md
+
+🔴 MANDATORY_USER_QUESTION
+"Would you like to load previous session context?"
+  A) Load most recent
   B) Load all recent (files 1-3)
   C) List all memory files and select specific
-  D) Skip (start fresh)
+  D) Skip (start fresh without loading context)
 ```
 
+**Key Insight:** "D" means different things at each stage:
+- Stage 1 "D" = Skip documentation entirely (no spec folder)
+- Stage 2 "D" = Skip memory loading (but stay in spec folder)
+
 **AI Workflow (MANDATORY):**
-1. Hook displays memory file selection prompt
-2. **AI MUST ask user**: "Which memory files should I load? (A/B/C/D)"
-3. Wait for user's explicit choice
-4. Based on selection:
+1. Hook displays Stage 1 (spec folder confirmation)
+2. **AI MUST ask user**: "Continue in this spec folder? (A/B/D)"
+3. Wait for explicit choice
+4. If A chosen AND memory files exist:
+   - Hook displays Stage 2 (memory file selection)
+   - **AI MUST ask user**: "Load memory files? (A/B/C/D)"
+   - Wait for explicit choice
+5. Based on Stage 2 selection:
    - **A**: Read most recent file using Read tool
    - **B**: Read 3 most recent files using Read tool (parallel calls)
    - **C**: List up to 10 files, wait for user number selection, then read
-   - **D**: Proceed without loading context
-5. Acknowledge loaded context and continue conversation
+   - **D**: Proceed without loading context (stays in spec folder)
+6. Acknowledge loaded context and continue conversation
 
 **Memory File Format:**
 - Filename: `DD-MM-YY_HH-MM__topic-name.md`

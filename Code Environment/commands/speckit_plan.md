@@ -1,10 +1,25 @@
 ---
 description: Planning workflow (7 steps) - spec through plan only, no implementation. Supports :auto and :confirm modes
+argument-hint: "[feature-description] [:auto|:confirm]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 ---
 
-## Smart Command: /speckit.plan
+# SpecKit Plan
 
-**Purpose**: Execute the SpecKit planning lifecycle from specification through planning. Terminates after creating plan.md - use `/speckit.implement` for implementation phase.
+Execute the SpecKit planning lifecycle from specification through planning. Terminates after creating plan.md - use `/speckit.implement` for implementation phase.
+
+---
+
+## Purpose
+
+Run the 7-step planning workflow: specification, clarification, quality checklist, and technical planning. Creates spec.md, plan.md, and checklists without proceeding to implementation. Use when planning needs review before coding.
+
+---
+
+## Contract
+
+**Inputs:** `$ARGUMENTS` — Feature description with optional parameters (branch, scope, context)
+**Outputs:** Spec folder with planning artifacts (spec.md, plan.md, checklists/) + `STATUS=<OK|FAIL|CANCELLED>`
 
 ## User Input
 
@@ -12,9 +27,25 @@ description: Planning workflow (7 steps) - spec through plan only, no implementa
 $ARGUMENTS
 ```
 
-## Mode Detection & Routing
+## Workflow Overview (7 Steps)
 
-### Step 1: Parse Mode Suffix
+| Step | Name | Purpose | Outputs |
+|------|------|---------|---------|
+| 1 | Request Analysis | Analyze inputs, define scope | requirement_summary |
+| 2 | Pre-Work Review | Review AGENTS.md, standards | coding_standards_summary |
+| 3 | Specification | Create spec.md | spec.md, feature branch |
+| 4 | Clarification | Resolve ambiguities | updated spec.md |
+| 5 | Quality Checklist | Generate validation checklist | checklists/requirements.md |
+| 6 | Planning | Create technical plan | plan.md, planning-summary.md |
+| 7 | Save Context | Preserve conversation | memory/*.md |
+
+---
+
+## Instructions
+
+### Phase 1: Mode Detection & Input Parsing
+
+#### Step 1.1: Parse Mode Suffix
 
 Detect execution mode from command invocation:
 
@@ -24,7 +55,7 @@ Detect execution mode from command invocation:
 | `/speckit.plan:confirm` | INTERACTIVE | Pause at each step for user approval |
 | `/speckit.plan` (no suffix) | PROMPT | Ask user to choose mode |
 
-### Step 2: Mode Selection (when no suffix detected)
+#### Step 1.2: Mode Selection (when no suffix detected)
 
 If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
@@ -37,7 +68,7 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 **Wait for user response before proceeding.**
 
-### Step 3: Transform Raw Input
+#### Step 1.3: Transform Raw Input
 
 Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
 
@@ -53,24 +84,18 @@ Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs f
 | `environment` | URLs starting with http(s)://, "staging:", "production:" | Skip browser testing |
 | `scope` | File paths, glob patterns, "files:" | Default to specs/** |
 
-### Step 4: Load & Execute Workflow Prompt
+#### Step 1.4: Load & Execute Workflow Prompt
 
 Based on detected/selected mode:
 
 - **AUTONOMOUS**: Load and execute `.opencode/prompts/spec_kit/spec_kit_plan_auto.yaml`
 - **INTERACTIVE**: Load and execute `.opencode/prompts/spec_kit/spec_kit_plan_confirm.yaml`
 
-## Workflow Overview (7 Steps)
+### Phase 2: Workflow Execution
 
-| Step | Name | Purpose | Outputs |
-|------|------|---------|---------|
-| 1 | Request Analysis | Analyze inputs, define scope | requirement_summary |
-| 2 | Pre-Work Review | Review AGENTS.md, standards | coding_standards_summary |
-| 3 | Specification | Create spec.md | spec.md, feature branch |
-| 4 | Clarification | Resolve ambiguities | updated spec.md |
-| 5 | Quality Checklist | Generate validation checklist | checklists/requirements.md |
-| 6 | Planning | Create technical plan | plan.md, planning-summary.md |
-| 7 | Save Context | Preserve conversation | memory/*.md |
+Execute the 7 steps defined in Workflow Overview. Each step produces artifacts that feed into subsequent steps. See prompt files for detailed step-by-step instructions.
+
+---
 
 ## Key Differences from /speckit.complete
 
@@ -79,18 +104,7 @@ Based on detected/selected mode:
 - **Next step guidance** - Recommends `/speckit.implement` when ready to build
 - **Use case** - Planning phase separation, stakeholder review, feasibility analysis
 
-## Key Behaviors
-
-### Autonomous Mode (`:auto`)
-- Executes all steps without user approval gates
-- Self-validates at each checkpoint
-- Makes informed decisions based on best judgment
-- Documents all significant decisions
-
-### Interactive Mode (`:confirm`)
-- Pauses after each step for user approval
-- Presents options: Approve, Review Details, Modify, Skip, Abort
-- Allows course correction throughout planning
+---
 
 ## Context Loading
 
@@ -149,6 +163,8 @@ Next Steps:
 - Review planning documentation
 - Validate technical approach with stakeholders
 - Run /speckit.implement:auto or /speckit.implement:confirm to begin implementation
+
+STATUS=OK PATH=specs/NNN-short-name/
 ```
 
 ## Examples
@@ -167,3 +183,16 @@ Next Steps:
 ```
 /speckit.plan "Build analytics dashboard" tech stack: React, Chart.js, existing API
 ```
+
+---
+
+## Notes
+
+- **Mode Behaviors:**
+  - **Autonomous (`:auto`)**: Executes all steps without user approval gates. Self-validates at each checkpoint. Makes informed decisions based on best judgment. Documents all significant decisions.
+  - **Interactive (`:confirm`)**: Pauses after each step for user approval. Presents options: Approve, Review Details, Modify, Skip, Abort. Allows course correction throughout planning.
+
+- **Integration:**
+  - Works with spec folder system for documentation
+  - Pairs with `/speckit.implement` for execution phase
+  - Context saved via workflows-save-context skill

@@ -84,7 +84,7 @@ call_tool_chain({
   logs: [
     "Fetching Webflow sites...",
     "Found 1 site(s)",
-    "Getting collections for: A. Nobel & Zn"
+    "Getting collections for: Example Site"
   ]
 }
 ```

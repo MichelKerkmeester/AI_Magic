@@ -2,6 +2,7 @@
 
 ## ⚡ TL:DR
 - **All file modifications require a spec folder** - code, documentation, configuration, templates, etc. (even non-SpecKit conversations)
+- **When you see `🔴 MANDATORY_USER_QUESTION` signal** - IMMEDIATELY use AskUserQuestion tool (ALL other tools are BLOCKED until you respond)
 - **All MCP tool calls MUST go through code mode** - use `call_tool_chain` for efficient lazy-loaded MCP access (68% fewer tokens, 98.7% reduction in context overhead, 60% faster execution vs traditional tool calling)
 - **CLI AI agents MUST use semantic search MCP** for code exploration/discovery - it's intent-based, not keyword matching (use grep/read for literal text)
 - **Never lie or fabricate** - use "UNKNOWN" when uncertain, verify before claiming completion, follow process even for "trivial" changes
@@ -116,6 +117,7 @@ Example: `I'M UNCERTAIN ABOUT THIS: The endpoint may require auth scope "read:fo
 | 5 | **No Skill Check** | Starting work without checking skills | Check `.claude/skills/` first |
 | 6 | **Retaining Legacy** | "just in case", "don't change too much" | Remove unused code, ask if unsure |
 | 7 | **Skipping Parallel Dispatch** | Multi-domain task (≥2 domains) + complexity ≥35% | Use Task tool with sub-agents |
+| 8 | **Ignoring Mandatory Question** | Sees `🔴 MANDATORY_USER_QUESTION` but uses other tools first | STOP, use AskUserQuestion immediately |
 
 **Enforcement Protocol:** If you detect ANY pattern above:
 1. **STOP** - Do not proceed
@@ -138,7 +140,33 @@ When you see `🔴 MANDATORY_USER_QUESTION` or `{"signal": "MANDATORY_QUESTION"`
 
 **Enforcement:** `PreToolUse/check-pending-questions.sh` BLOCKS all tools except AskUserQuestion when question pending.
 
+**MANDATORY_USER_QUESTION Response Protocol:**
+
+1. **STOP** - Halt all planned operations immediately
+2. **PARSE** - Extract question and options from JSON payload
+3. **ASK** - Use AskUserQuestion tool with EXACT options from JSON (do NOT paraphrase)
+4. **WAIT** - Do not proceed until user responds
+5. **ACT** - Execute based on user's choice
+
+**Anti-Pattern Detection:**
+- Attempting Read/Write/Edit before responding → BLOCKED by PreToolUse hook (violation logged)
+- "I'll handle this later" → VIOLATION (must respond immediately)
+- Paraphrasing options instead of using JSON values → May cause flow issues
+- Waiting for timeout → Compliance violation tracked
+
 **See:** `.claude/hooks/README.md` Section 3.2 (`check-pending-questions.sh`) and Section 7 (`signal-output.sh`) for full specification.
+
+#### 🔴 Spec Folder Compliance Self-Check
+
+Before EVERY Write/Edit file modification, verify:
+- □ Is there an active spec folder? (`.claude/.spec-active.{SESSION_ID}` or legacy `.spec-active` exists)
+- □ Does my modification match the spec folder topic?
+- □ Did I respond to any pending `MANDATORY_USER_QUESTION` signals?
+
+**Self-Audit Trigger:**
+If about to write code without spec folder verification:
+"I was about to skip spec folder verification, which violates process discipline."
+→ Stop and verify compliance before proceeding.
 
 ---
 
@@ -188,14 +216,14 @@ Every conversation that modifies files (code, documentation, configuration, temp
 - **Archive**: Existing files moved to `001-{topic}/`
 - **New work**: Create sub-folder `002-{user-name}/`, `003-{user-name}/`, etc.
 - **Memory**: Each sub-folder has independent `memory/` context
-- **Marker**: `.spec-active` tracks active sub-folder for context routing
+- **Marker**: `.spec-active.{SESSION_ID}` tracks active sub-folder per session (V9: session-isolated)
 - **Migration**: Execute `.claude/hooks/lib/migrate-spec-folder.sh <spec-folder> <new-name>`
 - **Process**:
   1. User selects Option A to reuse existing spec folder
   2. AI prompts for new sub-folder name (lowercase, hyphens, 2-3 words)
   3. AI executes migration script with spec folder path and new name
   4. Script creates numbered archive and new sub-folders
-  5. Script updates `.spec-active` marker
+  5. Script updates `.spec-active.{SESSION_ID}` marker (V9: session-isolated)
   6. AI creates fresh spec.md and plan.md in new sub-folder
 - **Example**:
   ```
@@ -217,7 +245,7 @@ When continuing work in an existing spec folder (mid-conversation with substanti
 - **C)** List all files and select specific (historical search)
 - **D)** Skip (start fresh, no context)
 
-**AI must ask user to choose A/B/C/D explicitly, then use Read tool** to load selected memory files. This seamless context restoration prevents re-asking questions and maintains conversation continuity across sessions. Memory directory is determined by `.spec-active` marker (sub-folder aware).
+**AI must ask user to choose A/B/C/D explicitly, then use Read tool** to load selected memory files. This seamless context restoration prevents re-asking questions and maintains conversation continuity across sessions. Memory directory is determined by `.spec-active.{SESSION_ID}` marker (V9: session-isolated, sub-folder aware).
 
 ### Enforcement Checkpoints
 1. **Collaboration First Rule** - Create before presenting

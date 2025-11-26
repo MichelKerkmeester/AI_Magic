@@ -759,42 +759,109 @@ call_tool_chain({
 - Legacy markers: Converted to JSON format automatically
 - Questions about switching: Excluded from explicit triggers via `\?$` pattern
 
+**Session-Isolated Spec Markers (V9 - Nov 2025)**:
+- **Problem solved**: Multiple concurrent Claude Code sessions would overwrite each other's `.spec-active` markers
+  - Terminal 1 sets marker to `specs/043-save-context/`, Terminal 2 overwrites with `specs/007-auth/`
+  - save-context would route to wrong folder, context would be lost
+- **Solution**: Session-suffixed marker files using SESSION_ID
+- **Marker naming**:
+  ```
+  Before (shared):  .claude/.spec-active
+  After (isolated): .claude/.spec-active.{SESSION_ID}
+  ```
+- **Backward compatibility**: Falls back to legacy `.spec-active` when SESSION_ID unavailable
+- **Files updated**:
+  - `lib/spec-context.sh` - Added `get_spec_marker_path(session_id)` helper
+  - `enforce-spec-folder.sh` - Extracts SESSION_ID, uses session-aware marker
+  - `workflows-save-context-trigger.sh` - Reads session-aware marker
+  - `verify-spec-compliance.sh` - Uses session-aware marker
+  - `lib/migrate-spec-folder.sh` - Writes both legacy and session markers
+  - `PostSessionEnd/cleanup-session.sh` - Removes session marker on session end
+  - `PreSessionStart/initialize-session.sh` - Cleans stale markers (>24h) on session start
+- **Lifecycle**:
+  1. Session starts → Stale markers (>24h old) cleaned up
+  2. User selects spec folder → Creates `.spec-active.{SESSION_ID}`
+  3. save-context triggers → Reads session-specific marker, routes correctly
+  4. Session ends → Session marker removed automatically
+- **Session ID extraction**: `jq -r '.session_id' + tr -cd 'a-zA-Z0-9_-'` (sanitized for security)
+- **Example**: Two concurrent sessions working independently:
+  ```
+  .claude/.spec-active.abc123   → specs/043-save-context/
+  .claude/.spec-active.def456   → specs/007-auth/
+  .claude/.spec-active          → Legacy fallback (optional)
+  ```
+
+**Two-Stage Question Flow (Nov 2025)** - BUG FIX:
+- **Problem solved**: Previously, spec folder confirmation and memory loading were conflated
+  - User selecting "D" (skip) for memory was interpreted as "continue in current spec folder"
+  - This was wrong - "skip memory" and "skip spec folder" are different decisions
+- **Fix**: Two separate decisions, asked sequentially:
+  1. **Stage 1 (spec_folder_confirm)**: "Continue in this spec folder or create new?"
+     - **A)** Continue in existing folder (proceed to stage 2 if memory exists)
+     - **B)** Create new spec folder
+     - **D)** Skip documentation entirely
+  2. **Stage 2 (memory_load)**: "Load previous context?" (only if A chosen in stage 1)
+     - **A)** Load most recent
+     - **B)** Load all recent
+     - **C)** Select specific
+     - **D)** Skip (start fresh without loading context)
+- **Flow diagram**:
+  ```
+  Mid-conversation detected
+          ↓
+  Ask: "Continue in 006-commands?"  ← Stage 1 (spec_folder_confirm)
+          ↓
+  User picks A (continue) → Check for memory files
+          ↓                         ↓
+  Memory exists?           No memory → Proceed
+          ↓
+  Ask: "Load context?"  ← Stage 2 (memory_load)
+          ↓
+  User picks D (skip) → Proceed WITHOUT loading (but stays in folder)
+  ```
+- **Key insight**: "D" in stage 1 = skip documentation; "D" in stage 2 = skip memory only
+- **Functions**:
+  - `emit_spec_folder_confirm_question()` - Stage 1 question (lib/signal-output.sh)
+  - `emit_memory_load_question()` - Stage 2 question (lib/signal-output.sh)
+  - Handler: `spec_folder_confirm` stage in `handle_question_flow()` (enforce-spec-folder.sh)
+
 **Memory File Selection & Context Loading (Nov 2025)**:
 - **Automatic context restoration** when continuing work in existing spec folders
+- **IMPORTANT**: Memory selection is **Stage 2** - only triggers AFTER user confirms spec folder (Option A in Stage 1)
 - **Triggers when**:
-  - Mid-conversation (substantial content detected in spec folder)
+  - User selected A (continue) in spec folder confirmation
   - Memory directory exists (respects `.spec-active` marker for sub-folders)
   - At least one memory file exists (format: `DD-MM-YY_HH-MM__topic.md`)
 - **User presented with 4 options**:
   - **A)** Load most recent memory file (quick context refresh)
   - **B)** Load all recent files (1-3 files, comprehensive context)
   - **C)** List all memory files and select specific (up to 10 files shown)
-  - **D)** Skip (start fresh, no context loading)
+  - **D)** Skip (start fresh, no context loading - but stays in spec folder)
 - **AI workflow**:
-  1. Hook displays memory file selection prompt with spec summary
-  2. AI asks user: "Which memory files should I load? (A/B/C/D)"
-  3. AI waits for user's explicit choice
-  4. AI uses Read tool to load selected files
-  5. AI summarizes loaded context and continues conversation
+  1. User confirms spec folder in Stage 1
+  2. Hook detects memory files and emits Stage 2 question
+  3. AI asks user: "Which memory files should I load? (A/B/C/D)"
+  4. AI waits for user's explicit choice
+  5. AI uses Read tool to load selected files (unless D chosen)
+  6. AI summarizes loaded context and continues conversation
 - **Display format**:
   ```
-  📋 SPEC CONTEXT AVAILABLE
-  Active Spec: 122-skill-standardization/
-  Status: In Progress | Level: 2 | Est. LOC: ~350
+  📁 Spec folder confirmed: 006-commands
 
-  🧠 PREVIOUS SESSION CONTEXT
-  Recent Memory Files:
-    1. 23-11-25_10-10 - feature-work (3h ago)
-    2. 23-11-24_15-30 - planning (1d ago)
-    3. 23-11-23_14-00 - initial-design (2d ago)
+  🧠 MEMORY FILES AVAILABLE
+  Found 3 previous session file(s):
+    • 26-11-25_08-42__commands.md
+    • 25-11-25_15-30__planning.md
+    • 24-11-25_10-00__initial.md
 
-  ⚠️  BLOCKING: Load memory files for context?
+  🔴 MANDATORY_USER_QUESTION
+  {"signal": "MANDATORY_QUESTION", "type": "MEMORY_LOAD", ...}
   ```
 - **Sub-folder aware**: Automatically finds memory files in active sub-folder via `.spec-active` marker
 - **Cross-platform**: Works on both macOS (`date -j`) and Linux (`date -d`) with automatic platform detection
 - **Performance**: <100ms overhead for memory file discovery and display
 - **Benefits**: Seamless session continuity, prevents re-asking questions, maintains conversation context
-- **Graceful degradation**: Silently skips if no memory directory or files exist
+- **Graceful degradation**: Silently skips Stage 2 if no memory directory or files exist
 
 **Exceptions**:
 - Configurable patterns (`typo fix`, `whitespace only`, etc.) with LOC + single-file constraints
@@ -1978,6 +2045,12 @@ fi
 - Substantial content detection for mid-conversation state
 - Sub-folder versioning support (parent/child folder detection)
 - Topic fingerprinting for task change detection (Nov 2025)
+
+**Session-Isolated Marker Functions (V9 - Nov 2025)**:
+- `get_spec_marker_path(session_id)` - Get session-aware marker path
+  - With SESSION_ID: Returns `.claude/.spec-active.{SESSION_ID}` (isolated per session)
+  - Without SESSION_ID: Returns `.claude/.spec-active` (legacy fallback)
+  - Enables multiple concurrent Claude Code sessions with independent spec contexts
 
 **Marker Management Functions**:
 - `has_substantial_content(spec_folder)` - Check if mid-conversation (marker exists + folder valid)

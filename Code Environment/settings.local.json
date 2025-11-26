@@ -96,6 +96,14 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/skill-scaffold-trigger.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/verify-spec-compliance.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/track-file-modifications.sh"
           }
         ]
       },
@@ -117,6 +125,14 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/skill-scaffold-trigger.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/verify-spec-compliance.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/track-file-modifications.sh"
           }
         ]
       },

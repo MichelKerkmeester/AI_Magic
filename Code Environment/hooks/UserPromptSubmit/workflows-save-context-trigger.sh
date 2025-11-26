@@ -31,6 +31,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 HOOKS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/../lib/output-helpers.sh" || exit 0
 
+# V9: Source spec-context for session-aware marker paths
+source "$HOOKS_DIR/lib/spec-context.sh" 2>/dev/null || true
+
 # Performance timing START
 START_TIME=$(date +%s%N)
 
@@ -185,6 +188,9 @@ fi
 # ───────────────────────────────────────────────────────────────
 # FIND TARGET SPEC FOLDER (MANDATORY)
 # ───────────────────────────────────────────────────────────────
+# BUG FIX: Check .spec-active marker FIRST before top-level detection
+# This supports nested spec folder structures like:
+#   specs/001-skills-and-hooks/043-save-context-filtering/
 
 # Check if project has specs/ folder
 if [ ! -d "$CWD/specs" ]; then
@@ -193,43 +199,40 @@ if [ ! -d "$CWD/specs" ]; then
   exit 0
 fi
 
-# Find most recent spec folder (exclude archive folders: z_*, *archive*, *old*, *.archived*)
-SPEC_FOLDER=$(find "$CWD/specs" -maxdepth 1 -type d -name "[0-9][0-9][0-9]-*" 2>/dev/null | \
-  grep -viE '/(z_|.*archive.*|.*old.*|.*\.archived.*)$' | \
-  sort -r | head -1)
-
-if [ -z "$SPEC_FOLDER" ]; then
-  echo "   ⚠️  Auto-save skipped: No spec folder found"
-  echo "   Create spec folder to enable auto-save: mkdir -p specs/###-name/"
-  exit 0
-fi
+# Initialize variables
+SPEC_FOLDER=""
+CONTEXT_DIR=""
+SPEC_TARGET=""
+ACTIVE_SUBFOLDER=""
 
 # ───────────────────────────────────────────────────────────────
-# SUB-FOLDER VERSIONING SUPPORT
+# STEP 1: Check .spec-active marker FIRST (supports nested folders)
+# V9: Use session-aware marker path for multi-session isolation
 # ───────────────────────────────────────────────────────────────
-# Check for active sub-folder marker and route to sub-folder memory/
-# if it exists. Falls back to root memory/ for backward compatibility.
-
-# Default to root memory/ folder
-CONTEXT_DIR="$SPEC_FOLDER/memory"
-
-# Check for active sub-folder marker (.claude/.spec-active)
-SPEC_ACTIVE_MARKER="$CWD/.claude/.spec-active"
+SPEC_ACTIVE_MARKER="$CWD/$(get_spec_marker_path "$SESSION_ID")"
 
 if [ -f "$SPEC_ACTIVE_MARKER" ]; then
   ACTIVE_PATH=$(cat "$SPEC_ACTIVE_MARKER" 2>/dev/null | tr -d '\n\r')
 
-  # Verify active path exists and is within current spec folder
+  # Handle both relative (specs/...) and absolute paths
+  if [[ "$ACTIVE_PATH" != /* ]]; then
+    # Relative path - prepend CWD
+    ACTIVE_PATH="$CWD/$ACTIVE_PATH"
+  fi
+
   if [ -n "$ACTIVE_PATH" ] && [ -d "$ACTIVE_PATH" ]; then
-    # Canonicalize paths to handle symlinks correctly
-    CANON_SPEC=$(realpath "$SPEC_FOLDER" 2>/dev/null || echo "$SPEC_FOLDER")
+    # Verify it's within specs/ folder (security check)
+    CANON_SPECS=$(realpath "$CWD/specs" 2>/dev/null || echo "$CWD/specs")
     CANON_ACTIVE=$(realpath "$ACTIVE_PATH" 2>/dev/null || echo "$ACTIVE_PATH")
-    # Ensure active path is child of detected spec folder
-    # This prevents marker from pointing to wrong spec folder
-    if [[ "$CANON_ACTIVE" == "$CANON_SPEC"/* ]]; then
+
+    if [[ "$CANON_ACTIVE" == "$CANON_SPECS"/* ]]; then
+      SPEC_FOLDER="$ACTIVE_PATH"
       CONTEXT_DIR="$ACTIVE_PATH/memory"
-      ACTIVE_SUBFOLDER=$(basename "$ACTIVE_PATH")
-      echo "   📂 Using active sub-folder: $ACTIVE_SUBFOLDER"
+      # Extract relative path from specs/ for SPEC_TARGET
+      SPEC_TARGET="${CANON_ACTIVE#$CANON_SPECS/}"
+      echo "   📂 Using active spec folder: $SPEC_TARGET"
+    else
+      echo "   ⚠️  .spec-active points outside specs/ - ignoring"
     fi
   else
     # Stale marker - cleanup
@@ -238,22 +241,27 @@ if [ -f "$SPEC_ACTIVE_MARKER" ]; then
   fi
 fi
 
-# Create memory directory (either root or sub-folder)
-mkdir -p "$CONTEXT_DIR"
-
 # ───────────────────────────────────────────────────────────────
-# DETERMINE SPEC TARGET FOR NODE SCRIPT
+# STEP 2: Fall back to top-level detection if no marker
 # ───────────────────────────────────────────────────────────────
-# Pass full sub-folder path to Node script when active sub-folder exists
-# This ensures context saves to correct sub-folder memory/ directory
+if [ -z "$SPEC_FOLDER" ]; then
+  # Find most recent top-level spec folder (exclude archive folders)
+  SPEC_FOLDER=$(find "$CWD/specs" -maxdepth 1 -type d -name "[0-9][0-9][0-9]-*" 2>/dev/null | \
+    grep -viE '/(z_|.*archive.*|.*old.*|.*\.archived.*)$' | \
+    sort -r | head -1)
 
-if [ -n "$ACTIVE_SUBFOLDER" ]; then
-  # Sub-folder versioning active: pass full path (parent/subfolder)
-  SPEC_TARGET="$(basename "$SPEC_FOLDER")/$ACTIVE_SUBFOLDER"
-else
-  # No sub-folder versioning: pass parent folder only (backward compatible)
+  if [ -z "$SPEC_FOLDER" ]; then
+    echo "   ⚠️  Auto-save skipped: No spec folder found"
+    echo "   Create spec folder to enable auto-save: mkdir -p specs/###-name/"
+    exit 0
+  fi
+
+  CONTEXT_DIR="$SPEC_FOLDER/memory"
   SPEC_TARGET="$(basename "$SPEC_FOLDER")"
 fi
+
+# Create memory directory
+mkdir -p "$CONTEXT_DIR"
 
 # ───────────────────────────────────────────────────────────────
 # PARALLEL EXECUTION DETECTION
@@ -326,8 +334,9 @@ EXIT_CODE=0
 # Run in auto-save mode (bypasses alignment prompts)
 # Pass spec target as second argument (parent or parent/subfolder)
 # This routes context to correct memory/ directory (sub-folder aware)
+# BUG FIX: ENV_VAR=value must come BEFORE command, not after timeout
 if command -v timeout >/dev/null 2>&1; then
-  NODE_OUTPUT=$(timeout 30 AUTO_SAVE_MODE=true node "$SAVE_CONTEXT_SCRIPT" "$TEMP_JSON" "$SPEC_TARGET" 2>&1)
+  NODE_OUTPUT=$(AUTO_SAVE_MODE=true timeout 30 node "$SAVE_CONTEXT_SCRIPT" "$TEMP_JSON" "$SPEC_TARGET" 2>&1)
 else
   NODE_OUTPUT=$(AUTO_SAVE_MODE=true node "$SAVE_CONTEXT_SCRIPT" "$TEMP_JSON" "$SPEC_TARGET" 2>&1)
 fi

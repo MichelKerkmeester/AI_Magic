@@ -66,6 +66,7 @@ Guide the creation of effective Claude skills through a structured 6-step workfl
 |----------|---------|-------------|
 | **assets/frontmatter_templates.md** | YAML frontmatter templates by document type | Load when creating/validating frontmatter |
 | **assets/skill_md_template.md** | Complete SKILL.md file templates | Load for MODE 2 skill initialization |
+| **assets/command_template.md** | Claude Code slash command templates (simple, workflow, mode-based, destructive) | Load for command creation/alignment |
 | **assets/llmstxt_templates.md** | Example llms.txt files | Load when generating llms.txt |
 
 ### Scripts
@@ -161,6 +162,7 @@ def skill_creation_mode(request, update=False):
 - [frontmatter_templates.md](./assets/frontmatter_templates.md) - YAML frontmatter templates
 - [knowledge_base_template.md](./assets/knowledge_base_template.md) - Knowledge file creation guide
 - [skill_md_template.md](./assets/skill_md_template.md) - Complete SKILL.md file templates
+- [command_template.md](./assets/command_template.md) - Claude Code slash command templates
 - [llmstxt_templates.md](./assets/llmstxt_templates.md) - Example llms.txt files
 
 **Scripts** (automation):
@@ -664,6 +666,7 @@ markdown-document-specialist --full-pipeline .claude/skills/my-skill/SKILL.md
 - `assets/frontmatter_templates.md` - YAML frontmatter by document type
 - `assets/knowledge_base_template.md` - Knowledge file creation guide
 - `assets/skill_md_template.md` - Complete SKILL.md file templates
+- `assets/command_template.md` - Claude Code slash command templates (simple, workflow, mode-based, destructive)
 - `assets/llmstxt_templates.md` - Example llms.txt files
 
 **Scripts** (automation):

@@ -10,7 +10,7 @@
   },
   "dedupe": {
     "enabled": true,
-    "hashLength": 200,
+    "hashLength": 300,
     "similarityThreshold": 0.70
   },
   "quality": {
@@ -70,11 +70,12 @@
 // Enable/disable deduplication stage.
 // Removes duplicate and near-duplicate content.
 //
-// → dedupe.hashLength (number, default: 200)
+// → dedupe.hashLength (number, default: 300)
 // ─────────────────────────────────────────────────────────────
 // Number of characters to use for content hashing.
 // Higher values = more precise deduplication.
 // Lower values = faster but may miss subtle differences.
+// V5.4: Increased from 200 to 300 to match transform-transcript.js
 //
 // → dedupe.similarityThreshold (number, default: 0.85)
 // ─────────────────────────────────────────────────────────────

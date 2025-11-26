@@ -64,6 +64,13 @@ TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 # Clean up stale state files (older than 60 minutes)
 cleanup_stale_state 60 > /dev/null 2>&1 || true
 
+# V9: Clean up stale session-specific spec markers (older than 24 hours)
+# These are orphaned markers from crashed/force-quit sessions
+# Pattern: .claude/.spec-active.{SESSION_ID}
+if [ -d "$PROJECT_ROOT/.claude" ]; then
+  find "$PROJECT_ROOT/.claude" -maxdepth 1 -name ".spec-active.*" -mtime +1 -delete 2>/dev/null || true
+fi
+
 # Initialize session state
 SESSION_STATE=$(cat <<EOF
 {"session_id":"$SESSION_ID","started_at":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","cwd":"$CWD"}

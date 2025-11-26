@@ -274,6 +274,90 @@ function truncateToolOutput(output, maxLines = CONFIG.MAX_TOOL_OUTPUT_LINES) {
 }
 
 /**
+ * V8.2: Normalize file paths to clean relative format
+ * @param {string} filePath - Raw file path (absolute or relative)
+ * @param {string} projectRoot - Project root directory
+ * @returns {string} Clean relative path
+ */
+function toRelativePath(filePath, projectRoot = CONFIG.PROJECT_ROOT) {
+  if (!filePath) return '';
+  let cleaned = filePath;
+
+  // Strip project root if absolute
+  if (cleaned.startsWith(projectRoot)) {
+    cleaned = cleaned.slice(projectRoot.length);
+    // Remove leading slash
+    if (cleaned.startsWith('/')) cleaned = cleaned.slice(1);
+  }
+
+  // Strip any leading ./
+  cleaned = cleaned.replace(/^\.\//, '');
+
+  // For very long paths (>60 chars), abbreviate middle
+  if (cleaned.length > 60) {
+    const parts = cleaned.split('/');
+    if (parts.length > 3) {
+      return `${parts[0]}/.../${parts.slice(-2).join('/')}`;
+    }
+  }
+
+  return cleaned;
+}
+
+/**
+ * V8.3: Validate if a description is meaningful (not garbage)
+ * @param {string} description - File description to validate
+ * @returns {boolean} True if description is valid and meaningful
+ */
+function isDescriptionValid(description) {
+  if (!description || description.length < 8) return false;
+
+  const garbagePatterns = [
+    /^#+\s/,                            // Markdown headers: ## Foo
+    /^[-*]\s/,                          // List bullets: - foo, * bar
+    /\s(?:and|or|to|the)\s*$/i,         // Incomplete: "Fixed the"
+    /^(?:modified?|updated?)\s+\w+$/i,  // Generic: "Modified file"
+    /^filtering\s+(?:pipeline|system)$/i, // Generic fallback
+    /^And\s+[`'"]?/i,                   // Fragment: "And `foo"
+    /^Modified during session$/i,       // Default fallback
+    /\[PLACEHOLDER\]/i,                 // Unfilled template
+  ];
+
+  return !garbagePatterns.some(p => p.test(description));
+}
+
+/**
+ * V8.3: Clean description text for display
+ * @param {string} desc - Raw description
+ * @returns {string} Cleaned description
+ */
+function cleanDescription(desc) {
+  if (!desc) return '';
+  let cleaned = desc.trim();
+
+  // Remove markdown formatting
+  cleaned = cleaned.replace(/^#+\s+/, '');        // ## headers
+  cleaned = cleaned.replace(/^[-*]\s+/, '');      // - bullets
+  cleaned = cleaned.replace(/`([^`]+)`/g, '$1');  // `backticks`
+  cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1'); // **bold**
+
+  // Remove trailing punctuation
+  cleaned = cleaned.replace(/[.,;:]+$/, '');
+
+  // Truncate to max 60 chars
+  if (cleaned.length > 60) {
+    cleaned = cleaned.substring(0, 57) + '...';
+  }
+
+  // Capitalize first letter
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+
+  return cleaned;
+}
+
+/**
  * Detect tool calls from conversation facts with strict pattern matching
  * Avoids false positives from prose text like "Read more about..."
  * @param {string} text - Text to analyze for tool calls
@@ -349,18 +433,27 @@ function isProseContext(text, matchStartIndex) {
 }
 
 function summarizeExchange(userMessage, assistantResponse, toolCalls = []) {
-  // Create intelligent 2-3 sentence summary
-  const userIntent = userMessage.length > 100
-    ? userMessage.substring(0, 100) + '...'
-    : userMessage;
+  // V6.4: Create intelligent 2-3 sentence summary with better truncation
+  // Extract first complete sentence if possible, otherwise use 200 chars
+  let userIntent;
+  if (userMessage.length <= 200) {
+    userIntent = userMessage;
+  } else {
+    // Try to find a sentence boundary
+    const sentenceEnd = userMessage.substring(0, 200).match(/^(.+?[.!?])\s/);
+    userIntent = sentenceEnd ? sentenceEnd[1] : userMessage.substring(0, 200) + '...';
+  }
 
   const mainTools = toolCalls.slice(0, 3).map(t => t.tool).join(', ');
   const toolSummary = toolCalls.length > 0
     ? ` Used tools: ${mainTools}${toolCalls.length > 3 ? ` and ${toolCalls.length - 3} more` : ''}.`
     : '';
 
-  // Extract key outcome from assistant response (first sentence or first 150 chars)
-  const outcome = assistantResponse.split(/[.!?]/)[0] || assistantResponse.substring(0, 150);
+  // V6.4: Extract key outcome from assistant response (first 2 sentences or 300 chars)
+  const sentences = assistantResponse.match(/[^.!?]+[.!?]+/g) || [];
+  const outcome = sentences.length > 0
+    ? sentences.slice(0, 2).join(' ').trim()
+    : assistantResponse.substring(0, 300);
 
   return {
     userIntent,
@@ -650,19 +743,55 @@ async function main() {
     // Enhance FILES with semantic descriptions from the summarizer
     const semanticFileChanges = extractFileChanges(allMessages, collectedData?.observations || []);
 
+    // V5.2: Helper with null safety - Extract basename from path for exact matching
+    const getBasename = (p) => {
+      if (!p || typeof p !== 'string') return '';
+      return p.split('/').pop() || '';
+    };
+
     // Merge semantic file descriptions into sessionData.FILES
+    // FIX v4: Use UNIQUE basename matching to prevent collision with same-named files
     const enhancedFiles = sessionData.FILES.map(file => {
       const filePath = file.FILE_PATH;
-      // Try to find semantic description
+      const fileBasename = getBasename(filePath);
+
+      // Priority 1: Try EXACT full path match first
+      if (semanticFileChanges.has(filePath)) {
+        const info = semanticFileChanges.get(filePath);
+        return {
+          FILE_PATH: file.FILE_PATH,
+          DESCRIPTION: info.description !== 'Modified during session' ? info.description : file.DESCRIPTION,
+          ACTION: info.action === 'created' ? 'Created' : 'Modified'
+        };
+      }
+
+      // Priority 2: Try basename match ONLY if unique
+      let matchCount = 0;
+      let basenameMatch = null;
+
       for (const [path, info] of semanticFileChanges) {
-        if (path.includes(filePath) || filePath.includes(path.split('/').pop())) {
-          return {
-            FILE_PATH: file.FILE_PATH,
-            DESCRIPTION: info.description !== 'Modified during session' ? info.description : file.DESCRIPTION,
-            ACTION: info.action === 'created' ? 'Created' : 'Modified'
-          };
+        const pathBasename = getBasename(path);
+        if (pathBasename === fileBasename) {
+          matchCount++;
+          basenameMatch = { path, info };
         }
       }
+
+      // P3.1: Log collision detection for debugging
+      if (matchCount > 1) {
+        console.warn(`   ⚠️  Multiple files with basename '${fileBasename}' - using default description`);
+      }
+
+      // Only apply basename match if it's UNIQUE (no collision)
+      if (matchCount === 1 && basenameMatch) {
+        const info = basenameMatch.info;
+        return {
+          FILE_PATH: file.FILE_PATH,
+          DESCRIPTION: info.description !== 'Modified during session' ? info.description : file.DESCRIPTION,
+          ACTION: info.action === 'created' ? 'Created' : 'Modified'
+        };
+      }
+
       return file;
     });
 
@@ -863,10 +992,26 @@ async function main() {
 
 async function detectSpecFolder(collectedData = null) {
   const cwd = process.cwd();
+  const specsDir = path.join(CONFIG.PROJECT_ROOT, 'specs');
+
+  // V6.1: Check if spec folder was provided in JSON data FIRST (highest priority)
+  if (collectedData && collectedData.SPEC_FOLDER) {
+    const specFolderFromData = collectedData.SPEC_FOLDER;
+    const specFolderPath = path.join(specsDir, specFolderFromData);
+
+    // Verify the folder exists
+    try {
+      await fs.access(specFolderPath);
+      console.log(`   ✓ Using spec folder from data: ${specFolderFromData}`);
+      return specFolderPath;
+    } catch {
+      console.warn(`   ⚠️  Spec folder from data not found: ${specFolderFromData}, trying CLI arg...`);
+      // Fall through to CLI arg check
+    }
+  }
 
   // Check if spec folder was provided as command-line argument
   if (CONFIG.SPEC_FOLDER_ARG) {
-    const specsDir = path.join(CONFIG.PROJECT_ROOT, 'specs');
     const specFolderPath = path.join(specsDir, CONFIG.SPEC_FOLDER_ARG);
 
     // Verify the folder exists
@@ -925,9 +1070,7 @@ async function detectSpecFolder(collectedData = null) {
     }
   }
 
-  // Find spec folders
-  const specsDir = path.join(CONFIG.PROJECT_ROOT, 'specs');
-
+  // Find spec folders (specsDir already declared at function start)
   try {
     const entries = await fs.readdir(specsDir);
     let specFolders = entries
@@ -1238,13 +1381,41 @@ async function collectSessionData(collectedData, specFolderName = null) {
     duration = hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
   }
 
-  // Extract files from observations and from root files_modified
+  // V8: Extract files with normalized paths and deduplication
   const filesMap = new Map();
 
-  // First, check if there's a root-level files_modified array
+  // V8.4: Helper to add files with normalized path deduplication
+  // Prefers shorter valid descriptions (concise > verbose)
+  const addFile = (rawPath, description) => {
+    const normalized = toRelativePath(rawPath);
+    if (!normalized) return;
+
+    const existing = filesMap.get(normalized);
+    const cleaned = cleanDescription(description);
+
+    // Keep existing if new description is invalid or longer
+    if (existing) {
+      if (isDescriptionValid(cleaned) && cleaned.length < existing.length) {
+        filesMap.set(normalized, cleaned);
+      }
+    } else {
+      filesMap.set(normalized, cleaned || 'Modified during session');
+    }
+  };
+
+  // V7.1: FIRST, check for FILES array (primary input format with full descriptions)
+  if (collectedData.FILES && Array.isArray(collectedData.FILES)) {
+    for (const fileInfo of collectedData.FILES) {
+      const filePath = fileInfo.FILE_PATH || fileInfo.path;
+      const description = fileInfo.DESCRIPTION || fileInfo.description || 'Modified during session';
+      if (filePath) addFile(filePath, description);
+    }
+  }
+
+  // Also check for files_modified array (legacy format)
   if (collectedData.files_modified && Array.isArray(collectedData.files_modified)) {
     for (const fileInfo of collectedData.files_modified) {
-      filesMap.set(fileInfo.path, fileInfo.changes_summary || 'Modified during session');
+      addFile(fileInfo.path, fileInfo.changes_summary || 'Modified during session');
     }
   }
 
@@ -1252,9 +1423,7 @@ async function collectSessionData(collectedData, specFolderName = null) {
   for (const obs of observations) {
     if (obs.files) {
       for (const file of obs.files) {
-        if (!filesMap.has(file)) {
-          filesMap.set(file, 'Modified during session');
-        }
+        addFile(file, 'Modified during session');
       }
     }
     // Also check facts for files
@@ -1262,25 +1431,33 @@ async function collectSessionData(collectedData, specFolderName = null) {
       for (const fact of obs.facts) {
         if (fact.files && Array.isArray(fact.files)) {
           for (const file of fact.files) {
-            if (!filesMap.has(file)) {
-              filesMap.set(file, 'Modified during session');
-            }
+            addFile(file, 'Modified during session');
           }
         }
       }
     }
   }
 
-  const FILES = Array.from(filesMap.entries()).map(([path, description]) => ({
-    FILE_PATH: path,
-    DESCRIPTION: description
-  }));
+  // V8.1: Limit to 10 key files, prioritizing those with valid descriptions
+  const filesEntries = Array.from(filesMap.entries());
+  const withValidDesc = filesEntries.filter(([_, desc]) => isDescriptionValid(desc));
+  const withFallback = filesEntries.filter(([_, desc]) => !isDescriptionValid(desc));
 
-  // Extract outcomes from observations
-  const OUTCOMES = observations
-    .filter(obs => obs.type === 'change' || obs.type === 'feature')
+  const FILES = [...withValidDesc, ...withFallback]
     .slice(0, 10)
-    .map(obs => ({ OUTCOME: obs.title || obs.narrative?.substring(0, 100) }));
+    .map(([filePath, description]) => ({
+      FILE_PATH: filePath,
+      DESCRIPTION: description
+    }));
+
+  // V7.2: Extract outcomes from ALL observation types (not just change/feature)
+  // Include: bugfix, feature, change, discovery, decision, refactor
+  const OUTCOMES = observations
+    .slice(0, 10)
+    .map(obs => ({
+      OUTCOME: obs.title || obs.narrative?.substring(0, 150),
+      TYPE: obs.type || 'observation'
+    }));
 
   // Create session summary from recent context or observations
   const SUMMARY = sessionInfo.learning
@@ -1298,6 +1475,39 @@ async function collectSessionData(collectedData, specFolderName = null) {
   const firstPrompt = userPrompts[0]?.prompt || '';
   const taskFromPrompt = firstPrompt.match(/^(.{20,100}?)(?:[.!?\n]|$)/)?.[1];
 
+  // V7.3: Build detailed OBSERVATIONS array for template
+  const OBSERVATIONS_DETAILED = observations.map(obs => ({
+    TYPE: (obs.type || 'observation').toUpperCase(),
+    TITLE: obs.title || 'Observation',
+    NARRATIVE: obs.narrative || '',
+    HAS_FILES: obs.files && obs.files.length > 0,
+    FILES_LIST: obs.files ? obs.files.join(', ') : '',
+    HAS_FACTS: obs.facts && obs.facts.length > 0,
+    FACTS_LIST: obs.facts ? obs.facts.join(' | ') : ''
+  }));
+
+  // V7.4: Detect related spec/plan files in the spec folder
+  const SPEC_FILES = [];
+  const specFolderPath = collectedData.SPEC_FOLDER
+    ? path.join(CONFIG.PROJECT_ROOT, 'specs', collectedData.SPEC_FOLDER)
+    : null;
+
+  if (specFolderPath) {
+    const specDocFiles = ['spec.md', 'plan.md', 'tasks.md', 'checklist.md', 'research.md'];
+    for (const docFile of specDocFiles) {
+      const filePath = path.join(specFolderPath, docFile);
+      try {
+        await fs.access(filePath);
+        SPEC_FILES.push({
+          FILE_NAME: docFile,
+          FILE_PATH: `./${docFile}`
+        });
+      } catch {
+        // File doesn't exist, skip
+      }
+    }
+  }
+
   return {
     TITLE: folderName.replace(/^\d{3}-/, '').replace(/-/g, ' '),
     DATE: dateOnly,
@@ -1305,12 +1515,20 @@ async function collectSessionData(collectedData, specFolderName = null) {
     SPEC_FOLDER: folderName,
     DURATION: duration,
     SUMMARY: SUMMARY,
-    FILES: FILES.length > 0 ? FILES : [{ FILE_PATH: 'No files tracked', DESCRIPTION: 'N/A' }],
+    // V8.5: Add HAS_FILES flag for conditional template rendering
+    FILES: FILES.length > 0 ? FILES : [],
+    HAS_FILES: FILES.length > 0,
     OUTCOMES: OUTCOMES.length > 0 ? OUTCOMES : [{ OUTCOME: 'Session in progress' }],
     TOOL_COUNT,
     MESSAGE_COUNT: messageCount,
     QUICK_SUMMARY: observations[0]?.title || sessionInfo.request || taskFromPrompt?.trim() || 'Development session',
-    SKILL_VERSION: CONFIG.SKILL_VERSION
+    SKILL_VERSION: CONFIG.SKILL_VERSION,
+    // V7.3: Add detailed observations for template
+    OBSERVATIONS: OBSERVATIONS_DETAILED,
+    HAS_OBSERVATIONS: OBSERVATIONS_DETAILED.length > 0,
+    // V7.4: Add spec/plan file references
+    SPEC_FILES: SPEC_FILES,
+    HAS_SPEC_FILES: SPEC_FILES.length > 0
   };
 }
 
@@ -1379,9 +1597,9 @@ async function extractConversations(collectedData) {
   const MESSAGES = [];
   const phaseTimestamps = new Map(); // Track phase durations
 
-  // Trust pre-filtered data from transform-transcript.js
-  // Double filtering was causing count divergence between extraction and output
-  const validPrompts = userPrompts.filter(p => p.prompt?.trim());
+  // V6.3: Trust pre-filtered data from transform-transcript.js
+  // FIXED: Removed redundant filter that was causing count divergence
+  const validPrompts = userPrompts;  // Already filtered by transform-transcript.js
 
   for (let i = 0; i < validPrompts.length; i++) {
     const userPrompt = validPrompts[i];

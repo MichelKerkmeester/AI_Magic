@@ -366,7 +366,7 @@ CREATE TABLE commits (
 
 ## 8. ⚡ PERFORMANCE CHARACTERISTICS
 
-**Note:** Statistics based on example project.
+**Note:** Example statistics from a typical project.
 
 ### Indexing Performance
 

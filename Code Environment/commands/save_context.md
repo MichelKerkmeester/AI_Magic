@@ -16,6 +16,13 @@ Preserve comprehensive conversation context including full dialogue, decisions, 
 
 ---
 
+## Contract
+
+**Inputs:** `$ARGUMENTS` — Optional spec folder name (e.g., "122-skill-standardization")
+**Outputs:** Memory files in spec folder + `STATUS=<OK|FAIL> PATH=<memory-file-path>`
+
+---
+
 ## Auto-Triggering
 
 This skill automatically activates when:

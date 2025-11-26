@@ -8,6 +8,12 @@
 | Tool Executions | {{TOOL_COUNT}} |
 | Decisions Made | {{DECISION_COUNT}} |
 | Follow-up Items Recorded | {{FOLLOWUP_COUNT}} |
+{{#HAS_SPEC_FILES}}
+
+**Related Documentation:**
+{{#SPEC_FILES}}- [`{{FILE_NAME}}`]({{FILE_PATH}})
+{{/SPEC_FILES}}
+{{/HAS_SPEC_FILES}}
 
 ---
 
@@ -21,48 +27,36 @@
 {{^OUTCOMES}}
 - No specific outcomes recorded.
 {{/OUTCOMES}}
+{{#HAS_FILES}}
 
-| **File** | **Changes** |
-|:---------|:------------|
+**Key Files:**
+
+| **File** | **Description** |
+|:---------|:----------------|
 {{#FILES}}| `{{FILE_PATH}}` | {{DESCRIPTION}} |
 {{/FILES}}
-{{#HAS_IMPLEMENTATION_SUMMARY}}
-
-### Implementation Summary
-
-**Task:** {{IMPL_TASK}}
-
-**Solution:** {{IMPL_SOLUTION}}
-{{#HAS_IMPL_FILES_CREATED}}
-
-#### Files Created
-{{#IMPL_FILES_CREATED}}- `{{path}}` — {{description}}
-{{/IMPL_FILES_CREATED}}
-{{/HAS_IMPL_FILES_CREATED}}
-{{#HAS_IMPL_FILES_MODIFIED}}
-
-#### Files Modified
-{{#IMPL_FILES_MODIFIED}}- `{{path}}` — {{description}}
-{{/IMPL_FILES_MODIFIED}}
-{{/HAS_IMPL_FILES_MODIFIED}}
-{{#HAS_IMPL_DECISIONS}}
-
-#### User Decisions
-{{#IMPL_DECISIONS}}- **{{question}}**: {{choice}}
-{{/IMPL_DECISIONS}}
-{{/HAS_IMPL_DECISIONS}}
-{{#HAS_IMPL_OUTCOMES}}
-
-#### Key Outcomes
-{{#IMPL_OUTCOMES}}- {{.}}
-{{/IMPL_OUTCOMES}}
-{{/HAS_IMPL_OUTCOMES}}
-{{/HAS_IMPLEMENTATION_SUMMARY}}
+{{/HAS_FILES}}
 
 ---
+{{#HAS_OBSERVATIONS}}
+
+## 2. DETAILED CHANGES
+
+{{#OBSERVATIONS}}
+### {{TYPE}}: {{TITLE}}
+
+{{NARRATIVE}}
+
+{{#HAS_FILES}}**Files:** {{FILES_LIST}}{{/HAS_FILES}}
+{{#HAS_FACTS}}**Details:** {{FACTS_LIST}}{{/HAS_FACTS}}
+
+{{/OBSERVATIONS}}
+
+---
+{{/HAS_OBSERVATIONS}}
 {{#HAS_WORKFLOW_DIAGRAM}}
 
-## 2. WORKFLOW VISUALIZATION
+## {{#HAS_OBSERVATIONS}}3{{/HAS_OBSERVATIONS}}{{^HAS_OBSERVATIONS}}2{{/HAS_OBSERVATIONS}}. WORKFLOW VISUALIZATION
 
 **Pattern Type**: {{PATTERN_TYPE}}
 
@@ -114,7 +108,7 @@
 ---
 {{/HAS_WORKFLOW_DIAGRAM}}
 
-## {{#HAS_WORKFLOW_DIAGRAM}}3{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}2{{/HAS_WORKFLOW_DIAGRAM}}. DECISIONS
+## {{#HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}3{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{^HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}3{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}2{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}. DECISIONS
 {{#DECISIONS}}
 
 ### Decision {{INDEX}}: {{TITLE}}
@@ -187,7 +181,7 @@ This session did not involve significant architectural or technical decisions. T
 ---
 {{/DECISIONS}}
 
-## {{#HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}3{{/HAS_WORKFLOW_DIAGRAM}}. CONVERSATION
+## {{#HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}5{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{^HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}3{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}. CONVERSATION
 
 Complete timestamped dialogue capturing all user interactions, AI responses, tool executions, and code changes during the session.
 

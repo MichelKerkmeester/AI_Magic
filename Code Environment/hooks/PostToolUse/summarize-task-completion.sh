@@ -66,19 +66,54 @@ STATUS=$(detect_status "$TOOL_OUTPUT")
 AGENT_ID=""
 MAPPING_FILE="/tmp/claude_hooks_state/agent_description_map.txt"
 if [ -f "$MAPPING_FILE" ]; then
-  AGENT_ID=$(grep "^${DESCRIPTION}|" "$MAPPING_FILE" 2>/dev/null | tail -1 | cut -d'|' -f2)
+  # Use fixed string matching (grep -F) to avoid regex issues with description
+  AGENT_ID=$(grep -F "${DESCRIPTION}|" "$MAPPING_FILE" 2>/dev/null | tail -1 | cut -d'|' -f2 | tr -d '[:space:]')
 fi
 
-# Calculate duration
+# Fallback: try to find agent by description in state file directly
+if [ -z "$AGENT_ID" ]; then
+  STATE_FILE="/tmp/claude_hooks_state/agent_tracking.json"
+  if [ -f "$STATE_FILE" ]; then
+    AGENT_ID=$(jq -r --arg desc "$DESCRIPTION" '
+      (.active_agents | to_entries[] | select(.value.description == $desc) | .key) //
+      (.completed_agents | to_entries[] | select(.value.description == $desc) | .key) // empty
+    ' "$STATE_FILE" 2>/dev/null | head -1)
+  fi
+fi
+
+# Calculate duration with robust fallbacks
 DURATION_SEC="?"
+DURATION_MS=0
+
 if [ -n "$AGENT_ID" ]; then
+  # Try to get agent info from tracking
   AGENT_INFO=$(get_agent_info "$AGENT_ID" 2>/dev/null)
-  if [ -n "$AGENT_INFO" ] && [ "$AGENT_INFO" != "null" ]; then
+
+  if [ -n "$AGENT_INFO" ] && [ "$AGENT_INFO" != "null" ] && [ "$AGENT_INFO" != "{}" ]; then
     START_MS=$(echo "$AGENT_INFO" | jq -r '.start_ms // empty' 2>/dev/null)
-    if [ -n "$START_MS" ]; then
-      END_MS=$(date +%s%3N 2>/dev/null || echo $(($(date +%s) * 1000)))
-      DURATION_MS=$((END_MS - START_MS))
-      DURATION_SEC=$(awk "BEGIN {printf \"%.1f\", $DURATION_MS / 1000}" 2>/dev/null || echo "$((DURATION_MS / 1000))")
+
+    # Validate START_MS is a number
+    if [ -n "$START_MS" ] && [ "$START_MS" != "null" ] && [[ "$START_MS" =~ ^[0-9]+$ ]]; then
+      # Get current time in ms (cross-platform)
+      if date +%s%3N >/dev/null 2>&1; then
+        END_MS=$(date +%s%3N)
+      else
+        END_MS=$(($(date +%s) * 1000))
+      fi
+
+      # Validate END_MS and calculate
+      if [[ "$END_MS" =~ ^[0-9]+$ ]] && [ "$END_MS" -gt "$START_MS" ]; then
+        DURATION_MS=$((END_MS - START_MS))
+
+        # Sanity check: duration should be positive and reasonable (<10 min = 600000ms)
+        if [ "$DURATION_MS" -gt 0 ] && [ "$DURATION_MS" -lt 600000 ]; then
+          DURATION_SEC=$(awk "BEGIN {printf \"%.1f\", $DURATION_MS / 1000}" 2>/dev/null)
+          # Fallback if awk fails
+          if [ -z "$DURATION_SEC" ] || [ "$DURATION_SEC" = "0.0" ] && [ "$DURATION_MS" -gt 500 ]; then
+            DURATION_SEC="$((DURATION_MS / 1000)).$((DURATION_MS % 1000 / 100))"
+          fi
+        fi
+      fi
     fi
   fi
 fi

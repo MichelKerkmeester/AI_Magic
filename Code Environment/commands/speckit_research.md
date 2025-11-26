@@ -1,64 +1,31 @@
 ---
 description: Research workflow (9 steps) - technical investigation and documentation. Supports :auto and :confirm modes
+argument-hint: "[research-topic] [:auto|:confirm]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion, WebFetch, WebSearch
 ---
 
-## Smart Command: /speckit.research
+# SpecKit Research
 
-**Purpose**: Conduct comprehensive technical investigation and create research documentation. Use before specification when technical uncertainty exists or to document findings for future reference.
+Conduct comprehensive technical investigation and create research documentation. Use before specification when technical uncertainty exists or to document findings for future reference.
+
+---
+
+## Purpose
+
+Run the 9-step research workflow: codebase investigation, external research, technical analysis, and documentation. Creates research.md with comprehensive findings. Use when technical uncertainty exists before planning.
+
+---
+
+## Contract
+
+**Inputs:** `$ARGUMENTS` — Research topic with optional parameters (focus, scope, constraints)
+**Outputs:** Spec folder with research.md (17 sections) + `STATUS=<OK|FAIL|CANCELLED>`
 
 ## User Input
 
 ```text
 $ARGUMENTS
 ```
-
-## Mode Detection & Routing
-
-### Step 1: Parse Mode Suffix
-
-Detect execution mode from command invocation:
-
-| Pattern | Mode | Behavior |
-|---------|------|----------|
-| `/speckit.research:auto` | AUTONOMOUS | Execute all steps without user approval gates |
-| `/speckit.research:confirm` | INTERACTIVE | Pause at each step for user approval |
-| `/speckit.research` (no suffix) | PROMPT | Ask user to choose mode |
-
-### Step 2: Mode Selection (when no suffix detected)
-
-If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
-
-**Question**: "How would you like to execute this research workflow?"
-
-| Option | Mode | Description |
-|--------|------|-------------|
-| **A** | Autonomous | Execute all 9 steps without approval gates. Best for focused research topics. |
-| **B** | Interactive | Pause at each step for approval. Best for exploratory research needing direction. |
-
-**Wait for user response before proceeding.**
-
-### Step 3: Transform Raw Input
-
-Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
-
-**Field Extraction Rules**:
-
-| Field | Pattern Detection | Default If Empty |
-|-------|-------------------|------------------|
-| `git_branch` | "branch: X", "on branch X", "feature/X" | Auto-create feature-{NNN} |
-| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | Auto-create next available |
-| `context` | "using X", "with Y", "tech stack:", "investigating:" | Infer from request |
-| `issues` | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Topics to investigate |
-| `request` | Research topic description (REQUIRED) | ERROR if completely empty |
-| `environment` | URLs, "staging:", "example:" | Skip browser analysis |
-| `scope` | File paths, glob patterns, "focus:" | Default to specs/** |
-
-### Step 4: Load & Execute Workflow Prompt
-
-Based on detected/selected mode:
-
-- **AUTONOMOUS**: Load and execute `.opencode/prompts/spec_kit/spec_kit_research_auto.yaml`
-- **INTERACTIVE**: Load and execute `.opencode/prompts/spec_kit/spec_kit_research_confirm.yaml`
 
 ## Workflow Overview (9 Steps)
 
@@ -96,6 +63,64 @@ The generated `research.md` includes:
 16. **Acknowledgements** - Contributors, resources, tools
 17. **Appendix & Changelog** - Glossary, related docs, history
 
+---
+
+## Instructions
+
+### Phase 1: Mode Detection & Input Parsing
+
+#### Step 1.1: Parse Mode Suffix
+
+Detect execution mode from command invocation:
+
+| Pattern | Mode | Behavior |
+|---------|------|----------|
+| `/speckit.research:auto` | AUTONOMOUS | Execute all steps without user approval gates |
+| `/speckit.research:confirm` | INTERACTIVE | Pause at each step for user approval |
+| `/speckit.research` (no suffix) | PROMPT | Ask user to choose mode |
+
+#### Step 1.2: Mode Selection (when no suffix detected)
+
+If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
+
+**Question**: "How would you like to execute this research workflow?"
+
+| Option | Mode | Description |
+|--------|------|-------------|
+| **A** | Autonomous | Execute all 9 steps without approval gates. Best for focused research topics. |
+| **B** | Interactive | Pause at each step for approval. Best for exploratory research needing direction. |
+
+**Wait for user response before proceeding.**
+
+#### Step 1.3: Transform Raw Input
+
+Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
+
+**Field Extraction Rules**:
+
+| Field | Pattern Detection | Default If Empty |
+|-------|-------------------|------------------|
+| `git_branch` | "branch: X", "on branch X", "feature/X" | Auto-create feature-{NNN} |
+| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | Auto-create next available |
+| `context` | "using X", "with Y", "tech stack:", "investigating:" | Infer from request |
+| `issues` | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Topics to investigate |
+| `request` | Research topic description (REQUIRED) | ERROR if completely empty |
+| `environment` | URLs, "staging:", "example:" | Skip browser analysis |
+| `scope` | File paths, glob patterns, "focus:" | Default to specs/** |
+
+#### Step 1.4: Load & Execute Workflow Prompt
+
+Based on detected/selected mode:
+
+- **AUTONOMOUS**: Load and execute `.opencode/prompts/spec_kit/spec_kit_research_auto.yaml`
+- **INTERACTIVE**: Load and execute `.opencode/prompts/spec_kit/spec_kit_research_confirm.yaml`
+
+### Phase 2: Workflow Execution
+
+Execute the 9 steps defined in Workflow Overview. Each step produces artifacts that feed into subsequent steps. See prompt files for detailed step-by-step instructions.
+
+---
+
 ## Key Differences from Other Commands
 
 - **Does NOT proceed to implementation** - Terminates after research.md
@@ -103,20 +128,7 @@ The generated `research.md` includes:
 - **Use case** - Technical uncertainty, feasibility analysis, documentation
 - **Next steps** - Can feed into `/speckit.plan` or `/speckit.complete`
 
-## Key Behaviors
-
-### Autonomous Mode (`:auto`)
-- Executes all steps without user approval gates
-- Self-validates research completeness
-- Makes informed decisions on research depth
-- Documents all findings systematically
-
-### Interactive Mode (`:confirm`)
-- Pauses after each step for user approval
-- Presents options: Approve, Review Details, Modify, Skip, Abort
-- Allows redirection of research focus
-- Presents findings for review before proceeding
-- Enables iterative exploration
+---
 
 ## Context Loading
 
@@ -181,6 +193,8 @@ Next Steps:
 - Review research findings
 - Validate technical recommendations
 - Run /speckit.plan or /speckit.complete to proceed with development
+
+STATUS=OK PATH=specs/NNN-short-name/
 ```
 
 ## Examples
@@ -199,3 +213,16 @@ Next Steps:
 ```
 /speckit.research "Video streaming optimization for mobile browsers"
 ```
+
+---
+
+## Notes
+
+- **Mode Behaviors:**
+  - **Autonomous (`:auto`)**: Executes all steps without user approval gates. Self-validates research completeness. Makes informed decisions on research depth. Documents all findings systematically.
+  - **Interactive (`:confirm`)**: Pauses after each step for user approval. Presents options: Approve, Review Details, Modify, Skip, Abort. Allows redirection of research focus. Presents findings for review before proceeding. Enables iterative exploration.
+
+- **Integration:**
+  - Works with spec folder system for documentation
+  - Feeds into `/speckit.plan` or `/speckit.complete` workflows
+  - Context saved via workflows-save-context skill

@@ -130,37 +130,42 @@ calculate_complexity_score() {
   local prompt="$1"
   local prompt_lower=$(echo "$prompt" | tr '[:upper:]' '[:lower:]')
 
-  # Dimension 1: Domain count (0-5 domains)
-  # Domains: code, docs, git, testing, devops
+  # Dimension 1: Domain count (0-6 domains)
+  # Domains: code, analysis, docs, git, testing, devops
   local domain_count=0
 
-  # Code domain indicators
-  if echo "$prompt_lower" | grep -qE "(implement|code|refactor|function|class|component|api|backend|frontend)"; then
+  # Code domain indicators (REFINED - removed generic verbs and standalone 'api' that over-matches docs)
+  if echo "$prompt_lower" | grep -qE "(implement|code|refactor|function|class|component|backend|frontend|fix|bug|debug|error|issue|problem|resolve|patch|hotfix|optimize|improve|enhance|script|module|service|handler|controller|model|util|helper|endpoint|route)"; then
     ((domain_count++))
   fi
 
-  # Docs domain indicators
-  if echo "$prompt_lower" | grep -qE "(document|readme|guide|tutorial|api.*doc|comment|explain)"; then
+  # Analysis domain indicators (REFINED - removed verbs that overlap with other domains)
+  if echo "$prompt_lower" | grep -qE "(analyze|investigate|explore|examine|audit|inspect|trace|profile|benchmark|diagnose|troubleshoot|discover|locate|scan)"; then
     ((domain_count++))
   fi
 
-  # Git domain indicators
-  if echo "$prompt_lower" | grep -qE "(git|commit|branch|merge|pull.*request|migration|version)"; then
+  # Docs domain indicators (REFINED - removed changelog duplicate, kept in git domain)
+  if echo "$prompt_lower" | grep -qE "(document|readme|guide|tutorial|api.*doc|comment|explain|release.*notes|specification|spec.*doc|jsdoc|typedoc|markdown|wiki)"; then
     ((domain_count++))
   fi
 
-  # Testing domain indicators
-  if echo "$prompt_lower" | grep -qE "(test|unittest|integration.*test|e2e|coverage|spec)"; then
+  # Git domain indicators (EXPANDED)
+  if echo "$prompt_lower" | grep -qE "(git|commit|branch|merge|pull.*request|migration|version|pr\b|tag|release|changelog|rebase|cherry.*pick)"; then
     ((domain_count++))
   fi
 
-  # DevOps domain indicators
-  if echo "$prompt_lower" | grep -qE "(deploy|ci|cd|docker|build|pipeline|infrastructure)"; then
+  # Testing domain indicators (EXPANDED)
+  if echo "$prompt_lower" | grep -qE "(test|unittest|integration.*test|e2e|coverage|spec\b|assert|mock|stub|fixture|snapshot|playwright|jest|vitest|bats|pytest)"; then
     ((domain_count++))
   fi
 
-  # Calculate domain score (35% weight, normalized to 0-1)
-  local domain_score=$(calc_float "round(${domain_count} / 5.0, 4)")
+  # DevOps domain indicators (EXPANDED)
+  if echo "$prompt_lower" | grep -qE "(deploy|ci|cd|docker|build|pipeline|infrastructure|kubernetes|k8s|helm|terraform|ansible|aws|gcp|azure|nginx|ssl|certificate|monitoring|logging|metrics)"; then
+    ((domain_count++))
+  fi
+
+  # Calculate domain score (35% weight, normalized to 0-1, now 6 domains)
+  local domain_score=$(calc_float "round(${domain_count} / 6.0, 4)")
   local domain_weighted=$(calc_float "round(${domain_score} * 35, 2)")
 
   # Dimension 2: File count estimate (0-20 files)
@@ -215,9 +220,25 @@ calculate_complexity_score() {
   local parallel_opportunity=0.0
   local has_sequential_deps=false
 
-  # Check for sequential dependency patterns (BUG-06 fix)
-  # These phrases indicate tasks must be done in order, not parallel
-  if echo "$prompt_lower" | grep -qE "(then|after|before|first.*then|once.*done|when.*complete|followed by)"; then
+  # Check for sequential dependency patterns (IMPROVED - context-aware)
+  # Only match sequential indicators with action context, not just "then" anywhere
+  # This prevents false positives like "something other than" or "larger than"
+  if echo "$prompt_lower" | grep -qE "(^|[[:space:]])(first|start by|begin with)[[:space:]].*[[:space:]]then[[:space:]]"; then
+    has_sequential_deps=true
+    parallel_opportunity=0.0
+  elif echo "$prompt_lower" | grep -qE "[[:space:]]after[[:space:]].*(complete|finish|done|succeed|pass)"; then
+    has_sequential_deps=true
+    parallel_opportunity=0.0
+  elif echo "$prompt_lower" | grep -qE "[[:space:]]once[[:space:]].*(done|complete|finish|succeed)"; then
+    has_sequential_deps=true
+    parallel_opportunity=0.0
+  elif echo "$prompt_lower" | grep -qE "[[:space:]]when[[:space:]].*(complete|finish|done|pass)"; then
+    has_sequential_deps=true
+    parallel_opportunity=0.0
+  elif echo "$prompt_lower" | grep -qE "[[:space:]]followed[[:space:]]by[[:space:]]"; then
+    has_sequential_deps=true
+    parallel_opportunity=0.0
+  elif echo "$prompt_lower" | grep -qE ",[[:space:]]*(and[[:space:]]+)?then[[:space:]]"; then
     has_sequential_deps=true
     parallel_opportunity=0.0
   elif [ $domain_count -ge 3 ]; then
@@ -250,7 +271,7 @@ calculate_complexity_score() {
     echo "─────────────────────────────────────────────────────────────"
     echo "COMPLEXITY ANALYSIS - $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
     echo "─────────────────────────────────────────────────────────────"
-    echo "Domain count: ${domain_count}/5 → ${domain_weighted}%"
+    echo "Domain count: ${domain_count}/6 → ${domain_weighted}%"
     echo "File count: ${file_count}/20 → ${file_weighted}%"
     echo "LOC estimate: ${loc_estimate}/1000 → ${loc_weighted}%"
     echo "Parallel opportunity: ${parallel_opportunity} → ${parallel_weighted}%"
@@ -356,6 +377,9 @@ get_skills_for_domain() {
     "code")
       echo "workflows-code,mcp-semantic-search"
       ;;
+    "analysis"|"explore")
+      echo "mcp-semantic-search,workflows-code"
+      ;;
     "docs"|"documentation")
       echo "create-documentation,workflows-conversation"
       ;;
@@ -385,20 +409,29 @@ dispatch_parallel_agents() {
   local prompt_lower=$(echo "$prompt" | tr '[:upper:]' '[:lower:]')
   local detected_domains=""
 
-  # Detect which domains are present
-  if echo "$prompt_lower" | grep -qE "(implement|code|refactor|function|class|component|api|backend|frontend|fix|bug)"; then
+  # Detect which domains are present (SYNCED with calculate_complexity_score)
+  # Code domain (REFINED - removed generic verbs and standalone 'api' that over-matches docs)
+  if echo "$prompt_lower" | grep -qE "(implement|code|refactor|function|class|component|backend|frontend|fix|bug|debug|error|issue|problem|resolve|patch|hotfix|optimize|improve|enhance|script|module|service|handler|controller|model|util|helper|endpoint|route)"; then
     detected_domains="${detected_domains}code,"
   fi
-  if echo "$prompt_lower" | grep -qE "(document|readme|guide|tutorial|api.*doc|explain)"; then
+  # Analysis domain (REFINED - removed verbs that overlap with other domains)
+  if echo "$prompt_lower" | grep -qE "(analyze|investigate|explore|examine|audit|inspect|trace|profile|benchmark|diagnose|troubleshoot|discover|locate|scan)"; then
+    detected_domains="${detected_domains}analysis,"
+  fi
+  # Docs domain (REFINED - removed changelog duplicate, kept in git domain)
+  if echo "$prompt_lower" | grep -qE "(document|readme|guide|tutorial|api.*doc|comment|explain|release.*notes|specification|spec.*doc|jsdoc|typedoc|markdown|wiki)"; then
     detected_domains="${detected_domains}docs,"
   fi
-  if echo "$prompt_lower" | grep -qE "(git|commit|branch|merge|pull.*request|migration|version)"; then
+  # Git domain (keeps changelog as primary owner)
+  if echo "$prompt_lower" | grep -qE "(git|commit|branch|merge|pull.*request|migration|version|pr\b|tag|release|changelog|rebase|cherry.*pick)"; then
     detected_domains="${detected_domains}git,"
   fi
-  if echo "$prompt_lower" | grep -qE "(test|unittest|integration.*test|e2e|coverage|spec)"; then
+  # Testing domain (EXPANDED)
+  if echo "$prompt_lower" | grep -qE "(test|unittest|integration.*test|e2e|coverage|spec\b|assert|mock|stub|fixture|snapshot|playwright|jest|vitest|bats|pytest)"; then
     detected_domains="${detected_domains}testing,"
   fi
-  if echo "$prompt_lower" | grep -qE "(deploy|ci|cd|docker|build|pipeline|infrastructure)"; then
+  # DevOps domain (EXPANDED)
+  if echo "$prompt_lower" | grep -qE "(deploy|ci|cd|docker|build|pipeline|infrastructure|kubernetes|k8s|helm|terraform|ansible|aws|gcp|azure|nginx|ssl|certificate|monitoring|logging|metrics)"; then
     detected_domains="${detected_domains}devops,"
   fi
 

@@ -1,13 +1,28 @@
 ---
 description: Implementation workflow (8 steps) - execute pre-planned work. Requires existing plan.md. Supports :auto and :confirm modes
+argument-hint: "<spec-folder> [:auto|:confirm]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 ---
 
-## Smart Command: /speckit.implement
+# SpecKit Implement
 
-**Purpose**: Execute implementation of a pre-planned feature. Requires existing spec.md and plan.md from a prior `/speckit.plan` workflow.
+Execute implementation of a pre-planned feature. Requires existing spec.md and plan.md from a prior `/speckit.plan` workflow.
 
 > **Note**: This is a standalone workflow (8 steps) that assumes spec.md and plan.md already exist.
 > Run `/speckit.plan` first if you need to create planning artifacts.
+
+---
+
+## Purpose
+
+Run the 8-step implementation workflow: plan review, task breakdown, quality validation, development, and completion summary. Picks up where `/speckit.plan` left off to execute the actual code changes.
+
+---
+
+## Contract
+
+**Inputs:** `$ARGUMENTS` — Spec folder path (REQUIRED) with optional parameters (environment, constraints)
+**Outputs:** Completed implementation + implementation-summary.md + `STATUS=<OK|FAIL|CANCELLED>`
 
 ## User Input
 
@@ -26,9 +41,26 @@ $ARGUMENTS
 
 If prerequisites are missing, guide user to run `/speckit.plan` first.
 
-## Mode Detection & Routing
+## Workflow Overview (8 Steps)
 
-### Step 1: Parse Mode Suffix
+| Step | Name | Purpose | Outputs |
+|------|------|---------|---------|
+| 1 | Review Plan & Spec | Understand requirements | requirements_summary |
+| 2 | Task Breakdown | Create/validate tasks.md | tasks.md |
+| 3 | Analysis | Verify consistency | consistency_report |
+| 4 | Quality Checklist | Validate checklists | checklist_status |
+| 5 | Implementation Check | Verify prerequisites | greenlight |
+| 6 | Development | Execute implementation | code changes |
+| 7 | Completion | Generate summary | implementation-summary.md |
+| 8 | Save Context | Preserve conversation | memory/*.md |
+
+---
+
+## Instructions
+
+### Phase 1: Mode Detection & Input Parsing
+
+#### Step 1.1: Parse Mode Suffix
 
 Detect execution mode from command invocation:
 
@@ -38,7 +70,7 @@ Detect execution mode from command invocation:
 | `/speckit.implement:confirm` | INTERACTIVE | Pause at each step for user approval |
 | `/speckit.implement` (no suffix) | PROMPT | Ask user to choose mode |
 
-### Step 2: Mode Selection (when no suffix detected)
+#### Step 1.2: Mode Selection (when no suffix detected)
 
 If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
@@ -51,7 +83,7 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 **Wait for user response before proceeding.**
 
-### Step 3: Transform Raw Input
+#### Step 1.3: Transform Raw Input
 
 Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
 
@@ -67,25 +99,18 @@ Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs f
 | `environment` | URLs, "staging:", "production:" | Skip browser testing |
 | `scope` | File paths, glob patterns | Default to specs/** |
 
-### Step 4: Load & Execute Workflow Prompt
+#### Step 1.4: Load & Execute Workflow Prompt
 
 Based on detected/selected mode:
 
 - **AUTONOMOUS**: Load and execute `.opencode/prompts/spec_kit/spec_kit_implement_auto.yaml`
 - **INTERACTIVE**: Load and execute `.opencode/prompts/spec_kit/spec_kit_implement_confirm.yaml`
 
-## Workflow Overview (8 Steps)
+### Phase 2: Workflow Execution
 
-| Step | Name | Purpose | Outputs |
-|------|------|---------|---------|
-| 1 | Review Plan & Spec | Understand requirements | requirements_summary |
-| 2 | Task Breakdown | Create/validate tasks.md | tasks.md |
-| 3 | Analysis | Verify consistency | consistency_report |
-| 4 | Quality Checklist | Validate checklists | checklist_status |
-| 5 | Implementation Check | Verify prerequisites | greenlight |
-| 6 | Development | Execute implementation | code changes |
-| 7 | Completion | Generate summary | implementation-summary.md |
-| 8 | Save Context | Preserve conversation | memory/*.md |
+Execute the 8 steps defined in Workflow Overview. Each step produces artifacts that feed into subsequent steps. See prompt files for detailed step-by-step instructions.
+
+---
 
 ## Key Differences from /speckit.complete
 
@@ -93,18 +118,7 @@ Based on detected/selected mode:
 - **Starts at implementation** - Skips specification and planning phases
 - **Use case** - Separated planning/implementation, team handoffs, phased delivery
 
-## Key Behaviors
-
-### Autonomous Mode (`:auto`)
-- Executes all steps without user approval gates
-- Self-validates at each checkpoint
-- Marks tasks complete as they're finished
-- Documents all implementation decisions
-
-### Interactive Mode (`:confirm`)
-- Pauses after each step for user approval
-- Presents options: Approve, Review Details, Modify, Skip, Abort
-- Allows code review at each checkpoint
+---
 
 ## Context Loading
 
@@ -193,6 +207,8 @@ Next Steps:
 - Review implementation summary
 - Run final tests
 - Prepare for code review and PR submission
+
+STATUS=OK PATH=specs/NNN-short-name/
 ```
 
 ## Examples
@@ -211,3 +227,20 @@ Next Steps:
 ```
 /speckit.implement "specs/042-user-auth/" staging: https://staging.example.com
 ```
+
+---
+
+## Notes
+
+- **Mode Behaviors:**
+  - **Autonomous (`:auto`)**: Executes all steps without user approval gates. Self-validates at each checkpoint. Marks tasks complete as they're finished. Documents all implementation decisions.
+  - **Interactive (`:confirm`)**: Pauses after each step for user approval. Presents options: Approve, Review Details, Modify, Skip, Abort. Allows code review at each checkpoint.
+
+- **Prerequisites:**
+  - Requires spec.md and plan.md from prior `/speckit.plan` workflow
+  - Will create tasks.md if missing
+
+- **Integration:**
+  - Works with spec folder system for documentation
+  - Pairs with `/speckit.plan` for planning phase
+  - Context saved via workflows-save-context skill

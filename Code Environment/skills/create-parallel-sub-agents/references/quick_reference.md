@@ -77,10 +77,15 @@ B) Create sub-agents - parallel, potentially faster
 | Domain | Core Skills | Tools |
 |--------|------------|-------|
 | **Code** | workflows-code, mcp-semantic-search | Read, Write, Edit, Bash |
+| **Analysis** | mcp-semantic-search, workflows-code | Read, Grep, Glob, WebSearch |
 | **Docs** | create-documentation, workflows-conversation | Read, Write, WebSearch |
 | **Git** | workflows-git, workflows-save-context | Bash, Read |
 | **Test** | workflows-code, mcp-semantic-search | Read, Write, Bash |
 | **DevOps** | mcp-code-mode, cli-gemini | Bash, Read, Edit |
+
+> **6 domains total**: code, analysis, docs, git, test, devops
+
+> ⚠️ **Excluded Keywords**: Generic verbs (`add`, `update`, `create`, `check`, `review`, `find`) are excluded to prevent over-matching. The word `api` alone is excluded from code domain—use `endpoint` or `route` instead.
 
 ---
 

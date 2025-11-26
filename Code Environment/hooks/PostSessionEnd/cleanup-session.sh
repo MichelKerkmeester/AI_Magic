@@ -77,6 +77,16 @@ if [ -d "$STATE_DIR" ]; then
   find "$STATE_DIR" -type f -mmin +60 -delete 2>/dev/null || true
 fi
 
+# V9: Clean up session-specific spec marker
+# Each session has its own marker file (.claude/.spec-active.{SESSION_ID})
+# Remove it when session ends to prevent orphaned markers
+if [ -n "$SESSION_ID" ] && [ "$SESSION_ID" != "unknown" ]; then
+  SESSION_MARKER="$PROJECT_ROOT/.claude/.spec-active.$SESSION_ID"
+  if [ -f "$SESSION_MARKER" ]; then
+    rm -f "$SESSION_MARKER" 2>/dev/null || true
+  fi
+fi
+
 # Log session end
 {
   echo "═══════════════════════════════════════════════════════════════"

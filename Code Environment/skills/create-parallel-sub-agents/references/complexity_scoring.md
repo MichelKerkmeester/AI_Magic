@@ -16,14 +16,17 @@ You MUST evaluate ALL five dimensions before making a dispatch decision.
 
 **Purpose**: Identifies distinct functional domains that could benefit from specialized agents
 
-**Domain Classification**:
-- **Code**: Programming, refactoring, bug fixes
-- **Documentation**: README, API docs, comments
-- **Git**: Commits, branches, merges
-- **Testing**: Unit tests, integration tests
-- **DevOps**: CI/CD, deployment, configuration
-- **Database**: Schema, queries, migrations
-- **UI/UX**: Styling, layouts, animations
+**Domain Classification** (6 primary domains):
+- **Code**: Implementation, refactoring, bug fixes, debugging, optimization (keywords: `implement`, `code`, `refactor`, `function`, `class`, `component`, `backend`, `frontend`, `fix`, `bug`, `debug`, `error`, `endpoint`, `route`, etc.)
+- **Analysis**: Investigation, exploration, auditing, profiling, benchmarking (keywords: `analyze`, `investigate`, `explore`, `examine`, `audit`, `inspect`, `trace`, `profile`, `benchmark`, `diagnose`, etc.)
+- **Documentation**: README, guides, tutorials, specifications, release notes (keywords: `document`, `readme`, `guide`, `tutorial`, `api.*doc`, `specification`, `markdown`, `wiki`, etc.)
+- **Git**: Commits, branches, merges, PRs, releases, changelogs (keywords: `git`, `commit`, `branch`, `merge`, `pull.*request`, `release`, `changelog`, `rebase`, etc.)
+- **Testing**: Unit tests, integration tests, assertions, mocks, fixtures (keywords: `test`, `unittest`, `e2e`, `coverage`, `assert`, `mock`, `jest`, `pytest`, etc.)
+- **DevOps**: CI/CD, deployment, containers, cloud infrastructure (keywords: `deploy`, `ci`, `cd`, `docker`, `kubernetes`, `terraform`, `aws`, etc.)
+
+> **Important - Keyword Refinements**: Generic verbs like `add`, `update`, `create`, `check`, `review`, `find` are intentionally excluded from domain detection to prevent over-matching. The word `api` alone is excluded from code domain (use `endpoint` or `route` instead) to prevent matching documentation tasks like "document the API".
+
+> **Note**: The hook implementation normalizes domain count against 6 domains (not 5/7).
 
 **Scoring Logic**:
 ```markdown
@@ -134,13 +137,19 @@ IF high parallelization:
 
 **Pattern Recognition**:
 
-**Sequential Dependency Keywords** (force parallel_opportunity = 0):
+**Sequential Dependency Patterns** (force parallel_opportunity = 0):
+
+The hook uses **context-aware pattern matching** to avoid false positives:
 ```
-then, after, before, first...then, once...done,
-when...complete, followed by
+first/start by/begin with ... then  (action sequence)
+after ... complete/finish/done      (completion dependency)
+once ... done/complete/finish       (completion trigger)
+when ... complete/finish/done/pass  (conditional completion)
+followed by                         (explicit sequence)
+, and then                          (comma-separated sequence)
 ```
 
-> **Implementation Note**: The `orchestrate-skill-validation.sh` hook detects these keywords and sets parallel_opportunity to 0 when found.
+> **Implementation Note**: Simple occurrences of "then" (like "something other than") do NOT trigger sequential detection. The patterns require action context to avoid false positives.
 
 ❌ **WRONG - Missing dependencies**:
 ```
@@ -374,6 +383,20 @@ B) Dispatch sub-agents (parallel, potentially faster)"
 // Complexity: 85%, Token Budget: 15%
 // ❌ WRONG: Dispatched anyway (hit resource limit)
 // ✅ RIGHT: Override to DIRECT (insufficient budget)
+```
+
+**Error Pattern 5: Generic Verb Over-Matching**
+```javascript
+// Request: "Add documentation for the API"
+// ❌ WRONG: 2 domains (code + docs) because "add" and "api" match code
+// ✅ RIGHT: 1 domain (docs) - generic verbs excluded, use specific keywords
+```
+
+**Error Pattern 6: Duplicate Keyword Counting**
+```javascript
+// Request: "Update the changelog"
+// ❌ WRONG: 2 domains (docs + git) because "changelog" in both
+// ✅ RIGHT: 1 domain (git) - changelog only in git domain to prevent double-count
 ```
 
 ---
