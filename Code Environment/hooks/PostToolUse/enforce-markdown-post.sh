@@ -9,6 +9,7 @@
 #
 # Enforces: lowercase snake_case only (e.g., document_name.md)
 # Exceptions: README.md, AGENTS.md, CLAUDE.md, GEMINI.md, SKILL.md (in .claude/skills/*/ only)
+#             Files in ~/.claude/plans/ (Claude Code system files with hyphenated names)
 #
 # PERFORMANCE TARGET: <200ms (file operations, git commands)
 # COMPATIBILITY: Bash 3.2+ (macOS and Linux compatible)
@@ -97,6 +98,11 @@ is_violation() {
 
     # Exception: SKILL.md is allowed in .claude/skills/*/ directories
     if [[ "$filename" == "SKILL.md" && "$filepath" =~ \.claude/skills/ ]]; then
+        return 1  # Not a violation
+    fi
+
+    # Exception: ~/.claude/plans/ directory (Claude Code system files with hyphenated names)
+    if [[ "$filepath" =~ \.claude/plans/ || "$filepath" =~ /Users/[^/]+/\.claude/plans/ ]]; then
         return 1  # Not a violation
     fi
 

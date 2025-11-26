@@ -12,8 +12,8 @@ const fsSync = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-// Content filtering for noise removal, deduplication, and quality scoring
-const { createFilterPipeline, getFilterStats } = require('./lib/content-filter');
+// Content filtering stats (filtering happens in transform-transcript.js)
+const { getFilterStats } = require('./lib/content-filter');
 
 // Semantic summarization for meaningful implementation summaries
 const {
@@ -632,11 +632,13 @@ async function main() {
     // Step 7.5: Generate semantic implementation summary
     console.log('🧠 Step 7.5: Generating semantic summary...');
 
-    // Collect all messages for semantic analysis
-    const allMessages = conversations.MESSAGES.map(m => ({
-      prompt: m.CONTENT,
-      content: m.CONTENT,
-      timestamp: m.TIMESTAMP
+    // Get RAW user prompts BEFORE any filtering for semantic analysis
+    // Using unfiltered data preserves context for better classification
+    const rawUserPrompts = collectedData?.user_prompts || [];
+    const allMessages = rawUserPrompts.map(m => ({
+      prompt: m.prompt || '',
+      content: m.prompt || '',
+      timestamp: m.timestamp
     }));
 
     // Generate implementation summary with semantic understanding
@@ -1291,6 +1293,11 @@ async function collectSessionData(collectedData, specFolderName = null) {
     return count + (prompt.prompt?.includes('Read') || prompt.prompt?.includes('Edit') ? 1 : 0);
   }, 0);
 
+  // Extract task from FIRST user prompt if no observations available
+  // This prevents falling back to generic "Development session"
+  const firstPrompt = userPrompts[0]?.prompt || '';
+  const taskFromPrompt = firstPrompt.match(/^(.{20,100}?)(?:[.!?\n]|$)/)?.[1];
+
   return {
     TITLE: folderName.replace(/^\d{3}-/, '').replace(/-/g, ' '),
     DATE: dateOnly,
@@ -1302,7 +1309,7 @@ async function collectSessionData(collectedData, specFolderName = null) {
     OUTCOMES: OUTCOMES.length > 0 ? OUTCOMES : [{ OUTCOME: 'Session in progress' }],
     TOOL_COUNT,
     MESSAGE_COUNT: messageCount,
-    QUICK_SUMMARY: observations[0]?.title || sessionInfo.request || 'Development session',
+    QUICK_SUMMARY: observations[0]?.title || sessionInfo.request || taskFromPrompt?.trim() || 'Development session',
     SKILL_VERSION: CONFIG.SKILL_VERSION
   };
 }
@@ -1372,10 +1379,9 @@ async function extractConversations(collectedData) {
   const MESSAGES = [];
   const phaseTimestamps = new Map(); // Track phase durations
 
-  // Apply content filtering pipeline (noise removal, deduplication, quality scoring)
-  // This is a secondary defense - transform-transcript.js applies the same filters upstream
-  const filterPipeline = createFilterPipeline();
-  const validPrompts = filterPipeline.filter(userPrompts.filter(p => p.prompt?.trim()));
+  // Trust pre-filtered data from transform-transcript.js
+  // Double filtering was causing count divergence between extraction and output
+  const validPrompts = userPrompts.filter(p => p.prompt?.trim());
 
   for (let i = 0; i < validPrompts.length; i++) {
     const userPrompt = validPrompts[i];
@@ -1457,6 +1463,27 @@ async function extractConversations(collectedData) {
         phaseTimestamps.set(phase, []);
       }
       phaseTimestamps.get(phase).push(new Date(userMessage.TIMESTAMP));
+    }
+  }
+
+  // Sort all messages by timestamp to ensure chronological order
+  // User and assistant timestamps from different sources can appear out of order
+  MESSAGES.sort((a, b) => {
+    const timeA = new Date(a.TIMESTAMP.replace(' @ ', 'T')).getTime();
+    const timeB = new Date(b.TIMESTAMP.replace(' @ ', 'T')).getTime();
+    return timeA - timeB;
+  });
+
+  // Ensure user messages come before their assistant responses when timestamps are equal
+  for (let i = 0; i < MESSAGES.length - 1; i++) {
+    const curr = MESSAGES[i];
+    const next = MESSAGES[i + 1];
+    const currTime = new Date(curr.TIMESTAMP.replace(' @ ', 'T')).getTime();
+    const nextTime = new Date(next.TIMESTAMP.replace(' @ ', 'T')).getTime();
+
+    // If same timestamp but user follows assistant, swap them
+    if (currTime === nextTime && curr.ROLE === 'Assistant' && next.ROLE === 'User') {
+      [MESSAGES[i], MESSAGES[i + 1]] = [MESSAGES[i + 1], MESSAGES[i]];
     }
   }
 

@@ -55,7 +55,7 @@ Instead of manually opening DevTools, capture console output programmatically:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://anobel.com"
+   - url: "https://example.com"
 
 2. List console messages:
    [Use tool: mcp__chrome_devtools_2__list_console_messages]
@@ -75,7 +75,7 @@ Instead of manually opening DevTools, capture console output programmatically:
 {
   "type": "error",
   "text": "Uncaught TypeError: Cannot read property 'play' of null",
-  "url": "https://anobel.com/video-player.js",
+  "url": "https://example.com/video-player.js",
   "lineNumber": 45,
   "columnNumber": 12,
   "stackTrace": "at VideoPlayer.play (video-player.js:45:12)\n  at initialize (app.js:120:5)"
@@ -170,7 +170,7 @@ Instead of manually checking Network tab, capture requests programmatically:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://anobel.com"
+   - url: "https://example.com"
 
 2. List network requests:
    [Use tool: mcp__chrome_devtools_2__list_network_requests]
@@ -308,7 +308,7 @@ Instead of manually typing in console, execute JavaScript via MCP tools:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://anobel.com"
+   - url: "https://example.com"
 
 2. Test if element exists:
    [Use tool: mcp__chrome_devtools_2__evaluate_script]

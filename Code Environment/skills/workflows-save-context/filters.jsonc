@@ -5,13 +5,13 @@
   },
   "noise": {
     "enabled": true,
-    "minContentLength": 5,
-    "minUniqueWords": 2
+    "minContentLength": 15,
+    "minUniqueWords": 3
   },
   "dedupe": {
     "enabled": true,
     "hashLength": 200,
-    "similarityThreshold": 0.85
+    "similarityThreshold": 0.70
   },
   "quality": {
     "enabled": true,

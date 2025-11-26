@@ -679,7 +679,7 @@ The workflows-code skill integrates with Chrome DevTools MCP for automated testi
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://anobel.com"
+   - url: "https://example.com"
 
 2. Check for errors:
    [Use tool: mcp__chrome_devtools_2__list_console_messages]

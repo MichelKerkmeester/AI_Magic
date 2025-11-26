@@ -41,6 +41,7 @@ This directory contains hooks that automatically trigger during Claude Code oper
 - Auto-save conversation context (keywords + context threshold)
 - Auto-load previous memory files when continuing work (user selectable A/B/C/D options)
 - Smart spec folder enforcement: Only prompts at conversation start (detects substantial content to avoid repeated prompts mid-conversation)
+- Task change detection: Hybrid explicit triggers + automatic divergence detection to prompt for new spec folder when switching tasks mid-conversation
 
 **AI Assistance & Discovery**
 - Suggest relevant skills based on prompt content
@@ -696,6 +697,68 @@ call_tool_chain({
   Result: ⚠️ Warning shown (no "hook" or "refinement" in prompt)
   ```
 
+**Task Change Detection (Nov 2025)**:
+- **Hybrid detection system** combining explicit triggers + automatic divergence detection
+- **Purpose**: Detects mid-conversation task changes and prompts for new spec folder
+- **Libraries**: `lib/spec-context.sh` (fingerprinting) + `lib/signal-output.sh` (question emission)
+
+**Explicit Trigger Detection (Priority 1)**:
+- **Triggers**: `new task`, `different task`, `switch to`, `change topic`, `start fresh`, `clear context`, `work on something else`, `different feature`, `new feature`, `new bug`, `reset spec`
+- **Question exclusion**: Phrases ending in `?` or starting with `how/what/when/why/can/could/should` are NOT treated as triggers
+- **Behavior**: Clears `.spec-active` marker and prompts for new spec folder
+- **Example**: "new task: implement auth" → Clears marker → Fresh spec folder prompt
+
+**Automatic Divergence Detection (Priority 2)**:
+- **Topic fingerprinting**: Stores keywords in enhanced JSON marker format
+- **Enhanced marker format**:
+  ```json
+  {
+    "path": "specs/122-skill-standardization",
+    "topic_keywords": ["skill", "standardization", "alignment"],
+    "created_at": "2025-11-26T10:00:00Z"
+  }
+  ```
+- **Backward compatible**: `read_spec_marker()` handles both legacy (path-only) and JSON formats
+- **Functions**:
+  - `extract_prompt_keywords()` - Extract and filter keywords (stop words removed, 3+ chars)
+  - `create_spec_marker_with_fingerprint()` - JSON marker with keywords
+  - `calculate_divergence_score()` - Keyword overlap calculation (0-100%)
+  - `emit_task_change_question()` - Blocking question for task change
+
+**Divergence Thresholds**:
+- **≤40%**: Continue silently (same topic)
+- **41-60%**: Log only (borderline)
+- **>60%**: Emit **BLOCKING** question asking user if switching tasks
+
+**Question Type**: `TASK_CHANGE_DETECTED`
+- **Options**:
+  - **A) Continue current**: Stay in current spec folder (this is related work)
+  - **B) New spec folder**: Create a fresh spec folder for new task
+  - **C) Switch to existing**: Choose a different existing spec folder
+- **Question Flow Stage**: `task_change` (added to `handle_question_flow()`)
+
+**Example Output**:
+```bash
+🔴 MANDATORY_USER_QUESTION
+{"signal": "MANDATORY_QUESTION",
+  "type": "TASK_CHANGE_DETECTED",
+  "question": "Your request seems different from current work (85% divergence from 122-skill-standardization). Are you switching tasks?",
+  "options": [
+    {"id": "A", "label": "Continue current", "description": "Stay in 122-skill-standardization - this is related work"},
+    {"id": "B", "label": "New spec folder", "description": "Create a fresh spec folder for this new task"},
+    {"id": "C", "label": "Switch to existing", "description": "Choose a different existing spec folder"}
+  ],
+  "blocking": true
+}
+```
+
+**Performance**: <100ms total for fingerprinting + divergence calculation
+
+**Edge Cases**:
+- Empty/short prompts: Default to 50% divergence (neutral)
+- Legacy markers: Converted to JSON format automatically
+- Questions about switching: Excluded from explicit triggers via `\?$` pattern
+
 **Memory File Selection & Context Loading (Nov 2025)**:
 - **Automatic context restoration** when continuing work in existing spec folders
 - **Triggers when**:
@@ -1110,6 +1173,7 @@ SPECKIT PRE-COMMIT QUALITY GATE
 **Exceptions**:
 - ✅ `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`
 - ✅ `.claude/skills/*/SKILL.md`
+- ✅ `~/.claude/plans/*` (Claude Code system files with hyphenated names)
 
 **Integrations**:
 - `.claude/skills/create-documentation` (naming standards)
@@ -1882,22 +1946,72 @@ fi
 - `emit_spec_folder_question(folder, next_num, related)` - Spec folder selection
 - `emit_memory_load_question(memory_files)` - Memory file loading
 - `emit_skill_eval_question(skills)` - Mandatory skill evaluation
+- `emit_task_change_question(current_spec, divergence)` - Task change detection (Nov 2025)
 
 **Question Types**:
 - `SPEC_FOLDER_CHOICE` - Select spec folder for documentation
 - `MEMORY_LOAD` - Load previous session context
 - `SKILL_EVAL` - Evaluate mandatory skills
+- `TASK_CHANGE_DETECTED` - Task change detected mid-conversation (Nov 2025)
 - `CUSTOM` - Any other mandatory question
 
 **Flow Stages**:
 - `initial` - No question pending, detect intent
 - `spec_folder` - Spec folder question asked, awaiting answer
 - `memory_load` - Memory load question asked, awaiting answer
+- `task_change` - Task change question asked, awaiting answer (Nov 2025)
 - `complete` - All questions answered, proceed
 
 **Integration**:
 - Sets `pending_question` state for `check-pending-questions.sh` blocking
 - AI detects `🔴 MANDATORY_USER_QUESTION` signal and responds with `AskUserQuestion`
+
+---
+
+### `lib/spec-context.sh`
+**Purpose**: Spec folder state marker management and mid-conversation task change detection (Nov 2025)
+
+**Used by**: `enforce-spec-folder.sh`, `workflows-save-context-trigger.sh`
+
+**Provides**:
+- Spec folder marker management (create, read, cleanup)
+- Substantial content detection for mid-conversation state
+- Sub-folder versioning support (parent/child folder detection)
+- Topic fingerprinting for task change detection (Nov 2025)
+
+**Marker Management Functions**:
+- `has_substantial_content(spec_folder)` - Check if mid-conversation (marker exists + folder valid)
+- `create_spec_marker(spec_path)` - Create legacy path-only marker
+- `cleanup_spec_marker()` - Remove marker file
+- `check_marker_staleness()` - Verify marker points to valid folder
+- `has_skip_marker()` / `create_skip_marker()` / `cleanup_skip_marker()` - Skip marker handling
+
+**Sub-Folder Versioning Functions**:
+- `has_root_level_content(spec_folder)` - Check for root-level MD files
+- `get_next_subfolder_number(spec_folder)` - Get next sequential number (001, 002, etc.)
+- `get_parent_folder(spec_folder)` - Extract parent from sub-folder path
+- `is_parent_folder(spec_folder)` - Check if folder has numbered sub-folders
+- `get_active_child(spec_folder)` - Get currently active sub-folder from marker
+
+**Topic Fingerprinting Functions (Nov 2025)**:
+- `extract_prompt_keywords(text)` - Extract significant keywords (filters stop words, 3+ chars, returns top 10)
+- `create_spec_marker_with_fingerprint(path, prompt)` - Create JSON marker with keywords
+- `read_spec_marker()` - Read marker (handles legacy path-only AND JSON formats)
+- `get_marker_path()` - Get spec path from marker (either format)
+- `get_marker_keywords()` - Get stored keywords from JSON marker
+- `calculate_divergence_score(prompt)` - Calculate keyword overlap (0-100%, higher = more different)
+- `is_task_change_likely(prompt, threshold)` - Check if divergence exceeds threshold (default: 60%)
+
+**Enhanced Marker Format** (JSON):
+```json
+{
+  "path": "specs/122-skill-standardization",
+  "topic_keywords": ["skill", "standardization", "alignment"],
+  "created_at": "2025-11-26T10:00:00Z"
+}
+```
+
+**Backward Compatibility**: `read_spec_marker()` auto-converts legacy path-only markers to JSON structure
 
 ---
 

@@ -147,9 +147,9 @@ Categorized collection of example queries demonstrating effective semantic searc
 
 ---
 
-## 8. 🏗️ PROJECT-SPECIFIC (ANOBEL.COM)
+## 8. 🏗️ PROJECT-SPECIFIC EXAMPLES
 
-**Queries specific to anobel.com project:**
+**Queries specific to your project:**
 
 ```
 "Find video player implementation in hero section"
@@ -162,7 +162,7 @@ Categorized collection of example queries demonstrating effective semantic searc
 "Where do we initialize Webflow interactions?"
 ```
 
-**When to use:** Navigating the anobel.com codebase.
+**When to use:** Navigating your project codebase.
 
 **Expected results:** Project-specific implementations.
 
@@ -406,9 +406,9 @@ Aspects:
 
 ---
 
-## 14. 📊 PROJECT-SPECIFIC INDEX STATS
+## 14. 📊 PROJECT INDEX STATS EXAMPLE
 
-**Current anobel.com index (as of 2025-11-25):**
+**Example project index:**
 
 - **Files:** 249 files indexed
 - **Code blocks:** 496 chunks

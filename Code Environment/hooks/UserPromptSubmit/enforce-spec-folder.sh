@@ -53,10 +53,13 @@ mkdir -p "$LOG_DIR"
 source "$SCRIPT_DIR/../lib/output-helpers.sh" || exit 0
 source "$SCRIPT_DIR/../lib/shared-state.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/../lib/signal-output.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/../lib/spec-context.sh" 2>/dev/null || true
 
 # Source template validation library (if available)
+# Note: template-validation.sh expects REPO_ROOT to be set
 if [ -f "$SCRIPT_DIR/../lib/template-validation.sh" ]; then
-  source "$SCRIPT_DIR/../lib/template-validation.sh"
+  export REPO_ROOT="$PROJECT_ROOT"
+  source "$SCRIPT_DIR/../lib/template-validation.sh" 2>/dev/null || true
   VALIDATION_LIB_LOADED=true
 else
   VALIDATION_LIB_LOADED=false
@@ -250,6 +253,62 @@ handle_question_flow() {
     exit 0  # Allow to proceed
   fi
 
+  # Stage 3: Task change question was asked, waiting for answer
+  if [ "$current_stage" = "task_change" ]; then
+    if [ -z "$user_choice" ]; then
+      # No clear choice detected - check for keywords indicating choice
+      if echo "$PROMPT_LOWER" | grep -qiE "(continue|stay|current|same|related)"; then
+        user_choice="A"
+      elif echo "$PROMPT_LOWER" | grep -qiE "(new|create|fresh|different|separate)"; then
+        user_choice="B"
+      elif echo "$PROMPT_LOWER" | grep -qiE "(switch|existing|other|choose)"; then
+        user_choice="C"
+      fi
+    fi
+
+    if [ -z "$user_choice" ]; then
+      return 1  # Still waiting for response
+    fi
+
+    local stored_folder=$(get_flow_spec_folder)
+
+    case "$user_choice" in
+      A)
+        # Continue in current spec - user confirmed this is related work
+        echo "[FLOW_COMPLETE] User confirmed current spec folder (choice A)" >> "$LOG_FILE" 2>/dev/null || true
+        echo ""
+        echo "✅ Continuing in $(basename "$stored_folder")"
+        echo ""
+        clear_question_flow
+        exit 0  # Allow to proceed
+        ;;
+      B)
+        # Create new spec folder - clear marker and trigger normal flow
+        echo "[FLOW_TRANSITION] User wants new spec folder (choice B)" >> "$LOG_FILE" 2>/dev/null || true
+        cleanup_spec_marker 2>/dev/null || rm -f "$SPEC_MARKER" 2>/dev/null
+        clear_question_flow
+        echo ""
+        echo "🆕 Creating new spec folder for this task..."
+        echo ""
+        return 1  # Continue to normal flow which will show spec folder prompt
+        ;;
+      C)
+        # Switch to existing spec - clear marker and let user choose
+        echo "[FLOW_TRANSITION] User wants to switch to existing spec (choice C)" >> "$LOG_FILE" 2>/dev/null || true
+        cleanup_spec_marker 2>/dev/null || rm -f "$SPEC_MARKER" 2>/dev/null
+        clear_question_flow
+        echo ""
+        echo "🔄 Select from existing spec folders..."
+        echo ""
+        return 1  # Continue to normal flow which will show related specs
+        ;;
+    esac
+
+    # Unknown choice - clear and continue
+    clear_question_flow
+    return 1
+  fi
+
   # Unknown stage - clear and continue
   clear_question_flow
   return 1
@@ -259,6 +318,57 @@ handle_question_flow() {
 if handle_question_flow; then
   # Flow was handled and exited - this line won't be reached
   exit 0
+fi
+
+# ───────────────────────────────────────────────────────────────
+# EXPLICIT NEW TASK TRIGGER DETECTION
+# ───────────────────────────────────────────────────────────────
+# User can explicitly signal task change with trigger phrases.
+# This clears the marker and forces re-prompt for new spec folder.
+# Checked BEFORE modification intent detection.
+# ───────────────────────────────────────────────────────────────
+
+EXPLICIT_NEW_TASK_TRIGGERS="new task|different task|switch to|change topic|start fresh|clear context|work on something else|different feature|new feature|new bug|reset spec"
+
+check_explicit_new_task_trigger() {
+  # Check for trigger patterns
+  if echo "$PROMPT_LOWER" | grep -qiE "$EXPLICIT_NEW_TASK_TRIGGERS"; then
+    # Exclude questions about task switching (e.g., "how do I switch tasks?")
+    if echo "$PROMPT_LOWER" | grep -qE '\?$'; then
+      return 1  # Question - not a trigger
+    fi
+    if echo "$PROMPT_LOWER" | grep -qiE "^(how|what|when|where|why|can|could|should).*(switch|change|task)"; then
+      return 1  # Question about switching - not a trigger
+    fi
+    return 0  # Explicit trigger found
+  fi
+  return 1  # No trigger
+}
+
+if [ -f "$SPEC_MARKER" ] && check_explicit_new_task_trigger; then
+  # User explicitly signaled task change - clear marker and allow normal flow
+  old_marker_path=$(cat "$SPEC_MARKER" 2>/dev/null | tr -d '\n')
+  old_marker_name=$(basename "$old_marker_path" 2>/dev/null || echo "unknown")
+
+  echo "" >&2
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+  echo "🔄 TASK CHANGE DETECTED" >&2
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+  echo "" >&2
+  echo "Previous spec folder cleared: $old_marker_name" >&2
+  echo "" >&2
+  echo "You're starting a new task. The spec folder prompt will appear." >&2
+  echo "" >&2
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+  echo "" >&2
+
+  # Log and clear marker
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] EXPLICIT_NEW_TASK: Cleared marker from $old_marker_path" >> "$LOG_FILE" 2>/dev/null || true
+  cleanup_spec_marker 2>/dev/null || rm -f "$SPEC_MARKER" 2>/dev/null
+  cleanup_skip_marker 2>/dev/null || rm -f "$SKIP_MARKER" 2>/dev/null
+  clear_question_flow 2>/dev/null || true
+
+  # Continue to normal flow - will now prompt for spec folder
 fi
 
 log_event() {
@@ -274,9 +384,9 @@ log_event() {
 }
 
 MODIFICATION_KEYWORDS=(
-  "add" "adjust" "apply" "build" "change" "create" "delete" "edit" "enhance" "fix"
-  "implement" "improve" "modify" "optimize" "patch" "refactor" "remove" "replace"
-  "revamp" "rewrite" "ship" "update" "write"
+  "add" "adjust" "apply" "build" "change" "continue" "create" "delete" "edit" "enhance" "fix"
+  "implement" "improve" "modify" "optimize" "patch" "proceed" "refactor" "remove" "replace"
+  "resume" "revamp" "rewrite" "ship" "update" "write"
 )
 
 DETECTED_INTENT=""
@@ -298,6 +408,25 @@ detect_modification_intent() {
   # Check for question words + review/explain (read-only intent)
   if echo "$PROMPT_LOWER" | grep -qE "(explain|review|show|describe|tell).*(what|how|why|code|flow|work)"; then
     return 1  # No modification intent
+  fi
+
+  # Detect session continuation patterns (runs work from previous session)
+  # These patterns indicate the user wants to execute pending implementation work
+  if echo "$PROMPT_LOWER" | grep -qiE "(continue|resume|proceed|pick up|carry on).*(conversation|session|task|work|where.*left|from where|last task|from last)"; then
+    DETECTED_INTENT="session-continuation"
+    return 0  # This IS modification intent - previous work will be executed
+  fi
+
+  # Detect "continue with" followed by implementation verbs
+  if echo "$PROMPT_LOWER" | grep -qiE "continue.*(with|on|the|implementing|building|fixing|working)"; then
+    DETECTED_INTENT="continuation-implementation"
+    return 0
+  fi
+
+  # Detect "proceed with" implementation patterns
+  if echo "$PROMPT_LOWER" | grep -qiE "proceed.*(with|to|on).*(implementation|plan|task|work|coding|building)"; then
+    DETECTED_INTENT="proceed-implementation"
+    return 0
   fi
 
   for keyword in "${MODIFICATION_KEYWORDS[@]}"; do
@@ -988,18 +1117,25 @@ has_substantial_content() {
 }
 
 # Create state marker when spec folder is created
+# If initial_prompt is provided, stores topic keywords for divergence detection
 create_spec_marker() {
   local spec_path="$1"
+  local initial_prompt="${2:-$PROMPT}"  # Default to current prompt if not provided
 
   if [ -z "$spec_path" ]; then
     return 1
   fi
 
   # Ensure .claude directory exists
-  mkdir -p .claude
+  mkdir -p .claude 2>/dev/null
 
-  # Write spec path to marker file
-  echo "$spec_path" > "$SPEC_MARKER"
+  # Try to use fingerprinted version if available (from spec-context.sh)
+  if type create_spec_marker_with_fingerprint &>/dev/null && [ -n "$initial_prompt" ]; then
+    create_spec_marker_with_fingerprint "$spec_path" "$initial_prompt"
+  else
+    # Fallback to simple path-only format
+    echo "$spec_path" > "$SPEC_MARKER"
+  fi
 }
 
 # Cleanup state marker (call when conversation ends or manually)
@@ -1809,17 +1945,24 @@ status_priority() {
 }
 
 find_related_specs() {
+  # Temporarily disable nounset to handle empty arrays safely
+  # (template-validation.sh sets -u which breaks ${array[@]} on empty arrays)
+  local _prev_set=$(set +o | grep nounset)
+  set +u
+
   local prompt="$1"
   local keywords=$(extract_keywords "$prompt")
 
   if [ -z "$keywords" ] || [ ! -d "$SPECS_DIR" ]; then
+    eval "$_prev_set"  # Restore original setting
     return
   fi
 
   # Separate parent matches from child matches (bash 3.2 compatible)
-  declare -a parent_active
-  declare -a parent_inactive
-  declare -a child_matches
+  # Initialize as empty arrays to avoid unbound variable errors with set -u
+  declare -a parent_active=()
+  declare -a parent_inactive=()
+  declare -a child_matches=()
 
   # Array size limit to prevent memory exhaustion on large codebases
   local MAX_MATCHES=50
@@ -1886,6 +2029,9 @@ find_related_specs() {
     printf '%s\n' "${parent_inactive[@]}"
     printf '%s\n' "${child_matches[@]}" | sort -t: -k1 -n
   } | head -3
+
+  # Restore original nounset setting
+  eval "$_prev_set"
 }
 
 print_template_guidance() {
@@ -2203,6 +2349,25 @@ handle_confirmation() {
   local reason="$1"
   local folder="$2"
   log_event "CONFIRMATION_NEEDED" "$reason"
+
+  # Emit mandatory question signal for proper blocking
+  # This uses the signal-output.sh library for consistent AI interaction
+  if type emit_mandatory_question &>/dev/null; then
+    local options_json='[
+      {"id":"A","label":"Use existing spec folder","description":"Continue work in existing folder"},
+      {"id":"B","label":"Create new spec folder","description":"Create fresh spec folder for new work"},
+      {"id":"C","label":"Update related spec","description":"Add to related existing spec"},
+      {"id":"D","label":"Skip documentation","description":"Skip and create .spec-skip marker"}
+    ]'
+    local context_json="{\"folder\": \"${folder:-none}\", \"reason\": \"${reason}\"}"
+
+    emit_mandatory_question "SPEC_FOLDER_CHOICE" \
+      "Which spec folder would you like to use for this work?" \
+      "$options_json" \
+      "$context_json"
+  fi
+
+  # Also show human-readable confirmation prompt
   show_confirmation_prompt "$reason" "$folder"
 
   # Always exit 0 to allow prompt to proceed to AI
@@ -2268,47 +2433,48 @@ if [ -n "$RELATED_SPECS" ]; then
     # Parent format: path:active_child:PARENT_ACTIVE or path::PARENT_INACTIVE
     # Child format: priority:path:status:CHILD
 
-    local path=""
-    local type="${field4:-$field3}"  # Type is 4th field for children, 3rd for parents
+    # Note: Can't use 'local' here as this is in main script body, not a function
+    _path=""
+    _type="${field4:-$field3}"  # Type is 4th field for children, 3rd for parents
 
     # Determine path based on format
-    if [[ "$type" == PARENT_* ]]; then
+    if [[ "$_type" == PARENT_* ]]; then
       # Parent format: field1=path, field2=active_child, field3=type
-      path="$field1"
-      local active_child="$field2"
-      local name=$(basename "$path")
+      _path="$field1"
+      _active_child="$field2"
+      _name=$(basename "$_path")
 
-      if [[ "$type" == "PARENT_ACTIVE" ]]; then
-        print_detail "  🏢 $name (PARENT FOLDER - active work ongoing)"
-        print_detail "    → Active child: $active_child"
+      if [[ "$_type" == "PARENT_ACTIVE" ]]; then
+        print_detail "  🏢 $_name (PARENT FOLDER - active work ongoing)"
+        print_detail "    → Active child: $_active_child"
         print_detail "    → Suggested: Continue in new sub-folder"
-        print_detail "    → Path: $path"
+        print_detail "    → Path: $_path"
       else
-        print_detail "  🏢 $name (PARENT FOLDER - inactive)"
+        print_detail "  🏢 $_name (PARENT FOLDER - inactive)"
         print_detail "    → No active work currently"
         print_detail "    → Suggested: Resume or create new sub-folder"
-        print_detail "    → Path: $path"
+        print_detail "    → Path: $_path"
       fi
       print_line
-    elif [[ "$type" == "CHILD" ]]; then
+    elif [[ "$_type" == "CHILD" ]]; then
       # Child format: field1=priority, field2=path, field3=status, field4=CHILD
-      path="$field2"
-      local status="$field3"
-      local name=$(basename "$path")
-      local status_label=""
+      _path="$field2"
+      _status="$field3"
+      _name=$(basename "$_path")
+      _status_label=""
 
-      case "$status" in
-        active) status_label="✓ ACTIVE - recommended for updates" ;;
-        draft) status_label="◐ DRAFT - can be started" ;;
-        paused) status_label="⏸  PAUSED - can be resumed" ;;
-        complete) status_label="✓ COMPLETE - reopening discouraged" ;;
-        archived) status_label="📦 ARCHIVED - do not reuse" ;;
-        *) status_label="status: $status" ;;
+      case "$_status" in
+        active) _status_label="✓ ACTIVE - recommended for updates" ;;
+        draft) _status_label="◐ DRAFT - can be started" ;;
+        paused) _status_label="⏸  PAUSED - can be resumed" ;;
+        complete) _status_label="✓ COMPLETE - reopening discouraged" ;;
+        archived) _status_label="📦 ARCHIVED - do not reuse" ;;
+        *) _status_label="status: $_status" ;;
       esac
 
-      print_detail "  • $name"
-      print_detail "    Status: $status_label"
-      print_detail "    Path: $path"
+      print_detail "  • $_name"
+      print_detail "    Status: $_status_label"
+      print_detail "    Path: $_path"
       print_line
     fi
   done <<< "$RELATED_SPECS"
@@ -2351,36 +2517,62 @@ if [ "$CHECK_SPEC_FOLDER" != "false" ]; then
     # Initialize scope tracking for mid-conversation detection (Phase 5)
     # Only write if not already set (first detection in this session)
     if ! has_hook_state "initial_scope" 7200 2>/dev/null; then
-      local files_count
-      files_count=$(find "$SPEC_FOLDER" -maxdepth 2 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+      _files_count=$(find "$SPEC_FOLDER" -maxdepth 2 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
       write_hook_state "initial_scope" "{
         \"spec_folder\": \"$SPEC_FOLDER\",
-        \"files_count\": $files_count,
+        \"files_count\": $_files_count,
         \"level\": $DOC_LEVEL,
         \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
       }" 2>/dev/null || true
     fi
 
-    # Check for marker staleness (optional warning, doesn't block)
+    # ─────────────────────────────────────────────────────────────
+    # TOPIC DIVERGENCE DETECTION - Check if prompt matches current task
+    # ─────────────────────────────────────────────────────────────
+    # Calculate keyword divergence to detect task changes mid-conversation.
+    # If divergence exceeds threshold, emit mandatory question asking if
+    # user is switching tasks. This replaces the old warning-only check.
+    # ─────────────────────────────────────────────────────────────
+
     if [ -f "$SPEC_MARKER" ]; then
       active_marker_path=$(cat "$SPEC_MARKER" 2>/dev/null | tr -d '\n')
       if [ -n "$active_marker_path" ]; then
-        # M3 Fix: Verify marker points to existing folder, cleanup if stale
+        # Verify marker points to existing folder, cleanup if stale
         if [ ! -d "$active_marker_path" ]; then
           log_event "MARKER_CLEANUP" "Removing stale marker pointing to deleted folder: $active_marker_path"
           echo "🧹 [enforce-spec-folder] Cleaned up stale marker (folder no longer exists): $(basename "$active_marker_path")" >&2
-          cleanup_spec_marker
-          # Continue with SPEC_FOLDER detection without the stale marker
+          cleanup_spec_marker 2>/dev/null || rm -f "$SPEC_MARKER" 2>/dev/null
           active_marker_path=""
-        fi
+        else
+          # Calculate topic divergence using keyword fingerprinting
+          DIVERGENCE_SCORE=$(calculate_divergence_score "$PROMPT" 2>/dev/null || echo "50")
 
-        # Extract keywords from prompt
-        prompt_keywords=$(echo "$PROMPT_LOWER" | tr ' ' '\n' | grep -E '^[a-z]{3,}$' | sort -u)
+          log_event "DIVERGENCE_CHECK" "Score: ${DIVERGENCE_SCORE}% for $SPEC_FOLDER_NAME"
 
-        if check_marker_staleness "$prompt_keywords" "$active_marker_path"; then
-          # Marker appears stale but don't block - just warn
-          echo "⚠️  [enforce-spec-folder] Marker may be stale: working in $SPEC_FOLDER_NAME but prompt seems unrelated" >&2
-          log_event "MARKER_STALE" "Potential stale marker: $active_marker_path (prompt keywords don't match)"
+          if [ "$DIVERGENCE_SCORE" -gt 60 ] 2>/dev/null; then
+            # High divergence - emit blocking question asking if switching tasks
+            log_event "TASK_CHANGE_DETECTED" "High divergence (${DIVERGENCE_SCORE}%), asking user"
+            echo "" >&2
+            echo "⚠️  [enforce-spec-folder] Topic divergence detected (${DIVERGENCE_SCORE}%)" >&2
+            echo "   Current spec: $SPEC_FOLDER_NAME" >&2
+            echo "   Your request may be for a different task." >&2
+            echo "" >&2
+
+            # Emit the mandatory task change question
+            emit_task_change_question "$SPEC_FOLDER" "$DIVERGENCE_SCORE"
+
+            # Set question flow state for handling response
+            set_question_flow "task_change" "$SPEC_FOLDER" "[]" ""
+
+            END_TIME=$(date +%s%N)
+            DURATION=$(((END_TIME - START_TIME)/1000000))
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms (task change question)" >> "$PERF_LOG"
+            exit 1  # BLOCK until user responds
+          elif [ "$DIVERGENCE_SCORE" -gt 40 ] 2>/dev/null; then
+            # Medium divergence - just log, don't block
+            echo "💡 [enforce-spec-folder] Some topic drift detected (${DIVERGENCE_SCORE}%) - continuing in $SPEC_FOLDER_NAME" >&2
+            log_event "TOPIC_DRIFT" "Medium divergence (${DIVERGENCE_SCORE}%) in $SPEC_FOLDER_NAME"
+          fi
         fi
       fi
     fi
@@ -2414,11 +2606,15 @@ fi
 
 if [ "$NEEDS_CONFIRMATION" = false ] && [ -n "$SPEC_FOLDER" ] && [ "$CHECK_TEMPLATES" != "false" ]; then
   if ! validate_templates "$SPEC_FOLDER"; then
-    local joined_errors="$(printf '%s; ' "${VALIDATION_ERRORS[@]}")"
+    # Note: Can't use 'local' here as this is in main script body
+    _joined_errors=""
+    if [ ${#VALIDATION_ERRORS[@]} -gt 0 ] 2>/dev/null; then
+      _joined_errors="$(printf '%s; ' "${VALIDATION_ERRORS[@]}")"
+    fi
     if [ "$ENFORCEMENT_MODE" = "warning-only" ]; then
-      handle_warning "$joined_errors"
+      handle_warning "$_joined_errors"
     else
-      handle_confirmation "$joined_errors" "$SPEC_FOLDER_NAME"
+      handle_confirmation "$_joined_errors" "$SPEC_FOLDER_NAME"
       NEEDS_CONFIRMATION=true
     fi
   fi
