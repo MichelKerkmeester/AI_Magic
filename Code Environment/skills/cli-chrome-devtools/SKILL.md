@@ -75,7 +75,7 @@ Enables AI agents to leverage browser-debugger-cli (bdg) for direct Chrome DevTo
 
 ---
 
-## 2. 🧠 SMART ROUTING
+## 2. 🧭 SMART ROUTING
 
 ```python
 def route_bdg_resources(task):
@@ -92,36 +92,6 @@ def route_bdg_resources(task):
         return load("references/troubleshooting.md")
 
     # Default: SKILL.md has basics for common cases
-```
-
-### Smart Routing Diagram
-
-```
-START
-  ↓
-[Analyze Task]
-  ↓
-Need CDP patterns? ─── YES ──→ Load references/cdp_patterns.md
-  │                                    ↓
-  │                               [Domain exploration, Unix pipes]
-  │                                    ↓
-  NO                                EXECUTE
-  ↓
-Complex session? ─── YES ──→ Load references/session_management.md
-  │                                  ↓
-  │                             [Multi-session, cleanup patterns]
-  │                                  ↓
-  NO                              EXECUTE
-  ↓
-Has errors? ─── YES ──→ Load references/troubleshooting.md
-  │                            ↓
-  │                       [5-check diagnostics, fixes]
-  │                            ↓
-  NO                        RESOLVE
-  ↓
-[Use SKILL.md basics only]
-  ↓
-COMPLETE
 ```
 
 ---
@@ -142,7 +112,7 @@ COMPLETE
 
 ---
 
-## 4. 🔧 HOW IT WORKS
+## 4. 🛠️ HOW IT WORKS
 
 ### Installation & Verification
 
@@ -434,7 +404,7 @@ fi
 
 ---
 
-## 5. 📖 RULES
+## 5. 📋 RULES
 
 ### ✅ ALWAYS
 
