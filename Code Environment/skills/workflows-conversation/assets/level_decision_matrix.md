@@ -107,7 +107,7 @@ If scope grows during implementation, you can escalate to a higher level:
 | From Level | To Level | Action | Document Change |
 |-----------|----------|--------|----------------|
 | 1 → 2 | Add `plan.md` to same folder | Update level field, add changelog |
-| 2 → 3 | Use `/speckit.plan` in same folder | Update level field, add changelog |
+| 2 → 3 | Use `/spec_kit:plan` in same folder | Update level field, add changelog |
 
 **Changelog example:**
 ```markdown

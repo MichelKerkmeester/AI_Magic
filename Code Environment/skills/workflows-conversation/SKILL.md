@@ -70,7 +70,7 @@ def route_conversation_resources(task):
     
     # level 3: complex changes (>= 500 LOC)
     if task.estimated_loc >= 500:
-        return execute("/speckit.specify")  # auto-generates all core files
+        return execute("/spec_kit:specify")  # auto-generates all core files
     
     # supporting templates (optional, load as needed)
     if task.needs_task_breakdown:
@@ -136,7 +136,7 @@ The conversation documentation system uses a graduated approach based on Lines o
 - High complexity
 - Multiple systems
 - Significant architectural impact
-- **Process**: Use `/speckit.specify` command (auto-generates all core files)
+- **Process**: Use `/spec_kit:specify` command (auto-generates all core files)
 - **Auto-generated**: `spec.md`, `plan.md`, `tasks.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`
 - **Optional**: `checklist.md` (manual copy)
 - **Example**: Major feature, system redesign, multi-team projects
@@ -159,7 +159,7 @@ The conversation documentation system uses a graduated approach based on Lines o
 **Core templates by level:**
 - Level 1: `spec_template.md` → `spec.md`
 - Level 2: `spec_template.md` + `plan_template.md` → `spec.md` + `plan.md`
-- Level 3: `/speckit.specify` command (auto-generates)
+- Level 3: `/spec_kit:specify` command (auto-generates)
 
 **Supporting templates (optional):**
 - `tasks_template.md` → `tasks.md` (after plan, before coding)
@@ -564,7 +564,7 @@ specs/122-skill-standardization/
 - `.opencode/speckit/templates/` - All template files
 - `.claude/hooks/UserPromptSubmit/enforce-spec-folder.sh` - Hook enforcement
 - `.claude/hooks/UserPromptSubmit/save-context-trigger.sh` - Context auto-save
-- `/speckit.specify` - Level 3 auto-generation command
+- `/spec_kit:specify` - Level 3 auto-generation command
 
 ### Skill Maintenance
 

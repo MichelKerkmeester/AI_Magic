@@ -56,9 +56,9 @@ Detect execution mode from command invocation:
 
 | Pattern | Mode | Behavior |
 |---------|------|----------|
-| `/speckit.complete:auto` | AUTONOMOUS | Execute all steps without user approval gates |
-| `/speckit.complete:confirm` | INTERACTIVE | Pause at each step for user approval |
-| `/speckit.complete` (no suffix) | PROMPT | Ask user to choose mode |
+| `/spec_kit:complete:auto` | AUTONOMOUS | Execute all steps without user approval gates |
+| `/spec_kit:complete:confirm` | INTERACTIVE | Pause at each step for user approval |
+| `/spec_kit:complete` (no suffix) | PROMPT | Ask user to choose mode |
 
 #### Step 1.2: Mode Selection (when no suffix detected)
 
@@ -205,17 +205,17 @@ STATUS=OK PATH=specs/NNN-short-name/
 
 **Example 1: Simple Feature (autonomous)**
 ```
-/speckit.complete:auto Add a newsletter signup form to the footer
+/spec_kit:complete:auto Add a newsletter signup form to the footer
 ```
 
 **Example 2: Complex Feature (interactive)**
 ```
-/speckit.complete:confirm Add user authentication with OAuth2 to the dashboard. Use Passport.js. Staging: https://staging.example.com
+/spec_kit:complete:confirm Add user authentication with OAuth2 to the dashboard. Use Passport.js. Staging: https://staging.example.com
 ```
 
 **Example 3: With Specific Files**
 ```
-/speckit.complete "Refactor the payment processing module" files: src/payments/** src/checkout/**
+/spec_kit:complete "Refactor the payment processing module" files: src/payments/** src/checkout/**
 ```
 
 ---
@@ -228,5 +228,5 @@ STATUS=OK PATH=specs/NNN-short-name/
 
 - **Integration:**
   - Works with spec folder system for documentation
-  - Plans can feed into `/speckit.implement` workflow
+  - Plans can feed into `/spec_kit:implement` workflow
   - Context saved via workflows-save-context skill

@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 
 # SpecKit Plan
 
-Execute the SpecKit planning lifecycle from specification through planning. Terminates after creating plan.md - use `/speckit.implement` for implementation phase.
+Execute the SpecKit planning lifecycle from specification through planning. Terminates after creating plan.md - use `/spec_kit:implement` for implementation phase.
 
 ---
 
@@ -51,9 +51,9 @@ Detect execution mode from command invocation:
 
 | Pattern | Mode | Behavior |
 |---------|------|----------|
-| `/speckit.plan:auto` | AUTONOMOUS | Execute all steps without user approval gates |
-| `/speckit.plan:confirm` | INTERACTIVE | Pause at each step for user approval |
-| `/speckit.plan` (no suffix) | PROMPT | Ask user to choose mode |
+| `/spec_kit:plan:auto` | AUTONOMOUS | Execute all steps without user approval gates |
+| `/spec_kit:plan:confirm` | INTERACTIVE | Pause at each step for user approval |
+| `/spec_kit:plan` (no suffix) | PROMPT | Ask user to choose mode |
 
 #### Step 1.2: Mode Selection (when no suffix detected)
 
@@ -97,11 +97,11 @@ Execute the 7 steps defined in Workflow Overview. Each step produces artifacts t
 
 ---
 
-## Key Differences from /speckit.complete
+## Key Differences from /spec_kit:complete
 
 - **Terminates after planning** - Does not include task breakdown, analysis, or implementation
 - **Outputs planning-summary.md** instead of implementation-summary.md
-- **Next step guidance** - Recommends `/speckit.implement` when ready to build
+- **Next step guidance** - Recommends `/spec_kit:implement` when ready to build
 - **Use case** - Planning phase separation, stakeholder review, feasibility analysis
 
 ---
@@ -162,7 +162,7 @@ Artifacts Created:
 Next Steps:
 - Review planning documentation
 - Validate technical approach with stakeholders
-- Run /speckit.implement:auto or /speckit.implement:confirm to begin implementation
+- Run /spec_kit:implement:auto or /spec_kit:implement:confirm to begin implementation
 
 STATUS=OK PATH=specs/NNN-short-name/
 ```
@@ -171,17 +171,17 @@ STATUS=OK PATH=specs/NNN-short-name/
 
 **Example 1: Simple Planning (autonomous)**
 ```
-/speckit.plan:auto Add dark mode toggle to the settings page
+/spec_kit:plan:auto Add dark mode toggle to the settings page
 ```
 
 **Example 2: Complex Planning (interactive)**
 ```
-/speckit.plan:confirm Redesign the checkout flow with multi-step form and payment integration
+/spec_kit:plan:confirm Redesign the checkout flow with multi-step form and payment integration
 ```
 
 **Example 3: With Context**
 ```
-/speckit.plan "Build analytics dashboard" tech stack: React, Chart.js, existing API
+/spec_kit:plan "Build analytics dashboard" tech stack: React, Chart.js, existing API
 ```
 
 ---
@@ -194,5 +194,5 @@ STATUS=OK PATH=specs/NNN-short-name/
 
 - **Integration:**
   - Works with spec folder system for documentation
-  - Pairs with `/speckit.implement` for execution phase
+  - Pairs with `/spec_kit:implement` for execution phase
   - Context saved via workflows-save-context skill

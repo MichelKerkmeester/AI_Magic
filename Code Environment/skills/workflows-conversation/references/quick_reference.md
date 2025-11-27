@@ -178,7 +178,7 @@ If scope grows during implementation:
 | From | To | Action |
 |------|----|---------|
 | 1 → 2 | Add `plan.md` to same folder |
-| 2 → 3 | Use `/speckit.plan` in same folder |
+| 2 → 3 | Use `/spec_kit:plan` in same folder |
 
 **Always:**
 - Update `level:` field in metadata

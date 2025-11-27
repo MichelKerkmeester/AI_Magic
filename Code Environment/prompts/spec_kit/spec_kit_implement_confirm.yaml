@@ -69,7 +69,7 @@ prerequisites:
   - "[SPEC_FOLDER]/planning-summary.md"
   - "[SPEC_FOLDER]/research.md"
   verification: MUST EXIST BEFORE PROCEEDING
-  note: This workflow assumes planning completed via /speckit.plan
+  note: This workflow assumes planning completed via /spec_kit:plan
 
 # ─────────────────────────────────────────────────────────────────
 # AVAILABLE TEMPLATES
@@ -343,7 +343,7 @@ error_recovery:
   tests_fail:
     action: "Debug, fix, re-run before marking complete"
   prerequisites_insufficient:
-    action: "Return to /speckit.plan workflow or ask user for guidance"
+    action: "Return to /spec_kit:plan workflow or ask user for guidance"
   environment_unavailable:
     action: "Skip browser testing, document limitation"
 

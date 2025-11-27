@@ -206,7 +206,7 @@ termination:
   next_steps:
   - Review planning documentation
   - Validate technical approach
-  - Use /speckit.implement:auto or /speckit.implement:confirm for implementation
+  - Use /spec_kit:implement:auto or /spec_kit:implement:confirm for implementation
 
 # ─────────────────────────────────────────────────────────────────
 # AUTONOMOUS EXECUTION GUIDANCE

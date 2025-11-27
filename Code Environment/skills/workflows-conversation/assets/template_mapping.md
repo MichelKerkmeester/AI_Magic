@@ -18,7 +18,7 @@ Complete mapping of documentation levels to templates with copy commands and fil
 |-------|--------------|---------|--------------|
 | **1: Simple** | `spec_template.md` | `spec.md` | `cp .opencode/speckit/templates/spec_template.md specs/###-name/spec.md` |
 | **2: Moderate** | `spec_template.md`<br>`plan_template.md` | `spec.md`<br>`plan.md` | `cp .opencode/speckit/templates/spec_template.md specs/###-name/spec.md`<br>`cp .opencode/speckit/templates/plan_template.md specs/###-name/plan.md` |
-| **3: Complex** | SpecKit auto-generates | Multiple files | `/speckit.specify` command |
+| **3: Complex** | SpecKit auto-generates | Multiple files | `/spec_kit:specify` command |
 
 ---
 
@@ -101,7 +101,7 @@ specs/045-user-dashboard/
 └── checklist.md                 (optional, manual copy)
 ```
 
-**Process:** Use `/speckit.specify` command - it auto-generates all core files.
+**Process:** Use `/spec_kit:specify` command - it auto-generates all core files.
 
 **Optional files:** Copy manually from templates if needed.
 
@@ -198,7 +198,7 @@ cp .opencode/speckit/templates/plan_template.md specs/###-name/plan.md
 
 **Level 3:**
 ```bash
-/speckit.specify
+/spec_kit:specify
 ```
 
 ### Step 5: Copy Supporting Templates (If Needed)

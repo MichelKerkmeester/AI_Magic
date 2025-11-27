@@ -401,7 +401,7 @@ Detail: Removed stale .spec-active marker (path: specs/999-deleted)
 6. **Copy appropriate templates** from `.opencode/speckit/templates/`
    - Level 1: `spec_template.md` → `spec.md`
    - Level 2: `spec_template.md` + `plan_template.md` → `spec.md` + `plan.md`
-   - Level 3: Use `/speckit.specify` command
+   - Level 3: Use `/spec_kit:specify` command
 
 7. **Fill template content**
    - Replace ALL `[PLACEHOLDER]` text

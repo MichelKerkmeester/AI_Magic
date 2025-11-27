@@ -119,7 +119,7 @@ cp .opencode/speckit/templates/plan_template.md specs/###-name/plan.md
 
 ### Level 3: Complex Features
 
-**Process:** Use `/speckit.specify` command
+**Process:** Use `/spec_kit:specify` command
 
 **Do NOT manually create Level 3 files** - SpecKit handles this automatically.
 

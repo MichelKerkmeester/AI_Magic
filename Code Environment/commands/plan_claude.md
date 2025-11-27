@@ -267,4 +267,4 @@ STATUS=OK ACTION=plan_created PATH=.claude/plans/oauth2-auth.md
 
 - **Integration:**
   - Works with spec folder system for documentation
-  - Plans can feed into `/speckit.implement` workflo
+  - Plans can feed into `/spec_kit:implement` workflo

@@ -9,7 +9,7 @@ Specialized automation workflows and AI orchestrators for development tasks. Ski
 3. [🎯 INSTALLED SKILLS](#3--installed-skills)
    - 3.1 [Workflow Orchestrators](#31-workflow-orchestrators-4-skills) (4 skills)
    - 3.2 [Documentation Specialists](#32-documentation-specialists-2-skills) (2 skills)
-   - 3.3 [CLI Tool Wrappers](#33-cli-tool-wrappers-2-skills) (2 skills)
+   - 3.3 [CLI Tool Wrappers](#33-cli-tool-wrappers-3-skills) (3 skills)
    - 3.4 [MCP Integration](#34-mcp-integration-2-skills) (2 skills)
    - 3.5 [Hook Creation & Management](#35-hook-creation--management-1-skill) (1 skill)
    - 3.6 [Skill Maturity Matrix](#36-skill-maturity-matrix)
@@ -115,7 +115,7 @@ This directory contains skills that provide structured guidance for complex deve
 
 ## 3. 🎯 INSTALLED SKILLS
 
-**Total**: 12 skills across 6 categories | **Latest Update**: 2025-11-24
+**Total**: 13 skills across 6 categories | **Latest Update**: 2025-11-27
 
 ### 3.1 Workflow Orchestrators (4 skills)
 
@@ -394,7 +394,7 @@ Documenting approval workflow:
 
 ---
 
-### 3.3 CLI Tool Wrappers (2 skills)
+### 3.3 CLI Tool Wrappers (3 skills)
 
 #### `cli-codex` (v1.0.0)
 
@@ -454,6 +454,46 @@ Researching latest API changes:
 → Searches web for latest documentation
 → Returns current best practices (post knowledge cutoff)
 ```
+
+#### `cli-chrome-devtools` (v1.0.0)
+
+**Purpose**: Direct Chrome DevTools Protocol access via browser-debugger-cli (bdg) terminal commands
+
+**Maturity**: Medium | **References**: 3 files | **Tool**: browser-debugger-cli (bdg)
+
+**Use Cases**:
+- Lightweight browser debugging via terminal
+- Quick screenshots, HAR files, console logs
+- DOM inspection and JavaScript execution
+- Alternative to Puppeteer/Playwright for simple tasks
+- Token-efficient browser automation
+
+**Key Features**:
+- Self-documenting tool discovery (--list, --describe, --search)
+- Direct CDP access to all 644 methods
+- Unix pipe composability for workflows
+- Session-based state management
+- Minimal setup (npm install -g browser-debugger-cli@alpha)
+
+**When to Use**:
+- Quick debugging/inspection tasks
+- Terminal-first workflow preferred
+- Token efficiency is priority
+- Alternative to MCP Chrome DevTools for simple browser tasks
+
+**Example**:
+```bash
+# Screenshot capture
+bdg --url https://example.com Page.captureScreenshot
+
+# Console log monitoring
+bdg --url https://example.com Runtime.enable | bdg Runtime.consoleAPICalled
+```
+
+**Tool Comparison**:
+- **bdg (CLI)**: Lowest token cost, self-documenting, terminal-native
+- **Chrome DevTools MCP**: Multi-tool integration, type-safe, IDE-based
+- **Puppeteer/Playwright**: Complex UI testing, heavy automation
 
 ---
 
@@ -601,7 +641,7 @@ Creating custom quality check hook:
 
 ### 3.6 Skill Maturity Matrix
 
-**Overview**: All 12 skills across 6 categories with version, maturity, and documentation metrics
+**Overview**: All 13 skills across 6 categories with version, maturity, and documentation metrics
 
 | Skill | Version | Maturity | Category | References | Assets | Scripts |
 |-------|---------|----------|----------|------------|--------|---------|
@@ -609,6 +649,7 @@ Creating custom quality check hook:
 | workflows-code | v2.0.0 | ★★★★★ Very High | Orchestrator | 11 | 4 | 0 |
 | workflows-save-context | v1.2.0 | ★★★★ High | Orchestrator | 2 | 0 | 1 |
 | cli-gemini | v1.1.0 | ★★★★ High | CLI Wrapper | 4 | 0 | 0 |
+| cli-chrome-devtools | v1.0.0 | ★★★ Medium | CLI Wrapper | 3 | 0 | 0 |
 | create-flowchart | v1.1.0 | ★★★★ High | Documentation | 6 | 0 | 1 |
 | workflows-conversation | v1.0.0 | ★★★★ Medium-High | Orchestrator | 4 | 2 | 0 |
 | mcp-code-mode | v1.0.0 | ★★★★ Medium-High | MCP Integration | 5 | 2 | 1 |
@@ -629,8 +670,8 @@ Creating custom quality check hook:
 - v3.x: 1 skill (8%) - Most mature
 - v2.x: 1 skill (8%) - Major update
 - v1.2+: 1 skill (8%) - Minor updates
-- v1.1.x: 2 skills (17%) - Minor updates
-- v1.0.0: 7 skills (58%) - Stable releases
+- v1.1.x: 2 skills (15%) - Minor updates
+- v1.0.0: 8 skills (62%) - Stable releases
 
 **Documentation Metrics**:
 - **Average References**: 5.4 files per skill

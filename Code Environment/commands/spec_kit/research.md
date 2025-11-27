@@ -75,9 +75,9 @@ Detect execution mode from command invocation:
 
 | Pattern | Mode | Behavior |
 |---------|------|----------|
-| `/speckit.research:auto` | AUTONOMOUS | Execute all steps without user approval gates |
-| `/speckit.research:confirm` | INTERACTIVE | Pause at each step for user approval |
-| `/speckit.research` (no suffix) | PROMPT | Ask user to choose mode |
+| `/spec_kit:research:auto` | AUTONOMOUS | Execute all steps without user approval gates |
+| `/spec_kit:research:confirm` | INTERACTIVE | Pause at each step for user approval |
+| `/spec_kit:research` (no suffix) | PROMPT | Ask user to choose mode |
 
 #### Step 1.2: Mode Selection (when no suffix detected)
 
@@ -126,7 +126,7 @@ Execute the 9 steps defined in Workflow Overview. Each step produces artifacts t
 - **Does NOT proceed to implementation** - Terminates after research.md
 - **Primary output is research.md** - Comprehensive technical documentation
 - **Use case** - Technical uncertainty, feasibility analysis, documentation
-- **Next steps** - Can feed into `/speckit.plan` or `/speckit.complete`
+- **Next steps** - Can feed into `/spec_kit:plan` or `/spec_kit:complete`
 
 ---
 
@@ -192,7 +192,7 @@ Optional Artifacts (if created):
 Next Steps:
 - Review research findings
 - Validate technical recommendations
-- Run /speckit.plan or /speckit.complete to proceed with development
+- Run /spec_kit:plan or /spec_kit:complete to proceed with development
 
 STATUS=OK PATH=specs/NNN-short-name/
 ```
@@ -201,17 +201,17 @@ STATUS=OK PATH=specs/NNN-short-name/
 
 **Example 1: Multi-Integration Feature**
 ```
-/speckit.research:auto "Webflow CMS integration with external payment gateway and email service"
+/spec_kit:research:auto "Webflow CMS integration with external payment gateway and email service"
 ```
 
 **Example 2: Complex Architecture**
 ```
-/speckit.research:confirm "Real-time collaboration system with conflict resolution"
+/spec_kit:research:confirm "Real-time collaboration system with conflict resolution"
 ```
 
 **Example 3: Performance-Critical Feature**
 ```
-/speckit.research "Video streaming optimization for mobile browsers"
+/spec_kit:research "Video streaming optimization for mobile browsers"
 ```
 
 ---
@@ -224,5 +224,5 @@ STATUS=OK PATH=specs/NNN-short-name/
 
 - **Integration:**
   - Works with spec folder system for documentation
-  - Feeds into `/speckit.plan` or `/speckit.complete` workflows
+  - Feeds into `/spec_kit:plan` or `/spec_kit:complete` workflows
   - Context saved via workflows-save-context skill

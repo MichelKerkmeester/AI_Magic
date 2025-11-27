@@ -270,7 +270,7 @@ When continuing work in an existing spec folder (mid-conversation with substanti
    - Metadata completeness (level-specific required fields)
    - Sub-folder organization (README template suggestions)
 
-**Note**: AI agent auto-creates folder. SpecKit users: `/speckit.complete` or `/speckit.plan` handle Level 3.
+**Note**: AI agent auto-creates folder. SpecKit users: `/spec_kit:complete` or `/spec_kit:plan` handle Level 3.
 
 ---
 
@@ -603,7 +603,7 @@ Request: "Add loading spinner to form submission"
    - **⚠️ EXCEPTION:** Do NOT use Code Mode for Sequential Thinking - call MCP tools directly
 
 3. **Code Mode UTCP - MANDATORY FOR MCP TOOL CALLS (except Sequential Thinking)**
-   - **REQUIRED:** All MCP tools (Figma, Chrome DevTools, Webflow, Semantic Search)
+   - **REQUIRED:** All MCP tools (Figma, Webflow, Semantic Search)
    - **EXCEPTION:** Sequential Thinking MCP tools are called directly, not through Code Mode
    - **Pattern:** `call_tool_chain` with TypeScript, `search_tools` for discovery
    - **Benefits:** 68% fewer tokens, 98.7% context reduction, 60% faster
@@ -623,11 +623,14 @@ Request: "Add loading spinner to form submission"
    - **Availability:** Only CLI AI agents (Claude Code AI, GitHub Copilot CLI, etc.) - NOT IDE integrations
    - **Enforcement:** If you have semantic search access, you MUST use it for code discovery tasks
 
-5. **Chrome DevTools MCP**
-   - Browser automation and testing
-   - Performance analysis
-   - Live debugging web applications
-   - Screenshot capture and element inspection
+5. **Chrome DevTools CLI (Browser Debugging & Automation)**
+   - **Tool**: browser-debugger-cli (bdg) via cli-chrome-devtools skill
+   - Browser debugging via terminal
+   - Quick screenshots, HAR files, console logs
+   - DOM inspection and JavaScript execution
+   - Token-efficient alternative to MCP for simple browser tasks
+   - **When to use:** Terminal-first workflow, lightweight automation, quick debugging
+   - **See:** `.claude/skills/cli-chrome-devtools/` for complete patterns
 
 6. **Parallel Sub-Agents - MANDATORY FOR COMPLEX MULTI-DOMAIN TASKS**
    - **REQUIRED when:** Complexity ≥35% AND 2+ domains detected
@@ -652,6 +655,7 @@ Request: "Add loading spinner to form submission"
 | workflows-code | Frontend code changes | `.claude/skills/workflows-code/` |
 | mcp-semantic-search | "Find code that...", "How does..." | Section 5, Tool #4 |
 | mcp-code-mode | ANY MCP tool call (except Sequential Thinking) | Section 5, Tool #3 |
+| cli-chrome-devtools | "bdg", "browser debugging", Chrome DevTools CLI | Section 5, Tool #5 |
 | create-parallel-sub-agents | Complexity ≥35% + 2+ domains | `.claude/skills/create-parallel-sub-agents/` |
 | create-documentation | Creating/editing docs or skills | `.claude/skills/create-documentation/` |
 
@@ -669,6 +673,7 @@ Know what code DOES? → search_codebase() [semantic search]
 Exact symbol/keyword? → Grep()
 File structure? → Glob()
 Complex reasoning? → process_thought() [Sequential Thinking - direct call]
+Browser debugging? → cli-chrome-devtools skill [bdg CLI tool]
 External MCP tools? → call_tool_chain() [Code Mode - MANDATORY, except Sequential Thinking]
 ```
 

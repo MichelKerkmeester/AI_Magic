@@ -6,16 +6,16 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 
 # SpecKit Implement
 
-Execute implementation of a pre-planned feature. Requires existing spec.md and plan.md from a prior `/speckit.plan` workflow.
+Execute implementation of a pre-planned feature. Requires existing spec.md and plan.md from a prior `/spec_kit:plan` workflow.
 
 > **Note**: This is a standalone workflow (8 steps) that assumes spec.md and plan.md already exist.
-> Run `/speckit.plan` first if you need to create planning artifacts.
+> Run `/spec_kit:plan` first if you need to create planning artifacts.
 
 ---
 
 ## Purpose
 
-Run the 8-step implementation workflow: plan review, task breakdown, quality validation, development, and completion summary. Picks up where `/speckit.plan` left off to execute the actual code changes.
+Run the 8-step implementation workflow: plan review, task breakdown, quality validation, development, and completion summary. Picks up where `/spec_kit:plan` left off to execute the actual code changes.
 
 ---
 
@@ -39,7 +39,7 @@ $ARGUMENTS
 **OPTIONAL** (will be created if missing):
 - `tasks.md` - Task breakdown
 
-If prerequisites are missing, guide user to run `/speckit.plan` first.
+If prerequisites are missing, guide user to run `/spec_kit:plan` first.
 
 ## Workflow Overview (8 Steps)
 
@@ -66,9 +66,9 @@ Detect execution mode from command invocation:
 
 | Pattern | Mode | Behavior |
 |---------|------|----------|
-| `/speckit.implement:auto` | AUTONOMOUS | Execute all steps without user approval gates |
-| `/speckit.implement:confirm` | INTERACTIVE | Pause at each step for user approval |
-| `/speckit.implement` (no suffix) | PROMPT | Ask user to choose mode |
+| `/spec_kit:implement:auto` | AUTONOMOUS | Execute all steps without user approval gates |
+| `/spec_kit:implement:confirm` | INTERACTIVE | Pause at each step for user approval |
+| `/spec_kit:implement` (no suffix) | PROMPT | Ask user to choose mode |
 
 #### Step 1.2: Mode Selection (when no suffix detected)
 
@@ -112,7 +112,7 @@ Execute the 8 steps defined in Workflow Overview. Each step produces artifacts t
 
 ---
 
-## Key Differences from /speckit.complete
+## Key Differences from /spec_kit:complete
 
 - **Requires existing plan** - Won't create spec.md or plan.md
 - **Starts at implementation** - Skips specification and planning phases
@@ -137,7 +137,7 @@ See CLAUDE.md Section 2 for full memory file handling details.
 | Step validation fails | Review requirements, ask clarifying questions, retry |
 | User rejects approach | Present alternatives, modify code, document decision |
 | Tests fail during implementation | Debug, fix, re-run before marking complete |
-| Prerequisites insufficient | Return to `/speckit.plan` workflow |
+| Prerequisites insufficient | Return to `/spec_kit:plan` workflow |
 | Environment unavailable | Skip browser testing, document limitation |
 
 ## Prerequisite Check
@@ -162,15 +162,15 @@ Required artifacts not found:
 - spec.md: [FOUND/MISSING]
 - plan.md: [FOUND/MISSING]
 
-Please run /speckit.plan first to create planning artifacts.
+Please run /spec_kit:plan first to create planning artifacts.
 ```
 
 ## Error Handling
 
 | Condition | Action |
 |-----------|--------|
-| Missing spec.md | ERROR: Guide to /speckit.plan |
-| Missing plan.md | ERROR: Guide to /speckit.plan |
+| Missing spec.md | ERROR: Guide to /spec_kit:plan |
+| Missing plan.md | ERROR: Guide to /spec_kit:plan |
 | Missing tasks.md | Create tasks.md from plan.md |
 | Checklist failures | Prompt user to proceed or fix |
 | Test failures | Log and report, allow user decision |
@@ -215,17 +215,17 @@ STATUS=OK PATH=specs/NNN-short-name/
 
 **Example 1: Execute Existing Plan (autonomous)**
 ```
-/speckit.implement:auto specs/042-user-auth/
+/spec_kit:implement:auto specs/042-user-auth/
 ```
 
 **Example 2: With Review (interactive)**
 ```
-/speckit.implement:confirm specs/042-user-auth/
+/spec_kit:implement:confirm specs/042-user-auth/
 ```
 
 **Example 3: With Staging Environment**
 ```
-/speckit.implement "specs/042-user-auth/" staging: https://staging.example.com
+/spec_kit:implement "specs/042-user-auth/" staging: https://staging.example.com
 ```
 
 ---
@@ -237,10 +237,10 @@ STATUS=OK PATH=specs/NNN-short-name/
   - **Interactive (`:confirm`)**: Pauses after each step for user approval. Presents options: Approve, Review Details, Modify, Skip, Abort. Allows code review at each checkpoint.
 
 - **Prerequisites:**
-  - Requires spec.md and plan.md from prior `/speckit.plan` workflow
+  - Requires spec.md and plan.md from prior `/spec_kit:plan` workflow
   - Will create tasks.md if missing
 
 - **Integration:**
   - Works with spec folder system for documentation
-  - Pairs with `/speckit.plan` for planning phase
+  - Pairs with `/spec_kit:plan` for planning phase
   - Context saved via workflows-save-context skill

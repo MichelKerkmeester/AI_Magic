@@ -207,13 +207,13 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 
 ### Process
 
-**Use `/speckit.specify` slash command** - it auto-generates all core files.
+**Use `/spec_kit:specify` slash command** - it auto-generates all core files.
 
 **Do NOT create Level 3 files manually** - SpecKit handles this automatically.
 
 ### Auto-Generated Files
 
-When you run `/speckit.specify`, SpecKit creates:
+When you run `/spec_kit:specify`, SpecKit creates:
 
 - `spec.md` - Feature specification
 - `plan.md` - Implementation plan
@@ -262,7 +262,7 @@ When you run `/speckit.specify`, SpecKit creates:
 ### SpecKit Command
 
 ```bash
-/speckit.specify
+/spec_kit:specify
 ```
 
 **SpecKit will prompt for:**
@@ -299,7 +299,7 @@ If you discover mid-work that scope is larger than anticipated, escalate to high
 | From | To | Action | Document |
 |------|----|---------| ---------|
 | 1 → 2 | Add `plan.md` to same folder | Update level field, add changelog |
-| 2 → 3 | Use `/speckit.plan` in same folder | Update level field, add changelog |
+| 2 → 3 | Use `/spec_kit:plan` in same folder | Update level field, add changelog |
 
 **Changelog example:**
 

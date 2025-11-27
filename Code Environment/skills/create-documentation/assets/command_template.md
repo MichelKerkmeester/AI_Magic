@@ -594,7 +594,7 @@ Use the appropriate pattern based on command type:
 | `STATUS=OK` | Simple success | Basic commands |
 | `STATUS=OK RESULTS_COUNT=N` | Search/query | `/index:search` |
 | `STATUS=OK ACTION=<action>` | State change | `/index:start`, `/index:stop` |
-| `STATUS=OK ACTION=<action> PATH=<path>` | File creation | `/plan_claude`, `/speckit.complete` |
+| `STATUS=OK ACTION=<action> PATH=<path>` | File creation | `/plan_claude`, `/spec_kit:complete` |
 | `STATUS=FAIL ERROR="<message>"` | All failures | Error handling |
 | `STATUS=CANCELLED ACTION=cancelled` | User abort | Interactive commands |
 

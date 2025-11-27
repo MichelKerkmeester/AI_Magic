@@ -335,7 +335,7 @@ termination:
   next_steps:
   - Review research.md findings
   - Validate technical recommendations
-  - Run /speckit.plan or /speckit.complete to proceed with development
+  - Run /spec_kit:plan or /spec_kit:complete to proceed with development
 
 # ─────────────────────────────────────────────────────────────────
 # INTERACTIVE EXECUTION GUIDANCE
