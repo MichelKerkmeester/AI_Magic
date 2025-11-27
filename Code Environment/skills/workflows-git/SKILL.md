@@ -135,7 +135,7 @@ Git development flows through 3 phases:
 
 ---
 
-## 4. 🗺️ SKILL SELECTION DECISION TREE
+## 5. 🗺️ SKILL SELECTION DECISION TREE
 
 **What are you doing?**
 
@@ -187,7 +187,7 @@ git-finish (feature A) → git-finish (feature B)
 
 ---
 
-## 5. 📋 SHARED PATTERNS
+## 6. 📋 SHARED PATTERNS
 
 Common git patterns, commands, and conventions are documented in detail.
 
@@ -200,7 +200,7 @@ Common git patterns, commands, and conventions are documented in detail.
 
 ---
 
-## 6. 💡 INTEGRATION EXAMPLES
+## 7. 💡 INTEGRATION EXAMPLES
 
 ### Example 1: New Authentication Feature
 
@@ -233,7 +233,7 @@ Common git patterns, commands, and conventions are documented in detail.
 
 ---
 
-## 7. ⚡ QUICK REFERENCE
+## 8. ⚡ QUICK REFERENCE
 
 **For one-page cheat sheet**: See [quick_reference.md](./references/quick_reference.md)
 

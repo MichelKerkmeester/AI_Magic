@@ -273,7 +273,7 @@ Read("src/components/hero_section.js")
 
 ---
 
-## 4. 📋 RULES
+## 5. 📋 RULES
 
 ### ✅ ALWAYS 
 
@@ -353,7 +353,7 @@ Read("src/components/hero_section.js")
 
 ---
 
-## 5. 🎓 SUCCESS CRITERIA
+## 6. 🎓 SUCCESS CRITERIA
 
 **Task complete when:**
 
@@ -367,7 +367,7 @@ Read("src/components/hero_section.js")
 
 ---
 
-## 6. 🔗 INTEGRATION POINTS
+## 7. 🔗 INTEGRATION POINTS
 
 ### MCP Dependency
 

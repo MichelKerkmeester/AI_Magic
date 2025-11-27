@@ -373,7 +373,7 @@ trust_level = "trusted"
 
 ---
 
-## 4. 📖 RULES
+## 5. 📖 RULES
 
 ### ✅ ALWAYS
 
@@ -481,7 +481,7 @@ trust_level = "trusted"
 
 ---
 
-## 5. 🎓 SUCCESS CRITERIA
+## 6. 🎓 SUCCESS CRITERIA
 
 ### Task Completion Checklist
 
@@ -525,7 +525,7 @@ trust_level = "trusted"
 
 ---
 
-## 6. 🔗 INTEGRATION POINTS
+## 7. 🔗 INTEGRATION POINTS
 
 ### Hook System Integration
 

@@ -332,7 +332,7 @@ The skill provides 7 core patterns for building flowcharts. Use the Pattern Sele
 
 ---
 
-## 4. 📖 RULES
+## 5. 📖 RULES
 
 ### ✅ ALWAYS 
 
@@ -415,7 +415,7 @@ The skill provides 7 core patterns for building flowcharts. Use the Pattern Sele
 
 ---
 
-## 5. 🎓 SUCCESS CRITERIA
+## 6. 🎓 SUCCESS CRITERIA
 
 ### Flowchart Complete When
 
@@ -440,7 +440,7 @@ The skill provides 7 core patterns for building flowcharts. Use the Pattern Sele
 
 ---
 
-## 6. 🔗 INTEGRATION POINTS
+## 7. 🔗 INTEGRATION POINTS
 
 ### Reference Examples
 
@@ -472,7 +472,7 @@ The skill provides 7 core patterns for building flowcharts. Use the Pattern Sele
 
 ---
 
-## 7. 🔧 TROUBLESHOOTING
+## 8. 🔧 TROUBLESHOOTING
 
 ### Flowchart Too Complex
 

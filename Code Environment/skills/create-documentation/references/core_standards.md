@@ -136,8 +136,10 @@ allowed-tools: Read, Write, Edit
 **Fix template** (section order for SKILL):
 ```markdown
 ## 1. 🎯 WHEN TO USE
-## 2. 🛠️ HOW IT WORKS
-## 3. 📖 RULES
+## 2. 🧠 SMART ROUTING
+## 3. 🗂️ REFERENCES
+## 4. 🛠️ HOW IT WORKS
+## 5. 📖 RULES
 ```
 
 ---
@@ -295,20 +297,22 @@ Format: Plain text navigation file for LLMs
 **H2 numbered headers ALWAYS have emoji**:
 ```markdown
 ## 1. 🎯 WHEN TO USE
-## 2. 🛠️ HOW IT WORKS
-## 3. 📋 INPUTS
+## 2. 🧠 SMART ROUTING
+## 3. 🗂️ REFERENCES
+## 4. 🛠️ HOW IT WORKS
 ```
 
 **Standard H2 emoji assignments**:
 - 🎯 WHEN TO USE, PURPOSE, OBJECTIVE
+- 🧠 SMART ROUTING
+- 🗂️ REFERENCES
 - 🛠️ HOW IT WORKS, IMPLEMENTATION
-- 📋 INPUTS
+- 📝 INPUTS
 - 📖 RULES
 - 🚀 WORKFLOW
 - 🎓 SUCCESS CRITERIA
 - 🔗 INTEGRATION POINTS
 - 🏎️ QUICK REFERENCE
-- 📚 REFERENCES
 
 ### Secondary Rule (Semantic Emojis on H3)
 

@@ -377,7 +377,7 @@ When you need additional validation beyond browser testing:
 
 ---
 
-## 4. 📋 RULES
+## 5. 📋 RULES
 
 ### Phase 1: Implementation
 
@@ -485,7 +485,7 @@ See [verification_workflows.md](./references/verification_workflows.md) for deta
 
 ---
 
-## 5. 🏆 SUCCESS CRITERIA
+## 6. 🏆 SUCCESS CRITERIA
 
 ### Phase 1: Implementation
 
@@ -558,7 +558,7 @@ See [verification_workflows.md](./references/verification_workflows.md) for comp
 
 ---
 
-## 6. 🔌 INTEGRATION POINTS
+## 7. 🔌 INTEGRATION POINTS
 
 ### Code Quality Standards (INTEGRATED)
 
@@ -684,7 +684,7 @@ See [shared_patterns.md](./references/shared_patterns.md) for common patterns ac
 
 ---
 
-## 7. 🚀 QUICK START
+## 8. 🚀 QUICK START
 
 ### For Implementation
 
@@ -717,7 +717,7 @@ Need fast navigation? See [quick_reference.md](./references/quick_reference.md)
 
 ---
 
-## 8. 🧭 WHERE AM I? (Phase Detection Helper)
+## 9. 🧭 WHERE AM I? (Phase Detection Helper)
 
 If you're unsure which phase you're in, use this self-assessment:
 

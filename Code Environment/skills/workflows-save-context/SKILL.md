@@ -189,7 +189,7 @@ This skill is **standalone** - it does NOT use claude-mem MCP or external memory
 
 ---
 
-## 4. 📋 IMPLEMENTATION STEPS
+## 5. 📋 IMPLEMENTATION STEPS
 
 ### Step 1: Analyze Current Conversation
 
@@ -303,7 +303,7 @@ Display script output showing created files and location.
 
 ---
 
-## 5. 📊 DATA STRUCTURE GUIDELINES
+## 6. 📊 DATA STRUCTURE GUIDELINES
 
 **Session Metadata** (`recent_context`):
 - 1 entry summarizing entire conversation
@@ -335,7 +335,7 @@ Each should have clear title, narrative explaining what/why, and affected files.
 
 ---
 
-## 6. 🔄 SPEC FOLDER DETECTION
+## 7. 🔄 SPEC FOLDER DETECTION
 
 **Logic**:
 1. Check if current directory is within `/specs/###-*/`
@@ -455,7 +455,7 @@ node generate-context.js data.json
 
 ---
 
-## 7. 📖 RULES
+## 8. 📖 RULES
 
 ### ✅ ALWAYS 
 
@@ -484,7 +484,7 @@ node generate-context.js data.json
 
 ---
 
-## 8. 🎓 SUCCESS CRITERIA
+## 9. 🎓 SUCCESS CRITERIA
 
 **Task complete when**:
 - ✅ Auto-detects current spec folder
@@ -501,7 +501,7 @@ node generate-context.js data.json
 
 ---
 
-## 9. ⚡ PERFORMANCE CHARACTERISTICS
+## 10. ⚡ PERFORMANCE CHARACTERISTICS
 
 ### Execution Time
 
@@ -571,7 +571,7 @@ Planned enhancement to move save-context to background Task tool execution:
 
 ---
 
-## 10. 🗂️ MEMORY MANAGEMENT & CLEANUP
+## 11. 🗂️ MEMORY MANAGEMENT & CLEANUP
 
 ### Growth Over Time
 
@@ -621,7 +621,7 @@ done
 
 ---
 
-## 11. 💡 EXAMPLES
+## 12. 💡 EXAMPLES
 
 ### Example 1: Feature Implementation
 
@@ -669,7 +669,7 @@ done
 
 ---
 
-## 12. 🔧 TROUBLESHOOTING
+## 13. 🔧 TROUBLESHOOTING
 
 ### "Low alignment score - what does it mean?"
 
@@ -711,7 +711,7 @@ Conversation about "authentication improvements"
 
 ---
 
-## 13. 🔗 INTEGRATION POINTS
+## 14. 🔗 INTEGRATION POINTS
 
 **Standalone Architecture**:
 - **Input**: Current conversation session (Claude's analysis)
@@ -729,7 +729,7 @@ Conversation → Claude Analysis → JSON → Script → Markdown Files
 
 ---
 
-## 14. 🎯 QUICK REFERENCE
+## 15. 🎯 QUICK REFERENCE
 
 **Invocation**: `Skill(skill: "save-context")`
 

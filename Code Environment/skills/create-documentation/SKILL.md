@@ -123,7 +123,7 @@ def route_documentation_resources(task):
 
 ---
 
-## 4. 🛠️ WHEN TO USE
+## 4. 🎯 WHEN TO USE
 
 ### Navigation Guide
 
@@ -232,7 +232,7 @@ See [workflows.md](./references/workflows.md) for workflow examples.
 
 ---
 
-## 4. ⚙️ HOW TO USE
+## 5. ⚙️ HOW TO USE
 
 ### Mode 1: Document Quality
 
@@ -276,7 +276,7 @@ See [skill_creation.md](./references/skill_creation.md) for detailed workflow an
 
 ---
 
-## 5. 📋 RULES
+## 6. 📋 RULES
 
 ### Mode 1: Document Quality
 
@@ -396,7 +396,7 @@ Semantic emojis (✅ ❌ ⚠️) are REQUIRED on H3 subsections within RULES sec
 
 ---
 
-## 6. 🏆 SUCCESS CRITERIA
+## 7. 🏆 SUCCESS CRITERIA
 
 ### Mode 1: Document Quality
 
@@ -515,7 +515,7 @@ When validating SKILL.md with Document Quality mode:
 
 ---
 
-## 7. 🔌 INTEGRATION POINTS
+## 8. 🔌 INTEGRATION POINTS
 
 ### Mode 1: Document Quality
 
@@ -629,7 +629,7 @@ markdown-document-specialist --full-pipeline .claude/skills/my-skill/SKILL.md
 
 ---
 
-## 8. 📖 REFERENCES
+## 9. 📚 ADDITIONAL RESOURCES
 
 ### Skill Resources
 
@@ -686,17 +686,17 @@ markdown-document-specialist --full-pipeline .claude/skills/my-skill/SKILL.md
 
 ---
 
-## 9. 🚀 QUICK START
+## 10. 🚀 QUICK START
 
 ### For Document Quality
 
-1. **Read**: This SKILL.md Section 2 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria)
+1. **Read**: This SKILL.md Section 4 (When to Use), Section 5 (How to Use), Section 6 (Rules), Section 7 (Success Criteria)
 2. **Navigate**: [workflows.md](./references/workflows.md) for execution modes
 3. **Use**: Run enforcement, optimization, or validation as needed
 
 ### For Skill Creation
 
-1. **Read**: This SKILL.md Section 2 (When to Use), Section 3 (How It Works), Section 4 (Rules), Section 5 (Success Criteria)
+1. **Read**: This SKILL.md Section 4 (When to Use), Section 5 (How to Use), Section 6 (Rules), Section 7 (Success Criteria)
 2. **Navigate**: [skill_creation.md](./references/skill_creation.md) for complete workflow
 3. **Use Scripts**: init_skill.py → edit → package_skill.py
 4. **Validate**: Run Document Quality mode on SKILL.md (target 90+)

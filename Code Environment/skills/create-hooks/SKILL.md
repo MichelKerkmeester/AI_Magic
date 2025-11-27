@@ -222,7 +222,7 @@ This skill provides comprehensive documentation and tooling for creating custom 
 
 ---
 
-## 4. 📖 HOW TO USE
+## 5. 📖 HOW TO USE
 
 ### Hook Creation Workflow
 
@@ -258,7 +258,7 @@ echo '{"trigger":"manual","session_id":"test","cwd":"'$PWD'"}' > test.json
 # 6. Ready for production!
 ```
 
-## 5. ⚙️ RULES
+## 6. ⚙️ RULES
 
 ### ✅ ALWAYS 
 
@@ -293,7 +293,7 @@ echo '{"trigger":"manual","session_id":"test","cwd":"'$PWD'"}' > test.json
 - Hook needs to modify Claude Code's internal state
 - Integration with external systems unclear
 
-## 6. ✅ SUCCESS CRITERIA
+## 7. ✅ SUCCESS CRITERIA
 
 Hook is production-ready when:
 
@@ -308,7 +308,7 @@ Hook is production-ready when:
 - ✅ Logging implemented (operations and performance)
 - ✅ Tested in production-like environment
 
-## 7. 🔗 INTEGRATION POINTS
+## 8. 🔗 INTEGRATION POINTS
 
 ### 7.1 Integration Examples
 
@@ -474,7 +474,7 @@ source "$HOOKS_DIR/lib/output-helpers.sh"
 
 ---
 
-## 8. ⚡ QUICK REFERENCE
+## 9. ⚡ QUICK REFERENCE
 
 ### Exit Code Convention
 
@@ -575,7 +575,7 @@ Use these scripts for validation and testing:
 
 ---
 
-## 9. ⚡ QUICK START
+## 10. ⚡ QUICK START
 
 Ready to create your first hook? Follow these steps:
 

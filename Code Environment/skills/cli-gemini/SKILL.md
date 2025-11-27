@@ -284,7 +284,7 @@ Create `.gemini/GEMINI.md` in project root for persistent context that Gemini wi
 
 ---
 
-## 4. 📖 RULES
+## 5. 📖 RULES
 
 ### ✅ ALWAYS
 
@@ -386,7 +386,7 @@ Create `.gemini/GEMINI.md` in project root for persistent context that Gemini wi
 
 ---
 
-## 5. 🎓 SUCCESS CRITERIA
+## 6. 🎓 SUCCESS CRITERIA
 
 ### Task Completion Checklist
 
@@ -431,7 +431,7 @@ Create `.gemini/GEMINI.md` in project root for persistent context that Gemini wi
 
 ---
 
-## 6. 🔗 INTEGRATION POINTS
+## 7. 🔗 INTEGRATION POINTS
 
 ### Hook System Integration
 
@@ -501,7 +501,7 @@ Create `.gemini/GEMINI.md` in project root for persistent context that Gemini wi
 
 ---
 
-## 7. 🔧 TROUBLESHOOTING
+## 8. 🔧 TROUBLESHOOTING
 
 ### Rate Limits
 

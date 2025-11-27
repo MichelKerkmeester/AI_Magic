@@ -23,7 +23,7 @@ This guide provides **one comprehensive SKILL template** (Section 3) that covers
 - **Simple skills**: Use core sections only (WHEN TO USE, HOW IT WORKS, RULES)
 - **Skills with bundled resources**: Add Navigation Guide, references folder, assets folder, scripts folder
 - **Multi-mode skills**: Expand WHEN TO USE and HOW IT WORKS sections by mode
-- **All skills**: MUST include Section 2 (REFERENCES) with routing diagram
+- **All skills**: MUST include Section 2 (SMART ROUTING) and Section 3 (REFERENCES)
 
 **Target size**: 800-2000 lines for SKILL.md (<5k words total)
 
@@ -192,7 +192,33 @@ version: 1.0.0
 
 ---
 
-## 2. 🗂️ REFERENCES
+## 2. 🧭 SMART ROUTING
+
+```python
+def route_[skill_name]_resources(task):
+    # [category 1]
+    if task.[condition_1]:
+        return load("references/[filename].md")  # [what it provides]
+    
+    # [category 2]
+    if task.[condition_2]:
+        load("references/[filename].md")  # [what it provides]
+        return load("assets/[template].md")  # [what it provides]
+    
+    # [category 3]
+    if task.[condition_3]:
+        return execute("scripts/[script].py")  # [what it does]
+    
+    # quick lookup
+    if task.needs_quick_reference:
+        return load("references/quick_reference.md")  # one-page cheat sheet
+
+# [summary comment: key thresholds, patterns, or decision rules]
+```
+
+---
+
+## 3. 🗂️ REFERENCES
 
 ### Core Framework & Workflows
 | Document                         | Purpose                        | Key Insight                             |
@@ -206,67 +232,9 @@ version: 1.0.0
 | **assets/[template-name].md** | [Template or example provided] | [When to use it]                 |
 | **scripts/[script-name].py**  | [Automation capability]        | [Performance or execution notes] |
 
-### Smart Routing Logic
-
-**Format Selection**:
-- **Use YAML** for simple decision trees (10-15 lines, priority/resource mapping)
-- **Use Python** for complex logic (calculations, loops, conditionals, 15-30 lines)
-
-**Format 1: Ultra-Minimal YAML (Simple Routing)**
-
-Use for: Intent-based routing, tool selection, simple priority mapping
-
-\`\`\`yaml
-intent_routing:
-  exact_file_path:
-    tool: Read
-    priority: 1
-
-  know_what_code_does:
-    tool: search_codebase
-    ranking: semantic
-    priority: 2
-
-  exact_symbol:
-    tool: Grep
-    output_mode: content
-    priority: 3
-
-  default:
-    tool: search_codebase
-    intent: general
-\`\`\`
-
-**Format 2: Bare Python (Complex Logic)**
-
-Use for: Weighted calculations, validation loops, multi-phase workflows
-
-\`\`\`python
-def skill_router(user_request):
-    mode = analyze_request_mode(user_request)
-
-    if mode == "mode_a":
-        return execute_mode_a(user_request, load_mode_a_resources())
-    elif mode == "mode_b":
-        return execute_mode_b(user_request, load_mode_b_resources())
-
-    if condition_based_routing(user_request):
-        return specialized_handling(user_request) if meets_threshold(user_request) else default_handling(user_request)
-
-    return execute_default_workflow(user_request, load_standard_resources())
-
-def calculate_complexity(analysis):
-    weights = {
-        'domains': 30 * (0 if len(analysis.domains) == 1 else 0.5 if len(analysis.domains) == 2 else 1.0),
-        'files': 25 * (0 if analysis.files <= 2 else 0.5 if analysis.files <= 5 else 1.0),
-        'loc': 20 * (0 if analysis.loc < 50 else 0.5 if analysis.loc <= 200 else 1.0)
-    }
-    return round(sum(weights.values()))
-\`\`\`
-
 ---
 
-## 3. 🛠️ HOW IT WORKS
+## 4. 🛠️ HOW IT WORKS
 
 ### [Primary Workflow] Overview
 
@@ -322,7 +290,7 @@ See [workflow-details.md](./references/workflow-details.md) for complete step-by
 <!-- NOTE: RULES section is a special case - semantic emojis (✅ ❌ ⚠️) are REQUIRED on H3 subsections.
      Do NOT remove these emojis. Do NOT add horizontal dividers (---) between H3 subsections. -->
 
-## 4. 📖 RULES
+## 5. 📖 RULES
 
 ### ✅ ALWAYS Rules
 
@@ -372,7 +340,7 @@ See [workflow-details.md](./references/workflow-details.md) for complete step-by
 
 ---
 
-## 5. 🎓 SUCCESS CRITERIA
+## 6. 🎓 SUCCESS CRITERIA
 
 ### [Primary Workflow] Completion Checklist
 
@@ -399,7 +367,7 @@ See [workflow-details.md](./references/workflow-details.md) for complete step-by
 
 ---
 
-## 6. 🔗 INTEGRATION POINTS
+## 7. 🔗 INTEGRATION POINTS
 
 ### [Integration System 1 - e.g., Hook System]
 
@@ -437,11 +405,12 @@ See [workflow-details.md](./references/workflow-details.md) for complete step-by
 
 **Word Count Targets**:
 - Section 1 (WHEN TO USE): 150-200 lines
-- Section 2 (REFERENCES): 80-120 lines (NEW - with bundled resources)
-- Section 3 (HOW IT WORKS): 200-300 lines
-- Section 4 (RULES): 150-200 lines
-- Section 5 (SUCCESS CRITERIA): 80-120 lines
-- Section 6 (INTEGRATION POINTS): 100-150 lines
+- Section 2 (SMART ROUTING): 30-80 lines (NEW - Python routing logic)
+- Section 3 (REFERENCES): 80-120 lines (bundled resources tables)
+- Section 4 (HOW IT WORKS): 200-300 lines
+- Section 5 (RULES): 150-200 lines
+- Section 6 (SUCCESS CRITERIA): 80-120 lines
+- Section 7 (INTEGRATION POINTS): 100-150 lines
 
 **Bundled Resources Structure**:
 ```
@@ -506,20 +475,68 @@ skill-name/
 
 ---
 
-### Section 1.5: REFERENCES (NEW - Required for All Skills)
+### Section 2: SMART ROUTING (NEW - Required for All Skills)
+
+**Purpose**: Provide Python-like pseudo code that routes Claude to the correct reference, asset, or script based on context
+
+**Placement**: After Section 1 (WHEN TO USE), before Section 3 (REFERENCES)
+
+**Essential Content**:
+- Python-style routing functions using `load()` and `execute()` patterns
+- Condition-based logic for selecting appropriate resources
+- Inline comments explaining routing decisions
+
+**Structure**:
+
+## 2. 🧠 SMART ROUTING
+
+```python
+def route_request(context):
+    # Main routing logic for this skill
+    
+    if context.needs_detailed_guide:
+        # Load comprehensive reference for complex scenarios
+        load("references/detailed_guide.md")
+    
+    elif context.needs_template:
+        # Provide structured template for output generation
+        load("assets/output_template.md")
+    
+    elif context.needs_automation:
+        # Execute script for automated processing
+        execute("scripts/automation.py")
+    
+    else:
+        # Default: Use skill's core methodology
+        load("references/core_methodology.md")
+```
+
+**Writing Tips**:
+- **Function names**: Use descriptive names like `route_request()`, `select_resource()`, `determine_mode()`
+- **Conditions**: Match skill's actual use cases and decision points
+- **Comments**: Add inline comments explaining *why* each resource is loaded
+- **Resource paths**: Use actual file paths from the skill's bundled resources
+- **Fallback**: Always include a default/else case
+- **Keep it simple**: 10-30 lines of routing logic is ideal
+
+**Word Budget**: 30-80 lines
+
+---
+
+### Section 3: REFERENCES
 
 **Purpose**: Provide structured overview of skill architecture and bundled resources
 
-**Placement**: After Section 1 (WHEN TO USE), before Section 2 (HOW IT WORKS)
+**Placement**: After Section 2 (SMART ROUTING), before Section 4 (HOW IT WORKS)
 
 **Essential Content**:
 - 3-column categorized tables listing bundled resources
-- Smart routing diagram (ASCII flowchart showing execution flow)
 - Clear categorization (Core Framework, Bundled Resources, Templates, etc.)
+- Note: Smart Routing Python code moved to Section 2
 
 **Structure - 3-Column Categorized Tables**:
 
-## 2. 🗂️ REFERENCES
+## 3. 🗂️ REFERENCES
 
 ### Core Framework & Workflows
 | Document                                   | Purpose                       | Key Insight                                   |
@@ -597,7 +614,7 @@ COMPLETE
 
 ---
 
-### Section 2: HOW IT WORKS
+### Section 4: HOW IT WORKS
 
 **Purpose**: Explain the skill's workflow, architecture, and key patterns
 
@@ -640,7 +657,7 @@ STEP 2: [Action]
 
 ---
 
-### Section 2.5: FLOWCHART SUPPLEMENTS (NEW - For Complex Logic)
+### Section 4.5: FLOWCHART SUPPLEMENTS (NEW - For Complex Logic)
 
 **Purpose**: Add visual clarity to complex Python/YAML logic blocks without removing structured code
 
@@ -720,7 +737,7 @@ mode_detection:
 
 ---
 
-### Section 3: RULES
+### Section 5: RULES
 
 **Purpose**: Define mandatory behaviors, prohibited actions, and escalation triggers
 
@@ -766,7 +783,7 @@ mode_detection:
 
 ---
 
-### Section 4: SUCCESS CRITERIA
+### Section 6: SUCCESS CRITERIA
 
 **Purpose**: Define completion conditions and quality standards
 
@@ -802,7 +819,7 @@ mode_detection:
 
 ---
 
-### Section 5: INTEGRATION POINTS
+### Section 7: INTEGRATION POINTS
 
 **Purpose**: Document how skill integrates with systems, tools, and other skills
 
@@ -850,110 +867,6 @@ mode_detection:
 
 ---
 
-### Section 6: REFERENCES
-
-**Purpose**: Provide comprehensive architectural overview and navigation to all skill resources
-
-**Essential Content**:
-- **REQUIRED**: 3-column categorized tables (Core Framework, Bundled Resources, etc.)
-- **REQUIRED**: Smart Routing Diagram (ASCII flowchart)
-- **OPTIONAL**: External documentation links
-- **OPTIONAL**: Quick navigation guide (task-based)
-- **OPTIONAL**: Related standards or specifications
-
-**NEW STANDARDIZED STRUCTURE**:
-
-## [N]. 🗂️ REFERENCES
-
-### Core Framework & Workflows
-| Document                          | Purpose                       | Key Insight              |
-| --------------------------------- | ----------------------------- | ------------------------ |
-| **[Skill Name] - Main Workflow**  | [What this workflow provides] | **[Key differentiator]** |
-| **[Skill Name] - Secondary Mode** | [What this mode does]         | **[Integration point]**  |
-
-### Bundled Resources
-| Document                     | Purpose                   | Key Insight            |
-| ---------------------------- | ------------------------- | ---------------------- |
-| **references/[filename].md** | [Detailed guide on topic] | [Enhancement provided] |
-| **assets/[filename].md**     | [Template for output]     | [When to use]          |
-| **scripts/[filename].py**    | [Automation capability]   | [Performance note]     |
-
-### Smart Routing Diagram
-
-\`\`\`
-START
-  ↓
-[Skill Activation]
-  ↓
-[Analyze Request]
-  ↓
-Mode Detected? ─── NO ──→ [Default Path]
-  │                           ↓
-  │                      [Load Defaults]
-  │                           ↓
-  YES                    [Merge Point]
-  ↓
-[Load Mode-Specific Resources]
-  ↓
-[Execute Workflow]
-  ↓
-COMPLETE
-\`\`\`
-
-### 🌐 External Documentation (Optional)
-
-- **[Resource Name]**: [URL] - [What it provides]
-- **[Standard/Spec]**: [Reference location]
-
-### 🧭 Quick Navigation (Optional)
-
-**Getting Started**: Section [X] - [Brief description]
-**[Task Category]**: Section [Y] - [Where to find info]
-**Troubleshooting**: Section [Z] or [reference-file.md]
-
-**Writing Tips - 3-Column Tables**:
-- **Category Headers**: Use descriptive H3 headers (### Core Framework, ### Bundled Resources, etc.)
-- **Document Column**:
-  - Bold names: **[Conceptual Name]** for workflows/modes
-  - File paths: **references/[name].md** for actual bundled files
-  - No file extensions for conceptual workflows
-- **Purpose Column**: One sentence describing what it does
-- **Key Insight Column**:
-  - Why it matters (integration points, differentiators)
-  - Performance characteristics
-  - When to use it
-  - Bold key phrases: **[Main Point]**
-
-**Writing Tips - Smart Routing Diagram**:
-- **Always Required**: Even simple skills need basic flow diagram
-- **ASCII Format**: Use `↓`, `→`, `───`, `│` characters
-- **Decision Points**: `Condition? ─── NO ──→ [Path]` format
-- **Boxes**: `[Action Description]` format
-- **Terminals**: START and COMPLETE (or READY, DONE, etc.)
-- **Show Resource Loading**: Indicate when bundled resources are loaded
-- **Parallel Paths**: Show how different modes/conditions route
-
-**Writing Tips - Optional Subsections**:
-- **External Documentation**: Only if skill relies on external tools/specs
-- **Quick Navigation**: Task-based quick links (helpful for complex skills)
-- **Related Standards**: If skill implements or follows specific standards
-
-**Word Budget**: 80-200 lines (scales with bundled resources and complexity)
-
-**CRITICAL CHANGES FROM OLD PATTERN**:
-- ❌ OLD: Simple list of files with descriptions
-- ✅ NEW: 3-column categorized tables + Smart Routing Diagram (mandatory)
-- ❌ OLD: No visual flow diagram
-- ✅ NEW: ASCII flowchart showing execution path (mandatory)
-- ❌ OLD: Flat list structure
-- ✅ NEW: Categorized by resource type with key insights
-
-**Examples**:
-- **3-Column Tables**: See `.claude/skills/z_example/Product Owner - v0.924.md` Section 3
-- **Smart Routing**: See `.claude/skills/z_example/AGENTS.md` Section 3
-
----
-
 ## 5. ✅ Best Practices & Common Pitfalls
 
 ### Writing Style Best Practices
@@ -986,11 +899,12 @@ COMPLETE
 
 **Section Order**:
 1. WHEN TO USE (triggers and scope)
-2. HOW IT WORKS (workflow and architecture)
-3. RULES (behavior constraints)
-4. SUCCESS CRITERIA (completion definition)
-5. INTEGRATION POINTS (external connections)
-6. REFERENCES (navigation and resources)
+2. SMART ROUTING (Python routing logic for resource loading)
+3. REFERENCES (navigation and bundled resources)
+4. HOW IT WORKS (workflow and architecture)
+5. RULES (behavior constraints)
+6. SUCCESS CRITERIA (completion definition)
+7. INTEGRATION POINTS (external connections)
 
 ### Common Pitfalls
 
@@ -1079,7 +993,8 @@ Content - Standard Sections:
 
 Content - NEW Standardization (2025):
 □ Navigation Guide present in Section 1 (if bundled resources exist)
-□ REFERENCES section exists (Section 2 - REQUIRED for all skills)
+□ SMART ROUTING section exists (Section 2 - REQUIRED for all skills)
+□ REFERENCES section exists (Section 3 - REQUIRED for all skills)
 □ REFERENCES has 3-column categorized tables (Document | Purpose | Key Insight)
 □ REFERENCES has Smart Routing Diagram (ASCII flowchart - REQUIRED)
 □ Routing diagram shows execution flow from START to COMPLETE

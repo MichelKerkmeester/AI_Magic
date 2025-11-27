@@ -394,7 +394,7 @@ specs/122-skill-standardization/
 
 ---
 
-## 4. 📋 RULES
+## 5. 📋 RULES
 
 ### ✅ ALWAYS 
 
@@ -489,7 +489,7 @@ specs/122-skill-standardization/
 
 ---
 
-## 5. ✅ SUCCESS CRITERIA
+## 6. ✅ SUCCESS CRITERIA
 
 ### Documentation Created
 
@@ -533,7 +533,7 @@ specs/122-skill-standardization/
 
 ---
 
-## 6. 🔗 INTEGRATION POINTS
+## 7. 🔗 INTEGRATION POINTS
 
 ### Related Skills
 

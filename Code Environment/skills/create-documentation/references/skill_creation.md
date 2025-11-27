@@ -89,14 +89,14 @@ skill-name/
 
 **Required Sections** (enforced by markdown-document-specialist validation):
 1. WHEN TO USE
-2. HOW IT WORKS
-3. RULES (ALWAYS/NEVER/ESCALATE IF)
+2. SMART ROUTING (Python routing logic for resource loading)
+3. REFERENCES (bundled resources tables)
+4. HOW IT WORKS
+5. RULES (ALWAYS/NEVER/ESCALATE IF)
 
 **Recommended Sections**:
-4. SUCCESS CRITERIA
-5. EXAMPLES
-6. INTEGRATION POINTS
-7. QUICK REFERENCE
+6. SUCCESS CRITERIA
+7. INTEGRATION POINTS
 
 ### Bundled Resources (Optional)
 
@@ -292,26 +292,30 @@ description: [TODO: Complete description]
 ## 1. WHEN TO USE
 [TODO: Describe when to use this skill]
 
-## 2. HOW IT WORKS
+## 2. SMART ROUTING
+```python
+def route_request(context):
+    # [TODO: Add routing logic for resource selection]
+    if context.needs_detailed_guide:
+        load("references/guide.md")
+    else:
+        load("references/default.md")
+```
+
+## 3. REFERENCES
+[TODO: Add 3-column tables listing bundled resources]
+
+## 4. HOW IT WORKS
 [TODO: Explain how the skill works]
 
-## 3. [TODO: RENAME - MAIN CONTENT SECTION]
-[TODO: Add main content]
+## 5. RULES
+[TODO: Add ALWAYS/NEVER/ESCALATE IF rules]
 
-## 4. RULES
-[TODO: Add rules]
-
-## 5. SUCCESS CRITERIA
+## 6. SUCCESS CRITERIA
 [TODO: Define success criteria]
-
-## 6. EXAMPLES
-[TODO: Add examples]
 
 ## 7. INTEGRATION POINTS
 [TODO: Describe integration points]
-
-## 8. QUICK REFERENCE
-[TODO: Add quick reference]
 
 ## BUNDLED RESOURCES
 [TODO: List bundled resources]
@@ -385,13 +389,23 @@ Answer these questions in SKILL.md:
    - Be specific about triggers and use cases
    - Include "When NOT to Use" subsection
 
-3. **How should Claude use the skill in practice?**
-   - Section 2: HOW IT WORKS
+3. **How should Claude route to the right resources?**
+   - Section 2: SMART ROUTING
+   - Python routing logic using load() and execute()
+   - Route based on context to appropriate references/assets/scripts
+
+4. **What resources are bundled with this skill?**
+   - Section 3: REFERENCES
+   - 3-column categorized tables (Document | Purpose | Key Insight)
+   - Group by Core Framework, Bundled Resources, etc.
+
+5. **How should Claude use the skill in practice?**
+   - Section 4: HOW IT WORKS
    - Reference all bundled resources
    - Explain workflow and decision points
 
-4. **What rules govern skill usage?**
-   - Section 3-4: RULES
+6. **What rules govern skill usage?**
+   - Section 5: RULES
    - ALWAYS rules (required actions)
    - NEVER rules (forbidden actions)
    - ESCALATE IF (when to ask user)
@@ -685,7 +699,7 @@ markdown-document-specialist --validate .claude/skills/my-skill/SKILL.md
 **Example**:
 ```markdown
 <!-- In SKILL.md -->
-## 2. HOW IT WORKS
+## 4. HOW IT WORKS
 
 See [workflows.md](./references/workflows.md) for detailed execution modes.
 
@@ -726,13 +740,13 @@ description: Complete document quality pipeline with structure enforcement, cont
 **Example**:
 ```markdown
 # Bad - Everything in SKILL.md
-## 2. HOW IT WORKS
+## 4. HOW IT WORKS
 [2000 words of detailed documentation]
 [500 lines of examples]
 [1000 words of API specs]
 
 # Good - Progressive disclosure
-## 2. HOW IT WORKS
+## 4. HOW IT WORKS
 See [workflows.md](./references/workflows.md) for execution modes.
 See [optimization.md](./references/optimization.md) for transformation patterns.
 ```
