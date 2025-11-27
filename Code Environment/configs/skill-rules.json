@@ -1004,6 +1004,37 @@
         ]
       }
     },
+    "cli-chrome-devtools": {
+      "type": "cli-tool",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Direct Chrome DevTools Protocol access via browser-debugger-cli (bdg) terminal commands for lightweight browser debugging, automation, and testing",
+      "promptTriggers": {
+        "keywords": [
+          "bdg",
+          "browser-debugger-cli",
+          "browser debugging",
+          "chrome devtools cli",
+          "terminal browser",
+          "CDP access",
+          "screenshot capture",
+          "HAR file",
+          "console logs",
+          "browser automation terminal"
+        ],
+        "intentPatterns": [
+          "(capture|take|get).*screenshot",
+          "browser.*(debug|inspect).*terminal",
+          "lightweight.*browser.*automation",
+          "alternative.*(puppeteer|playwright)",
+          "quick.*browser.*(inspection|debugging)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [".claude/skills/cli-chrome-devtools/**"],
+        "contentPatterns": ["bdg ", "browser-debugger-cli"]
+      }
+    },
     "cli-codex": {
       "type": "tool",
       "enforcement": "suggest",

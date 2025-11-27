@@ -2188,7 +2188,7 @@ print_template_guidance() {
       print_detail "cp .opencode/speckit/templates/plan_template.md specs/${NEXT_SPEC_NUMBER}-short-name/plan.md"
       ;;
     3)
-      print_detail "/speckit.specify (auto-generates Level 3 bundle)"
+      print_detail "/spec_kit:specify (auto-generates Level 3 bundle)"
       ;;
   esac
 

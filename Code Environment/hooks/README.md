@@ -301,77 +301,23 @@ After evaluation, proceed with implementation.
 
 #### `orchestrate-skill-validation.sh`
 
-**Purpose**: Intelligently decides whether to dispatch parallel agents for skill validation based on task complexity
+**Purpose**: Auto-dispatches parallel agents based on task complexity (5-factor scoring: domains 35%, files 25%, LOC 15%, parallelism 20%, type 5%)
 
-**Status**: Complexity scoring fully implemented. Parallel agent dispatch currently simulated (full Task tool integration planned for future update).
+**Dispatch Logic**:
+- <25%: Sequential validation
+- 25-34%: User preference prompt
+- ≥35% + ≥2 domains: Auto-dispatch 4 agents (workflow, knowledge, tool, mcp)
 
-**Triggers**: Before every user prompt (after validate-skill-activation.sh)
+**Performance**: 48ms parallel vs 120ms sequential (2.5x speedup, +15% tokens)
 
-**Integrations**:
-- `create-parallel-sub-agents` skill → Dispatches 4 specialized agents (workflow, knowledge, tool, mcp)
-- Complexity algorithm → 5-dimension scoring system
-- Config: `.claude/configs/skill-rules.json` (skill definitions)
-
-**Complexity Dimensions** (5-factor weighted scoring):
-1. **Domain Count** (35% weight) - Number of distinct domains (code, docs, git, testing, etc.)
-2. **File Count** (25% weight) - Estimated files to be modified
-3. **Lines of Code** (15% weight) - Estimated LOC to change
-4. **Parallel Opportunity** (20% weight) - Independent validation domains
-5. **Task Type** (5% weight) - Complexity of operation (implement > debug > refactor)
-
-**Dispatch Decision**:
-- **<25% complexity**: Direct sequential validation (no agents)
-- **25-34% complexity**: Collaborative mode (user preference prompt; 35%+ auto-dispatches)
-- **≥35% complexity + ≥2 domains**: Auto-dispatch 4 parallel agents (see `.claude/skills/create-parallel-sub-agents/`)
-
-**Performance**:
-- **Sequential baseline**: ~120ms for skill validation
-- **Parallel dispatch**: ~48ms (2.5x speedup)
-- **Overhead**: 10ms (agent spawning)
-- **Token increase**: +15% (within acceptable limits)
-- **Success rate**: 100% (simulated metrics)
-
-**Example Output** (High Complexity):
+**Output Example**:
 ```bash
-🔍 Analyzing task complexity...
-   Domain count: 4 (code, docs, git, testing)
-   Estimated files: 8
-   Estimated LOC: ~350
-   Parallel opportunity: High (independent domains)
-   Task type: Feature implementation
-
-📊 Complexity Score: 77.75% (DISPATCH THRESHOLD MET)
-🚀 Dispatching 4 parallel agents for skill validation...
-   ├─ Agent 1: workflow domain (workflows-code, workflows-git)
-   ├─ Agent 2: knowledge domain (create-documentation, code-standards)
-   ├─ Agent 3: tool domain (cli-codex, cli-gemini)
-   └─ Agent 4: mcp domain (mcp-code-mode, mcp-semantic-search)
-
-✅ Parallel validation complete (48ms, 2.5x speedup)
-   Recommended skills: workflows-code, create-documentation, workflows-git
+📊 Complexity: 77.75% (4 domains, 8 files, ~350 LOC)
+🚀 Dispatching 4 parallel agents...
+✅ Complete (48ms) → workflows-code, create-documentation, workflows-git
 ```
 
-**Example Output** (Low Complexity):
-```bash
-🔍 Analyzing task complexity...
-   Domain count: 1 (code)
-   Estimated files: 2
-   Estimated LOC: ~50
-   Parallel opportunity: Low
-   Task type: Bug fix
-
-📊 Complexity Score: 32% (below threshold)
-✓ Using sequential validation (faster for simple tasks)
-```
-
-**Test Suite**:
-- Location: `tests/hooks/parallel-agents/`
-- Validates performance, accuracy, resource efficiency, reliability
-- Includes ultrathink deep analysis (token breakdown, failure modes, break-even, scalability)
-- Results: All targets met (2.5x speedup, 100% accuracy, 16.3% token increase)
-- Status: ✅ APPROVED for production
-
-**Logs to**: `.claude/hooks/logs/orchestrator.log` (complexity scores, dispatch decisions)
+**Integration**: `create-parallel-sub-agents` skill | Config: `skill-rules.json` | Logs: `orchestrator.log`
 
 ---
 
@@ -412,8 +358,9 @@ After evaluation, proceed with implementation.
 **Design Tools (Figma):**
 - Keywords: `figma`, `design file`, `get component`, `design system`, `figma export`
 
-**Browser Automation (Chrome DevTools):**
+**Browser Automation (Chrome DevTools MCP via Code Mode):**
 - Keywords: `chrome devtools`, `screenshot`, `navigate page`, `browser automation`, `test page`
+- Note: For terminal-based debugging, see cli-chrome-devtools skill (bdg CLI tool)
 
 **Multi-Tool Workflows:**
 - Keywords: `workflow`, `pipeline`, `integrate`, `from X to Y`, `then update`, `automate`
@@ -575,7 +522,7 @@ call_tool_chain({
 ---
 
 #### `enforce-spec-folder.sh`
-**What it does**: Prompts user to confirm spec folder selection instead of hard-blocking. Discovers and surfaces related existing specs to prevent duplicates. Provides actionable guidance (level estimate, next spec number, copy commands, and spec reuse recommendations).
+**What it does**: Prompts for spec folder selection with related spec discovery. Supports sub-folder versioning, memory loading, task change detection, and session-isolated markers.
 
 **Triggers**:
 - Runs before each prompt
@@ -1283,58 +1230,41 @@ SPECKIT PRE-COMMIT QUALITY GATE
 ---
 
 #### `remind-cdn-versioning.sh`
-**What it does**: Reminds to update CDN version parameters after JavaScript file modifications
-
-**Triggers**: After Edit/Write operations on `.js` files in `src/2_javascript/`
-
-**Purpose**: 
-- Prevents browser cache issues by reminding to increment version numbers
-- Ensures users download fresh JavaScript files after changes
-- Cache-busting for CDN-hosted assets
-
-**Detects**:
-- JavaScript file modifications in `src/2_javascript/` directory
-- Triggers only for `.js` file extensions
-- Shows file path and versioning command
+**What it does**: Reminds to update CDN version parameters after JS changes in `src/2_javascript/` (cache-busting)
 
 **Output Example**:
 ```
 ⚡ REMINDER: JavaScript file modified
-───────────────────────────────────────────────────────────────
 File: src/2_javascript/hero/hero_video.js
-
-After JavaScript changes, update HTML version parameters:
-
-  python3 .claude/hooks/scripts/update_html_versions.py
-
-This increments version numbers in HTML files (e.g., page_loader.js?v=1.0.2)
-to force browsers to download fresh files instead of using cached versions.
-
-Purpose: CDN cache-busting
-See: workflows-code skill, Implementation Phase (Sections 1-3)
-Reference: .claude/skills/workflows-code/references/implementation_workflows.md
-───────────────────────────────────────────────────────────────
+Run: python3 .claude/hooks/scripts/update_html_versions.py
+Purpose: Increments version (e.g., page_loader.js?v=1.0.2 → v=1.0.3)
 ```
 
-**Connects to**:
-- `.claude/hooks/scripts/update_html_versions.py` → Python script for version updates
-- `src/0_html/**/*.html` → HTML files with CDN version parameters
-- `.claude/skills/workflows-code` → CDN versioning workflow documentation
+**Update Script**: `update_html_versions.py` scans `src/0_html/`, finds version params, increments patch version
 
-**Script Location**: `.claude/hooks/scripts/update_html_versions.py`
+**Behavior**: Non-blocking | Logs: `remind-cdn-versioning.log` | Performance: ~20-50ms
 
-**What the script does**:
-- Scans all HTML files in `src/0_html/`
-- Finds CDN URLs with version parameters (e.g., `?v=1.1.27`)
-- Increments patch version by 1 (e.g., `1.1.27` → `1.1.28`)
-- Updates files in-place
-- Provides comprehensive summary of changes
+---
 
-**Behavior**: Non-blocking reminder only - execution is manual
+#### `suggest-cli-verification.sh`
+**What it does**: Suggests CLI verification workflow after frontend code changes (`.js`, `.css` in `src/`)
 
-**Logs to**: `.claude/hooks/logs/remind-cdn-versioning.log`
+**Output Example**:
+```
+💡 Frontend code modified. Consider running CLI verification:
+   bdg https://anobel.com 2>&1
+   bdg screenshot verification.png 2>&1
+   bdg console logs 2>&1 | jq '.[] | select(.level=="error")'
+   bdg stop 2>&1
+📖 Full workflows: verification_workflows.md, debugging_workflows.md, performance_patterns.md
+```
 
-**Performance**: ~20-50ms (file path checks, pattern matching)
+**Resources**:
+- Skill: `.claude/skills/cli-chrome-devtools/`
+- Examples: `performance-baseline.sh`, `animation-testing.sh`, `multi-viewport-test.sh`
+- Workflows: `verification_workflows.md`, `debugging_workflows.md`, `performance_patterns.md`
+
+**Behavior**: Non-blocking | Logs: `quality-checks.log` | Performance: <100ms
 
 ---
 
@@ -1748,7 +1678,7 @@ User Prompt
 Tool Executes (Bash, Write, Edit, etc.)
     ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ PostToolUse Hooks (4)                                       │
+│ PostToolUse Hooks (6)                                       │
 ├─────────────────────────────────────────────────────────────┤
 │ 1. enforce-markdown-post    → Auto-renames .md files        │
 │                             → lowercase_snake_case.md       │
@@ -1764,10 +1694,20 @@ Tool Executes (Bash, Write, Edit, etc.)
 │                             → update_html_versions.py       │
 │                             → CDN cache-busting workflow    │
 │                                                             │
-│ 4. skill-scaffold-trigger   → Auto-creates skill structure  │
+│ 4. suggest-cli-verification → Detects frontend code changes │
+│                             → Suggests CLI verification     │
+│                             → browser-debugger-cli (bdg)    │
+│                             → Logs to quality-checks.log    │
+│                                                             │
+│ 5. skill-scaffold-trigger   → Auto-creates skill structure  │
 │                             → references/ and assets/ dirs  │
 │                             → Helpful README placeholders   │
 │                             → Next steps guidance           │
+│                                                             │
+│ 6. summarize-task-completion→ Logs task completion metrics  │
+│                             → Tracks files modified         │
+│                             → Duration and tool usage       │
+│                             → Logs to task-dispatch.log     │
 └─────────────────────────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -2669,9 +2609,18 @@ The `validate-skill-activation.sh` hook suggests relevant skills based on prompt
 - Figma MCP - Design file integration
 
 **CLI Tools**:
-- OpenAI Codex CLI - Alternative code generation perspective
-- Google Gemini CLI - Web research and current information
-- GitHub CLI (gh) - PR creation and repository operations
+- **browser-debugger-cli (bdg)** - Direct CDP access via terminal for browser debugging, automation, and testing
+  - Installation: `npm install -g browser-debugger-cli@alpha`
+  - Skill: `.claude/skills/cli-chrome-devtools/SKILL.md` (complete documentation)
+  - Use Cases: Screenshots, console logs, HAR files, performance metrics, DOM inspection
+  - Workflows Integration:
+    - `.claude/skills/workflows-code/references/debugging_workflows.md` (automated performance metrics)
+    - `.claude/skills/workflows-code/references/animation_workflows.md` (visual regression testing)
+    - `.claude/skills/workflows-code/references/performance_patterns.md` (performance budgets)
+    - `.claude/skills/workflows-code/references/quick_reference.md` (quick examples)
+- **OpenAI Codex CLI** - Alternative code generation perspective (skill: cli-codex)
+- **Google Gemini CLI** - Web research and current information (skill: cli-gemini)
+- **GitHub CLI (gh)** - PR creation and repository operations
 
 ### Support
 

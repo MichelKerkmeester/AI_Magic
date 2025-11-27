@@ -442,7 +442,7 @@ print_required_template_commands() {
       echo "   cp .opencode/speckit/templates/plan_template.md specs/${spec_number}-your-feature-name/plan.md"
       ;;
     3)
-      echo "   /speckit.specify (auto-generates spec.md, plan.md, tasks.md, etc.)"
+      echo "   /spec_kit:specify (auto-generates spec.md, plan.md, tasks.md, etc.)"
       ;;
   esac
 }

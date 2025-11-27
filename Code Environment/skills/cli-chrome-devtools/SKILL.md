@@ -20,10 +20,18 @@ Enables AI agents to leverage browser-debugger-cli (bdg) for direct Chrome DevTo
 - [session_management.md](./references/session_management.md) – Advanced session patterns, multi-session management, state persistence (11 sections)
 - [troubleshooting.md](./references/troubleshooting.md) – Systematic diagnostics, error resolution, platform-specific fixes (14 sections)
 
+**Example Scripts** (production-ready bash templates):
+- [examples/](./examples/) – Performance baselines, animation testing, multi-viewport testing with CI/CD integration
+  - `performance-baseline.sh` – Comprehensive performance capture (metrics, HAR, screenshots, console logs)
+  - `animation-testing.sh` – Animation performance testing with assertions and visual captures
+  - `multi-viewport-test.sh` – Cross-viewport testing (desktop, tablet, mobile)
+  - `README.md` – Complete usage guide, customization tips, CI/CD patterns
+
 **When to load references**:
 - CDP domain exploration → cdp_patterns.md
 - Complex session scenarios → session_management.md
 - Errors or installation issues → troubleshooting.md
+- Production automation → examples/ directory
 
 **This skill should be used when**:
 - User mentions "browser debugging", "Chrome DevTools", "CDP" explicitly

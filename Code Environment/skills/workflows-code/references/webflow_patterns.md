@@ -93,6 +93,130 @@ document.addEventListener('click', (e) => {
 - Works for dynamically added items (pagination, filters)
 - Simpler code, easier to maintain
 
+#### Debugging ID Duplication with CLI Tools
+
+**Use CLI tools to detect duplicate IDs before deployment:**
+
+**Option 1: Quick ID Duplication Check**
+```bash
+#!/bin/bash
+# Detect duplicate IDs in collection lists
+
+URL="https://anobel.com"
+
+echo "🔍 Checking for duplicate IDs..."
+
+# Start browser session
+bdg "$URL" 2>&1
+
+# Query all elements with IDs
+IDS=$(bdg js "Array.from(document.querySelectorAll('[id]')).map(el => el.id).join('\\n')" 2>&1)
+
+# Stop session
+bdg stop 2>&1
+
+# Find duplicates
+echo "$IDS" | sort | uniq -d | while read -r duplicate_id; do
+  if [ -n "$duplicate_id" ]; then
+    COUNT=$(echo "$IDS" | grep -c "^$duplicate_id$")
+    echo "❌ DUPLICATE ID: '$duplicate_id' appears $COUNT times"
+  fi
+done
+
+echo "✅ ID duplication check complete"
+```
+
+**Option 2: Collection List DOM Inspection**
+```bash
+#!/bin/bash
+# Inspect collection list structure and IDs
+
+URL="https://anobel.com"
+
+echo "🔍 Inspecting collection list structure..."
+
+# Start browser session
+bdg "$URL" 2>&1
+
+# Query collection items and their IDs
+bdg js "
+(() => {
+  const items = document.querySelectorAll('.w-dyn-item');
+  const results = {
+    totalItems: items.length,
+    duplicateIds: {},
+    report: []
+  };
+
+  items.forEach((item, index) => {
+    const idsInItem = Array.from(item.querySelectorAll('[id]')).map(el => el.id);
+
+    idsInItem.forEach(id => {
+      if (!results.duplicateIds[id]) {
+        results.duplicateIds[id] = 0;
+      }
+      results.duplicateIds[id]++;
+    });
+
+    results.report.push({
+      itemIndex: index,
+      idsInItem: idsInItem,
+      hasConflicts: idsInItem.length > 0
+    });
+  });
+
+  return results;
+})()
+" 2>&1 | jq '.'
+
+# Stop session
+bdg stop 2>&1
+
+echo "✅ Collection list inspection complete"
+```
+
+**Option 3: Automated Pre-Deployment Validation**
+```bash
+#!/bin/bash
+# Pre-deployment validation: Assert no duplicate IDs
+
+URL="https://anobel.com"
+FAIL=0
+
+echo "🔍 Running pre-deployment ID validation..."
+
+# Start browser session
+bdg "$URL" 2>&1
+
+# Check for duplicate IDs
+DUPLICATES=$(bdg js "
+(() => {
+  const ids = Array.from(document.querySelectorAll('[id]')).map(el => el.id);
+  const counts = {};
+  ids.forEach(id => counts[id] = (counts[id] || 0) + 1);
+  return Object.entries(counts).filter(([id, count]) => count > 1);
+})()
+" 2>&1)
+
+# Stop session
+bdg stop 2>&1
+
+# Parse results
+DUPLICATE_COUNT=$(echo "$DUPLICATES" | jq 'length')
+
+if [ "$DUPLICATE_COUNT" -gt 0 ]; then
+  echo "❌ FAIL: Found $DUPLICATE_COUNT duplicate IDs:"
+  echo "$DUPLICATES" | jq -r '.[] | "  - \(.[0]): \(.[1]) occurrences"'
+  FAIL=1
+else
+  echo "✅ PASS: No duplicate IDs found"
+fi
+
+exit $FAIL
+```
+
+**See also:** `.claude/skills/cli-chrome-devtools/SKILL.md` for complete CLI debugging patterns
+
 ---
 
 ### Problem 2: Async Rendering Delays

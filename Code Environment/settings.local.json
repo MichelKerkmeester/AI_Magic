@@ -95,6 +95,10 @@
           },
           {
             "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/suggest-cli-verification.sh"
+          },
+          {
+            "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/skill-scaffold-trigger.sh"
           },
           {
@@ -121,6 +125,10 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/remind-cdn-versioning.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/suggest-cli-verification.sh"
           },
           {
             "type": "command",
