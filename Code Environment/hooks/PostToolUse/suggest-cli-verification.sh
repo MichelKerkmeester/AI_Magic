@@ -49,7 +49,7 @@ if [[ "$FILE_PATH" =~ src/.*\.(js|css)$ ]]; then
   echo "Consider running CLI verification:"
   echo ""
   echo "   # Quick browser verification"
-  echo "   bdg https://anobel.com 2>&1"
+  echo "   bdg https://example.com 2>&1"
   echo "   bdg screenshot verification.png 2>&1"
   echo "   bdg console logs 2>&1 | jq '.[] | select(.level==\"error\")'"
   echo "   bdg stop 2>&1"

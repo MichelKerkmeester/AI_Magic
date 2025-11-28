@@ -1,8 +1,8 @@
 ---
 description: Create a detailed implementation plan with parallel exploration before any code changes
-model: opus
 argument-hint: <task description> [mode:simple|mode:complex]
 allowed-tools: Read, Write, Edit, Glob, Grep, Task, AskUserQuestion
+model: opus
 ---
 
 # Implementation Plan
@@ -117,26 +117,26 @@ If no mode override specified, analyze task complexity:
 
 ## Failure Recovery
 
-| Failure Type | Recovery Action |
-|--------------|-----------------|
-| Task unclear | Use AskUserQuestion to clarify (handled in YAML Phase 1) |
-| Explore agents find nothing | Expand search scope (handled in YAML Phase 4) |
-| Conflicting findings | Document both perspectives, ask user (YAML Phase 5) |
-| User rejects plan | Revise based on feedback, resubmit (YAML Phase 7) |
-| Cannot create plan file | Check permissions, use alternative path (YAML Phase 6) |
-| YAML prompt not found | Return error with installation suggestion |
+| Failure Type                | Recovery Action                                          |
+| --------------------------- | -------------------------------------------------------- |
+| Task unclear                | Use AskUserQuestion to clarify (handled in YAML Phase 1) |
+| Explore agents find nothing | Expand search scope (handled in YAML Phase 4)            |
+| Conflicting findings        | Document both perspectives, ask user (YAML Phase 5)      |
+| User rejects plan           | Revise based on feedback, resubmit (YAML Phase 7)        |
+| Cannot create plan file     | Check permissions, use alternative path (YAML Phase 6)   |
+| YAML prompt not found       | Return error with installation suggestion                |
 
 ---
 
 ## Error Handling
 
-| Condition | Action |
-|-----------|--------|
-| Empty `$ARGUMENTS` | Prompt: "Please describe the task you want to plan" |
-| Invalid mode override | Ignore, proceed with auto-detection |
-| YAML file missing | Return error: "Workflow file missing at .opencode/prompts/plan_claude/{mode}_mode.yaml" |
-| Explore agents timeout | Continue with available results (handled in YAML) |
-| Plan file exists | Ask to overwrite or create new version (handled in YAML Phase 6) |
+| Condition              | Action                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| Empty `$ARGUMENTS`     | Prompt: "Please describe the task you want to plan"                                     |
+| Invalid mode override  | Ignore, proceed with auto-detection                                                     |
+| YAML file missing      | Return error: "Workflow file missing at .opencode/prompts/plan_claude/{mode}_mode.yaml" |
+| Explore agents timeout | Continue with available results (handled in YAML)                                       |
+| Plan file exists       | Ask to overwrite or create new version (handled in YAML Phase 6)                        |
 
 ---
 
@@ -227,7 +227,14 @@ STATUS=OK ACTION=plan_created PATH=specs/042-oauth2-auth/plan.md
   - Memory context enables session continuity (Phases 3 & 8)
   - Plans feed into `/spec_kit:implement` workflow
 
+- **Memory System (Phase 8):**
+  - Invokes `workflows-save-context` skill for memory file creation
+  - Auto-generates HTML anchor tags for grep-able sections
+  - Anchor format: `<!-- anchor: category-topic-spec -->`
+  - Search: `grep -r "anchor:.*keyword" specs/*/memory/`
+  - Compatible with anchor-based context retrieval (spec 049)
+  - Fallback to legacy template if skill unavailable
+
 - **Future Enhancements:**
   - Complex mode with multi-file plan/ directory (Phase 5 upgrade)
-  - Anchor system for section navigation (Phase 3 upgrade)
   - Mode selection refinement based on usage patterns

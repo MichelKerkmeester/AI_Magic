@@ -19,7 +19,7 @@
     "sequential-thinking": {
       "type": "local",
       "command": [
-        "/Users/username/CloudStorage/MCP Servers/mcp-sequential-thinking/.venv/bin/python3.12",
+        "/path/to/mcp-sequential-thinking/.venv/bin/python3.12",
         "-m",
         "mcp_sequential_thinking.server"
       ]

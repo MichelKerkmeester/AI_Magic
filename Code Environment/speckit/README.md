@@ -35,7 +35,7 @@
 | Component | Purpose | Execution | Location |
 |-----------|---------|-----------|----------|
 | **SpecKit** | Template & workflow management | User-invoked or AI-triggered | `.opencode/speckit/` |
-| **Commands** | SpecKit workflow execution | Slash commands (`/speckit.*`) | `.claude/commands/` |
+| **Commands** | SpecKit workflow execution | Slash commands (`/spec_kit:*`) | `.claude/commands/` |
 | **Hooks** | Automated enforcement | System-triggered on events | `.claude/hooks/` |
 
 ### Key Features
@@ -56,7 +56,7 @@
 - Cross-reference checking
 
 **Integration Points**:
-- Commands: `/speckit.complete`, `/speckit.plan`, `/speckit.implement`, `/speckit.research`
+- Commands: `/spec_kit:complete`, `/spec_kit:plan`, `/spec_kit:implement`, `/spec_kit:research`
 - Skills: `workflows-conversation`, `create-documentation`
 - Hooks: `enforce-spec-folder.sh`
 
@@ -110,7 +110,7 @@
 - Trivial changes (<10 LOC, Level 0)
 - Research-only work (use `research_template.md`)
 
-**Integration**: Commands `/speckit.complete`, `/speckit.plan` | Hook `enforce-spec-folder.sh`
+**Integration**: Commands `/spec_kit:complete`, `/spec_kit:plan` | Hook `enforce-spec-folder.sh`
 
 ---
 
@@ -134,7 +134,7 @@
 - Level 0-1 simple changes
 - Before requirements are clear (do spec first)
 
-**Integration**: Commands `/speckit.complete`, `/speckit.plan` | Skill `workflows-conversation`
+**Integration**: Commands `/spec_kit:complete`, `/spec_kit:plan` | Skill `workflows-conversation`
 
 ---
 
@@ -161,7 +161,7 @@
 - Quick feasibility checks (use `research_spike_template.md`)
 - Already know the technical approach
 
-**Integration**: Command `/speckit.research` | Workflow path: research → plan → implement
+**Integration**: Command `/spec_kit:research` | Workflow path: research → plan → implement
 
 ---
 
@@ -185,7 +185,7 @@
 - Comprehensive multi-domain research (use `research_template.md`)
 - Already validated approaches
 
-**Integration**: Command `/speckit.research` | Often followed by decision record
+**Integration**: Command `/spec_kit:research` | Often followed by decision record
 
 ---
 
@@ -206,7 +206,7 @@
 - Level 2-3 features with multiple implementation steps
 - Team coordination on complex features
 
-**Integration**: Command `/speckit.implement` | Skill `workflows-conversation`
+**Integration**: Command `/spec_kit:implement` | Skill `workflows-conversation`
 
 ---
 
@@ -246,7 +246,7 @@
 - Technology or library selection
 - Significant design trade-offs
 
-**Integration**: Command `/speckit.research` | Often follows research spike
+**Integration**: Command `/spec_kit:research` | Often follows research spike
 
 ---
 
@@ -310,7 +310,7 @@
 
 **Triggers**:
 - Manual: User runs from terminal
-- Commands: `/speckit.complete` (auto-create mode)
+- Commands: `/spec_kit:complete` (auto-create mode)
 
 **Options**:
 | Flag | Description | Default |
@@ -347,7 +347,7 @@ $ .opencode/speckit/scripts/create-new-feature.sh "Add user authentication"
 
 **Triggers**:
 - Manual: Pre-implementation verification
-- Commands: `/speckit.implement` (prerequisite check)
+- Commands: `/spec_kit:implement` (prerequisite check)
 
 **Options**:
 | Flag | Description | Default |
@@ -425,7 +425,7 @@ Recommendations:
 
 **Triggers**:
 - Manual: After spec.md is created
-- Commands: `/speckit.plan`
+- Commands: `/spec_kit:plan`
 
 **Options**:
 | Flag | Description | Default |
@@ -510,21 +510,21 @@ SpecKit commands (`.opencode/command/speckit_*.md`) provide 4 core workflows:
 
 | Command | Steps | Purpose | Key Templates |
 |---------|-------|---------|---------------|
-| `/speckit.complete` | 12 | End-to-end workflow (spec → plan → implement) | All templates |
-| `/speckit.plan` | 7 | Planning only (spec → plan, no implementation) | spec, plan, checklist |
-| `/speckit.implement` | 8 (10-17) | Implementation only (requires existing spec+plan) | tasks, checklist |
-| `/speckit.research` | 9 | Comprehensive technical research | research, research_spike, decision_record |
+| `/spec_kit:complete` | 12 | End-to-end workflow (spec → plan → implement) | All templates |
+| `/spec_kit:plan` | 7 | Planning only (spec → plan, no implementation) | spec, plan, checklist |
+| `/spec_kit:implement` | 8 (10-17) | Implementation only (requires existing spec+plan) | tasks, checklist |
+| `/spec_kit:research` | 9 | Comprehensive technical research | research, research_spike, decision_record |
 
 **Workflow Paths** (Valid command sequences):
-1. `/speckit.complete` - Full end-to-end (spec → plan → implement)
-2. `/speckit.plan` → `/speckit.implement` - Split execution (plan first, implement later)
-3. `/speckit.research` → `/speckit.plan` → `/speckit.implement` - With research phase
-4. `/speckit.research` → `/speckit.complete` - Research then full workflow
+1. `/spec_kit:complete` - Full end-to-end (spec → plan → implement)
+2. `/spec_kit:plan` → `/spec_kit:implement` - Split execution (plan first, implement later)
+3. `/spec_kit:research` → `/spec_kit:plan` → `/spec_kit:implement` - With research phase
+4. `/spec_kit:research` → `/spec_kit:complete` - Research then full workflow
 
 **Decision Guide**:
-- **Know what to build?** → `/speckit.complete` or `/speckit.plan`
-- **Need investigation first?** → `/speckit.research`
-- **Have spec+plan already?** → `/speckit.implement`
+- **Know what to build?** → `/spec_kit:complete` or `/spec_kit:plan`
+- **Need investigation first?** → `/spec_kit:research`
+- **Have spec+plan already?** → `/spec_kit:implement`
 
 **Workflow Decision Diagram**:
 ```
@@ -542,7 +542,7 @@ SpecKit commands (`.opencode/command/speckit_*.md`) provide 4 core workflows:
                     │                   │
                     ▼                   ▼
     ┌───────────────────────┐  ┌───────────────────────┐
-    │ Do you need to plan   │  │ /speckit.research     │
+    │ Do you need to plan   │  │ /spec_kit:research     │
     │ implementation later? │  │ (investigate first)   │
     └───────────┬───────────┘  └───────────┬───────────┘
           ┌─────┴─────┐                    │
@@ -551,14 +551,14 @@ SpecKit commands (`.opencode/command/speckit_*.md`) provide 4 core workflows:
           │           │            .plan or .complete
           ▼           ▼
   ┌─────────────┐  ┌─────────────┐
-  │/speckit.plan│  │/speckit.    │
+  │/spec_kit:plan│  │/spec_kit:    │
   │ (7 steps)   │  │ complete    │
   │             │  │ (12 steps)  │
   └──────┬──────┘  └─────────────┘
          │
          ▼
   ┌─────────────────┐
-  │/speckit.implement│
+  │/spec_kit:implement│
   │ (8 steps)        │
   │ Requires spec.md │
   │ and plan.md      │
@@ -570,7 +570,7 @@ Each command supports two modes via suffix:
 - `:auto` - Autonomous execution (no user approval between steps)
 - `:confirm` - Interactive execution (user approval at each step)
 
-Example: `/speckit.complete:auto` or `/speckit.plan:confirm`
+Example: `/spec_kit:complete:auto` or `/spec_kit:plan:confirm`
 
 ### Architecture (2-Tier System)
 
@@ -647,10 +647,10 @@ Hooks (`.claude/hooks/`) reference templates directly:
 
 | Command | Steps | Use When |
 |---------|-------|----------|
-| `/speckit.complete` | 12 | Know requirements, want full workflow |
-| `/speckit.plan` | 7 | Planning only, implement later |
-| `/speckit.implement` | 8 | Have spec+plan, ready to code |
-| `/speckit.research` | 9 | Need investigation first |
+| `/spec_kit:complete` | 12 | Know requirements, want full workflow |
+| `/spec_kit:plan` | 7 | Planning only, implement later |
+| `/spec_kit:implement` | 8 | Have spec+plan, ready to code |
+| `/spec_kit:research` | 9 | Need investigation first |
 
 ### Script Quick Reference
 
@@ -826,9 +826,9 @@ A:
 **Q: Which command should I start with?**
 
 A: Use this decision tree:
-1. **Know what to build?** → `/speckit.complete` or `/speckit.plan`
-2. **Need to investigate first?** → `/speckit.research`
-3. **Have existing spec + plan?** → `/speckit.implement`
+1. **Know what to build?** → `/spec_kit:complete` or `/spec_kit:plan`
+2. **Need to investigate first?** → `/spec_kit:research`
+3. **Have existing spec + plan?** → `/spec_kit:implement`
 
 ---
 
@@ -843,7 +843,7 @@ A: Yes. Templates and scripts work independently. You can:
 
 ### Workflow Questions
 
-**Q: What happens if I run `/speckit.implement` without spec.md?**
+**Q: What happens if I run `/spec_kit:implement` without spec.md?**
 
 A: The command will fail at the prerequisites check step. It requires both `spec.md` and `plan.md` to exist in the spec folder before proceeding.
 
@@ -896,7 +896,7 @@ A: The `create-documentation` skill validates template usage:
 - ✅ Added 2-tier architecture documentation (commands vs prompts)
 - ✅ Added context loading and failure recovery sections to all commands
 - ✅ Added auto-create behavior documentation
-- ✅ Added `/speckit.research` command - Uses `research_template.md` for comprehensive multi-domain research
+- ✅ Added `/spec_kit:research` command - Uses `research_template.md` for comprehensive multi-domain research
 - ✅ Now both research templates have corresponding commands (research + research-spike)
 
 **2025-11-24**:

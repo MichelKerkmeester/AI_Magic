@@ -3,22 +3,23 @@
     "code_mode"
   ],
   "hooks": {
-    "PreToolUse": [
+    "PostSessionEnd": [
       {
-        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-bash.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostSessionEnd/cleanup-session.sh"
           }
         ]
-      },
+      }
+    ],
+    "PostToolUse": [
       {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-mcp-calls.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/detect-scope-growth.sh"
           }
         ]
       },
@@ -27,16 +28,31 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/enforce-markdown-post.sh"
+          },
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/remind-cdn-versioning.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/skill-scaffold-trigger.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/suggest-cli-verification.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/track-file-modifications.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/validate-post-response.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/verify-spec-compliance.sh"
           }
         ]
       },
@@ -45,10 +61,84 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/enforce-markdown-post.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/validate-post-response.sh"
           }
         ]
       },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/summarize-task-completion.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/enforce-markdown-post.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/remind-cdn-versioning.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/skill-scaffold-trigger.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/suggest-cli-verification.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/track-file-modifications.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/validate-post-response.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/verify-spec-compliance.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreCompact/prune-context.sh",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreCompact/save-context-before-compact.sh",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PreSessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreSessionStart/initialize-session.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
       {
         "matcher": "*",
         "hooks": [
@@ -68,79 +158,47 @@
         ]
       },
       {
-        "matcher": "Task",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/announce-task-dispatch.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-mcp-calls.sh"
           }
         ]
-      }
-    ],
-    "PostToolUse": [
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-bash.sh"
+          }
+        ]
+      },
       {
         "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/validate-post-response.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/enforce-markdown-post.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/remind-cdn-versioning.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/suggest-cli-verification.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/skill-scaffold-trigger.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/verify-spec-compliance.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/track-file-modifications.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
           }
         ]
       },
       {
-        "matcher": "Write",
+        "matcher": "Glob",
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/validate-post-response.sh"
-          },
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/warn-duplicate-reads.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Grep",
+        "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/enforce-markdown-post.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/remind-cdn-versioning.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/suggest-cli-verification.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/skill-scaffold-trigger.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/verify-spec-compliance.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/track-file-modifications.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/warn-duplicate-reads.sh"
           }
         ]
       },
@@ -149,11 +207,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/validate-post-response.sh"
-          },
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/enforce-markdown-post.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/warn-duplicate-reads.sh"
           }
         ]
       },
@@ -162,16 +225,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/summarize-task-completion.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/announce-task-dispatch.sh"
           }
         ]
       },
       {
-        "matcher": "*",
+        "matcher": "Write",
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/detect-scope-growth.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
           }
         ]
       }
@@ -181,28 +244,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/workflows-save-context-trigger.sh",
-            "timeout": 60000
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/validate-skill-activation.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/orchestrate-skill-validation.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/suggest-semantic-search.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/suggest-code-mode.sh"
-          },
-          {
-            "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/detect-mcp-workflow.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/enforce-markdown-strict.sh"
           },
           {
             "type": "command",
@@ -214,38 +260,24 @@
           },
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/enforce-markdown-strict.sh"
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "hooks": [
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/orchestrate-skill-validation.sh"
+          },
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreCompact/save-context-before-compact.sh",
-            "timeout": 10000
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/suggest-code-mode.sh"
+          },
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreSessionStart/initialize-session.sh"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/suggest-semantic-search.sh"
+          },
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostSessionEnd/cleanup-session.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/validate-skill-activation.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/workflows-save-context-trigger.sh",
+            "timeout": 60000
           }
         ]
       }

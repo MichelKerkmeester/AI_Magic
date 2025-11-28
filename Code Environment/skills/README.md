@@ -288,37 +288,53 @@ Reusing existing spec folder:
 ```
 
 
-#### `workflows-save-context` (v1.2.0)
+#### `workflows-save-context` (v9.0.0)
 
-**Purpose**: Automatic conversation context preservation triggered by keywords or every 20 messages
+**Purpose**: Automatic conversation context preservation with anchor-based intelligent retrieval (93-97% token reduction)
 
 **Maturity**: High | **References**: 2 files | **Scripts**: 1 file (generate-context.js)
 
 **Key Features**:
 - **Auto-Trigger System**: Activates on keywords ("save context", "save conversation") OR every 20 messages
+- **Anchor-Based Retrieval** (v9.0): HTML comment anchors enable section extraction with 93-97% token reduction
+- **7 Retrieval Commands**: list, summary, search, extract, recent, smart, search_all
 - **Timestamped Memory Files**: `DD-MM-YY_HH-MM__topic.md` in `specs/###-feature/memory/` or sub-folder memory/
-- **Sub-Folder Awareness**: Routes to active sub-folder's memory/ using `.spec-active` marker
+- **Sub-Folder Awareness**: Routes to active sub-folder's memory/ using `.spec-active.{SESSION_ID}` marker (V9: session-isolated)
 - **Visual Documentation**: Auto-generated flowcharts and decision trees
 - **Spec Folder Alignment**: 70% threshold alignment detection, interactive prompt if low
 - **Parallel Processing**: Promise.all() for 40-60% faster execution
 
 **Output Files**:
-- Timestamped markdown: `{date}_{time}__{topic}.md` with full conversation flow
+- Timestamped markdown: `{date}_{time}__{topic}.md` with HTML comment anchors for intelligent section retrieval
 - Metadata JSON: `metadata.json` with session stats (message/decision/diagram counts)
+- Token efficiency: 400-800 tokens per section vs 12,000 for full file (93-97% reduction)
+
+**Retrieval Commands**:
+- `summary` - Load summary section (~400 tokens, 97% reduction)
+- `extract <anchor-id>` - Load specific section (~600 tokens, 95% reduction)
+- `recent 3` - Load 3 recent summaries (~900 tokens, 92% reduction)
+- `smart <query>` - Relevance-ranked search with 4-dimension scoring
+- `search_all <keyword>` - Cross-spec-folder anchor discovery
 
 **When to Use**:
 - Completing significant implementation sessions
 - Documenting architectural discussions
 - Preserving complex debugging sessions
 - Auto-triggered every 20 messages (context budget management)
+- Loading previous session context (Option D in enforce-spec-folder hook)
 
 **Example**:
 ```
 After implementing authentication system:
 → Automatically triggered at 20 messages
-→ Creates memory/22-11-25_14-23__auth-system.md
+→ Creates memory/22-11-25_14-23__auth-system.md with anchors
 → Includes JWT decision rationale, auth flow diagram, full conversation
 → Updates metadata.json with session stats
+
+Loading context later:
+→ .claude/hooks/lib/load-related-context.sh "049-..." summary
+→ Returns ~400 tokens (97% reduction from 12,000-token full file)
+→ Smart search: "authentication bug" → relevance-ranked results
 ```
 
 ---
@@ -645,11 +661,11 @@ Creating custom quality check hook:
 
 | Skill | Version | Maturity | Category | References | Assets | Scripts |
 |-------|---------|----------|----------|------------|--------|---------|
+| workflows-save-context | v9.0.0 | ★★★★★ Very High | Orchestrator | 2 | 0 | 1 |
 | create-documentation | v3.2.0 | ★★★★★ Very High | Documentation | 6 | 6 | 4 |
 | workflows-code | v2.0.0 | ★★★★★ Very High | Orchestrator | 11 | 4 | 0 |
-| workflows-save-context | v1.2.0 | ★★★★ High | Orchestrator | 2 | 0 | 1 |
 | cli-gemini | v1.1.0 | ★★★★ High | CLI Wrapper | 4 | 0 | 0 |
-| cli-chrome-devtools | v1.0.0 | ★★★ Medium | CLI Wrapper | 3 | 0 | 0 |
+| cli-chrome-devtools | v1.0.0 | ★★★ Medium | CLI Wrapper | 3 | 4 | 0 |
 | create-flowchart | v1.1.0 | ★★★★ High | Documentation | 6 | 0 | 1 |
 | workflows-conversation | v1.0.0 | ★★★★ Medium-High | Orchestrator | 4 | 2 | 0 |
 | mcp-code-mode | v1.0.0 | ★★★★ Medium-High | MCP Integration | 5 | 2 | 1 |
@@ -667,9 +683,9 @@ Creating custom quality check hook:
 - ★ **Experimental** (v0.1): Alpha stage, documentation in progress, not recommended for production
 
 **Version Distribution**:
+- v9.x: 1 skill (8%) - Anchor-based retrieval major version
 - v3.x: 1 skill (8%) - Most mature
 - v2.x: 1 skill (8%) - Major update
-- v1.2+: 1 skill (8%) - Minor updates
 - v1.1.x: 2 skills (15%) - Minor updates
 - v1.0.0: 8 skills (62%) - Stable releases
 

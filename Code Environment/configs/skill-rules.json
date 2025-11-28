@@ -1006,6 +1006,7 @@
     },
     "cli-chrome-devtools": {
       "type": "cli-tool",
+      "version": "1.0.0",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Direct Chrome DevTools Protocol access via browser-debugger-cli (bdg) terminal commands for lightweight browser debugging, automation, and testing",
@@ -1073,6 +1074,34 @@
           "gpt-5.1-codex",
           "thinking section"
         ]
+      }
+    },
+    "workflows-plan-claude": {
+      "type": "workflow",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "4-agent parallel exploration for comprehensive planning. Spawns Architecture/Feature/Dependency/Test Sonnet explorers, synthesizes findings, and generates verified plan.md (.claude/skills/workflows-plan-claude/)",
+      "promptTriggers": {
+        "keywords": [
+          "plan with exploration",
+          "parallel planning",
+          "explore and plan",
+          "comprehensive plan",
+          "deep analysis plan",
+          "verified planning",
+          "4-agent planning",
+          "exploration planning"
+        ],
+        "intentPatterns": [
+          "(plan|planning).*?(explore|exploration|parallel|comprehensive|verified)",
+          "(create|generate).*?(detailed|thorough|comprehensive).*?plan",
+          "(explore|analyze).*?(codebase|architecture).*?(before|then).*?plan",
+          "(comprehensive|deep|thorough).*?(analysis|exploration).*?plan"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [".claude/skills/workflows-plan-claude/**"],
+        "contentPatterns": []
       }
     }
   },

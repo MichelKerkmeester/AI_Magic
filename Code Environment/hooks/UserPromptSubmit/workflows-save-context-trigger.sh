@@ -357,6 +357,10 @@ if [ $EXIT_CODE -eq 0 ]; then
     echo "   ✅ Context saved to: $REL_PATH/"
 else
   echo "   ⚠️  Save failed (exit code: $EXIT_CODE)"
+  # Show actual error from generate-context.js (first 200 chars)
+  if [ -n "$NODE_OUTPUT" ]; then
+    echo "   Error: ${NODE_OUTPUT:0:200}"
+  fi
 fi
 
 # ───────────────────────────────────────────────────────────────
@@ -391,6 +395,10 @@ TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
     echo "Status: ✅ Success"
   else
     echo "Status: ⚠️  Completed with warnings"
+    if [ -n "$NODE_OUTPUT" ]; then
+      echo "Error Output:"
+      echo "$NODE_OUTPUT"
+    fi
   fi
   echo "───────────────────────────────────────────────────────────────"
   echo ""

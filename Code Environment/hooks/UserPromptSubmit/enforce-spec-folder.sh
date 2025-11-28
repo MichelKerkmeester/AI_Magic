@@ -230,7 +230,13 @@ handle_question_flow() {
       # No memory files - complete the flow
       echo "[FLOW_COMPLETE] Spec folder selected, no memory files" >> "$LOG_FILE" 2>/dev/null || true
       # BUG FIX: Create spec marker when folder is confirmed
-      create_spec_marker "$stored_folder"
+      # SUBFOLDER FIX: Validate if sub-folder needed before creating marker
+      local target_folder="$stored_folder"
+      if has_root_level_content "$stored_folder" && [ -f "$SPEC_MARKER" ]; then
+        # Sub-folder exists - use path from existing marker
+        target_folder=$(cat "$SPEC_MARKER" 2>/dev/null | tr -d '\n')
+      fi
+      create_spec_marker "$target_folder"
       clear_question_flow
       return 1  # Continue normal processing (will validate folder)
     fi
@@ -334,7 +340,13 @@ handle_question_flow() {
     else
       # No memory files - complete the flow
       echo "[FLOW_COMPLETE] Spec folder confirmed, no memory files" >> "$LOG_FILE" 2>/dev/null || true
-      create_spec_marker "$stored_folder"
+      # SUBFOLDER FIX: Validate if sub-folder needed before creating marker
+      local target_folder="$stored_folder"
+      if has_root_level_content "$stored_folder" && [ -f "$SPEC_MARKER" ]; then
+        # Sub-folder exists - use path from existing marker
+        target_folder=$(cat "$SPEC_MARKER" 2>/dev/null | tr -d '\n')
+      fi
+      create_spec_marker "$target_folder"
       clear_question_flow
       echo ""
       echo "✅ Continuing in spec folder: $spec_name"
@@ -370,13 +382,57 @@ handle_question_flow() {
     echo "   Memory choice: $user_choice"
     echo ""
 
+    # V9.0: Load context using anchor-based retrieval script
     if [ "$user_choice" != "D" ]; then
-      echo "📖 AI: Load the selected memory file(s) using the Read tool before proceeding."
-      echo ""
+      local spec_folder_name=$(basename "$stored_folder")
+      local load_script="$SCRIPT_DIR/../lib/load-related-context.sh"
+
+      if [ -x "$load_script" ]; then
+        case "$user_choice" in
+          A)
+            # Load most recent - summary only
+            echo "📚 Loading context from most recent session..."
+            echo ""
+            "$load_script" "$spec_folder_name" summary 2>&1 || true
+            echo ""
+            ;;
+          B)
+            # Load all recent - summaries from last 3 files
+            echo "📚 Loading summaries from recent sessions..."
+            echo ""
+            "$load_script" "$spec_folder_name" recent 3 2>&1 || true
+            echo ""
+            echo "💡 Use 'extract <anchor-id>' to load specific sections"
+            echo ""
+            ;;
+          C)
+            # Select specific - show list
+            echo "📚 Available sessions:"
+            echo ""
+            "$load_script" "$spec_folder_name" list 2>&1 || true
+            echo ""
+            echo "💡 Commands available:"
+            echo "   - Read tool to load complete files"
+            echo "   - 'extract <anchor-id>' to load specific sections"
+            echo "   - 'search <keyword>' to find anchors"
+            echo ""
+            ;;
+        esac
+      else
+        # Fallback if script not available
+        echo "📖 AI: Load the selected memory file(s) using the Read tool before proceeding."
+        echo ""
+      fi
     fi
 
     # BUG FIX: Create spec marker when folder is confirmed after memory selection
-    create_spec_marker "$stored_folder"
+    # SUBFOLDER FIX: Validate if sub-folder needed before creating marker
+    local target_folder="$stored_folder"
+    if has_root_level_content "$stored_folder" && [ -f "$SPEC_MARKER" ]; then
+      # Sub-folder exists - use path from existing marker
+      target_folder=$(cat "$SPEC_MARKER" 2>/dev/null | tr -d '\n')
+    fi
+    create_spec_marker "$target_folder"
     clear_question_flow
     exit 0  # Allow to proceed
   fi
@@ -408,7 +464,13 @@ handle_question_flow() {
         echo "✅ Continuing in $(basename "$stored_folder")"
         echo ""
         # BUG FIX: Create spec marker when folder is confirmed
-        create_spec_marker "$stored_folder"
+        # SUBFOLDER FIX: Validate if sub-folder needed before creating marker
+        local target_folder="$stored_folder"
+        if has_root_level_content "$stored_folder" && [ -f "$SPEC_MARKER" ]; then
+          # Sub-folder exists - use path from existing marker
+          target_folder=$(cat "$SPEC_MARKER" 2>/dev/null | tr -d '\n')
+        fi
+        create_spec_marker "$target_folder"
         clear_question_flow
         exit 0  # Allow to proceed
         ;;

@@ -1,0 +1,33 @@
+{
+  "enabled": true,
+  "debug": false,
+  "pruning_summary": "detailed",
+  "protectedTools": [
+    "Task",
+    "TodoWrite",
+    "TodoRead",
+    "AskUserQuestion",
+    "Skill",
+    "SlashCommand",
+    "EnterPlanMode",
+    "ExitPlanMode"
+  ],
+  "strategies": {
+    "onCompact": ["deduplication"]
+  },
+  "deduplication": {
+    "enabled": true,
+    "strategy": "exact-match",
+    "allowedTools": ["Read", "Grep", "Glob"],
+    "maxHistoryWindow": 300
+  },
+  "advisory": {
+    "enabled": true,
+    "displayFormat": "concise",
+    "minTimeBetweenWarnings": 60
+  },
+  "performance": {
+    "maxExecutionTime": 5000,
+    "enableCaching": true
+  }
+}

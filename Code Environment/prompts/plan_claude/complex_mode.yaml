@@ -514,70 +514,75 @@ phase_8_context_persistence:
   purpose: "Save planning session context to memory/ for future sessions"
 
   steps:
-    step_21_save_context:
-      action: "Create memory file in spec folder"
+    step_21_invoke_save_context_skill:
+      description: "Invoke workflows-save-context skill for anchor-based memory"
+      action: "Use Skill tool to create memory file with anchor tags"
+
+      skill_invocation:
+        tool: Skill
+        parameter: skill="workflows-save-context"
+        note: |
+          The workflows-save-context skill will:
+          - Read context_template.md (includes anchor tag structure)
+          - Auto-generate anchor IDs from section titles
+          - Create task-forward structure (Implementation Guide first)
+          - Save to {spec_folder_path}/memory/DD-MM-YY_HH-MM__topic.md
+          - Enable grep-based retrieval: grep -r "anchor:.*keyword" memory/
+
+        benefits:
+        - "Anchor tags enable task-oriented context retrieval"
+        - "Consistent format with spec_kit workflows"
+        - "Single source of truth (context_template.md)"
+        - "Grep-able sections for future sessions"
+
+        fallback:
+          on_failure: "Use legacy inline template (step_22_legacy_template)"
+          reason: "Graceful degradation if skill unavailable"
+
+    step_22_legacy_template:
+      description: "FALLBACK ONLY - Legacy memory file format (no anchors)"
+      condition: "Only execute if skill invocation fails"
+
+      action: "Create memory file using inline template"
       path: "{spec_folder_path}/memory/DD-MM-YY_HH-MM__topic.md"
-      topic_generation:
-        source: "Task description"
-        transformation: "lowercase, hyphens, max 30 chars"
-        pattern: "sed 's/\\s\\+/-/g; s/[^a-z0-9-]//g' | tr '[:upper:]' '[:lower:]' | cut -c1-30"
 
-      content_structure:
-        header:
-          - "# Planning Session: [Task Description]"
-          - "**Date**: YYYY-MM-DD HH:MM"
-          - "**Spec Folder**: {spec_folder_path}"
-
-        session_summary:
-          heading: "## Session Summary"
-          content: "Brief summary of what was planned"
-
-        key_decisions:
-          heading: "## Key Decisions"
-          content:
-            - "Mode selected (if applicable)"
-            - "Architectural choices"
-            - "Technology decisions"
-
-        exploration_findings:
-          heading: "## Exploration Findings"
-          content:
-            - "Summary from Architecture Explorer"
-            - "Summary from Feature Explorer"
-            - "Summary from Dependency Explorer"
-            - "Summary from Test Explorer"
-
-        user_feedback:
-          heading: "## User Feedback"
-          content: "Any edits or feedback user provided during planning"
-
-    step_22_memory_file_format:
       template: |
         # Planning Session: {task_description}
         **Date**: {timestamp}
         **Spec Folder**: {spec_folder_path}
 
+        ⚠️ Note: Created with legacy template (no anchor tags)
+
         ## Session Summary
         {planning_summary}
 
         ## Key Decisions
-        - {decision_1}
-        - {decision_2}
-        ...
+        - Mode: {selected_mode}
+        - Architectural choices: {arch_decisions}
+        - Technology decisions: {tech_decisions}
 
         ## Exploration Findings
-        - {finding_1}
-        - {finding_2}
-        ...
+
+        **Architecture Explorer**:
+        {architecture_findings}
+
+        **Feature Explorer**:
+        {feature_findings}
+
+        **Dependency Explorer**:
+        {dependency_findings}
+
+        **Test Explorer**:
+        {test_findings}
 
         ## User Feedback
-        - {feedback_1}
-        ...
+        {user_feedback}
 
   outputs:
     - memory_file_created
     - memory_file_path
     - context_saved
+    - anchors_generated  # true if skill used, false if fallback
 
 # FUTURE IMPLEMENTATION CHECKLIST
 # ───────────────────────────────────────────────────────────────────

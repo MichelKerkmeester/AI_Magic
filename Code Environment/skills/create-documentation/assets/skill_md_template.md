@@ -551,37 +551,6 @@ def route_request(context):
 | **assets/[filename.md]**     | [Template or example content]  | [When to use it]                 |
 | **scripts/[filename.py]**    | [Automation provided]          | [Performance or capability note] |
 
-### Smart Routing Diagram
-
-\`\`\`
-[ASCII flowchart - see pattern below]
-\`\`\`
-
-
-**Smart Routing Diagram Pattern**:
-
-### Smart Routing Diagram
-
-\`\`\`
-START
-  ↓
-[Initial Step/Analysis]
-  ↓
-[Decision Point]
-  ↓
-Condition? ─── NO ──→ [Alternative Path]
-  │                        ↓
-  │                   [Action/Process]
-  │                        ↓
-  YES                 [Merge Point]
-  ↓
-[Next Step/Process]
-  ↓
-[Resource Loading/Execution]
-  ↓
-COMPLETE
-\`\`\`
-
 **Writing Tips**:
 - **Table Organization**:
   - Use category headers (### Core Framework, ### Bundled Resources, etc.)
@@ -589,15 +558,6 @@ COMPLETE
   - Purpose column: What it does (1 sentence)
   - Key Insight column: Why it matters, integration points, performance notes
   - For bundled resources: Use actual file paths (references/name.md, assets/name.md, scripts/name.py)
-
-- **Smart Routing Diagram**:
-  - Show execution flow from START to COMPLETE
-  - Use decision diamonds: `Condition? ─── NO ──→` and `YES ↓`
-  - Box format: `[Action Description]`
-  - Arrows: `↓` for vertical flow, `→` for horizontal
-  - Show resource loading points
-  - Keep diagram ASCII-compatible (no special Unicode beyond basic arrows)
-  - Required for ALL skills (even simple ones - show basic flow)
 
 - **Categorization Guidelines**:
   - **Core Framework**: Main workflows, methodologies, thinking frameworks
@@ -610,7 +570,6 @@ COMPLETE
 
 **Examples**:
 - See `.claude/skills/z_example/Product Owner - v0.924.md` Section 3 (3-column categorized tables)
-- See `.claude/skills/z_example/AGENTS.md` Section 3 (smart routing diagram)
 
 ---
 
@@ -996,9 +955,7 @@ Content - NEW Standardization (2025):
 □ SMART ROUTING section exists (Section 2 - REQUIRED for all skills)
 □ REFERENCES section exists (Section 3 - REQUIRED for all skills)
 □ REFERENCES has 3-column categorized tables (Document | Purpose | Key Insight)
-□ REFERENCES has Smart Routing Diagram (ASCII flowchart - REQUIRED)
-□ Routing diagram shows execution flow from START to COMPLETE
-□ Flowchart supplements added to complex logic blocks (where applicable)
+□ Flowchart supplements added to complex logic blocks in Section 4 (where applicable)
 □ Python/YAML code preserved (supplements, not replacements)
 □ All ASCII diagrams use consistent style (↓, →, ───, │, [boxes])
 
@@ -1011,7 +968,7 @@ Quality:
 □ All code blocks specify language
 □ Links work correctly
 □ 3-column tables properly formatted (aligned columns)
-□ Smart Routing Diagram is accurate and helpful
+□ SMART ROUTING Python pseudo-code is accurate and helpful
 □ Navigation Guide lists ALL bundled resources
 
 

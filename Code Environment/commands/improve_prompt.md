@@ -2,7 +2,6 @@
 description: Enhance prompts using DEPTH framework with AI-guided analysis and quality scoring
 argument-hint: "<prompt-text> [:quick|:improve|:refine]"
 allowed-tools: Read, Write, AskUserQuestion, Bash
-model: opus
 ---
 
 # Improve Prompt with DEPTH Framework
@@ -36,13 +35,13 @@ Apply the **DEPTH framework** (Discover, Engineer, Prototype, Test, Harmonize) t
 
 ## Workflow Overview (5 DEPTH Phases)
 
-| Phase | Name | Purpose | Outputs |
-|-------|------|---------|---------|
-| D | Discover | Analyze intent, assess complexity, identify gaps | complexity_score, ricce_gaps, baseline_clear_score |
-| E | Engineer | Select framework, apply cognitive rigor, restructure | selected_framework, cognitive_insights, restructured_draft |
-| P | Prototype | Generate enhanced draft, validate RICCE | enhanced_prompt_draft, ricce_validation_5/5 |
-| T | Test | Calculate CLEAR scores, compare quality | original_score, enhanced_score, improvement_delta |
-| H | Harmonize | Final polish, consistency check, confirm targets | final_enhanced_prompt, final_clear_score_≥40/50 |
+| Phase | Name      | Purpose                                              | Outputs                                                    |
+| ----- | --------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| D     | Discover  | Analyze intent, assess complexity, identify gaps     | complexity_score, ricce_gaps, baseline_clear_score         |
+| E     | Engineer  | Select framework, apply cognitive rigor, restructure | selected_framework, cognitive_insights, restructured_draft |
+| P     | Prototype | Generate enhanced draft, validate RICCE              | enhanced_prompt_draft, ricce_validation_5/5                |
+| T     | Test      | Calculate CLEAR scores, compare quality              | original_score, enhanced_score, improvement_delta          |
+| H     | Harmonize | Final polish, consistency check, confirm targets     | final_enhanced_prompt, final_clear_score_≥40/50            |
 
 ---
 
@@ -420,14 +419,14 @@ Execute the following phases to enhance prompts using DEPTH methodology:
 
     ### CLEAR Score Comparison
 
-    | Dimension | Original | Enhanced | Delta |
-    |-----------|----------|----------|-------|
-    | **Correctness** (10) | [X]/10 | [Y]/10 | +[Z] |
-    | **Logic** (10) | [X]/10 | [Y]/10 | +[Z] |
-    | **Expression** (15) | [X]/15 | [Y]/15 | +[Z] |
-    | **Arrangement** (10) | [X]/10 | [Y]/10 | +[Z] |
-    | **Reusability** (5) | [X]/5 | [Y]/5 | +[Z] |
-    | **TOTAL** | **[X]/50** | **[Y]/50** | **+[Z]** |
+    | Dimension            | Original   | Enhanced   | Delta    |
+    | -------------------- | ---------- | ---------- | -------- |
+    | **Correctness** (10) | [X]/10     | [Y]/10     | +[Z]     |
+    | **Logic** (10)       | [X]/10     | [Y]/10     | +[Z]     |
+    | **Expression** (15)  | [X]/15     | [Y]/15     | +[Z]     |
+    | **Arrangement** (10) | [X]/10     | [Y]/10     | +[Z]     |
+    | **Reusability** (5)  | [X]/5      | [Y]/5      | +[Z]     |
+    | **TOTAL**            | **[X]/50** | **[Y]/50** | **+[Z]** |
 
     **Target Met:** [YES/NO] (Target: ≥40/50)
 
@@ -527,16 +526,16 @@ Execute the following phases to enhance prompts using DEPTH methodology:
 
 ## Failure Recovery
 
-| Condition | Recovery Action |
-|-----------|-----------------|
-| **Empty prompt text** | Use AskUserQuestion with 4 options (paste, describe, file path, cancel) → Retry |
-| **CLEAR score below target after enhancement** | Prompt user: retry refinement, accept current, or cancel → Act on response |
-| **Framework selection timeout** | Default to RCAF (safest choice) → Notify user of fallback → Continue |
-| **improve_prompt.yaml not found** | Return error: "Workflow file missing at .opencode/prompts/improve_prompt.yaml" → Suggest verify installation |
-| **DEPTH processing timeout (>30s)** | Cancel processing → Return partial results with note → Offer to retry with :quick mode |
-| **Write permission denied** | Fallback to outputting enhanced prompt in chat → Suggest manual file creation → Provide full content |
-| **Invalid mode flag** | Ignore flag → Default to interactive mode → Notify user → Continue |
-| **Complexity assessment fails** | Default to complexity 5 → Use RCAF framework → Notify assumption → Continue |
+| Condition                                      | Recovery Action                                                                                              |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Empty prompt text**                          | Use AskUserQuestion with 4 options (paste, describe, file path, cancel) → Retry                              |
+| **CLEAR score below target after enhancement** | Prompt user: retry refinement, accept current, or cancel → Act on response                                   |
+| **Framework selection timeout**                | Default to RCAF (safest choice) → Notify user of fallback → Continue                                         |
+| **improve_prompt.yaml not found**              | Return error: "Workflow file missing at .opencode/prompts/improve_prompt.yaml" → Suggest verify installation |
+| **DEPTH processing timeout (>30s)**            | Cancel processing → Return partial results with note → Offer to retry with :quick mode                       |
+| **Write permission denied**                    | Fallback to outputting enhanced prompt in chat → Suggest manual file creation → Provide full content         |
+| **Invalid mode flag**                          | Ignore flag → Default to interactive mode → Notify user → Continue                                           |
+| **Complexity assessment fails**                | Default to complexity 5 → Use RCAF framework → Notify assumption → Continue                                  |
 
 ---
 

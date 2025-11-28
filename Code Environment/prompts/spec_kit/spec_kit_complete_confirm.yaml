@@ -127,7 +127,7 @@ workflow:
     purpose: Review knowledge base and project standards
     activities:
     - Read and review AGENTS.md
-    - Check knowledge base (.claude/knowledge/) or skills folder (.claude/skills/) for relevant coding standards
+    - Check knowledge base (/knowledge/) or skills folder (/skills/) for relevant coding standards
     - Extract coding standards summary
     - Identify architectural patterns
     - Document project conventions
@@ -197,6 +197,26 @@ workflow:
 
   step_6_planning:
     purpose: Create technical plan with implementation approach
+
+    # ENHANCED: Invoke parallel exploration skill for comprehensive planning
+    skill_invocation:
+      description: "4-agent parallel exploration for verified planning"
+      condition: "Always invoke for enhanced planning quality"
+      tool: Skill
+      parameter: skill="workflows-plan-claude"
+      inputs:
+        task_description: "$user_inputs.request"
+        spec_folder_path: "$spec_folder"
+      benefits:
+        - "4 Sonnet agents explore codebase in parallel"
+        - "Verified findings instead of assumptions"
+        - "Integration points documented"
+        - "Test patterns identified"
+      fallback:
+        on_failure: "Use inline planning activities below"
+        reason: "Graceful degradation if skill/agents unavailable"
+
+    # FALLBACK: Inline planning if skill invocation fails
     activities:
     - Run setup-plan.sh --json
     - Load plan_template.md

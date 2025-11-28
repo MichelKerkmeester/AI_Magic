@@ -7,11 +7,11 @@
     "code_mode": {
       "command": "node", // Node.js runtime
       "args": [
-        "/Users/MCP Servers/code-mode/code-mode-mcp/dist/index.js"
+        "/path/to/code-mode-mcp/dist/index.js"
       ],
       "env": {
         // UTCP configuration file path for tool definitions
-        "UTCP_CONFIG_FILE": "/Users/.utcp_config.json"
+        "UTCP_CONFIG_FILE": "/path/to/.utcp_config.json"
       },
       "tools": [
         "*"
@@ -19,7 +19,7 @@
     },
     // Advanced Reasoning for non Reasoning Copilot Models
     "sequential-thinking": {
-      "command": "/Users/username/CloudStorage/MCP Servers/mcp-sequential-thinking/.venv/bin/python3.12",
+      "command": "/path/to/mcp-sequential-thinking/.venv/bin/python3.12",
       "args": [
         "-m",
         "mcp_sequential_thinking.server"

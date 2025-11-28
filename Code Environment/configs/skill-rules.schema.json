@@ -36,7 +36,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["knowledge", "workflow", "tool"],
+          "enum": ["knowledge", "workflow", "tool", "cli-tool"],
           "description": "Type of skill"
         },
         "enforcement": {

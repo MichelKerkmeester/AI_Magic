@@ -103,33 +103,33 @@ When Sequential Thinking MCP is available, use it for complex tasks:
 
 **Quick Reference:**
 
-| Pattern                  | Prevention                                                         | Example                                                                   |
-| ------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Task Misinterpretation   | Parse request carefully, confirm scope                             | Implementing when asked to investigate                                    |
-| Rush to Code             | Analyze → Verify → Choose simplest approach                        | Starting code before understanding problem                                |
-| Fabrication/Lying        | Output "UNKNOWN" when uncertain, verify before claiming completion | Responding without verification, saying "tests pass" without running them |
-| Skipping Verification    | Follow process even for "trivial" changes, run ALL tests           | Skipping tests for "comment-only" changes                                 |
-| Assumption-Based Changes | Read existing code first, verify evidence                          | "Fixing" working S3 upload unnecessarily                                  |
-| Cascading Breaks         | Reproduce problem before fixing                                    | Breaking code by "fixing" non-existent issues                             |
-| Skipping Process Steps   | Follow checklists consistently, no shortcuts                       | "I already know this, skip the checklist"                                 |
-| Over-Engineering         | Solve ONLY stated problem, YAGNI principle                         | Complex state management vs simple variable                               |
-| Clever Over Clear        | Obvious code > clever tricks                                       | One-liner regex vs readable string operations                             |
-| Retaining Legacy Code    | Remove unused code unless explicitly told otherwise                | Keeping old code "just in case"                                           |
-| Skipping Complexity Check | Calculate score before dispatch (see create-parallel-sub-agents)  | Dispatching sub-agents for single-file changes                            |
+| Pattern                   | Prevention                                                         | Example                                                                   |
+| ------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Task Misinterpretation    | Parse request carefully, confirm scope                             | Implementing when asked to investigate                                    |
+| Rush to Code              | Analyze → Verify → Choose simplest approach                        | Starting code before understanding problem                                |
+| Fabrication/Lying         | Output "UNKNOWN" when uncertain, verify before claiming completion | Responding without verification, saying "tests pass" without running them |
+| Skipping Verification     | Follow process even for "trivial" changes, run ALL tests           | Skipping tests for "comment-only" changes                                 |
+| Assumption-Based Changes  | Read existing code first, verify evidence                          | "Fixing" working S3 upload unnecessarily                                  |
+| Cascading Breaks          | Reproduce problem before fixing                                    | Breaking code by "fixing" non-existent issues                             |
+| Skipping Process Steps    | Follow checklists consistently, no shortcuts                       | "I already know this, skip the checklist"                                 |
+| Over-Engineering          | Solve ONLY stated problem, YAGNI principle                         | Complex state management vs simple variable                               |
+| Clever Over Clear         | Obvious code > clever tricks                                       | One-liner regex vs readable string operations                             |
+| Retaining Legacy Code     | Remove unused code unless explicitly told otherwise                | Keeping old code "just in case"                                           |
+| Skipping Complexity Check | Calculate score before dispatch (see create-parallel-sub-agents)   | Dispatching sub-agents for single-file changes                            |
 | Claiming Without Browser  | Browser test before completion claims (see workflows-code)         | Saying "works" without opening browser                                    |
 
 **Critical Pattern Detection:**
 
-| # | Pattern | ⚠️ Detection Trigger | ✅ Action |
-|---|---------|---------------------|-----------|
-| 1 | **Fabrication** | "straightforward", "obvious" without verifying | Output "UNKNOWN" or verify first |
-| 2 | **Lying About Completion** | "I've completed X" without proof | Show output, or say "NOT yet verified" |
-| 3 | **Skipping Verification** | "trivial edit", "just a comment" | Run ALL tests, no exceptions |
-| 4 | **Skipping Process** | "I already know this" | Follow checklist anyway |
-| 5 | **No Skill Check** | Starting work without checking skills | Check `.claude/skills/` first |
-| 6 | **Retaining Legacy** | "just in case", "don't change too much" | Remove unused code, ask if unsure |
-| 7 | **Skipping Parallel Dispatch** | Multi-domain task (≥2 domains) + complexity ≥35% | Use Task tool with sub-agents |
-| 8 | **Ignoring Mandatory Question** | Sees `🔴 MANDATORY_USER_QUESTION` but uses other tools first | STOP, use AskUserQuestion immediately |
+| #   | Pattern                         | ⚠️ Detection Trigger                                         | ✅ Action                               |
+| --- | ------------------------------- | ----------------------------------------------------------- | -------------------------------------- |
+| 1   | **Fabrication**                 | "straightforward", "obvious" without verifying              | Output "UNKNOWN" or verify first       |
+| 2   | **Lying About Completion**      | "I've completed X" without proof                            | Show output, or say "NOT yet verified" |
+| 3   | **Skipping Verification**       | "trivial edit", "just a comment"                            | Run ALL tests, no exceptions           |
+| 4   | **Skipping Process**            | "I already know this"                                       | Follow checklist anyway                |
+| 5   | **No Skill Check**              | Starting work without checking skills                       | Check `.claude/skills/` first          |
+| 6   | **Retaining Legacy**            | "just in case", "don't change too much"                     | Remove unused code, ask if unsure      |
+| 7   | **Skipping Parallel Dispatch**  | Multi-domain task (≥2 domains) + complexity ≥35%            | Use Task tool with sub-agents          |
+| 8   | **Ignoring Mandatory Question** | Sees `🔴 MANDATORY_USER_QUESTION` but uses other tools first | STOP, use AskUserQuestion immediately  |
 
 **Enforcement Protocol:** If you detect ANY pattern above:
 1. **STOP** - Do not proceed
@@ -145,10 +145,10 @@ When you see `🔴 MANDATORY_USER_QUESTION` or `{"signal": "MANDATORY_QUESTION"`
 2. **USE** AskUserQuestion with the options from the JSON
 3. **WAIT** for user response - ALL tools are BLOCKED until you respond
 
-| Signal | Action |
-|--------|--------|
-| `🔴 MANDATORY_USER_QUESTION` | AskUserQuestion IMMEDIATELY |
-| `"blocking": true` in JSON | Question MUST be answered first |
+| Signal                      | Action                          |
+| --------------------------- | ------------------------------- |
+| `🔴 MANDATORY_USER_QUESTION` | AskUserQuestion IMMEDIATELY     |
+| `"blocking": true` in JSON  | Question MUST be answered first |
 
 **Enforcement:** `PreToolUse/check-pending-questions.sh` BLOCKS all tools except AskUserQuestion when question pending.
 
@@ -196,11 +196,11 @@ Every conversation that modifies files (code, documentation, configuration, temp
 - ✅ Build/tooling files (package.json, etc.)
 
 #### Levels Overview
-| Level | LOC  | Core Files        | Optional Files                            | Use When                                 |
-| ----- | ---- | ----------------- | ----------------------------------------- | ---------------------------------------- |
-| **1** | <100 | spec.md           | checklist.md                              | Trivial to simple changes                |
-| **2** | <500 | spec.md + plan.md | tasks.md, checklist.md                    | Moderate feature                         |
-| **3** | ≥500 | Full SpecKit      | research-spike-*.md, decision-record-*.md | Complex feature                          |
+| Level | LOC  | Core Files        | Optional Files                            | Use When                  |
+| ----- | ---- | ----------------- | ----------------------------------------- | ------------------------- |
+| **1** | <100 | spec.md           | checklist.md                              | Trivial to simple changes |
+| **2** | <500 | spec.md + plan.md | tasks.md, checklist.md                    | Moderate feature          |
+| **3** | ≥500 | Full SpecKit      | research-spike-*.md, decision-record-*.md | Complex feature           |
 
 #### Supporting Templates & Decision Rules
 **Optional templates** (in `.opencode/speckit/templates/`):
@@ -648,16 +648,16 @@ Request: "Add loading spinner to form submission"
 
 ## 6. 🎯 SKILL ACTIVATION QUICK REFERENCE
 
-| Skill | Activation Trigger | Reference |
-|-------|-------------------|-----------|
-| workflows-conversation | Any file modification | Section 2 |
-| workflows-save-context | Every 20 messages, "save context" | Auto-triggered |
-| workflows-code | Frontend code changes | `.claude/skills/workflows-code/` |
-| mcp-semantic-search | "Find code that...", "How does..." | Section 5, Tool #4 |
-| mcp-code-mode | ANY MCP tool call (except Sequential Thinking) | Section 5, Tool #3 |
-| cli-chrome-devtools | "bdg", "browser debugging", Chrome DevTools CLI | Section 5, Tool #5 |
-| create-parallel-sub-agents | Complexity ≥35% + 2+ domains | `.claude/skills/create-parallel-sub-agents/` |
-| create-documentation | Creating/editing docs or skills | `.claude/skills/create-documentation/` |
+| Skill                      | Activation Trigger                              | Reference                                    |
+| -------------------------- | ----------------------------------------------- | -------------------------------------------- |
+| workflows-conversation     | Any file modification                           | Section 2                                    |
+| workflows-save-context     | Every 20 messages, "save context"               | Auto-triggered                               |
+| workflows-code             | Frontend code changes                           | `.claude/skills/workflows-code/`             |
+| mcp-semantic-search        | "Find code that...", "How does..."              | Section 5, Tool #4                           |
+| mcp-code-mode              | ANY MCP tool call (except Sequential Thinking)  | Section 5, Tool #3                           |
+| cli-chrome-devtools        | "bdg", "browser debugging", Chrome DevTools CLI | Section 5, Tool #5                           |
+| create-parallel-sub-agents | Complexity ≥35% + 2+ domains                    | `.claude/skills/create-parallel-sub-agents/` |
+| create-documentation       | Creating/editing docs or skills                 | `.claude/skills/create-documentation/`       |
 
 #### The Iron Law (workflows-code)
 **NO COMPLETION CLAIMS WITHOUT BROWSER VERIFICATION**
@@ -683,12 +683,12 @@ External MCP tools? → call_tool_chain() [Code Mode - MANDATORY, except Sequent
 - ≥35% + 2+ domains: **DISPATCH** sub-agents via Task tool (BLOCKING)
 
 **Complexity Quick-Calc:**
-| Factor | Weight | Low (0) | Med (0.5) | High (1.0) |
-|--------|--------|---------|-----------|------------|
-| Domains | 35% | 1 | 2 | 3+ |
-| Files | 25% | 1-2 | 3-5 | 6+ |
-| LOC | 15% | <50 | 50-200 | 200+ |
-| Parallel | 20% | None | Some | High |
-| Task Type | 5% | Trivial | Moderate | Complex |
+| Factor    | Weight | Low (0) | Med (0.5) | High (1.0) |
+| --------- | ------ | ------- | --------- | ---------- |
+| Domains   | 35%    | 1       | 2         | 3+         |
+| Files     | 25%    | 1-2     | 3-5       | 6+         |
+| LOC       | 15%    | <50     | 50-200    | 200+       |
+| Parallel  | 20%    | None    | Some      | High       |
+| Task Type | 5%     | Trivial | Moderate  | Complex    |
 
 **Example:** Auth + tests + docs = 3 domains (35%) + 8 files (25%) + 300 LOC (15%) + high parallel (20%) + complex (5%) = **100%** → DISPATCH REQUIRED

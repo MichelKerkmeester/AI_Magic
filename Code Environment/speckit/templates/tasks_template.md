@@ -10,7 +10,7 @@ Task list template for feature implementation with user story organization and i
 
 **⚠️ THIS TEMPLATE CONTAINS SAMPLE TASKS FOR ILLUSTRATION ONLY**
 
-The `/speckit.tasks` command MUST replace these with actual tasks based on:
+The `/spec_kit:tasks` command MUST replace these with actual tasks based on:
 - User stories from spec.md (with their priorities P1, P2, P3...)
 - Feature requirements from plan.md
 - Entities from data-model.md

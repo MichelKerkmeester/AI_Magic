@@ -1,6 +1,8 @@
 ---
 name: cli-chrome-devtools
 description: Direct Chrome DevTools Protocol access via browser-debugger-cli (bdg) terminal commands. Lightweight alternative to MCP servers for browser debugging, automation, and testing with significant token efficiency through self-documenting tool discovery (--list, --describe, --search).
+allowed-tools: [Bash, Read, Write, Edit, Grep, Glob]
+version: 1.0.0
 ---
 
 # Chrome DevTools CLI - Direct CDP Access via Terminal Commands
@@ -41,6 +43,7 @@ Enables AI agents to leverage browser-debugger-cli (bdg) for direct Chrome DevTo
 - User requests alternative to Puppeteer/Playwright when lightweight CLI preferred
 - User needs quick DOM queries, cookie manipulation, or JavaScript execution in browser
 - User wants terminal-based browser automation with Unix pipe composability
+- User needs production-ready automation scripts for CI/CD browser testing
 
 **This skill should NOT be used for**:
 - Complex UI testing suites requiring sophisticated frameworks (use Puppeteer/Playwright instead)
@@ -98,6 +101,10 @@ def route_bdg_resources(task):
     # Error resolution
     if task.has_error or task.troubleshooting or task.installation_issue:
         return load("references/troubleshooting.md")
+
+    # Production automation scripts
+    if task.production_automation or task.ci_cd_integration or task.needs_complete_workflows:
+        return load("examples/README.md")  # + bash scripts
 
     # Default: SKILL.md has basics for common cases
 ```
@@ -673,6 +680,7 @@ When implementing browser-based features using workflows-code skill, cli-chrome-
    bdg har export network.har 2>&1
    bdg stop 2>&1
    ```
+   **Tip**: See `examples/performance-baseline.sh` for production-ready verification workflow combining screenshots, console logs, HAR export, and performance metrics.
 4. Analyze captured data
 5. Iterate on implementation
 
@@ -770,6 +778,10 @@ fi
 | Export HAR | `bdg har export network.har 2>&1` |
 | Page metrics | `bdg cdp Performance.getMetrics 2>&1` |
 
+### Production Workflows
+
+For complete workflow templates with error handling, cleanup patterns, and CI/CD integration, see [`examples/README.md`](./examples/README.md) and the included bash scripts.
+
 ---
 
 ## 10. 📚 BUNDLED RESOURCES
@@ -804,3 +816,37 @@ This skill includes 3 reference files with detailed guidance:
 - Error code reference and debug mode
 
 Load these references when needed for detailed guidance beyond SKILL.md basics.
+
+### examples/
+
+This skill includes 4 production-ready files demonstrating practical workflows:
+
+**`examples/README.md`** (comprehensive guide):
+- Usage documentation for all example scripts
+- Customization tips (performance thresholds, viewports, wait times)
+- CI/CD integration patterns
+- Troubleshooting guidance
+- Common workflow examples (chaining, comparisons, visual diffs)
+
+**`performance-baseline.sh`** (performance testing):
+- Captures comprehensive baseline: metrics, HAR trace, screenshot, console logs, DOM stats
+- Timestamped output for historical comparison
+- Pre-deployment performance validation
+- Before/after optimization comparison
+- Integration: workflows-code Phase 3 verification
+
+**`animation-testing.sh`** (animation validation):
+- Tests animation performance with configurable assertions
+- Thresholds: Layout (≤3), Style recalc (≤5), Task duration (≤200ms)
+- Before/after visual state capture
+- Exit code support for CI/CD pipelines
+- Integration: animation_workflows.md Section 6
+
+**`multi-viewport-test.sh`** (responsive testing):
+- Tests across 5 viewports: Desktop (1920×1080), Laptop (1366×768), Tablet (768×1024), Mobile (375×667), Mobile Large (414×896)
+- Per-viewport: screenshots (initial + animated), metrics, console logs
+- Error detection across devices
+- Visual consistency validation
+- Integration: verification_workflows.md Section 2
+
+Load examples/ when implementing production automation, CI/CD browser testing, or need complete workflow templates.

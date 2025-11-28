@@ -74,12 +74,12 @@ Feature specification from `/specs/[###-feature-name]/spec.md`
 ```
 specs/[###-feature]/
   spec.md              # Feature specification (see spec-template.md)
-  plan.md              # This file (/speckit.plan command output)
-  research.md          # Phase 0 output (/speckit.plan command)
-  data-model.md        # Phase 1 output (/speckit.plan command)
-  quickstart.md        # Phase 1 output (/speckit.plan command)
-  contracts/           # Phase 1 output (/speckit.plan command)
-  tasks.md             # Phase 2 output (/speckit.tasks command)
+  plan.md              # This file (/spec_kit:plan command output)
+  research.md          # Phase 0 output (/spec_kit:plan command)
+  data-model.md        # Phase 1 output (/spec_kit:plan command)
+  quickstart.md        # Phase 1 output (/spec_kit:plan command)
+  contracts/           # Phase 1 output (/spec_kit:plan command)
+  tasks.md             # Phase 2 output (/spec_kit:tasks command)
 ```
 
 ### Source Code (Repository Root)

@@ -1,8 +1,8 @@
 ---
 name: workflows-save-context
-description: This skill saves expanded conversation context when completing features or architectural discussions. It preserves full dialogue, decision rationale, visual flowcharts, and file changes for team sharing. Auto-triggered by keywords (e.g., "save context", "save conversation") or every 20 messages.
+description: This skill saves expanded conversation context when completing features or architectural discussions. It preserves full dialogue, decision rationale, visual flowcharts, and file changes for team sharing. Auto-triggered by keywords (e.g., "save context", "save conversation") or every 20 messages. (v9.0+ includes anchor-based context retrieval)
 allowed-tools: [Read, Write, Bash]
-version: 1.3.0
+version: 9.0.0
 ---
 
 # Save Context - Expanded Conversation Documentation
@@ -146,21 +146,117 @@ This skill is **standalone** - it does NOT use claude-mem MCP or external memory
    ✅ Context saved to: specs/122-skill-standardization/memory/
 ```
 
-### Manual Invocation (Advanced - Rarely Needed)
+### Alternative Execution Methods
 
-**When to Use**:
-- Auto-trigger hook is disabled
-- Testing or debugging
-- Custom workflow requirements
+The save-context system supports **4 independent execution paths**. Hooks are supplementary and **NOT required** - any method can be used standalone.
 
-**⚠️ Important**: Only use manual invocation if auto-trigger is not working. In 99% of cases, the automatic hook is sufficient.
+#### Method 1: Hook Auto-Trigger (Recommended - Zero Effort)
 
-**AI Agent Process**:
+**When to Use**: Production use, normal workflow
+**Requirement**: Hook enabled in `.claude/settings.local.json`
 
-1. Analyze current conversation history
-2. Create structured JSON summary
-3. Run Node.js script to process and generate markdown
-4. Write to `specs/###-feature/memory/` folder
+See "Automatic Triggering" section above for full details.
+
+#### Method 2: Slash Command (Manual Trigger)
+
+**When to Use**: Manual save without typing trigger keywords
+**Requirement**: Slash command file exists at `.claude/commands/save_context.md`
+
+**Usage**:
+```
+/save_context
+```
+
+**What Happens**:
+1. Slash command expands to full prompt
+2. AI agent analyzes conversation history
+3. AI agent creates structured JSON summary
+4. AI agent calls `generate-context.js` with JSON data
+5. Context saved to active spec folder's `memory/` directory
+
+**Result**: Same output as hook auto-trigger, but AI-driven instead of hook-driven
+
+#### Method 3: Direct Script Execution (Development/Testing)
+
+**When to Use**: Testing, debugging, custom workflows
+**Requirement**: Node.js installed
+
+**Usage**:
+```bash
+# Create minimal JSON data file
+cat > /tmp/test-save-context.json << 'EOF'
+{
+  "SPEC_FOLDER": "049-anchor-context-retrieval",
+  "recent_context": [{
+    "request": "Test save-context execution",
+    "completed": "Verified system works standalone",
+    "learning": "Direct script execution requires minimal JSON",
+    "duration": "5m",
+    "date": "2025-11-28T18:30:00Z"
+  }],
+  "observations": [{
+    "type": "discovery",
+    "title": "Standalone execution test",
+    "narrative": "Testing direct script invocation",
+    "timestamp": "2025-11-28T18:30:00Z",
+    "files": [],
+    "facts": ["No hooks required", "Minimal data sufficient"]
+  }],
+  "user_prompts": [{
+    "prompt": "Test save-context standalone",
+    "timestamp": "2025-11-28T18:30:00Z"
+  }]
+}
+EOF
+
+# Execute script directly
+cd /path/to/project
+node .claude/skills/workflows-save-context/scripts/generate-context.js \
+  /tmp/test-save-context.json \
+  "049-anchor-context-retrieval"
+```
+
+**Result**: Context saved to specified spec folder's `memory/` directory
+
+#### Method 4: Helper Script (Standalone - Easiest Manual Invocation)
+
+**When to Use**: Manual saves without hooks or slash commands
+**Requirement**: Node.js and jq installed
+
+**Location**: `.claude/skills/workflows-save-context/scripts/save-context-manual.sh`
+
+**Usage**:
+```bash
+# Save to specific spec folder
+bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh \
+  "049-anchor-context-retrieval" \
+  "Manual save session"
+
+# Auto-detect most recent spec folder
+bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh
+
+# Show help
+bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh --help
+```
+
+**What It Does**:
+1. Auto-detects most recent spec folder (if not specified)
+2. Creates minimal JSON data with placeholder content
+3. Calls `generate-context.js` with proper arguments
+4. Shows success confirmation with file location
+
+**Result**: Context saved with minimal placeholder data (useful for testing)
+
+#### Execution Method Comparison
+
+| Method | Hooks Required | AI Agent Required | Use Case | Effort |
+|--------|----------------|-------------------|----------|--------|
+| **Hook Auto-Trigger** | ✅ Yes | ❌ No | Production | Zero |
+| **Slash Command** | ❌ No | ✅ Yes | Manual save | Low |
+| **Direct Script** | ❌ No | ❌ No | Testing/Debug | Medium |
+| **Helper Script** | ❌ No | ❌ No | Standalone | Low |
+
+**Key Principle**: Hooks supplement the system but are **NOT required**. All execution paths work independently.
 
 **Output Files** (both methods):
 ```
@@ -186,6 +282,117 @@ This skill is **standalone** - it does NOT use claude-mem MCP or external memory
   - Linear pattern (≤4 phases): Sequential workflows
   - Parallel pattern (>4 phases): Concurrent tasks
 - **Decision Trees**: Visual breakdown of key decisions with options/rationale
+
+### Retrieving Saved Context (v9.0+ - Anchor-Based Retrieval)
+
+**New in v9.0**: Memory files now include searchable HTML comment anchors for task-oriented context retrieval.
+
+**Why Anchor-Based Retrieval**:
+- **Token Efficiency**: Load relevant sections (500-1500 tokens) instead of full files (10k-15k tokens)
+- **Task-Oriented**: Search by what was done ("OAuth implementation") not when it happened
+- **Grep-Friendly**: Simple command-line extraction without parsing markdown or JSON
+
+**Anchor Format**: `<!-- anchor: category-keywords-spec# -->`
+- Example: `<!-- anchor: implementation-oauth-callback-049 -->`
+- Categories: implementation, decision, guide, architecture, files, discovery, integration
+
+**Quick Search - Find Memory Files**:
+```bash
+# Find all memory files containing OAuth implementation
+grep -l "anchor: implementation-oauth" specs/*/memory/*.md
+
+# Find all decision anchors about authentication
+grep -l "anchor: decision.*auth" specs/*/memory/*.md
+
+# List all available anchors in a memory file
+grep -o 'anchor: [a-z0-9-]*' specs/049-*/memory/*.md | sort -u
+```
+
+**Extract Specific Sections**:
+```bash
+# Extract OAuth implementation section (500-1500 tokens vs 10k+ for full file)
+sed -n '/<!-- anchor: implementation-oauth-callback-049 -->/,/<!-- \/anchor: implementation-oauth-callback-049 -->/p' \
+  specs/049-anchor-context-retrieval/memory/23-11-28_14-30__anchor-context.md
+
+# Extract decision about JWT vs Sessions
+sed -n '/<!-- anchor: decision-jwt-sessions-049 -->/,/<!-- \/anchor: decision-jwt-sessions-049 -->/p' \
+  specs/049-*/memory/*.md
+
+# Extract summary section (always available)
+sed -n '/<!-- anchor: summary-049 -->/,/<!-- \/anchor: summary-049 -->/p' \
+  specs/049-*/memory/*.md
+```
+
+**Backward Compatibility**:
+- **v8.x and earlier**: Memory files do NOT include anchor tags - use full file reading
+- **v9.0+**: All new memory files include anchor tags automatically
+- **Migration**: No action needed - old files work as-is, new files include anchors
+- **Detection**: Check for `<!-- anchor:` presence to determine if file supports anchors
+
+**Best Practices**:
+1. **Always grep first**: Find which memory files contain relevant anchors before extraction
+2. **Use wildcards**: `specs/*/memory/*.md` searches across all spec folders
+3. **Verify anchor exists**: `grep -q "anchor: ${ANCHOR_ID}"` before sed extraction
+4. **Fallback to full read**: If anchor not found, read entire file (v8.x compatibility)
+
+**Token Savings Example**:
+```
+Traditional approach: Read full memory file = 12,000 tokens
+Anchor-based approach: Read specific section = 800 tokens
+Savings: 93% token reduction (14x more efficient)
+```
+
+**Context Retrieval Commands** (Phase 3-4):
+
+The `load-related-context.sh` script provides intelligent memory file access:
+
+| Command | Purpose | Example | Token Count |
+|---------|---------|---------|-------------|
+| `list` | Show all memory sessions | `load-related-context.sh "049-..." list` | N/A |
+| `summary` | Load summary from recent file | `load-related-context.sh "049-..." summary` | ~400 tokens |
+| `search <kw>` | Find anchors by keyword | `load-related-context.sh "049-..." search "oauth"` | N/A |
+| `extract <id>` | Load specific section | `load-related-context.sh "049-..." extract "decision-jwt-049"` | ~600 tokens |
+| `recent N` | Load last N summaries | `load-related-context.sh "049-..." recent 3` | ~900 tokens |
+| `smart <query>` | Relevance-ranked search | `load-related-context.sh "049-..." smart "auth bug"` | ~600 tokens |
+| `search_all <kw>` | Cross-spec search | `load-related-context.sh search_all "oauth"` | Varies |
+
+**Retrieval Decision Tree**:
+```
+Need context? → How much?
+├─ Quick refresh         → summary (400 tokens, 97% reduction)
+├─ Specific decision     → extract <anchor-id> (600 tokens, 95% reduction)
+├─ Recent history        → recent 3 (900 tokens, 92% reduction)
+├─ Find something        → search <keyword> (then extract)
+├─ Smart search          → smart <query> (relevance-ranked results)
+├─ Cross-project search  → search_all <keyword>
+└─ Comprehensive         → Read full file (12,000 tokens, when needed)
+```
+
+**Relevance Scoring** (Phase 4):
+
+Smart and search_all commands use weighted multi-dimensional scoring:
+
+- **Category Match** (35%): decision > implementation > guide > architecture
+- **Keyword Overlap** (30%): Number of query keywords in anchor ID
+- **Recency Factor** (20%): Newer files rank higher (1 / days+1)
+- **Spec Proximity** (15%): Same spec=1.0, parent=0.8, other=0.3
+
+Formula: `score = (category*0.35 + keywords*0.30 + recency*0.20 + proximity*0.15) * 100`
+
+**Hook Integration**:
+
+When you return to a spec folder with memory files, the hook asks:
+```
+🧠 MEMORY FILES DETECTED - Found N previous session file(s)
+
+Would you like to load previous session context?
+  A) Load most recent session (summary only)
+  B) Load last 3 sessions (multi-summary)
+  C) List all sessions and select specific
+  D) Skip (start fresh)
+
+Choose an option (A/B/C/D):
+```
 
 ---
 
@@ -419,6 +626,48 @@ specs/122-skill-standardization/
 - Skip alignment check (backward compatible)
 - Use most recent spec folder automatically
 
+### Sub-Folder Marker Validation
+
+**Purpose**: Ensures `.spec-active.{SESSION_ID}` marker preserves full sub-folder paths when sub-folder versioning is active.
+
+**Problem**: When reusing a spec folder with root-level content (Option A workflow), the hook may write the parent folder path to the marker instead of the full sub-folder path, causing save-context to save to the wrong memory/ directory.
+
+**Validation Pattern** (applied in enforce-spec-folder.sh):
+```bash
+# Validate if sub-folder needed before creating marker
+local target_folder="$stored_folder"
+if has_root_level_content "$stored_folder" && [ -f "$SPEC_MARKER" ]; then
+  # Sub-folder exists - use path from existing marker
+  target_folder=$(cat "$SPEC_MARKER" 2>/dev/null | tr -d '\n')
+fi
+create_spec_marker "$target_folder"
+```
+
+**When Validation Triggers**:
+- User selects Option A (reuse existing spec folder)
+- Spec folder has root-level markdown files (indicates sub-folder structure)
+- A `.spec-active.{SESSION_ID}` marker already exists
+
+**Behavior**:
+- **With validation**: Reads existing marker containing full sub-folder path (e.g., `specs/006-commands/004-plan-claude-upgrade`)
+- **Without validation**: Would use parent folder path only (e.g., `specs/006-commands`) - WRONG
+- **Result**: save-context saves to correct sub-folder's memory/ directory
+
+**Safety Warning** (added to create_spec_marker() function):
+```bash
+# Safety check: warn if creating marker for folder with root content
+if has_root_level_content "$spec_path"; then
+  echo "⚠️  WARNING: Creating marker for folder with root content: $spec_path" >&2
+  echo "   This may indicate sub-folder versioning is needed" >&2
+  echo "   If this is intentional, ignore this warning" >&2
+fi
+```
+
+**Troubleshooting**:
+- If save-context saves to parent memory/ instead of sub-folder memory/: Check marker content with `cat .claude/.spec-active.*`
+- Expected marker content: Full sub-folder path (e.g., `specs/122-feature/003-iteration`)
+- Incorrect marker content: Parent path only (e.g., `specs/122-feature`)
+
 ### AUTO_SAVE_MODE Environment Variable
 
 The `AUTO_SAVE_MODE` environment variable controls how the save-context script behaves when invoked programmatically (by hooks or automation).
@@ -452,6 +701,73 @@ node generate-context.js data.json
 - Skill will fail with clear error message
 - Error instructs user to create spec folder first: `mkdir -p specs/###-feature-name/`
 - Aligns with conversation-documentation mandate that all conversations require spec folders
+
+### Troubleshooting Context Retrieval (Phase 3-4)
+
+Common issues with load-related-context.sh commands and solutions:
+
+| Issue | Symptom | Solution |
+|-------|---------|----------|
+| **Anchor not found** | `⚠️  Anchor not found: X` | Use `search <keyword>` to find available anchors, or verify anchor ID spelling |
+| **Memory folder empty** | `📚 No previous sessions found` | Run `save context` command to create first memory file in spec folder |
+| **Wrong memory loaded** | Context from different session/spec | Check `.spec-active.*` marker matches your SESSION_ID and spec folder |
+| **V8.x file detected** | `⚠️ v8.x format detected` | Re-save context to generate v9.0 anchors, or use Read tool for full file |
+| **Token budget exceeded** | `🛑 Token budget exceeded: N tokens` | Use `summary` (~400 tokens) or `extract <id>` (~600 tokens) instead of full file |
+| **No results from smart search** | `❌ No anchors found matching: query` | Check keywords match anchor IDs, try broader terms, or use `list` to see available files |
+| **Cross-spec search fails** | `❌ No memory files found` | Ensure other spec folders have `memory/*.md` files with v9.0 anchors |
+| **Session marker mismatch** | Loads context from parallel session | Set/check `CLAUDE_SESSION_ID` environment variable for session isolation |
+
+**Debugging Commands**:
+```bash
+# Check if memory file has anchors (v9.0 vs v8.x)
+grep -c "<!-- anchor:" specs/049-*/memory/*.md
+
+# List all available anchor IDs in a file
+grep -o 'anchor: [a-z0-9-]*' specs/049-*/memory/*.md | sed 's/anchor: //' | sort -u
+
+# Check which session marker is active
+ls -la .claude/.spec-active* && cat .claude/.spec-active.*
+
+# Find all v9.0 memory files across project
+find specs -name "*.md" -path "*/memory/*" -exec grep -l "<!-- anchor:" {} \;
+
+# Test relevance scoring on specific anchor
+source .claude/hooks/lib/relevance-scorer.sh
+show_score_breakdown "decision-auth-049" "authentication decision" \
+  "specs/049-*/memory/*.md" "049-folder"
+```
+
+**v9.0 vs v8.x Detection**:
+```bash
+# v9.0 file (with anchors) - supports extract, smart, search_all
+grep -q "<!-- anchor:" file.md && echo "v9.0 (supports anchors)" || echo "v8.x (full read only)"
+
+# Count v9 vs v8 files in spec folder
+v9_count=$(find specs/049-*/memory -name "*.md" -exec grep -l "<!-- anchor:" {} \; | wc -l)
+v8_count=$(find specs/049-*/memory -name "*.md" | wc -l)
+echo "v9.0: $v9_count | v8.x: $((v8_count - v9_count))"
+```
+
+**Common Workflow Issues**:
+
+1. **"I can't find a specific decision I know we made"**
+   - Solution: Use `search_all "decision keyword"` to search across all spec folders
+   - Example: `load-related-context.sh search_all "auth decision" --limit 10`
+
+2. **"Smart search returns nothing but I know the content exists"**
+   - Cause: Most files are v8.x format (no anchors)
+   - Solution: Re-save context in those spec folders to generate v9.0 anchors
+   - Workaround: Use `list` + Read tool for v8.x files
+
+3. **"Context loaded from wrong spec folder"**
+   - Cause: Session marker points to different folder
+   - Solution: Check `.spec-active.{SESSION_ID}` content, or use full spec path
+   - Example: `load-related-context.sh "001-skills/049-feature" summary`
+
+4. **"Relevance scores seem wrong"**
+   - Cause: Category weights or keyword matching not optimal for your use case
+   - Solution: Use `show_score_breakdown` to debug, adjust query keywords
+   - Future: Category weights will be configurable in `.claude/configs/`
 
 ---
 

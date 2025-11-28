@@ -33,7 +33,7 @@ Execute the following steps:
    - If query is empty, return `STATUS=FAIL ERROR="Query is required"`
 
 2. **Determine workspace path:**
-   - Use current working directory: `/Users/michelkerkmeester/MEGA/Development/Websites/anobel.com`
+   - Use current working directory: `/path/to/your/project`
    - This should match the workspace configured in the MCP server
 
 3. **Execute semantic search:**
