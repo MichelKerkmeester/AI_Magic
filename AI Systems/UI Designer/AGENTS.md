@@ -66,7 +66,7 @@ Use `generate_summary` to review the thinking process before taking action.
 **FOLLOW THE INSTRUCTIONS BELOW IMMEDIATELY.**
 
 ### **✅ STEP 1: READ SYSTEM PROMPT FIRST** 
-**MANDATORY:** Read `/knowledge base/UI Designer - v0.103.md` **COMPLETELY** before proceeding.
+**MANDATORY:** Read `/knowledge base/UI Designer - v0.110.md` **COMPLETELY** before proceeding.
 
 This is your PRIMARY instruction set that contains:
 - Complete routing logic with context scanning (mandatory)
@@ -80,7 +80,7 @@ This is your PRIMARY instruction set that contains:
 
 ### **📚 STEP 2: READ SUPPORTING DOCUMENTS AS NEEDED**
 
-Based on routing logic in v0.103, read supporting documents:
+Based on routing logic in v0.110, read supporting documents:
 
 1. **Interactive Intelligence** — `/knowledge base/UI Designer - Interactive Intelligence.md`
    - Step-by-step confirmation workflow (Layout → Visual → Animation)
@@ -108,8 +108,8 @@ Based on routing logic in v0.103, read supporting documents:
 ## 3. ⛔ ABSOLUTE REQUIREMENTS
 
 ### DO NOT:
-- ❌ Skip the system prompt (`/knowledge base/UI Designer - v0.103.md`)
-- ❌ Proceed without reading v0.103 completely
+- ❌ Skip the system prompt (`/knowledge base/UI Designer - v0.110.md`)
+- ❌ Proceed without reading v0.110 completely
 - ❌ Skip scanning /context/ and /context/Design System/ folders (mandatory)
 - ❌ Read ALL documents unnecessarily (routing logic determines what's needed)
 - ❌ Answer your own questions (always wait for user)
@@ -119,11 +119,11 @@ Based on routing logic in v0.103, read supporting documents:
 - ❌ Violate role boundaries defined in Context Override
 
 ### ALWAYS:
-- ✅ Start with `/knowledge base/UI Designer - v0.103.md`
-- ✅ Scan /context/ folders first (v0.103 Section 3: Step 1)
-- ✅ Follow routing logic in v0.103 (Section 3)
-- ✅ Apply file organization rules (v0.103 Section 3: File Organization)
-- ✅ Respect processing hierarchy (v0.103 Section 3: Processing Hierarchy)
+- ✅ Start with `/knowledge base/UI Designer - v0.110.md`
+- ✅ Scan /context/ folders first (v0.110 Section 3: Step 1)
+- ✅ Follow routing logic in v0.110 (Section 3)
+- ✅ Apply file organization rules (v0.110 Section 3: File Organization)
+- ✅ Respect processing hierarchy (v0.110 Section 3: Processing Hierarchy)
 - ✅ **SHOW MULTI-PERSPECTIVE ANALYSIS TO USER** - Display count + insights (MANDATORY)
 - ✅ Use React + TypeScript + shadcn/ui + Tailwind CSS stack
 - ✅ Apply step-by-step confirmations (Layout → Visual → Animation)
@@ -136,13 +136,13 @@ Based on routing logic in v0.103, read supporting documents:
 ## 4. 🚨 PROCESSING HIERARCHY
 
 1. **Context Override FIRST** - UI prototyping specialist role boundaries enforced
-2. **System Prompt (v0.103)** - Read completely, contains all routing logic
-3. **Context Scanning** - Scan /context/ folders (mandatory, from v0.103 Section 3)
-4. **Apply Routing** - Follow STYLE.md/reference detection in v0.103 Section 3
+2. **System Prompt (v0.110)** - Read completely, contains all routing logic
+3. **Context Scanning** - Scan /context/ folders (mandatory, from v0.110 Section 3)
+4. **Apply Routing** - Follow STYLE.md/reference detection in v0.110 Section 3
 5. **Supporting Documents** - Read as determined by routing logic
 6. **CANVAS Framework** - Apply 6 phases with step-by-step confirmations
 7. **Multi-Perspective Analysis** - Minimum 3, target 7 (MANDATORY)
 8. **Generate Components** - React + shadcn/ui with quality validation
-9. **Deliver** - Save to /export/{folder}/ following all rules in v0.103
+9. **Deliver** - Save to /export/{folder}/ following all rules in v0.110
 
-**→ GO TO:** `/knowledge base/UI Designer - v0.103.md` **NOW**
+**→ GO TO:** `/knowledge base/UI Designer - v0.110.md` **NOW**
