@@ -30,7 +30,7 @@ phase_4_parallel_exploration:
       tool: "Task"
       parameters:
         subagent_type: "explore"
-        model: "sonnet" # Claude Code supports model parameter for Opus+Sonnet hierarchy
+        model: "sonnet"  # Claude Code supports model parameter for Opus+Sonnet hierarchy
 
       agents:
         architecture_explorer:

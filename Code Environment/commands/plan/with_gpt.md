@@ -1,33 +1,35 @@
 ---
-description: Create a detailed implementation plan using GPT models via Copilot for parallel exploration (OpenCode)
+description: Create a detailed implementation plan using GPT orchestrator with Sonnet explorers (OpenCode)
 argument-hint: <task description> [mode:simple|mode:complex]
 allowed-tools: Read, Write, Edit, Glob, Grep, Task, AskUserQuestion
 agent: plan
+model: gpt
 ---
 
-# Implementation Plan with GPT/Codex (OpenCode)
+# Implementation Plan with GPT Orchestrator (OpenCode)
 
-Create comprehensive implementation plans using GPT models (via OpenCode Copilot) for parallel codebase exploration to thoroughly analyze before any code changes.
+Create comprehensive implementation plans using **GPT as orchestrator** with Sonnet agents for parallel codebase exploration.
 
 **Platform**: OpenCode with Copilot integration
-**Orchestrator**: Claude (main agent)
-**Explorers**: GPT-4o/5.1 agents via Copilot (parallel exploration)
+**Orchestrator**: GPT via Copilot (task understanding, verification, synthesis)
+**Explorers**: Sonnet agents × 4 (parallel exploration) - with intelligent fallback
 
 ---
 
 ## Purpose
 
 Enter PLANNING MODE to create detailed, verified implementation plans. This command:
-1. Analyzes task complexity and selects appropriate mode (simple or complex)
-2. Spawns multiple GPT-based agents in parallel via Copilot to discover codebase patterns
-3. Synthesizes GPT findings into a structured plan using YAML workflow
-4. Requires user approval before implementation begins
+1. **GPT orchestrates** the entire planning workflow (task understanding, agent coordination, verification)
+2. **Spawns 4 Sonnet agents** in parallel for fast, cost-effective codebase exploration
+3. **Falls back gracefully** if Sonnet unavailable (tries other models, then self-exploration)
+4. **GPT verifies** all findings by reading actual code before creating plan
+5. Requires user approval before implementation begins
 
-**Key Difference from with_claude**:
-- Uses **GPT models via Copilot** for exploration instead of Claude models
-- Provides alternative AI perspective on codebase patterns
-- GPT may excel at certain code pattern recognition tasks
-- Same parallel agent architecture as Claude Code
+**Key Architecture**:
+- **GPT Orchestrator**: Provides GPT's perspective on planning, synthesis, and code understanding
+- **Sonnet Explorers**: Fast parallel agents for efficient codebase discovery
+- **Hybrid Strength**: Combines GPT's planning expertise with Sonnet's exploration speed
+- **Intelligent Fallback**: Automatically adapts if Sonnet agents unavailable
 
 **Modes:**
 - **Simple Mode** (<500 LOC): Single plan.md file using `simple_mode.yaml`
@@ -92,39 +94,62 @@ If no mode override specified, analyze task complexity:
 
    - **COMPLEX mode** (≥500 LOC): Use the Read tool to load `.opencode/command/plan/assets/complex_mode.yaml`. Note: Complex mode is a stub as of Phase 1.5 and will notify user to fall back to simple mode.
 
-7. **YAML workflow executes automatically with GPT model override:**
+7. **YAML workflow executes with GPT orchestration + Sonnet exploration:**
 
    The loaded YAML prompt contains the complete 8-phase workflow:
-   - **Phases 1-3**: Task Understanding, Spec Folder Setup, Context Loading
-   - **Phases 4-5**: Parallel Exploration (4 GPT agents via Copilot), Hypothesis Verification (Claude)
-   - **Phase 6**: Plan Creation (simple_mode or complex_mode)
+   - **Phases 1-3**: Task Understanding (GPT), Spec Folder Setup, Context Loading
+   - **Phases 4-5**: Parallel Exploration (4 Sonnet agents), Hypothesis Verification (GPT)
+   - **Phase 6**: Plan Creation (GPT synthesis)
    - **Phases 7-8**: User Review & Confirmation, Context Persistence
 
    **CRITICAL OVERRIDE for Phase 4 (Parallel Exploration):**
 
-   When spawning the 4 Explore agents, use GPT models via Copilot instead of Claude:
+   When spawning the 4 Explore agents, use **Sonnet agents** for fast parallel exploration:
 
    ```yaml
+   # Primary strategy: Spawn 4 Sonnet agents
    Task({
      subagent_type: "Explore",
-     model: "gpt-4o",  # Or "gpt-5.1" if available via Copilot
+     model: "sonnet",  # Claude Sonnet for fast exploration
      description: "Architecture exploration",
      prompt: "[exploration prompt from YAML]"
    })
    ```
 
    **Spawn all 4 agents in parallel** (single message with 4 Task calls):
-   - Architecture Explorer (GPT)
-   - Feature Explorer (GPT)
-   - Dependency Explorer (GPT)
-   - Test Explorer (GPT)
+   - Architecture Explorer (Sonnet)
+   - Feature Explorer (Sonnet)
+   - Dependency Explorer (Sonnet)
+   - Test Explorer (Sonnet)
 
-   **Model Selection:**
-   - Use GPT-4o by default (fast, capable)
-   - Use GPT-5.1 if available and configured in Copilot
-   - OpenCode routes to appropriate GPT model via Copilot integration
+   **Fallback Strategy (if Sonnet spawn fails):**
 
-   All phases execute sequentially: 1 → 2 → 3 → 4 (GPT) → 5 (Claude verifies) → 6 → 7 → 8
+   If Sonnet agents are unavailable or spawn fails:
+
+   1. **Try alternative models** available via Copilot:
+      ```yaml
+      # Fallback Option 1: Try GPT agents
+      Task({
+        subagent_type: "Explore",
+        model: "gpt",  # Same as orchestrator
+        description: "Architecture exploration",
+        prompt: "[exploration prompt from YAML]"
+      })
+      ```
+
+   2. **Self-exploration** (if no agents available):
+      - GPT orchestrator performs exploration inline using Glob/Grep/Read tools
+      - Sequential but thorough codebase analysis
+      - Document that parallel agents were unavailable
+      - Slower but still produces quality plan
+
+   **Model Priority:**
+   1. Sonnet (preferred - fast, cost-effective)
+   2. GPT (fallback - same as orchestrator)
+   3. Other available models (Haiku, etc.)
+   4. Self-exploration (no agents - inline analysis)
+
+   All phases execute sequentially: 1 → 2 → 3 → 4 (Sonnet/fallback) → 5 (GPT verifies) → 6 → 7 → 8
 
    **Expected outputs:**
    - Simple mode: `specs/###-name/plan.md` (500-2000 lines)
@@ -134,18 +159,19 @@ If no mode override specified, analyze task complexity:
 
 8. **Display phase progress to user:**
    ```
-   🔍 Planning Mode Activated (GPT Explorer via Copilot)
+   🔍 Planning Mode Activated (GPT Orchestrator + Sonnet Explorers)
 
    Task: {task_description}
    Mode: {SIMPLE/COMPLEX} ({loc_estimate} LOC estimated)
-   Explorer Model: GPT-4o via Copilot
+   Orchestrator: GPT via Copilot
+   Explorers: Sonnet agents (with fallback)
 
-   📋 Phase 1: Task Understanding & Session Initialization...
+   📋 Phase 1: Task Understanding & Session Initialization (GPT)...
    📁 Phase 2: Spec Folder Setup...
    🧠 Phase 3: Context Loading...
-   📊 Phase 4: Parallel Exploration (4 GPT agents via Copilot)...
-   🔬 Phase 5: Hypothesis Verification (Claude review)...
-   📝 Phase 6: Plan Creation...
+   📊 Phase 4: Parallel Exploration (4 Sonnet agents)...
+   🔬 Phase 5: Hypothesis Verification (GPT review)...
+   📝 Phase 6: Plan Creation (GPT synthesis)...
    👤 Phase 7: User Review & Confirmation...
    💾 Phase 8: Context Persistence...
    ```
@@ -157,7 +183,8 @@ If no mode override specified, analyze task complexity:
 | Failure Type                | Recovery Action                                          |
 | --------------------------- | -------------------------------------------------------- |
 | Copilot unavailable         | Fall back to with_claude command                         |
-| GPT model not accessible    | Fall back to default Claude explorers                    |
+| GPT model not accessible    | Fall back to with_claude command                         |
+| Sonnet agents unavailable   | Try GPT agents → other models → self-exploration         |
 | Task unclear                | Use AskUserQuestion to clarify (handled in YAML Phase 1) |
 | Explore agents find nothing | Expand search scope (handled in YAML Phase 4)            |
 | Conflicting findings        | Document both perspectives, ask user (YAML Phase 5)      |
@@ -177,6 +204,7 @@ If no mode override specified, analyze task complexity:
 | Explore agents timeout | Continue with available results (handled in YAML)                                       |
 | Plan file exists       | Ask to overwrite or create new version (handled in YAML Phase 6)                        |
 | Copilot not configured | Error: "OpenCode Copilot not configured. Run setup or use /plan:with_claude"            |
+| Sonnet spawn fails     | Auto-fallback to GPT agents → other models → self-exploration                           |
 
 ---
 
@@ -184,13 +212,13 @@ If no mode override specified, analyze task complexity:
 
 ### Basic Planning (Auto-Detect Mode)
 ```bash
-/plan:with_codex Add user authentication with OAuth2
-# Uses GPT-4o agents via Copilot for exploration
+/plan:with_gpt Add user authentication with OAuth2
+# GPT orchestrator spawns 4 Sonnet agents for exploration
 ```
 
 ### Explicit Simple Mode
 ```bash
-/plan:with_codex "Refactor authentication (800 LOC)" mode:simple
+/plan:with_gpt "Refactor authentication (800 LOC)" mode:simple
 # Forces SIMPLE mode despite LOC estimate
 ```
 
@@ -199,13 +227,14 @@ If no mode override specified, analyze task complexity:
 ## Example Output
 
 ```
-🔍 Planning Mode Activated (GPT Explorer via Copilot)
+🔍 Planning Mode Activated (GPT Orchestrator + Sonnet Explorers)
 
 Task: Add user authentication with OAuth2
 Mode: SIMPLE (300 LOC estimated)
-Explorer Model: GPT-4o via Copilot
+Orchestrator: GPT via Copilot
+Explorers: Sonnet agents
 
-📋 Phase 1: Task Understanding & Session Initialization
+📋 Phase 1: Task Understanding & Session Initialization (GPT)
   ✓ Task parsed: Implement OAuth2 authentication flow
   ✓ SESSION_ID extracted: abc123
 
@@ -216,21 +245,22 @@ Explorer Model: GPT-4o via Copilot
 🧠 Phase 3: Context Loading
   ℹ No previous memory files found - starting fresh
 
-📊 Phase 4: Parallel Exploration (4 GPT agents via Copilot)
-  ├─ Architecture Explorer (GPT-4o): analyzing project structure...
-  ├─ Feature Explorer (GPT-4o): finding auth patterns...
-  ├─ Dependency Explorer (GPT-4o): mapping imports...
-  └─ Test Explorer (GPT-4o): reviewing test infrastructure...
+📊 Phase 4: Parallel Exploration (4 Sonnet agents)
+  ├─ Architecture Explorer (Sonnet): analyzing project structure...
+  ├─ Feature Explorer (Sonnet): finding auth patterns...
+  ├─ Dependency Explorer (Sonnet): mapping imports...
+  └─ Test Explorer (Sonnet): reviewing test infrastructure...
   ✅ Exploration Complete (28 files identified)
 
-🔬 Phase 5: Hypothesis Verification (Claude review)
-  ├─ Verifying GPT hypotheses...
+🔬 Phase 5: Hypothesis Verification (GPT review)
+  ├─ Verifying Sonnet hypotheses (GPT reading files)...
   ├─ Cross-referencing agent findings...
-  └─ Building complete mental model...
+  └─ Building complete mental model with GPT perspective...
   ✅ Verification Complete
 
-📝 Phase 6: Plan Creation
+📝 Phase 6: Plan Creation (GPT synthesis)
   ✓ Plan file created: specs/042-oauth2-auth/plan.md
+  ✓ GPT perspective applied to plan structure
 
 👤 Phase 7: User Review & Confirmation
   Please review and confirm to proceed.
@@ -247,33 +277,42 @@ STATUS=OK ACTION=plan_created PATH=specs/042-oauth2-auth/plan.md
 
 ## Notes
 
-- **GPT via Copilot Integration:**
+- **GPT Orchestration:**
+  - GPT handles task understanding, agent coordination, verification, synthesis
   - Uses OpenCode's Copilot integration for GPT model access
-  - Spawns agents via Task tool with GPT model specification
-  - Same parallel architecture as Claude Code (4 agents in single message)
-  - GPT provides alternative AI perspective on code patterns
+  - Provides GPT's unique perspective on planning and code patterns
+  - Different strengths than Claude for certain types of analysis
 
-- **Model Hierarchy:**
-  - Orchestrator: Claude (task understanding, verification, synthesis)
-  - Explore Agents: GPT-4o/5.1 via Copilot (fast parallel discovery)
-  - Task tool routes to GPT via OpenCode's Copilot configuration
+- **Sonnet Exploration:**
+  - Spawns 4 Sonnet agents via Task tool for parallel discovery
+  - Fast, cost-effective exploration phase
+  - Sonnet excels at quick codebase pattern recognition
+  - Parallel execution keeps total time low (15-35 seconds)
 
-- **Why GPT for Exploration:**
-  - Alternative AI perspective on code patterns
-  - May excel at certain language-specific patterns
-  - Different training data and strengths than Claude
-  - Parallel execution keeps total time low
+- **Hybrid Architecture Benefits:**
+  - **GPT Planning**: Strategic thinking, synthesis, code understanding
+  - **Sonnet Exploration**: Fast parallel discovery, pattern recognition
+  - **Best of Both**: Combines strengths of different models
+  - **Cost Efficient**: Expensive GPT for high-value tasks, cheaper Sonnet for exploration
+
+- **Intelligent Fallback:**
+  - Primary: 4 Sonnet agents in parallel
+  - Fallback 1: 4 GPT agents in parallel (if Sonnet unavailable)
+  - Fallback 2: Other available models
+  - Fallback 3: GPT self-exploration (inline, no agents)
+  - Automatically selects best available option
 
 - **Performance:**
-  - Exploration: ~15-35 seconds (4 GPT agents via Copilot)
-  - Verification: ~15-30 seconds (Claude)
-  - Plan creation: ~10-20 seconds
+  - Exploration: ~15-35 seconds (4 Sonnet agents)
+  - Verification: ~15-30 seconds (GPT)
+  - Plan creation: ~10-20 seconds (GPT)
   - **Total**: ~40-85 seconds
 
 - **When to Use:**
-  - Want alternative AI perspective on codebase
-  - GPT may excel at specific code pattern recognition
-  - Comparing different planning approaches
+  - Want GPT's perspective on planning and synthesis
+  - Need fast parallel exploration (Sonnet)
+  - Cost-effective hybrid approach
+  - Comparing different AI perspectives
   - Have OpenCode with Copilot configured
 
 - **Integration:**
@@ -286,7 +325,8 @@ STATUS=OK ACTION=plan_created PATH=specs/042-oauth2-auth/plan.md
   - OpenCode with Copilot integration enabled
   - GitHub Copilot subscription (for GPT model access)
   - Proper model routing configuration in OpenCode
+  - Ideally, access to both GPT and Claude models for full functionality
 
 ---
 
-**Remember**: This command uses GPT models via Copilot for exploration, providing an alternative perspective to Claude-based planning. GPT findings are always verified by Claude reading actual code before inclusion in plans.
+**Remember**: This command uses **GPT as the orchestrator** (planning, verification, synthesis) with **Sonnet as parallel explorers** (fast codebase discovery). The hybrid approach combines GPT's planning strengths with Sonnet's exploration speed and cost-effectiveness.

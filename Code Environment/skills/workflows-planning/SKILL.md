@@ -1,8 +1,8 @@
 ---
 name: workflows-planning
-description: 4-agent parallel exploration for comprehensive planning. Platform-agnostic workflow supporting Claude/GPT/Gemini explorers via Task tool. Used by plan commands (/plan:with_claude_code in Claude Code; /plan:with_claude, /plan:with_codex, /plan:with_gemini in OpenCode). (project)
+description: Hybrid orchestrator + 4-agent parallel exploration for comprehensive planning. Supports single-model (Claude) and hybrid architectures (GPT/Gemini orchestrators with Sonnet explorers). Used by plan commands (/plan:with_claude_code in Claude Code; /plan:with_claude, /plan:with_gpt, /plan:with_gemini in OpenCode). (project)
 allowed-tools: [Read, Write, Task, Glob, Grep, AskUserQuestion]
-version: 2.0.0
+version: 3.0.0
 ---
 
 # Workflows Planning - Multi-Model Parallel Exploration
@@ -35,8 +35,8 @@ Platform-agnostic planning workflow supporting 4-agent parallel codebase explora
 **Slash Commands Using This Workflow**:
 - **Claude Code**: `/plan:with_claude_code` (Opus orchestrator, Sonnet explorers)
 - **OpenCode**: `/plan:with_claude` (Claude orchestrator, Claude explorers)
-- **OpenCode**: `/plan:with_codex` (Claude orchestrator, GPT-4o/5.1 explorers via Copilot)
-- **OpenCode**: `/plan:with_gemini` (Claude orchestrator, Gemini 2.0/3.0 explorers via Copilot)
+- **OpenCode**: `/plan:with_gpt` (GPT orchestrator, Sonnet explorers via Copilot)
+- **OpenCode**: `/plan:with_gemini` (Gemini 3.0 pro orchestrator, Sonnet explorers via Copilot)
 
 **Manual Invocation**:
 - Complex features requiring codebase understanding
@@ -85,32 +85,50 @@ def route_planning_approach(task):
 
 ### Supported Platforms & Models
 
-| Platform | Command | Orchestrator | Explorers | Model Parameter |
-|----------|---------|--------------|-----------|-----------------|
-| **Claude Code** | /plan:with_claude_code | Opus | Sonnet | `model: "sonnet"` |
-| **OpenCode** | /plan:with_claude | Claude | Claude | Default (no model param) |
-| **OpenCode** | /plan:with_codex | Claude | GPT-4o/5.1 | `model: "gpt-4o"` via Copilot |
-| **OpenCode** | /plan:with_gemini | Claude | Gemini 2.0/3.0 | `model: "gemini-2.0-pro"` via Copilot |
+| Platform | Command | Orchestrator | Explorers | Architecture Type |
+|----------|---------|--------------|-----------|-------------------|
+| **Claude Code** | /plan:with_claude_code | Opus | Sonnet | Hybrid (Opus planning + Sonnet exploration) |
+| **OpenCode** | /plan:with_claude | Claude | Claude | Single-model (Claude throughout) |
+| **OpenCode** | /plan:with_gpt | **GPT** | **Sonnet** | **Hybrid (GPT planning + Sonnet exploration)** |
+| **OpenCode** | /plan:with_gemini | **Gemini 3.0 pro** | **Sonnet** | **Hybrid (Gemini planning + Sonnet exploration)** |
 
-### Model Selection Philosophy
+### Hybrid Architecture Philosophy (v3.0)
 
-**Orchestrator (always Claude)**:
-- Task understanding and parsing
-- Hypothesis verification by reading code
-- Plan synthesis and generation
-- Final quality control
+**Hybrid Commands** (with_claude_code, with_gpt, with_gemini):
+- **Orchestrator**: Expensive, sophisticated model handles high-value tasks
+  - Task understanding and parsing
+  - Hypothesis verification by reading code
+  - Plan synthesis and generation
+  - Final quality control
+- **Explorers**: Fast, cost-effective Sonnet agents for parallel discovery
+  - Quick codebase pattern recognition
+  - Parallel execution (4 agents simultaneously)
+  - Returns hypotheses for orchestrator to verify
+- **Benefit**: Best of both worlds - sophisticated planning + fast exploration
 
-**Explorers (varies)**:
-- **Claude (Sonnet)**: Fast, cost-effective, proven for code exploration
-- **GPT (via Copilot)**: Alternative AI perspective, different pattern recognition strengths
-- **Gemini (via Copilot)**: Alternative AI perspective, potential web research, multimodal capabilities
+**Single-Model Command** (with_claude):
+- **Orchestrator**: Claude handles all tasks
+- **Explorers**: Claude agents (consistent model throughout)
+- **Benefit**: Single-model consistency, proven quality
 
-### Why Multiple Models?
+### Intelligent Fallback (Hybrid Commands)
 
-1. **Alternative Perspectives**: Different models find different patterns
-2. **Comparative Planning**: Run multiple commands to compare approaches
-3. **Model Strengths**: Leverage specific capabilities (e.g., Gemini's web search)
-4. **Verification Consistency**: Claude always verifies, ensuring quality
+If Sonnet explorers unavailable, hybrid commands gracefully degrade:
+1. **Primary**: Spawn 4 Sonnet agents (fast, cheap)
+2. **Fallback 1**: Spawn 4 orchestrator model agents (GPT or Gemini)
+3. **Fallback 2**: Try other available models
+4. **Fallback 3**: Orchestrator performs self-exploration (inline Glob/Grep/Read)
+
+Result: Always produces a plan, adapts to available resources.
+
+### Why Hybrid Architecture?
+
+1. **Cost Optimization**: Expensive models for planning, cheap Sonnet for exploration
+2. **Speed**: Sonnet's fast parallel discovery keeps total time low
+3. **Alternative Perspectives**: GPT/Gemini planning provides different insights
+4. **Web Research**: Gemini can augment with Google Search (if enabled)
+5. **Reliability**: Multi-tier fallback ensures plans always generated
+6. **Model Strengths**: Match model capabilities to task requirements
 
 ---
 
@@ -147,7 +165,7 @@ def route_planning_approach(task):
 /plan:with_claude Add user authentication
 
 # Alternative: GPT explorers via Copilot
-/plan:with_codex Add user authentication
+/plan:with_gpt Add user authentication
 
 # Alternative: Gemini explorers via Copilot (+ potential web research)
 /plan:with_gemini Add user authentication
@@ -189,7 +207,7 @@ def route_planning_approach(task):
 ```yaml
 task_description: string       # What needs to be accomplished
 spec_folder_path: string       # From .spec-active marker or user input
-model_preference: string       # Optional: "sonnet" | "gpt-4o" | "gemini-2.0-pro"
+model_preference: string       # Optional: "sonnet" | "gpt" | "gemini-3.0-pro"
 ```
 
 **Outputs**:
@@ -210,7 +228,7 @@ Spawn 4 Explore agents simultaneously using Task tool:
 ```yaml
 agents:
   architecture_explorer:
-    model: <varies>  # "sonnet" | "gpt-4o" | "gemini-2.0-pro"
+    model: <varies>  # "sonnet" | "gpt" | "gemini-3.0-pro"
     subagent_type: "Explore"
     focus: "Project structure, file organization, patterns"
     purpose: "Understand overall architecture"
@@ -270,7 +288,7 @@ Task({
 ```javascript
 Task({
   subagent_type: "Explore",
-  model: "gemini-2.0-pro",  // Gemini via Copilot integration
+  model: "gemini-3.0-pro",  // Gemini via Copilot integration
   description: "Architecture exploration",
   prompt: "[exploration prompt from agent_prompts.md]"
 })
@@ -473,7 +491,7 @@ step_6_planning:
 **Command Files**:
 - `.claude/commands/plan/with_claude_code.md` (Claude Code, Sonnet explorers)
 - `.opencode/command/plan/with_claude.md` (OpenCode, Claude explorers)
-- `.opencode/command/plan/with_codex.md` (OpenCode, GPT explorers via Copilot)
+- `.opencode/command/plan/with_gpt.md` (OpenCode, GPT explorers via Copilot)
 - `.opencode/command/plan/with_gemini.md` (OpenCode, Gemini explorers via Copilot)
 
 All commands use this workflow with different model parameters.
@@ -543,14 +561,14 @@ Claude Verification → plan.md
 ### OpenCode
 
 **Characteristics**:
-- Claude orchestrator for task understanding and verification
+- Hybrid architecture with different orchestrators per command
 - Multiple explorer options via Copilot routing
-- Model parameter varies: none (Claude), `"gpt-4o"`, `"gemini-2.0-pro"`
+- Model parameter varies: none (Claude), `"gpt"`, `"gemini-3.0-pro"`
 
 **Commands**:
-- `/plan:with_claude` - Default Claude explorers
-- `/plan:with_codex` - GPT explorers via Copilot
-- `/plan:with_gemini` - Gemini explorers via Copilot
+- `/plan:with_claude` - Claude orchestrator, Claude explorers
+- `/plan:with_gpt` - GPT orchestrator, Sonnet explorers via Copilot
+- `/plan:with_gemini` - Gemini 3.0 pro orchestrator, Sonnet explorers via Copilot
 
 **Copilot Integration**:
 - Requires OpenCode Copilot integration enabled
