@@ -441,7 +441,7 @@ Read("src/components/hero_section.js")
 - Run `codesql index` to create .codebase/vectors.db
 - Indexer watches files for automatic updates
 
-**Current anobel.com index (as of 2025-11-25):**
+**Current example.com index (as of 2025-11-25):**
 
 - 249 files indexed
 - 496 code blocks

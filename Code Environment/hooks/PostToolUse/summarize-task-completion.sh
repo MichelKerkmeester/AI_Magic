@@ -70,16 +70,15 @@ if [ -f "$MAPPING_FILE" ]; then
   AGENT_ID=$(grep -F "${DESCRIPTION}|" "$MAPPING_FILE" 2>/dev/null | tail -1 | cut -d'|' -f2 | tr -d '[:space:]')
 fi
 
-# Fallback: try to find agent by description in state file directly
+# Fallback: try to find agent by description using library function
 if [ -z "$AGENT_ID" ]; then
-  STATE_FILE="/tmp/claude_hooks_state/agent_tracking.json"
-  if [ -f "$STATE_FILE" ]; then
-    AGENT_ID=$(jq -r --arg desc "$DESCRIPTION" '
-      (.active_agents | to_entries[] | select(.value.description == $desc) | .key) //
-      (.completed_agents | to_entries[] | select(.value.description == $desc) | .key) // empty
-    ' "$STATE_FILE" 2>/dev/null | head -1)
-  fi
+  AGENT_ID=$(find_agent_by_description "$DESCRIPTION" 2>/dev/null)
 fi
+
+# Log agent resolution for debugging
+{
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] RESOLVE desc='$DESCRIPTION' agent_id='$AGENT_ID'"
+} >> "$LOG_FILE" 2>/dev/null
 
 # Calculate duration with robust fallbacks
 DURATION_SEC="?"
@@ -88,6 +87,11 @@ DURATION_MS=0
 if [ -n "$AGENT_ID" ]; then
   # Try to get agent info from tracking
   AGENT_INFO=$(get_agent_info "$AGENT_ID" 2>/dev/null)
+
+  # Log agent info for debugging
+  {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] AGENT_INFO agent_id='$AGENT_ID' info='$AGENT_INFO'"
+  } >> "$LOG_FILE" 2>/dev/null
 
   if [ -n "$AGENT_INFO" ] && [ "$AGENT_INFO" != "null" ] && [ "$AGENT_INFO" != "{}" ]; then
     START_MS=$(echo "$AGENT_INFO" | jq -r '.start_ms // empty' 2>/dev/null)
@@ -112,10 +116,30 @@ if [ -n "$AGENT_ID" ]; then
           if [ -z "$DURATION_SEC" ] || [ "$DURATION_SEC" = "0.0" ] && [ "$DURATION_MS" -gt 500 ]; then
             DURATION_SEC="$((DURATION_MS / 1000)).$((DURATION_MS % 1000 / 100))"
           fi
+        else
+          {
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] DURATION_FAIL reason=out_of_range duration_ms=$DURATION_MS"
+          } >> "$LOG_FILE" 2>/dev/null
         fi
+      else
+        {
+          echo "[$(date '+%Y-%m-%d %H:%M:%S')] DURATION_FAIL reason=invalid_times start=$START_MS end=$END_MS"
+        } >> "$LOG_FILE" 2>/dev/null
       fi
+    else
+      {
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] DURATION_FAIL reason=no_start_ms start='$START_MS'"
+      } >> "$LOG_FILE" 2>/dev/null
     fi
+  else
+    {
+      echo "[$(date '+%Y-%m-%d %H:%M:%S')] DURATION_FAIL reason=no_agent_info"
+    } >> "$LOG_FILE" 2>/dev/null
   fi
+else
+  {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] DURATION_FAIL reason=no_agent_id"
+  } >> "$LOG_FILE" 2>/dev/null
 fi
 
 # Extract result preview (first 100 chars of meaningful content)

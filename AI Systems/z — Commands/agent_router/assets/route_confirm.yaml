@@ -1,0 +1,623 @@
+# ───────────────────────────────────────────────────────────────
+# AGENT ROUTER: ROUTE WORKFLOW (INTERACTIVE MODE)
+# ───────────────────────────────────────────────────────────────
+role: Universal AI agent coordinator and AGENTS.md compliance enforcer
+purpose: Ensure AGENTS.md is read and applied before any task execution, with user approval at each step
+action: Locate AGENTS.md → Read completely → Follow routing → Parse inputs → Execute per guidelines → Persist context
+
+# ───────────────────────────────────────────────────────────────
+# METADATA
+# ───────────────────────────────────────────────────────────────
+agent_router_metadata:
+  name: "Agent Router - Route Workflow"
+  mode: "interactive"
+  target_features: "AGENTS.md compliance, automatic routing, step-by-step approval, context persistence"
+  output: "Executed request per AGENTS.md guidelines with user oversight"
+  steps: 7
+  estimated_duration: "20-60 seconds (includes user approval time)"
+
+# ───────────────────────────────────────────────────────────────
+# PHILOSOPHY
+# ───────────────────────────────────────────────────────────────
+agent_router_philosophy:
+  principle: "AGENTS.md defines identity and scope for the conversation"
+  approach: "Locate → Read → Route → Execute → Persist"
+  mandate: "Never skip or defer AGENTS.md reading"
+  interactive_principle: "User validates each step before proceeding"
+
+identity_and_scope:
+  workspace_visibility: |
+    The workspace may contain multiple AI Systems, each with its own AGENTS.md file. You can see that these systems exist in the folder structure, but you must treat each AGENTS.md and its containing folder as a separate, self-contained agent.
+
+  agent_identity_source: |
+    Your active identity for this conversation is defined EXCLUSIVELY by the
+    specific AGENTS.md file that you resolve and read:
+    - If [AGENTS_LOCATION] is provided, use [AGENTS_LOCATION]/AGENTS.md.
+    - Otherwise, use the nearest accessible AGENTS.md found via the search priority.
+
+    The folder that contains this resolved AGENTS.md is your agent folder and
+    determines who you are (your role, tone, responsibilities, and capabilities) for the entire duration of this conversation.
+
+  scope_constraints: |
+    Your effective scope for this conversation is LIMITED to the folder that
+    contains the resolved AGENTS.md and its subfolders (the "agent folder").
+
+    Within this scope you may:
+    - Read and apply the agent's own Knowledge Base, context, export, and memory folders.
+    - Create, modify, and organize files, respecting the agent's AGENTS.md rules.
+
+    You must NOT:
+    - Switch your identity mid-conversation to a different AGENTS.md.
+    - Treat yourself as multiple agents at once.
+    - Perform file creation or modification in folders outside the agent folder, unless the active AGENTS.md explicitly authorizes this.
+
+# ───────────────────────────────────────────────────────────────
+# OPERATING MODE
+# ───────────────────────────────────────────────────────────────
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: interactive
+  approvals: step_by_step
+  tracking: progressive_task_checklists
+  validation: checkpoint_based
+  error_handling: STOP on critical failures, clarify on missing info
+
+# ───────────────────────────────────────────────────────────────
+# USER INPUTS
+# ───────────────────────────────────────────────────────────────
+user_inputs:
+  agents_location: |
+    [AGENTS_LOCATION]
+
+    Optional folder path where AGENTS.md is located. Specify this when VS Code is opened at a parent folder level with multiple subfolders that each have their own AGENTS.md file.
+
+    If not specified, search using default order starting from current working directory.
+
+  context: |
+    [CONTEXT]
+
+    Background information about the current environment, project state, existing constraints, or relevant documentation. Helps understand the broader situation before executing the request.
+
+  request: |
+    [REQUEST]
+
+    Describe what you want the agent to do. Be specific about the task, goals, or problem to solve. REQUIRED.
+
+  analysis_scope: |
+    [ANALYSIS_SCOPE]
+
+    Optional additional files, folders, or reference materials that should inform the analysis and execution of the request.
+
+    Components (all optional):
+
+    reference_materials:
+      - "[Path to folder containing relevant documentation]"
+      - "[Path to brand guidelines or style guide]"
+      - "[Path to document template or example]"
+      - "[Path to ticket template or standard]"
+      - "[Path to research framework or example]"
+
+    extract_principles:
+      - "[Brand voice and tone guidelines]"
+      - "[Documentation structure patterns]"
+      - "[Ticket formatting conventions]"
+      - "[Research methodology frameworks]"
+
+    Leave empty or omit if not applicable.
+
+# ───────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ───────────────────────────────────────────────────────────────
+field_handling:
+  defaults:
+    agents_location_empty: "Search using default search order starting from current directory"
+    context_empty: "Infer from REQUEST and AGENTS.md routing analysis"
+    request_empty: "ERROR: REQUEST required - describe the task or goal"
+    analysis_scope_empty: "Proceed with AGENTS.md and routed Knowledge Base documents only"
+
+  agents_location_handling:
+    present: "Prioritize specified path, resolve relative to workspace root"
+    empty: "Use default search order"
+    not_found: "Log warning, fallback to default search order, report to user"
+
+  context_inference:
+    from_request:
+    - extract_task_type
+    - identify_domain_or_topic
+    - detect_urgency_signals
+    - determine_output_expectations
+    from_workspace:
+    - scan_for_agents_md
+    - detect_project_structure
+    - identify_existing_standards
+    - map_export_folder_availability
+    from_routing:
+    - knowledge_base_documents_accessed
+    - guardrails_applied
+    - workflow_requirements_identified
+
+  analysis_scope_handling:
+    reference_materials:
+      present: "Load and scan files/folders for patterns, standards, and context"
+      empty: "Proceed with AGENTS.md routing only"
+      not_accessible: "Log warning and proceed without external references"
+    extract_principles:
+      present: "Extract and apply specified frameworks or patterns"
+      empty: "Use AGENTS.md and Knowledge Base principles only"
+
+# ───────────────────────────────────────────────────────────────
+# WORKFLOW (7 STEPS WITH CHECKPOINTS)
+# ───────────────────────────────────────────────────────────────
+workflow:
+  step_1_locate_agents_md:
+    purpose: Search for and resolve AGENTS.md file
+
+    activities:
+    - Check if [AGENTS_LOCATION] is specified in user inputs
+    - If specified, look for AGENTS.md at that path first
+    - If not specified or not found, use default search order
+    - Search priority: ./AGENTS.md → ../AGENTS.md → ../../AGENTS.md
+    - Check for redirect signals (CLAUDE.md pointing to AGENTS.md)
+    - Resolve the path to the actual AGENTS.md file
+    - Set agent_scope_root to the folder containing resolved AGENTS.md
+    - Lock identity to this AGENTS.md for the conversation
+
+    validation: agents_md_found
+
+    on_failure: |
+      Output error message with search paths tried and guidance.
+      Error: "AGENTS.md not found at specified location or default search paths.
+              Please provide correct [AGENTS_LOCATION] or ensure AGENTS.md exists in workspace."
+      STOP workflow with STATUS=FAIL
+
+    identity_and_scope_binding:
+      agent_scope_root: "Set to the folder containing the resolved AGENTS.md"
+      identity_lock: "From this point on, treat this AGENTS.md and its folder as your sole identity and scope for the conversation"
+
+    outputs:
+    - agents_md_path: "Absolute path to resolved AGENTS.md"
+    - agent_scope_root: "Folder containing AGENTS.md"
+    - identity_locked: true
+
+    # INTERACTIVE MODE CHECKPOINT
+    checkpoint:
+      question: "Step 1 Complete: AGENTS.md located at {agents_md_path}. Agent scope: {agent_scope_root}. How would you like to proceed?"
+      use: AskUserQuestion
+      options:
+        approve:
+          label: "Approve"
+          description: "AGENTS.md location is correct, proceed to reading"
+          action: "Continue to step 2"
+        review:
+          label: "Review Search Path"
+          description: "Show search order and path details"
+          action: "Display search paths tried and resolution logic, then re-prompt"
+        modify:
+          label: "Use Different Path"
+          description: "Specify alternative AGENTS.md location"
+          action: "Accept new path from user, re-execute step 1 with new location"
+        abort:
+          label: "Abort"
+          description: "Cancel workflow"
+          action: "Terminate workflow with STATUS=CANCELLED"
+
+  step_2_read_and_route:
+    purpose: Read AGENTS.md end-to-end and follow internal routing logic
+
+    activities:
+    - Read AGENTS.md file completely (it's a router document, not just static content)
+    - Understand that AGENTS.md contains intelligent routing logic
+    - Extract behavioral guardrails from AGENTS.md
+    - Extract anti-patterns and workflow requirements
+    - Extract confidence framework and core principles
+    - Identify routing instructions embedded in AGENTS.md
+    - Understand AGENTS.md routing is operation/command-aware
+    - Follow AGENTS.md routing to determine which Knowledge Base documents to read
+    - Read all routed Knowledge Base documents based on [CONTEXT] and [REQUEST]
+    - Extract routing-specific instructions for this type of request
+
+    understand:
+    - AGENTS.md is a router, not just a document
+    - It redirects to Knowledge Base documents based on context
+    - It has operation and/or command-aware routing
+    - It defines mandatory reading sequences
+
+    extract:
+    - behavioral_guardrails
+    - anti_patterns
+    - workflow_requirements
+    - confidence_framework
+    - core_principles
+    - routing_instructions
+
+    validation: agents_md_parsed_and_routing_understood
+
+    outputs:
+    - behavioral_guardrails: "Extracted rules and constraints"
+    - routing_instructions: "Which Knowledge Base documents to read"
+    - knowledge_base_documents_read: "List of documents accessed via routing"
+
+    # INTERACTIVE MODE CHECKPOINT
+    checkpoint:
+      question: "Step 2 Complete: AGENTS.md read. Knowledge Base documents accessed: {knowledge_base_documents_read}. Guardrails extracted. How would you like to proceed?"
+      use: AskUserQuestion
+      options:
+        approve:
+          label: "Approve"
+          description: "Routing looks correct, proceed to compliance acknowledgment"
+          action: "Continue to step 3"
+        review:
+          label: "Review Routing"
+          description: "Show Knowledge Base documents and guardrails"
+          action: "Display routing details, guardrails summary, KB documents list, then re-prompt"
+        modify:
+          label: "Adjust Routing"
+          description: "Modify which documents to access"
+          action: "Accept routing modifications from user, re-execute routing with adjusted parameters"
+        abort:
+          label: "Abort"
+          description: "Cancel workflow"
+          action: "Terminate workflow with STATUS=CANCELLED"
+
+  step_3_acknowledge_compliance:
+    purpose: Confirm compliance in first response to user
+
+    activities:
+    - Format compliance acknowledgment message
+    - Include resolved AGENTS.md path
+    - Include 1-3 line summary of agent identity and capabilities
+    - Include list of Knowledge Base documents read via routing
+    - Include specified [AGENTS_LOCATION] if it was provided
+    - Present acknowledgment to user as confirmation
+
+    output_format: |
+      AGENTS.md read and applied: {agents_md_path}
+      Summary: {1-3 line summary of agent identity, role, and capabilities}
+      Knowledge Base routing: {list of documents read based on AGENTS.md routing}
+      {If AGENTS_LOCATION was specified: "Location specified: {agents_location}"}
+
+    validation: compliance_confirmed
+
+    outputs:
+    - compliance_acknowledgment_sent: true
+    - agents_md_summary: "Brief description of agent identity"
+    - routing_summary: "KB documents accessed"
+
+    # INTERACTIVE MODE CHECKPOINT
+    checkpoint:
+      question: "Step 3 Complete: Compliance acknowledged to user. Ready to parse context. Proceed?"
+      use: AskUserQuestion
+      options:
+        approve:
+          label: "Approve"
+          description: "Acknowledgment sent, continue to context parsing"
+          action: "Continue to step 4"
+        review:
+          label: "Review Acknowledgment"
+          description: "Show compliance message that will be sent"
+          action: "Display full acknowledgment text, then re-prompt"
+        abort:
+          label: "Abort"
+          description: "Cancel workflow"
+          action: "Terminate workflow with STATUS=CANCELLED"
+
+  step_4_parse_context:
+    purpose: Extract environment, state, constraints from CONTEXT
+
+    activities:
+    - Parse [CONTEXT] field if provided
+    - If [CONTEXT] is empty, infer from [REQUEST]
+    - Extract task type from request description
+    - Identify domain or topic area
+    - Detect urgency signals in language
+    - Determine output expectations (files, reports, code, etc.)
+    - Infer from workspace environment
+    - Detect project structure patterns
+    - Identify existing coding standards
+    - Map export folder availability
+    - Infer from AGENTS.md routing results
+    - Apply knowledge base documents context
+    - Apply guardrails from routing
+    - Identify workflow requirements from routing
+    - Ask targeted clarifying questions if critical info is missing
+
+    context_sources:
+      from_request:
+      - extract_task_type
+      - identify_domain_or_topic
+      - detect_urgency_signals
+      - determine_output_expectations
+      from_workspace:
+      - scan_for_agents_md
+      - detect_project_structure
+      - identify_existing_standards
+      - map_export_folder_availability
+      from_routing:
+      - knowledge_base_documents_accessed
+      - guardrails_applied
+      - workflow_requirements_identified
+
+    validation: context_understood
+
+    clarify: "Ask targeted questions if critical information is missing"
+
+    outputs:
+    - context_parsed: "Comprehensive understanding of environment and constraints"
+    - assumptions_documented: "List of inferred assumptions"
+
+    # INTERACTIVE MODE CHECKPOINT
+    checkpoint:
+      question: "Step 4 Complete: Context parsed. Environment and constraints understood. Proceed to analysis scope?"
+      use: AskUserQuestion
+      options:
+        approve:
+          label: "Approve"
+          description: "Context is correct, continue to analysis scope"
+          action: "Continue to step 5"
+        review:
+          label: "Review Context"
+          description: "Show parsed context details"
+          action: "Display context breakdown, assumptions, constraints, then re-prompt"
+        modify:
+          label: "Clarify Context"
+          description: "Provide additional context or corrections"
+          action: "Accept clarifications from user, re-parse context with new information"
+        abort:
+          label: "Abort"
+          description: "Cancel workflow"
+          action: "Terminate workflow with STATUS=CANCELLED"
+
+  step_5_process_analysis_scope:
+    purpose: Load reference materials if provided
+
+    activities:
+    - Check if [ANALYSIS_SCOPE] is provided
+    - If provided, parse reference_materials section
+    - If provided, parse extract_principles section
+    - Load and scan specified files/folders from reference_materials
+    - Extract patterns, standards, and context from reference materials
+    - Extract and apply specified principles/frameworks
+    - Enrich context with reference material insights
+    - Note: This supplements but does not override AGENTS.md routing
+    - If [ANALYSIS_SCOPE] is empty, skip this step and proceed with AGENTS.md routing only
+
+    understand:
+    - Reference materials provide supplementary context
+    - Principles to extract guide the analysis approach
+    - This enriches but does not override AGENTS.md routing
+
+    validation: analysis_scope_incorporated_or_skipped
+
+    outputs:
+    - reference_materials_loaded: "List of files/folders accessed"
+    - principles_extracted: "List of principles applied"
+    - analysis_enriched: "Context enhanced with reference insights"
+
+    # INTERACTIVE MODE CHECKPOINT
+    checkpoint:
+      question: "Step 5 Complete: Analysis scope processed. Reference materials loaded (if provided). Ready to execute request?"
+      use: AskUserQuestion
+      options:
+        approve:
+          label: "Approve"
+          description: "Analysis scope is complete, execute request"
+          action: "Continue to step 6"
+        review:
+          label: "Review Materials"
+          description: "Show loaded reference materials and extracted principles"
+          action: "Display materials summary, principles list, then re-prompt"
+        modify:
+          label: "Add Materials"
+          description: "Include additional references or principles"
+          action: "Accept new materials from user, reload analysis scope with additions"
+        abort:
+          label: "Abort"
+          description: "Cancel workflow"
+          action: "Terminate workflow with STATUS=CANCELLED"
+
+  step_6_execute_request:
+    purpose: Process REQUEST per AGENTS.md + Knowledge Base guidelines
+
+    activities:
+    - Process [REQUEST] strictly according to AGENTS.md rules
+    - Follow behavioral guardrails extracted in step 2
+    - Apply workflow requirements from AGENTS.md routing
+    - Apply Knowledge Base document guidelines
+    - Apply principles from analysis scope (if provided)
+    - Resolve conflicts in favor of AGENTS.md (AGENTS.md wins)
+    - Check if export folder exists within agent_scope_root
+    - If export folder exists:
+      - Deliver output files to ./export/ with sequential numbering
+      - "Use format: [###] - filename.ext"
+      - Check existing files to determine next number (001, 002, 003, etc.)
+    - If export folder missing and output needed:
+      - Notify user and request folder creation if relevant
+    - Complete the request according to all applied guidelines
+
+    conflict_resolution: "Follow AGENTS.md rules in case of conflicts, explain adjustment"
+
+    output_handling:
+      if_export_folder_exists: "Deliver to ./export/ within agent_scope_root with [###] - filename format"
+      if_folder_missing: "Notify user and request folder creation if relevant"
+      sequential_numbering: "Check existing files, use next number (001, 002, etc.)"
+
+    validation: request_completed
+
+    outputs:
+    - request_processed: true
+    - output_delivered: "Location of created files or work product"
+    - guidelines_followed: "AGENTS.md + KB + analysis scope"
+
+    # INTERACTIVE MODE CHECKPOINT
+    checkpoint:
+      question: "Step 6 Complete: Request executed per AGENTS.md guidelines. Output delivered. Proceed to save context?"
+      use: AskUserQuestion
+      options:
+        approve:
+          label: "Approve"
+          description: "Execution looks good, save context"
+          action: "Continue to step 7"
+        review:
+          label: "Review Output"
+          description: "Show execution results and output location"
+          action: "Display output summary, files created, then re-prompt"
+        modify:
+          label: "Adjust Execution"
+          description: "Modify output or re-execute with changes"
+          action: "Accept modifications from user, re-execute request with adjustments"
+        abort:
+          label: "Abort"
+          description: "Cancel workflow (execution complete but no persistence)"
+          action: "Terminate workflow with STATUS=CANCELLED"
+
+  step_7_context_persistence:
+    purpose: Save execution context for future sessions
+
+    activities:
+    - Invoke workflows-save-context skill (preferred method)
+    - If skill available, use Skill tool with parameter skill="workflows-save-context"
+    - Generate anchor tags for grep-able sections
+    - Save context to spec folder memory/ if in spec folder context
+    - Otherwise save to .claude/plans/ or appropriate location
+    - Include request summary, AGENTS.md path, routing results
+    - Include execution approach, output location, decisions made
+    - Preserve for future session continuity
+    - If skill unavailable, continue without persistence (fallback)
+
+    tool_invocation:
+      tool: Skill
+      parameter: skill="workflows-save-context"
+      note: "Use the Skill tool to activate context saving functionality"
+      fallback: "Continue without persistence if skill is unavailable"
+
+    validation: context_saved_or_skipped
+
+    outputs:
+    - memory_file_created: "Path to saved context file"
+    - context_preserved: "Request, routing, execution, decisions"
+
+    # INTERACTIVE MODE CHECKPOINT
+    checkpoint:
+      question: "Step 7 Complete: Context saved to memory file. Workflow finished. Confirm completion?"
+      use: AskUserQuestion
+      options:
+        approve:
+          label: "Approve"
+          description: "Workflow complete, all good"
+          action: "Terminate workflow with STATUS=OK"
+        review:
+          label: "Review Memory File"
+          description: "Show memory file location and summary"
+          action: "Display memory file path, contents summary, then re-prompt"
+        modify:
+          label: "Edit Memory"
+          description: "Modify saved context before completion"
+          action: "Accept edits to memory file, re-save with modifications"
+
+# ───────────────────────────────────────────────────────────────
+# WORKFLOW TERMINATION
+# ───────────────────────────────────────────────────────────────
+termination:
+  after_step: 7
+  message: |
+    Agent Router workflow completed.
+
+    AGENTS.md: {agents_md_path}
+    Request: {request_summary}
+    Output: {output_location}
+    Memory: {memory_file_path}
+
+    STATUS=OK
+  next_steps:
+  - Review output in export folder or workspace
+  - Check memory file for context preservation
+  - Run subsequent commands as needed
+
+# ───────────────────────────────────────────────────────────────
+# ERROR RECOVERY
+# ───────────────────────────────────────────────────────────────
+error_recovery:
+  agents_md_not_found:
+    action: "STOP with clear error message"
+    message: |
+      AGENTS.md not found. Searched:
+      - [AGENTS_LOCATION]/AGENTS.md (if specified)
+      - ./AGENTS.md
+      - ../AGENTS.md
+      - ../../AGENTS.md
+
+      Please provide correct [AGENTS_LOCATION] or ensure AGENTS.md exists in workspace.
+    status: FAIL
+
+  request_empty:
+    action: "STOP and prompt user"
+    message: "REQUEST required - please describe the task or goal."
+    status: FAIL
+
+  routing_fails:
+    action: "Continue with AGENTS.md only"
+    message: "Warning: Some Knowledge Base documents not found. Proceeding with available routing."
+    status: WARN
+
+  knowledge_base_docs_missing:
+    action: "Continue with available documents"
+    message: "Warning: Some routed Knowledge Base documents are inaccessible. Continuing with available documents."
+    status: WARN
+
+  user_aborts_at_checkpoint:
+    action: "Terminate workflow gracefully"
+    message: "Workflow aborted by user at step {step_number}."
+    status: CANCELLED
+
+# ───────────────────────────────────────────────────────────────
+# INTERACTIVE EXECUTION GUIDANCE
+# ───────────────────────────────────────────────────────────────
+interactive_execution:
+  principle: "Execute agent router workflow with user approval at each checkpoint"
+
+  checkpoint_behavior:
+  - Complete all step activities
+  - Present results summary to user
+  - Use AskUserQuestion tool for approval
+  - Wait for user response
+  - Process user feedback according to selected option
+  - Proceed or modify as directed by user
+
+  user_feedback_handling:
+    approve: "Proceed to next workflow step"
+    review: "Show detailed output of current step, then re-prompt"
+    modify: "Accept changes from user and re-execute current step"
+    abort: "Terminate workflow with STATUS=CANCELLED"
+
+# ───────────────────────────────────────────────────────────────
+# RULES
+# ───────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+  - read_agents_md_completely_before_processing_request
+  - use_nearest_accessible_agents_md_file
+  - acknowledge_compliance_in_first_response
+  - follow_agents_md_constraints_and_workflows
+  - treat_folder_containing_resolved_agents_md_as_active_agent_scope_root
+  - lock_identity_to_resolved_agents_md_for_duration_of_conversation
+  - restrict_file_operations_to_agent_scope_root_and_subfolders_unless_explicitly_allowed_by_agents_md
+  - resolve_conflicts_in_favor_of_agents_md
+  - check_export_folder_exists_before_creating_output
+  - deliver_all_output_files_to_export_folder_with_sequential_numbering
+  - pause_at_each_checkpoint_for_user_approval
+  - respect_user_feedback_at_checkpoints
+  - wait_for_user_response_before_proceeding
+
+  NEVER:
+  - skip_or_defer_agents_md_reading
+  - guess_agents_md_content
+  - proceed_without_agents_md_confirmation
+  - override_agents_md_instructions
+  - switch_to_different_agents_md_mid_conversation_without_explicit_user_retargeting
+  - act_as_multiple_agents_simultaneously
+  - access_or_modify_other_ai_system_folders_outside_agent_scope_unless_explicitly_routed_or_authorized
+  - create_output_files_outside_export_folder_when_available
+  - proceed_beyond_checkpoint_without_user_approval
+  - ignore_user_modification_requests_at_checkpoints
+  - skip_checkpoint_validation

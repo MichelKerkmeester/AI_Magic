@@ -7,7 +7,7 @@ Specialized automation workflows and AI orchestrators for development tasks. Ski
 1. [📖 OVERVIEW](#1--overview)
 2. [🧩 SKILL TYPES](#2--skill-types)
 3. [🎯 INSTALLED SKILLS](#3--installed-skills)
-   - 3.1 [Workflow Orchestrators](#31-workflow-orchestrators-4-skills) (4 skills)
+   - 3.1 [Workflow Orchestrators](#31-workflow-orchestrators-5-skills) (5 skills)
    - 3.2 [Documentation Specialists](#32-documentation-specialists-2-skills) (2 skills)
    - 3.3 [CLI Tool Wrappers](#33-cli-tool-wrappers-3-skills) (3 skills)
    - 3.4 [MCP Integration](#34-mcp-integration-2-skills) (2 skills)
@@ -115,9 +115,9 @@ This directory contains skills that provide structured guidance for complex deve
 
 ## 3. 🎯 INSTALLED SKILLS
 
-**Total**: 13 skills across 6 categories | **Latest Update**: 2025-11-27
+**Total**: 14 skills across 6 categories | **Latest Update**: 2025-11-29
 
-### 3.1 Workflow Orchestrators (4 skills)
+### 3.1 Workflow Orchestrators (5 skills)
 
 #### `create-parallel-sub-agents` (v1.0.0)
 
@@ -231,7 +231,7 @@ Starting new feature:
 ```
 
 
-#### `workflows-conversation` (v1.0.0)
+#### `workflows-spec-kit` (v1.0.0)
 
 **Purpose**: Mandatory spec folder workflow orchestrating documentation level selection (0-3) and folder creation for all file modifications
 
@@ -264,7 +264,7 @@ Starting new feature:
   ```
   specs/122-skill-standardization/
   ├── 001-cli-codex-alignment/
-  ├── 002-workflows-conversation/
+  ├── 002-workflows-spec-kit/
   └── 003-spec-folder-versioning/  ← Active
   ```
 
@@ -336,6 +336,47 @@ Loading context later:
 → Returns ~400 tokens (97% reduction from 12,000-token full file)
 → Smart search: "authentication bug" → relevance-ranked results
 ```
+
+
+#### `workflows-planning` (v1.0.0)
+
+**Purpose**: 4-agent parallel exploration for comprehensive planning - spawns Architecture/Feature/Dependency/Test Sonnet explorers, synthesizes findings, generates verified plan.md
+
+**Maturity**: Medium | **References**: 4 files | **Scripts**: 1 file (generate-plan.js)
+
+**Key Features**:
+- **Parallel Exploration**: Spawns 4 specialized Sonnet agents (Architecture, Feature, Dependencies, Testing)
+- **Auto-Trigger System**: Activates during spec_kit:plan workflows (step_6_planning)
+- **Manual Activation**: Keywords like "plan with exploration", "parallel planning", "comprehensive plan"
+- **Synthesis Engine**: Merges findings from all explorers into unified plan.md
+- **Verification**: Cross-checks dependencies, architecture alignment, test coverage
+
+**4 Explorer Agents**:
+- **Architecture Explorer**: System design, integration points, scalability concerns
+- **Feature Explorer**: User stories, acceptance criteria, edge cases
+- **Dependency Explorer**: Libraries, APIs, version compatibility, breaking changes
+- **Test Explorer**: Test strategies, coverage requirements, mocking needs
+
+**When to Use**:
+- Complex features requiring multi-domain analysis
+- Architecture decisions with broad impact
+- Features with significant external dependencies
+- Projects requiring comprehensive test planning
+
+**Example**:
+```
+Planning authentication system:
+→ Architecture Agent: Analyzes OAuth flow, session management, security patterns
+→ Feature Agent: Defines login/logout/register flows, error states, UX flows
+→ Dependency Agent: Evaluates passport.js vs auth0, version compatibility
+→ Test Agent: Plans unit/integration/E2E test coverage, mocking strategies
+→ Synthesis: Generates unified plan.md with cross-referenced findings
+```
+
+**Integration Points**:
+- Auto-triggered by: spec_kit:plan workflows (step_6_planning)
+- Outputs to: specs/###-feature/plan.md
+- Coordinates with: workflows-spec-kit (spec folder system)
 
 ---
 
@@ -650,14 +691,14 @@ Creating custom quality check hook:
 
 **Integration Points**:
 - Works with: create-documentation (documenting hooks), workflows-code (testing hooks)
-- Triggered by: workflows-conversation (hooks enforce spec folder creation)
+- Triggered by: workflows-spec-kit (hooks enforce spec folder creation)
 - Foundation for: All hook-assisted workflows in the system
 
 ---
 
 ### 3.6 Skill Maturity Matrix
 
-**Overview**: All 13 skills across 6 categories with version, maturity, and documentation metrics
+**Overview**: All 14 skills across 6 categories with version, maturity, and documentation metrics
 
 | Skill | Version | Maturity | Category | References | Assets | Scripts |
 |-------|---------|----------|----------|------------|--------|---------|
@@ -667,9 +708,10 @@ Creating custom quality check hook:
 | cli-gemini | v1.1.0 | ★★★★ High | CLI Wrapper | 4 | 0 | 0 |
 | cli-chrome-devtools | v1.0.0 | ★★★ Medium | CLI Wrapper | 3 | 4 | 0 |
 | create-flowchart | v1.1.0 | ★★★★ High | Documentation | 6 | 0 | 1 |
-| workflows-conversation | v1.0.0 | ★★★★ Medium-High | Orchestrator | 4 | 2 | 0 |
+| workflows-spec-kit | v1.0.0 | ★★★★ Medium-High | Orchestrator | 4 | 2 | 0 |
 | mcp-code-mode | v1.0.0 | ★★★★ Medium-High | MCP Integration | 5 | 2 | 1 |
 | workflows-git | v1.0.0 | ★★★ Medium | Orchestrator | 5 | 3 | 0 |
+| workflows-planning | v1.0.0 | ★★★ Medium | Orchestrator | 4 | 0 | 1 |
 | mcp-semantic-search | v1.0.0 | ★★★ Medium | MCP Integration | 3 | 1 | 0 |
 | create-parallel-sub-agents | v1.0.0 | ★★★ Medium | Orchestration | 5 | 2 | 0 |
 | create-hooks | v1.0.0 | ★★★ Medium | Hook Creation | 5 | 8 | 2 |
@@ -683,20 +725,20 @@ Creating custom quality check hook:
 - ★ **Experimental** (v0.1): Alpha stage, documentation in progress, not recommended for production
 
 **Version Distribution**:
-- v9.x: 1 skill (8%) - Anchor-based retrieval major version
-- v3.x: 1 skill (8%) - Most mature
-- v2.x: 1 skill (8%) - Major update
-- v1.1.x: 2 skills (15%) - Minor updates
-- v1.0.0: 8 skills (62%) - Stable releases
+- v9.x: 1 skill (7%) - Anchor-based retrieval major version
+- v3.x: 1 skill (7%) - Most mature
+- v2.x: 1 skill (7%) - Major update
+- v1.1.x: 2 skills (14%) - Minor updates
+- v1.0.0: 9 skills (64%) - Stable releases
 
 **Documentation Metrics**:
-- **Average References**: 5.4 files per skill
-- **Average Assets**: 2.3 files per skill
-- **Average Scripts**: 0.8 files per skill
-- **Total Documentation**: 102 files across all skills
+- **Average References**: 5.1 files per skill
+- **Average Assets**: 2.1 files per skill
+- **Average Scripts**: 0.9 files per skill
+- **Total Documentation**: 106 files across all skills
 
 **Mandatory Skills** (Required for specific operations):
-- 🔴 **workflows-conversation**: ALL file modifications
+- 🔴 **workflows-spec-kit**: ALL file modifications
 - 🔴 **mcp-code-mode**: ALL MCP tool calls
 - 🟡 **workflows-save-context**: Context preservation (auto-triggered)
 - 🟡 **mcp-semantic-search**: Code exploration (CLI AI agents only)
@@ -930,7 +972,7 @@ User Request
 
 #### Foundational Skills (Required by Others)
 
-**workflows-conversation** (Mandatory)
+**workflows-spec-kit** (Mandatory)
 - **Required by**: ALL workflow skills when modifying files
 - **Purpose**: Spec folder creation before file modifications
 - **Enforcement**: Hook-based, blocks file modifications without spec folder
@@ -952,7 +994,7 @@ User Request
 
 **Pattern 1: Complete Development Cycle**
 ```
-workflows-conversation (spec folder)
+workflows-spec-kit (spec folder)
   → workflows-code (implementation + debugging + verification)
     → workflows-git (commit + PR)
       → workflows-save-context (documentation)
@@ -996,14 +1038,14 @@ create-documentation (validation)
 #### Dependency Graph
 
 **Upstream Dependencies** (foundational, used by many):
-- `workflows-conversation` ← Required by all workflow skills
+- `workflows-spec-kit` ← Required by all workflow skills
 - `create-documentation` ← Required for skill creation/validation
 - `mcp-code-mode` ← Required for all MCP tool calls
 
 **Downstream Usage** (skills that consume others):
 - `workflows-code` → Can use `cli-gemini`, `cli-codex` (Phase 2 verification)
 - `workflows-git` → Referenced by `workflows-code` (Phase 3 completion)
-- `workflows-save-context` → Triggered by `workflows-conversation` (auto-save)
+- `workflows-save-context` → Triggered by `workflows-spec-kit` (auto-save)
 - `create-parallel-sub-agents` → Can dispatch ALL skills as sub-agents
 
 **Integration Pairing**:
@@ -1018,8 +1060,8 @@ create-documentation (validation)
 - workflows-code Phase 3 (Verification) → triggers workflows-git for commit/PR
 - workflows-git completion → may trigger workflows-save-context for documentation
 
-**workflows-save-context ↔ workflows-conversation**
-- workflows-conversation enforces spec folder existence
+**workflows-save-context ↔ workflows-spec-kit**
+- workflows-spec-kit enforces spec folder existence
 - workflows-save-context writes to spec folder's memory/ subdirectory
 - Both use same spec folder numbering convention
 

@@ -112,8 +112,8 @@ Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs f
 
 Based on detected/selected mode:
 
-- **AUTONOMOUS**: Load and execute `.opencode/prompts/spec_kit/spec_kit_research_auto.yaml`
-- **INTERACTIVE**: Load and execute `.opencode/prompts/spec_kit/spec_kit_research_confirm.yaml`
+- **AUTONOMOUS**: Load and execute `.claude/commands/spec_kit/assets/spec_kit_research_auto.yaml`
+- **INTERACTIVE**: Load and execute `.claude/commands/spec_kit/assets/spec_kit_research_confirm.yaml`
 
 ### Phase 2: Workflow Execution
 

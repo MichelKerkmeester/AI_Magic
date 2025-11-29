@@ -1,0 +1,278 @@
+# ───────────────────────────────────────────────────────────────────
+# SMART SPECKIT: PLAN WORKFLOW (AUTONOMOUS MODE)
+# ───────────────────────────────────────────────────────────────────
+role: Expert Developer using Smart SpecKit for autonomous planning
+purpose: Spec-driven planning with autonomous execution through step 7
+action: Run SpecKit from spec to planning with continuous self-validation
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none
+  tracking: progressive_task_checklists
+  validation: continuous_self_validation
+
+planning_philosophy:
+  principle: "Clarity first, completeness second"
+  approach: "Thorough analysis with iterative refinement"
+  mandate: "Define requirements, validate assumptions, plan incrementally, execute autonomously"
+
+# ───────────────────────────────────────────────────────────────────
+# USER INPUTS (Transformed from raw text)
+# ───────────────────────────────────────────────────────────────────
+user_inputs:
+  git_branch: |
+    [GIT_BRANCH]
+    Git branch name for the work. Leave empty to auto-create as feature-{NNN}.
+
+  spec_folder: |
+    [SPEC_FOLDER]
+    Spec folder path. Leave empty to auto-create next available spec number.
+
+  context: |
+    [CONTEXT]
+    Background information, constraints, or existing documentation.
+
+  issues: |
+    [ISSUES]
+    Known issues, problems, or concerns to address.
+
+  request: |
+    [REQUEST]
+    Feature or improvement to plan. REQUIRED.
+
+  environment: |
+    [STAGING LINK]
+    Staging or production URL for browser testing.
+
+  scope: |
+    [FILES]
+    Files or folders to focus on.
+
+# ─────────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ─────────────────────────────────────────────────────────────────
+field_handling:
+  spec_id:
+    derive_from: "spec_folder path using pattern specs/{NNN} or specs/{NNN-name}"
+    fallback: "Extract numeric portion or use timestamp if extraction fails"
+
+  defaults:
+    git_branch_empty: "Auto-create feature-{NNN} from highest +001"
+    spec_folder_empty: "Auto-create specs/{NNN} from highest +001"
+    context_empty: "Infer from [REQUEST], [STAGING LINK], and codebase exploration"
+    issues_empty: "Investigate and discover during workflow"
+    environment_empty: "Skip browser testing steps"
+    scope_empty: "Use scope_policy.default"
+
+  scope_policy:
+    default: "specs/**"
+    rule: "Limit file operations to scope when provided"
+
+# ─────────────────────────────────────────────────────────────────
+# AVAILABLE TEMPLATES
+# ─────────────────────────────────────────────────────────────────
+available_templates:
+  spec: .opencode/speckit/templates/spec_template.md
+  plan: .opencode/speckit/templates/plan_template.md
+  tasks: .opencode/speckit/templates/tasks_template.md
+  checklist: .opencode/speckit/templates/checklist_template.md
+  research: .opencode/speckit/templates/research_template.md
+  research_spike: .opencode/speckit/templates/research_spike_template.md
+  decision_record: .opencode/speckit/templates/decision_record_template.md
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW (7 STEPS)
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_1_request_analysis:
+    purpose: Analyze inputs and define planning scope
+    activities:
+    - Analyze all user inputs thoroughly
+    - Define development scope for the spec folder
+    - Verify or create spec folder structure
+    - Check for existing artifacts
+    - Establish planning scope
+    deep_analysis:
+      focus: comprehensive_requirement_analysis
+      outputs:
+      - requirement_summary
+      - approach_overview
+      - complexity_assessment
+      - key_objectives
+      - success_criteria
+    validation: understanding_confirmed
+
+  step_2_pre_work_review:
+    purpose: Review knowledge base and project standards
+    activities:
+    - Read and review AGENTS.md
+    - Check knowledge base (/knowledge/) or skills folder (/skills/) for relevant coding standards
+    - Extract coding standards summary
+    - Identify architectural patterns
+    - Document project conventions
+    required_documents:
+    - AGENTS.md
+    - Knowledge base or skills folder (if available)
+    verification: MUST_REVIEW
+    validation: principles_established
+
+  step_3_specification:
+    purpose: Create comprehensive feature specification
+    activities:
+    - Generate concise short name for branch
+    - Check for existing branches
+    - Run create-new-feature.sh script
+    - Estimate complexity and select documentation level
+    - Load and fill spec_template.md
+    - Generate functional requirements
+    - Define success criteria
+    outputs:
+    - feature_branch: created
+    - spec.md: acceptance_criteria
+    template: .opencode/speckit/templates/spec_template.md
+    validation: spec_complete
+
+  step_4_clarification:
+    purpose: Resolve ambiguities and clarify requirements
+    activities:
+    - Extract [NEEDS CLARIFICATION] markers (max 3)
+    - Research codebase for patterns
+    - Resolve ambiguities through investigation
+    - Update spec.md with clarifications
+    - Document assumptions
+    outputs:
+    - resolved_ambiguities
+    - clarified_requirements
+    - updated_spec
+    validation: requirements_clear
+
+  step_5_quality_checklist:
+    purpose: Generate validation checklist
+    activities:
+    - Load checklist_template.md
+    - Generate domain-specific validation items
+    - Create checklist file
+    - Run validation check
+    outputs:
+    - quality_checklist: generated
+    template: .opencode/speckit/templates/checklist_template.md
+    validation: checklist_generated
+
+  step_6_planning:
+    purpose: Create technical plan with implementation approach
+
+    # ENHANCED: Invoke parallel exploration skill for comprehensive planning
+    skill_invocation:
+      description: "4-agent parallel exploration for verified planning"
+      condition: "Always invoke for enhanced planning quality"
+      tool: Skill
+      parameter: skill="workflows-planning"
+      inputs:
+        task_description: "$user_inputs.request"
+        spec_folder_path: "$spec_folder"
+      benefits:
+        - "4 Sonnet agents explore codebase in parallel"
+        - "Verified findings instead of assumptions"
+        - "Integration points documented"
+        - "Test patterns identified"
+      fallback:
+        on_failure: "Use inline planning activities below"
+        reason: "Graceful degradation if skill/agents unavailable"
+
+    # FALLBACK: Inline planning if skill invocation fails
+    activities:
+    - Run setup-plan.sh --json
+    - Load plan_template.md
+    - Fill Technical Context
+    - Fill Constitution Check section
+    - Phase 0: Generate research.md to resolve unknowns
+    - Phase 1: Generate data-model.md, contracts/
+    - Generate Testing Strategy
+    - Generate Success Metrics
+    - Import Risk Matrix from spec
+    - Generate Dependencies Tables
+    - Generate Phase 2-4 outlines
+    - Create planning-summary.md
+    outputs:
+    - plan.md: technical_approach
+    - planning-summary.md: overview
+    - research.md: resolved_unknowns
+    template: .opencode/speckit/templates/plan_template.md
+    validation: approach_defined
+
+  step_7_save_context:
+    purpose: Save conversation context for planning documentation
+    activities:
+    - Invoke workflows-save-context skill using Skill tool
+    - Preserve requirements analysis and clarifications
+    - Preserve technical approach decisions
+    - Preserve architecture discussions
+    tool_invocation:
+      tool: Skill
+      parameter: skill="workflows-save-context"
+      note: "Use the Skill tool with skill parameter to activate context saving"
+    outputs:
+    - context_file: specs/[NNN-feature]/memory/[DD-MM-YY_HH-MM]__planning_session.md
+    validation: context_saved_successfully
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW TERMINATION
+# ─────────────────────────────────────────────────────────────────
+termination:
+  after_step: 7
+  message: "Planning phase completed successfully. Workflow terminated after step 7 (save context)."
+  next_steps:
+  - Review planning documentation
+  - Validate technical approach
+  - Use /spec_kit:implement:auto or /spec_kit:implement:confirm for implementation
+
+# ─────────────────────────────────────────────────────────────────
+# AUTONOMOUS EXECUTION GUIDANCE
+# ─────────────────────────────────────────────────────────────────
+autonomous_execution:
+  principle: "Execute planning workflow autonomously with self-validation at each step"
+
+  decision_making:
+  - Analyze requirements thoroughly from user inputs
+  - Explore codebase to understand context
+  - Make informed planning decisions
+  - Document reasoning and alternatives
+  - Proceed with best judgment
+
+  validation_approach:
+  - Self-validate after each planning step
+  - Verify spec completeness and clarity
+  - Ensure technical approach is sound
+  - Validate against quality standards
+
+# ─────────────────────────────────────────────────────────────────
+# ERROR RECOVERY
+# ─────────────────────────────────────────────────────────────────
+error_recovery:
+  step_validation_fails:
+    action: "Review requirements, ask clarifying questions, retry step"
+  spec_ambiguity_persists:
+    action: "Document as assumption, add to risk matrix"
+  environment_unavailable:
+    action: "Skip browser testing, document limitation"
+  unexpected_error:
+    action: "Log error, document state, attempt graceful recovery"
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+  - follow_workflow_sequence
+  - document_all_decisions
+  - validate_before_completion
+  - self_validate_and_proceed
+  - do_not_prompt_for_user_approval
+
+  NEVER:
+  - skip_workflow_steps
+  - proceed_beyond_planning
+  - make_unsupported_assumptions
+  - proceed_without_self_validation

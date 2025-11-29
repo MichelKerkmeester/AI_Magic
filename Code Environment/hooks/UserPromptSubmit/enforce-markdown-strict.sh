@@ -56,18 +56,65 @@ fi
 # Configuration
 LOG_DIR="$HOOKS_DIR/logs"
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
+CACHE_DIR="/tmp/claude_hooks_cache/warnings"
+CACHE_TTL=86400  # 24 hours in seconds
 
 # Get git repository root (portable across all environments)
 GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 STYLE_GUIDE=".claude/skills/create-documentation/SKILL.md (ALWAYS Rules Section 5)"
 
-# Ensure log directory exists
+# Ensure log directory and cache directory exist
 mkdir -p "$LOG_DIR"
+mkdir -p "$CACHE_DIR"
 
 # Function to log enforcement actions
 log_action() {
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     echo "[$timestamp] $1" >> "$LOG_FILE"
+}
+
+# Warning cache functions (prevent spam for same file warnings)
+get_warning_cache_key() {
+    local filepath="$1"
+    local warning_type="$2"
+    # Create hash from filepath + warning type for cache key
+    echo "$filepath:$warning_type" | md5 -q 2>/dev/null || echo "$filepath:$warning_type" | md5sum 2>/dev/null | awk '{print $1}'
+}
+
+is_warning_cached() {
+    local cache_key="$1"
+    local cache_file="$CACHE_DIR/$cache_key"
+
+    # Check if cache file exists
+    if [[ ! -f "$cache_file" ]]; then
+        return 1  # Not cached
+    fi
+
+    # Check if cache is still valid (within TTL)
+    local cache_age=$(($(date +%s) - $(stat -f %m "$cache_file" 2>/dev/null || stat -c %Y "$cache_file" 2>/dev/null)))
+    if [[ $cache_age -lt $CACHE_TTL ]]; then
+        return 0  # Cached and valid
+    fi
+
+    # Cache expired, remove it
+    rm -f "$cache_file" 2>/dev/null
+    return 1  # Not cached (expired)
+}
+
+cache_warning() {
+    local cache_key="$1"
+    local cache_file="$CACHE_DIR/$cache_key"
+
+    # Atomic write using temp file + mv
+    local temp_file="${cache_file}.tmp.$$"
+    echo "$(date +%s)" > "$temp_file" 2>/dev/null
+    mv "$temp_file" "$cache_file" 2>/dev/null || rm -f "$temp_file" 2>/dev/null
+}
+
+# Cleanup old cache files (older than TTL)
+cleanup_warning_cache() {
+    # Find and remove cache files older than TTL
+    find "$CACHE_DIR" -type f -mtime +1 -delete 2>/dev/null || true
 }
 
 # Function to detect document type from file path
@@ -344,6 +391,9 @@ EOF
 
 # Main enforcement logic
 main() {
+    # Cleanup old cache files on startup (non-blocking)
+    cleanup_warning_cache &
+
     # Get git repository root (or use CWD as fallback)
     local git_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 
@@ -408,12 +458,21 @@ main() {
         # Only README files are allowed to have TOCs - all other types should not have them
         local toc_warnings=$(check_toc_violations "$full_path" "$doc_type" || true)
         if [[ -n "$toc_warnings" ]]; then
-            echo "" >&2
-            echo "⚠️  TOC POLICY VIOLATION: $file" >&2
-            echo "$toc_warnings" | sed 's/^/   /' >&2
-            echo "" >&2
-            echo "   📖 Reference: $STYLE_GUIDE (Rule #4: TOCs ONLY allowed in README files)" >&2
-            log_action "TOC WARNING: $file - $toc_warnings"
+            # Check if we've already warned about this file's TOC violations
+            local toc_cache_key=$(get_warning_cache_key "$full_path" "toc")
+            if ! is_warning_cached "$toc_cache_key"; then
+                # First time warning - show it and cache it
+                echo "" >&2
+                echo "⚠️  TOC POLICY VIOLATION: $file" >&2
+                echo "$toc_warnings" | sed 's/^/   /' >&2
+                echo "" >&2
+                echo "   📖 Reference: $STYLE_GUIDE (Rule #4: TOCs ONLY allowed in README files)" >&2
+                log_action "TOC WARNING: $file - $toc_warnings"
+                cache_warning "$toc_cache_key"
+            else
+                # Already warned about this file, just log silently
+                log_action "TOC WARNING (suppressed): $file - already warned in last 24h"
+            fi
         fi
 
         # Run c7score analysis (non-blocking, informational)

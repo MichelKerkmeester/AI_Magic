@@ -46,7 +46,7 @@ LOG_DIR="$HOOKS_DIR/logs"
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 PERF_LOG="$LOG_DIR/performance.log"
 SPECS_DIR="$PROJECT_ROOT/specs"
-DOC_GUIDE="$PROJECT_ROOT/.claude/skills/workflows-conversation/SKILL.md"
+DOC_GUIDE="$PROJECT_ROOT/.claude/skills/workflows-spec-kit/SKILL.md"
 
 mkdir -p "$LOG_DIR"
 
@@ -83,6 +83,8 @@ SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty' 2>/dev/null)
 if [ -n "$SESSION_ID" ]; then
   SESSION_ID=$(echo "$SESSION_ID" | tr -cd 'a-zA-Z0-9_-')
 fi
+# Ensure SESSION_ID is never empty - defaults to "current" for safety
+SESSION_ID="${SESSION_ID:-current}"
 
 # Early definition needed for multi-stage flow handler (V9: session-aware)
 SPEC_MARKER=$(get_spec_marker_path "$SESSION_ID")
@@ -861,7 +863,7 @@ validate_placeholders() {
     printf '%s\n' "${issues[@]}"
     echo ""
     echo "You must replace all placeholder text before making file changes."
-    echo "See: .claude/skills/workflows-conversation/references/template_guide.md"
+    echo "See: .claude/skills/workflows-spec-kit/references/template_guide.md"
     echo ""
     return 1  # Hard block
   fi
@@ -1123,7 +1125,7 @@ suggest_subfolder_readme() {
       echo "Consider creating a README.md to document this sub-folder's purpose:"
       echo "  cp .opencode/speckit/templates/subfolder_readme_template.md $current_path/README.md"
       echo ""
-      echo "See: .claude/skills/workflows-conversation/references/template_guide.md"
+      echo "See: .claude/skills/workflows-spec-kit/references/template_guide.md"
       echo "     (Section: 'Using Sub-Folders for Organization')"
       echo ""
       return 1  # Suggestion (not blocking)
@@ -2250,7 +2252,7 @@ print_template_guidance() {
       print_detail "cp .opencode/speckit/templates/plan_template.md specs/${NEXT_SPEC_NUMBER}-short-name/plan.md"
       ;;
     3)
-      print_detail "/spec_kit:specify (auto-generates Level 3 bundle)"
+      print_detail "/spec_kit:complete (auto-generates Level 3 bundle)"
       ;;
   esac
 
@@ -2688,7 +2690,7 @@ if [ -n "$RELATED_SPECS" ]; then
   print_section "RECOMMENDATION"
   print_detail "Consider updating one of the related specs above instead of creating a new one."
   print_detail "For parent folders, system will create new numbered sub-folder automatically."
-  print_detail "Guidelines: .claude/skills/workflows-conversation/SKILL.md"
+  print_detail "Guidelines: .claude/skills/workflows-spec-kit/SKILL.md"
   print_detail ""
   print_detail "AI should ask user:"
   print_detail "  A) Update existing spec (if work is related)"
@@ -2730,6 +2732,14 @@ if [ "$CHECK_SPEC_FOLDER" != "false" ]; then
         \"level\": $DOC_LEVEL,
         \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
       }" 2>/dev/null || true
+    fi
+
+    # Initialize scope definition for file-scope-tracking.sh integration
+    # This supports the detect-scope-growth.sh hook
+    if ! has_hook_state "scope_definition" 7200 2>/dev/null; then
+      if type initialize_scope_definition &>/dev/null; then
+        initialize_scope_definition "$SPEC_FOLDER" "$PROMPT" 2>/dev/null || true
+      fi
     fi
 
     # ─────────────────────────────────────────────────────────────

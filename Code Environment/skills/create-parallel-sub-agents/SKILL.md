@@ -11,7 +11,7 @@ Autonomous agent orchestration system that analyzes task complexity, receives sk
 
 **Core principle**: Analyze → Determine dispatch value → Create sub-agents → Dispatch → Integrate results = efficient complex task execution.
 
-> **Implementation Note**: The `orchestrate-skill-validation.sh` hook operates in **informational mode** (always exits 0). It calculates complexity scores and writes recommendations to logs, but does not block operations. The AI agent reads these recommendations and makes dispatch decisions.
+> **Implementation Note**: The `orchestrate-skill-validation.sh` hook emits **mandatory questions** when complexity thresholds are met (≥20% + ≥2 domains). The AI must respond via AskUserQuestion before proceeding. User choices persist for 1 hour (session-level preference). Auto-dispatch occurs for ≥50% complexity + 3+ domains with notification only.
 
 ---
 
@@ -227,7 +227,17 @@ Use the provided assets to keep specs consistent:
 
 ### Step 6: Mandatory Dispatch Announcement
 
-> **ENFORCEMENT**: When complexity ≥35% + ≥2 domains, the hook BLOCKS (exit 1) until dispatch or override.
+> **ENFORCEMENT**: When complexity ≥20% + ≥2 domains (and no sequential dependencies), the hook emits a mandatory question via `emit_parallel_dispatch_question()`:
+> - **A) Handle directly** - Sequential execution without parallel agents
+> - **B) Create parallel agents** - Dispatch specialized sub-agents (recommended for ≥35%)
+> - **C) Auto-decide** - Enable session auto-mode (use parallel when savings ≥30%)
+>
+> **Override Phrases**: Bypass question with `"proceed directly"`, `"use parallel agents"`, or `"auto-decide"` in your prompt.
+>
+> **Sequential Dependencies**: If patterns like "first X then Y" detected, question is SKIPPED (no parallelization benefit).
+>
+> All tools are blocked by `PreToolUse/check-pending-questions.sh` until user responds via AskUserQuestion.
+> Auto-dispatch (no question) occurs for ≥50% complexity + 3+ domains.
 
 When dispatching parallel sub-agents via Task tool, you **MUST** announce visibly:
 
@@ -446,9 +456,10 @@ Multiply each weight by the bucket multiplier (0 / 0.5 / 1.0) and sum, then roun
 
 | Score Range | Action | Rationale |
 |-------------|--------|-----------|
-| 0-24% | Direct handling | Overhead exceeds benefit |
-| 25-34% | Collaborative | Borderline, user preference |
-| 35-100% | Auto-dispatch | Clear efficiency gain |
+| 0-19% | Direct handling (silent) | Overhead exceeds benefit, no question asked |
+| 20-49% + 2+ domains | Ask user (mandatory question) | Borderline benefit, user preference matters |
+| 50-100% + 3+ domains | Auto-dispatch with notification | Clear efficiency gain, obvious parallelization |
+| Any with sequential deps | Direct with explanation | No parallel benefit possible |
 
 ### Skill Priority Filtering
 

@@ -123,8 +123,8 @@ user_inputs:
 
 Based on detected/selected mode:
 
-- **AUTONOMOUS**: Load and execute `.opencode/prompts/spec_kit/spec_kit_complete_auto.yaml`
-- **INTERACTIVE**: Load and execute `.opencode/prompts/spec_kit/spec_kit_complete_confirm.yaml`
+- **AUTONOMOUS**: Load and execute `.claude/commands/spec_kit/assets/spec_kit_complete_auto.yaml`
+- **INTERACTIVE**: Load and execute `.claude/commands/spec_kit/assets/spec_kit_complete_confirm.yaml`
 
 ### Phase 2: Workflow Execution
 

@@ -11,9 +11,9 @@ Request → Analyze Complexity → Check Thresholds → Dispatch or Direct
 ```
 
 ### Complexity Score Thresholds
-- **<25%**: Direct handling (too simple)
-- **25-34%**: Ask user preference
-- **≥35%**: Consider dispatch
+- **<20%**: Direct handling (silent, no question)
+- **20-49% + ≥2 domains**: **MANDATORY QUESTION** - User chooses A/B/C
+- **≥50% + 3+ domains**: Auto-dispatch (notification only, no question)
 
 ### Quick Complexity Calculator
 ```
@@ -61,24 +61,55 @@ Total Score = Sum of weighted components (0-100%)
 
 ---
 
-## 4. 🤝 COLLABORATIVE ZONE (25-34%)
+## 4. 🤝 MANDATORY QUESTION ZONE (20-49% + ≥2 domains)
 
-### Ask User:
+### User Must Choose (via AskUserQuestion):
 ```markdown
-This task has medium complexity (X%).
-A) Handle directly - simpler, sequential
-B) Create sub-agents - parallel, potentially faster
+**How should I approach this task?**
+
+A) Sequential (~X min) - Traditional approach, simpler to debug
+B) Parallel agents (~Y min) - Create N specialized agents, 40% faster
+C) Auto-decide for me - Enable automatic mode for this session
+
+(Override anytime with: "proceed directly", "use parallel", "auto-decide")
 ```
+
+**Exception:** If sequential dependencies detected (e.g., "first X then Y"), question is **SKIPPED** and task handled directly (no parallelization benefit).
 
 ---
 
-## 5. 📊 DOMAIN CLUSTERING
+## 5. 🎛️ OVERRIDE PHRASES
+
+### Bypass Mandatory Question with Explicit Phrases:
+
+**Force Direct Handling:**
+- `"proceed directly"` - Skip question, handle sequentially
+- `"handle directly"` - Skip question, handle sequentially
+- `"skip parallel"` - Skip question, handle sequentially
+
+**Force Parallel Dispatch:**
+- `"use parallel agents"` - Skip question, dispatch immediately
+- `"dispatch agents"` - Skip question, dispatch immediately
+- `"parallelize"` - Skip question, dispatch immediately
+
+**Enable Auto-Decide Mode:**
+- `"auto-decide"` - Skip question, enable session auto-mode
+- `"auto decide"` - Skip question, enable session auto-mode
+- `"automatic mode"` - Skip question, enable session auto-mode
+
+**Session Persistence:** User preference stored for 1 hour, applies to all subsequent prompts in session.
+
+**Detection Patterns:** Sequential dependencies (e.g., "first X then Y", "after X complete", "once X done", "when X finishes", "X followed by Y", "X, then Y") automatically set parallel_opportunity=0 and skip the question regardless of complexity score.
+
+---
+
+## 6. 📊 DOMAIN CLUSTERING
 
 | Domain | Core Skills | Tools |
 |--------|------------|-------|
 | **Code** | workflows-code, mcp-semantic-search | Read, Write, Edit, Bash |
 | **Analysis** | mcp-semantic-search, workflows-code | Read, Grep, Glob, WebSearch |
-| **Docs** | create-documentation, workflows-conversation | Read, Write, WebSearch |
+| **Docs** | create-documentation, workflows-spec-kit | Read, Write, WebSearch |
 | **Git** | workflows-git, workflows-save-context | Bash, Read |
 | **Test** | workflows-code, mcp-semantic-search | Read, Write, Bash |
 | **DevOps** | mcp-code-mode, cli-gemini | Bash, Read, Edit |
@@ -89,7 +120,7 @@ B) Create sub-agents - parallel, potentially faster
 
 ---
 
-## 6. 🚀 SUB-AGENT SPEC TEMPLATE
+## 7. 🚀 SUB-AGENT SPEC TEMPLATE
 
 ```typescript
 {
@@ -108,7 +139,7 @@ B) Create sub-agents - parallel, potentially faster
 
 ---
 
-## 7. 📈 PERFORMANCE TARGETS
+## 8. 📈 PERFORMANCE TARGETS
 
 - Analysis: <500ms
 - Dispatch: <2s overhead
@@ -118,7 +149,7 @@ B) Create sub-agents - parallel, potentially faster
 
 ---
 
-## 8. 🔧 RESOURCE LIMITS
+## 9. 🔧 RESOURCE LIMITS
 
 - Max concurrent agents: 5
 - Default timeout: 5 minutes
@@ -127,7 +158,7 @@ B) Create sub-agents - parallel, potentially faster
 
 ---
 
-## 9. 🎬 LIFECYCLE PHASES
+## 10. 🎬 LIFECYCLE PHASES
 
 ```
 1. CREATE → Build spec (500ms)
@@ -139,7 +170,7 @@ B) Create sub-agents - parallel, potentially faster
 
 ---
 
-## 10. 🚨 ERROR RECOVERY
+## 11. 🚨 ERROR RECOVERY
 
 | Error Type | Recovery Strategy |
 |------------|------------------|
@@ -150,7 +181,7 @@ B) Create sub-agents - parallel, potentially faster
 
 ---
 
-## 11. 📝 LOGGING
+## 12. 📝 LOGGING
 
 ```bash
 # Check decisions
@@ -162,7 +193,7 @@ cat .claude/hooks/logs/skill-recommendations.log
 
 ---
 
-## 12. 🎯 COMMON PATTERNS
+## 13. 🎯 COMMON PATTERNS
 
 ### Pattern: Multi-Domain Feature
 ```
@@ -190,7 +221,7 @@ cat .claude/hooks/logs/skill-recommendations.log
 
 ---
 
-## 13. 💡 PRO TIPS
+## 14. 💡 PRO TIPS
 
 1. **Trust the scores** - Tuned from real usage
 2. **When in doubt, ask** - Collaborative mode for borderline cases
@@ -200,7 +231,7 @@ cat .claude/hooks/logs/skill-recommendations.log
 
 ---
 
-## 14. 🔗 QUICK LINKS
+## 15. 🔗 QUICK LINKS
 
 - Full documentation: [SKILL.md](../SKILL.md)
 - Complexity scoring: [complexity_scoring.md](./complexity_scoring.md)

@@ -30,7 +30,7 @@ You MUST assign skills to appropriate domains before creating sub-agents.
 
 **Core Skills**:
 - `create-documentation` - Documentation creation and structure (MANDATORY)
-- `workflows-conversation` - Spec folder system for conversation documentation (MANDATORY)
+- `workflows-spec-kit` - Spec folder system for conversation documentation (MANDATORY)
 - `create-flowchart` - Visual documentation with flowcharts (optional)
 
 **Allowed Tools**: Read, Write, Edit, Grep, WebSearch
@@ -171,7 +171,7 @@ Code Agent Skills:
 | Skill | Domains | Assignment Strategy |
 |-------|---------|-------------------|
 | `workflows-code` | Code, Test | Include in both (code quality + testing patterns) |
-| `workflows-conversation` | All | Include in all (spec folder required) |
+| `workflows-spec-kit` | All | Include in all (spec folder required) |
 | `mcp-semantic-search` | Code, Test | Include in both (find implementations and tests) |
 
 **Validation**: `dependencies_resolved`
@@ -191,22 +191,22 @@ Code Agent Skills:
 ```yaml
 code_agent:
   - workflows-code (MANDATORY)
-  - workflows-conversation (MANDATORY)
+  - workflows-spec-kit (MANDATORY)
   - mcp-semantic-search (HIGH)
 
 test_agent:
   - workflows-code (MANDATORY)
-  - workflows-conversation (MANDATORY)
+  - workflows-spec-kit (MANDATORY)
   - mcp-semantic-search (HIGH)
 
 docs_agent:
   - create-documentation (MANDATORY)
-  - workflows-conversation (MANDATORY)
+  - workflows-spec-kit (MANDATORY)
   - create-flowchart (MEDIUM)
 ```
 
 **Phase 3 - Cross-Domain Resolution**:
-- Shared: `workflows-code`, `workflows-conversation` (included where needed)
+- Shared: `workflows-code`, `workflows-spec-kit` (included where needed)
 - No conflicts: Each agent has focused skill set
 
 

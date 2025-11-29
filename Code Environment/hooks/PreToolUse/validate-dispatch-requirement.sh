@@ -18,11 +18,15 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 source "$SCRIPT_DIR/../lib/shared-state.sh" 2>/dev/null || exit 0
 
+# Logging
+LOG_FILE="$SCRIPT_DIR/../logs/validate-dispatch.log"
+mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null
+
 # Read input
 INPUT=$(cat)
 
 # Extract tool name from JSON
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.name // empty' 2>/dev/null)
 
 # If no tool name, allow
 if [ -z "$TOOL_NAME" ]; then
@@ -37,7 +41,7 @@ if echo "$TOOL_NAME" | grep -qE "^($ALLOWED_TOOLS)$"; then
   # Task tool clears the pending dispatch requirement
   if [[ "$TOOL_NAME" == "Task" ]]; then
     # Clear pending dispatch state when Task tool is used
-    write_hook_state "pending_dispatch" "" 2>/dev/null || true
+    clear_hook_state "pending_dispatch" 2>/dev/null || true
   fi
   exit 0
 fi
@@ -45,8 +49,16 @@ fi
 # Check for pending dispatch requirement
 DISPATCH_STATE=$(read_hook_state "pending_dispatch" 2>/dev/null)
 
+# Log state check
+{
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] CHECK tool=$TOOL_NAME state='$DISPATCH_STATE'"
+} >> "$LOG_FILE" 2>/dev/null
+
 # If no pending dispatch, allow the tool
 if [ -z "$DISPATCH_STATE" ] || [ "$DISPATCH_STATE" == "{}" ] || [ "$DISPATCH_STATE" == "" ]; then
+  {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ALLOW tool=$TOOL_NAME reason=no_pending_dispatch"
+  } >> "$LOG_FILE" 2>/dev/null
   exit 0
 fi
 
@@ -57,6 +69,11 @@ if [[ "$REQUIRED" == "true" ]]; then
   # Extract details for error message
   COMPLEXITY=$(echo "$DISPATCH_STATE" | jq -r '.complexity // "unknown"' 2>/dev/null)
   AGENTS=$(echo "$DISPATCH_STATE" | jq -r '.agents // "unknown"' 2>/dev/null)
+
+  # Log blocking decision
+  {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] BLOCK tool=$TOOL_NAME complexity=$COMPLEXITY agents=$AGENTS"
+  } >> "$LOG_FILE" 2>/dev/null
 
   # Block the tool and show error
   {

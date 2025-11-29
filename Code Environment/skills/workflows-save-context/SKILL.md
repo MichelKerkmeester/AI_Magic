@@ -600,7 +600,7 @@ specs/122-skill-standardization/
 ├── 001-cli-codex-alignment/
 │   └── memory/
 │       └── 23-11-25_10-03__cli-codex.md
-├── 002-workflows-conversation/
+├── 002-workflows-spec-kit/
 │   └── memory/
 │       └── 23-11-25_10-06__workflows.md
 └── 003-spec-folder-versioning/  ← Active (from .spec-active)

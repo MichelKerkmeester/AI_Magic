@@ -7,13 +7,16 @@
 # implementation. Warns (advisory, not blocking) when scope
 # grows significantly beyond initial estimate.
 #
-# Version: 1.0.0
+# Version: 2.0.0
 # Created: 2025-11-25
+# Updated: 2025-11-29
 # Spec: specs/002-speckit/008-validation-enforcement/
 #
-# TRIGGERS: After Edit/Write tool completions
+# TRIGGERS: After Edit/Write tool completions in spec folders
 # OUTPUT: Advisory warning when scope grows >50%
 # BLOCKING: No - advisory only
+#
+# INTEGRATION: Uses file-scope-tracking.sh for state management
 # ───────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -23,76 +26,169 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOOKS_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_ROOT="$(dirname "$HOOKS_DIR")"
 PROJECT_ROOT="${PROJECT_ROOT%/.claude}"
+LOG_FILE="$HOOKS_DIR/logs/detect-scope-growth.log"
+
+# Ensure log directory exists
+mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
+
+# Logging helper
+log_event() {
+  local level="$1"
+  local message="$2"
+  echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [$level] $message" >> "$LOG_FILE" 2>/dev/null || true
+}
 
 # Read tool input from stdin
 INPUT=$(cat)
 
-# Extract tool name
+# Extract tool name and file path
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null)
+FILE_PATH=$(echo "$INPUT" | jq -r '.parameters.file_path // .parameters.notebook_path // ""' 2>/dev/null)
 
 # Only process after Edit/Write operations
-if [[ ! "$TOOL_NAME" =~ ^(Edit|Write)$ ]]; then
+if [[ ! "$TOOL_NAME" =~ ^(Edit|Write|NotebookEdit)$ ]]; then
+  log_event "DEBUG" "Skipping tool: $TOOL_NAME"
   exit 0
 fi
 
-# Source shared state library
+# Only care about .md files in specs folders
+if [[ ! "$FILE_PATH" =~ ^specs/[0-9]+-[^/]+/.*\.md$ ]]; then
+  log_event "DEBUG" "Skipping non-spec file: $FILE_PATH"
+  exit 0
+fi
+
+log_event "INFO" "Processing $TOOL_NAME on $FILE_PATH"
+
+# Source required libraries
 if [ -f "$HOOKS_DIR/lib/shared-state.sh" ]; then
   source "$HOOKS_DIR/lib/shared-state.sh"
 else
-  exit 0  # Can't check without state library
-fi
-
-# Read initial scope from state (set by enforce-spec-folder.sh)
-initial_state=$(read_hook_state "initial_scope" 7200 2>/dev/null) || initial_state=""
-
-# If no initial scope recorded, nothing to compare
-if [ -z "$initial_state" ]; then
+  log_event "ERROR" "shared-state.sh not found"
   exit 0
 fi
 
-# Extract initial values
-initial_files=$(echo "$initial_state" | jq -r '.files_count // 0' 2>/dev/null) || initial_files=0
-initial_level=$(echo "$initial_state" | jq -r '.level // 2' 2>/dev/null) || initial_level=2
-spec_folder=$(echo "$initial_state" | jq -r '.spec_folder // ""' 2>/dev/null) || spec_folder=""
+if [ -f "$HOOKS_DIR/lib/file-scope-tracking.sh" ]; then
+  source "$HOOKS_DIR/lib/file-scope-tracking.sh"
+else
+  log_event "ERROR" "file-scope-tracking.sh not found"
+  exit 0
+fi
 
-# Skip if no spec folder or invalid initial count
-if [ -z "$spec_folder" ] || [ "$initial_files" -eq 0 ]; then
+# Read scope definition (set by enforce-spec-folder.sh)
+scope_def=$(read_hook_state "scope_definition" 7200 2>/dev/null) || scope_def=""
+
+# If no scope definition exists, initialize it from the current file's spec folder
+if [ -z "$scope_def" ]; then
+  # Extract spec folder from file path (e.g., specs/009-feature)
+  if [[ "$FILE_PATH" =~ ^(specs/[0-9]+-[^/]+)/ ]]; then
+    SPEC_FOLDER="${BASH_REMATCH[1]}"
+    log_event "INFO" "Auto-initializing scope for $SPEC_FOLDER"
+    initialize_scope_definition "$SPEC_FOLDER" "" 2>/dev/null || true
+    scope_def=$(read_hook_state "scope_definition" 7200 2>/dev/null) || scope_def=""
+  fi
+fi
+
+# If still no scope definition, exit (nothing to track)
+if [ -z "$scope_def" ]; then
+  log_event "DEBUG" "No scope definition found, exiting"
+  exit 0
+fi
+
+# Extract spec folder from scope definition
+spec_folder=$(echo "$scope_def" | jq -r '.spec_folder // ""' 2>/dev/null)
+
+if [ -z "$spec_folder" ] || [ ! -d "$spec_folder" ]; then
+  log_event "WARN" "Invalid spec folder: $spec_folder"
+  exit 0
+fi
+
+# Read or initialize baseline file count
+baseline_state=$(read_hook_state "scope_baseline" 7200 2>/dev/null) || baseline_state=""
+
+if [ -z "$baseline_state" ]; then
+  # First time tracking - establish baseline
+  baseline_files=$(find "$spec_folder" -maxdepth 2 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+
+  # Infer documentation level from existing files
+  doc_level=1
+  if [ -f "$spec_folder/plan.md" ]; then
+    doc_level=2
+  fi
+  if [ -f "$spec_folder/tasks.md" ] || [ -f "$spec_folder/checklist.md" ]; then
+    doc_level=3
+  fi
+
+  timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date +%Y-%m-%dT%H:%M:%SZ)
+
+  baseline_state=$(cat <<EOF
+{
+  "spec_folder": "$spec_folder",
+  "files_count": $baseline_files,
+  "level": $doc_level,
+  "timestamp": "$timestamp"
+}
+EOF
+)
+
+  write_hook_state "scope_baseline" "$baseline_state" 2>/dev/null || true
+  log_event "INFO" "Baseline established: $baseline_files files, level $doc_level"
+  exit 0  # Don't warn on first detection
+fi
+
+# Extract baseline values
+baseline_files=$(echo "$baseline_state" | jq -r '.files_count // 0' 2>/dev/null) || baseline_files=0
+baseline_level=$(echo "$baseline_state" | jq -r '.level // 2' 2>/dev/null) || baseline_level=2
+
+# Skip if invalid baseline
+if [ "$baseline_files" -eq 0 ]; then
+  log_event "WARN" "Invalid baseline (0 files)"
   exit 0
 fi
 
 # Count current files in spec folder
-current_files=0
-if [ -d "$spec_folder" ]; then
-  current_files=$(find "$spec_folder" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-fi
+current_files=$(find "$spec_folder" -maxdepth 2 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
 
 # Calculate growth percentage
-if [ "$initial_files" -gt 0 ] && [ "$current_files" -gt 0 ]; then
-  growth_ratio=$((current_files * 100 / initial_files))
+if [ "$current_files" -gt "$baseline_files" ]; then
+  growth_ratio=$((current_files * 100 / baseline_files))
+
+  log_event "INFO" "Growth check: $baseline_files -> $current_files files ($growth_ratio%)"
 
   # Detect significant scope growth (>150% = 50% growth)
+  # Also check we haven't already warned (avoid spam)
   if [ "$growth_ratio" -gt 150 ]; then
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "⚠️  SCOPE GROWTH DETECTED (Advisory)"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-    echo "Initial files: $initial_files"
-    echo "Current files: $current_files"
-    echo "Growth: +$((growth_ratio - 100))%"
-    echo ""
-    echo "Consider:"
-    if [ "$initial_level" -eq 1 ]; then
-      echo "  • Upgrading to Level 2 (add plan.md)"
+    # Check if we already warned about this growth
+    if ! has_hook_state "growth_warning_shown" 600 2>/dev/null; then
+      echo ""
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo "⚠️  SCOPE GROWTH DETECTED (Advisory)"
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo ""
+      echo "Spec folder: $spec_folder"
+      echo "Initial files: $baseline_files"
+      echo "Current files: $current_files"
+      echo "Growth: +$((growth_ratio - 100))%"
+      echo ""
+      echo "Consider:"
+      if [ "$baseline_level" -eq 1 ]; then
+        echo "  • Upgrading to Level 2 (add plan.md)"
+      fi
+      if [ "$baseline_level" -le 2 ]; then
+        echo "  • Adding tasks.md for tracking"
+        echo "  • Adding checklist.md for validation"
+      fi
+      echo ""
+      echo "This is advisory only - continue if scope growth is expected."
+      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      echo ""
+
+      # Mark that we've shown the warning (expires in 10 minutes)
+      write_hook_state "growth_warning_shown" "{\"shown\":true,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" 2>/dev/null || true
+
+      log_event "WARN" "Growth warning displayed: +$((growth_ratio - 100))%"
+    else
+      log_event "DEBUG" "Growth detected but warning already shown recently"
     fi
-    if [ "$initial_level" -le 2 ]; then
-      echo "  • Adding tasks.md for tracking"
-      echo "  • Adding checklist.md for validation"
-    fi
-    echo ""
-    echo "This is advisory only - continue if scope growth is expected."
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
   fi
 fi
 

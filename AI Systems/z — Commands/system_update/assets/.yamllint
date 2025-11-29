@@ -1,0 +1,53 @@
+---
+# yamllint configuration for system_update command workflows
+# Balances code quality with practical readability
+
+extends: default
+
+rules:
+  # Line length: Allow 120 characters for readability
+  # Many YAML fields contain descriptive text that benefits from longer lines
+  line-length:
+    max: 120
+    level: warning
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  # Indentation: Consistent 2-space indentation
+  # Allow both consistent and whatever works for sequences
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+    check-multi-line-strings: false
+
+  # Document start: Not required
+  # Many workflow files don't need explicit --- markers
+  document-start:
+    present: false
+
+  # Comments: Require space after # for readability
+  comments:
+    min-spaces-from-content: 1
+    level: warning
+
+  # Truthy values: Allow yes/no in addition to true/false
+  # Workflow files often use yes/no for clarity
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no']
+    check-keys: false
+
+  # Empty lines: Allow reasonable spacing for readability
+  empty-lines:
+    max: 2
+    max-start: 0
+    max-end: 0
+
+  # Brackets: Consistent spacing
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  # Braces: Consistent spacing
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1

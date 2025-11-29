@@ -74,7 +74,7 @@ if [ -f "$SPEC_MARKER" ]; then
 fi
 
 # Extract file path for logging
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.filePath // "unknown"' 2>/dev/null)
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.filePath // .tool_input.path // .tool_input.notebook_path // .parameters.file_path // .parameters.filePath // .parameters.path // .parameters.notebook_path // "unknown"' 2>/dev/null)
 
 # VIOLATION: File modification without spec folder
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] COMPLIANCE: $TOOL_NAME on $FILE_PATH without spec folder" >> "$LOG_FILE" 2>/dev/null

@@ -22,6 +22,12 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 source "$SCRIPT_DIR/../lib/output-helpers.sh" || exit 0
 source "$SCRIPT_DIR/../lib/shared-state.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/../lib/signal-output.sh" 2>/dev/null || true
+
+# Parallel dispatch flow constants
+DISPATCH_FLOW_STAGE="parallel_dispatch"
+DISPATCH_STATE_KEY="parallel_dispatch_completed"
+DISPATCH_STATE_EXPIRY=3600  # 1 hour session preference
 
 # Performance timing START
 START_TIME=$(date +%s%N)
@@ -87,7 +93,7 @@ PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 # Check for override phrases
 if echo "$PROMPT_LOWER" | grep -qE "(proceed anyway|skip dispatch|handle directly|override dispatch|do it sequentially)"; then
   # Clear pending dispatch state
-  write_hook_state "pending_dispatch" "" 2>/dev/null || true
+  clear_hook_state "pending_dispatch" 2>/dev/null || true
 
   # Log override
   {
@@ -101,6 +107,48 @@ if echo "$PROMPT_LOWER" | grep -qE "(proceed anyway|skip dispatch|handle directl
   exit 0
 fi
 
+# ───────────────────────────────────────────────────────────────
+# PARALLEL DISPATCH OVERRIDE DETECTION
+# ───────────────────────────────────────────────────────────────
+# Detect all three override phrases: proceed directly, use parallel, auto-decide
+
+if echo "$PROMPT_LOWER" | grep -qE "(proceed directly|handle directly|skip parallel|no parallel|without parallel)"; then
+  # Force direct handling
+  write_hook_state "$DISPATCH_STATE_KEY" \
+    '{"choice":"direct","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+
+  {
+    echo "─────────────────────────────────────────────────────────────"
+    echo "DIRECT HANDLING OVERRIDE - $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    echo "User explicitly requested direct handling (no parallel agents)"
+    echo "─────────────────────────────────────────────────────────────"
+  } >> "$PROJECT_ROOT/.claude/hooks/logs/orchestrator.log" 2>/dev/null || true
+
+elif echo "$PROMPT_LOWER" | grep -qE "(auto-decide|auto decide|automatic mode|auto mode|decide for me)"; then
+  # Enable auto-decide mode
+  write_hook_state "$DISPATCH_STATE_KEY" \
+    '{"choice":"auto","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+
+  {
+    echo "─────────────────────────────────────────────────────────────"
+    echo "AUTO-DECIDE OVERRIDE - $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    echo "User enabled automatic dispatch mode for this session"
+    echo "─────────────────────────────────────────────────────────────"
+  } >> "$PROJECT_ROOT/.claude/hooks/logs/orchestrator.log" 2>/dev/null || true
+
+elif echo "$PROMPT_LOWER" | grep -qE "(use parallel|dispatch agents|parallelize|create sub-agents)"; then
+  # Force parallel dispatch
+  write_hook_state "$DISPATCH_STATE_KEY" \
+    '{"choice":"parallel","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+
+  {
+    echo "─────────────────────────────────────────────────────────────"
+    echo "PARALLEL DISPATCH OVERRIDE - $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    echo "User explicitly requested parallel agent dispatch"
+    echo "─────────────────────────────────────────────────────────────"
+  } >> "$PROJECT_ROOT/.claude/hooks/logs/orchestrator.log" 2>/dev/null || true
+fi
+
 # Additional configuration paths
 SKILL_RULES="$PROJECT_ROOT/.claude/configs/skill-rules.json"
 SKILL_RECOMMENDATIONS_LOG="$PROJECT_ROOT/.claude/hooks/logs/skill-recommendations.log"
@@ -108,6 +156,82 @@ ORCHESTRATOR_LOG="$PROJECT_ROOT/.claude/hooks/logs/orchestrator.log"
 
 # Ensure log directory exists
 mkdir -p "$(dirname "$ORCHESTRATOR_LOG")" 2>/dev/null
+
+# ───────────────────────────────────────────────────────────────
+# MULTI-STAGE DISPATCH FLOW HANDLING
+# ───────────────────────────────────────────────────────────────
+
+handle_dispatch_flow() {
+  local current_stage=$(get_question_stage)
+
+  if [ "$current_stage" != "$DISPATCH_FLOW_STAGE" ]; then
+    return 1
+  fi
+
+  local user_choice=""
+  if echo "$PROMPT_LOWER" | grep -qE "^[[:space:]]*[abc][[:space:]]*$"; then
+    user_choice=$(echo "$PROMPT" | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
+  elif echo "$PROMPT_LOWER" | grep -qiE "(option|choice|select|pick|choose)[[:space:]]*(a|b|c)"; then
+    user_choice=$(echo "$PROMPT_LOWER" | grep -oiE "[abc]" | tail -1 | tr '[:lower:]' '[:upper:]')
+  elif echo "$PROMPT_LOWER" | grep -qiE "^[[:space:]]*(a\)|b\)|c\))"; then
+    user_choice=$(echo "$PROMPT_LOWER" | grep -oE "^[[:space:]]*[abc]" | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
+  fi
+
+  echo "[DISPATCH_FLOW] Stage: $current_stage, Choice: ${user_choice:-none}" >> "$ORCHESTRATOR_LOG"
+
+  if [ -z "$user_choice" ]; then
+    return 1
+  fi
+
+  echo "[DISPATCH_FLOW_COMPLETE] User chose: $user_choice" >> "$ORCHESTRATOR_LOG"
+
+  case "$user_choice" in
+    A)
+      echo ""
+      echo "✅ DIRECT HANDLING SELECTED"
+      echo "   Processing sequentially without parallel agents"
+      echo ""
+
+      write_hook_state "$DISPATCH_STATE_KEY" \
+        '{"choice":"direct","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+
+      clear_question_flow
+      exit 0
+      ;;
+    B)
+      echo ""
+      echo "✅ PARALLEL DISPATCH SELECTED"
+      echo "   Creating specialized agents for parallel execution"
+      echo ""
+
+      write_hook_state "$DISPATCH_STATE_KEY" \
+        '{"choice":"parallel","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+
+      clear_question_flow
+      exit 0
+      ;;
+    C)
+      echo ""
+      echo "✅ AUTO-DECIDE ENABLED"
+      echo "   Will use parallel when time savings ≥30%"
+      echo "   (Override anytime with 'proceed directly' or 'use parallel')"
+      echo ""
+
+      write_hook_state "$DISPATCH_STATE_KEY" \
+        '{"choice":"auto","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+
+      clear_question_flow
+      exit 0
+      ;;
+  esac
+
+  clear_question_flow
+  return 1
+}
+
+if handle_dispatch_flow; then
+  exit 0
+fi
 
 # ───────────────────────────────────────────────────────────────
 # 1. COMPLEXITY SCORING (5-DIMENSION ALGORITHM)
@@ -133,36 +257,46 @@ calculate_complexity_score() {
   # Dimension 1: Domain count (0-6 domains)
   # Domains: code, analysis, docs, git, testing, devops
   local domain_count=0
+  local detected_domains=""
 
   # Code domain indicators (REFINED - removed generic verbs and standalone 'api' that over-matches docs)
   if echo "$prompt_lower" | grep -qE "(implement|code|refactor|function|class|component|backend|frontend|fix|bug|debug|error|issue|problem|resolve|patch|hotfix|optimize|improve|enhance|script|module|service|handler|controller|model|util|helper|endpoint|route)"; then
     ((domain_count++))
+    detected_domains="${detected_domains}code "
   fi
 
   # Analysis domain indicators (REFINED - removed verbs that overlap with other domains)
   if echo "$prompt_lower" | grep -qE "(analyze|investigate|explore|examine|audit|inspect|trace|profile|benchmark|diagnose|troubleshoot|discover|locate|scan)"; then
     ((domain_count++))
+    detected_domains="${detected_domains}analysis "
   fi
 
   # Docs domain indicators (REFINED - removed changelog duplicate, kept in git domain)
   if echo "$prompt_lower" | grep -qE "(document|readme|guide|tutorial|api.*doc|comment|explain|release.*notes|specification|spec.*doc|jsdoc|typedoc|markdown|wiki)"; then
     ((domain_count++))
+    detected_domains="${detected_domains}docs "
   fi
 
   # Git domain indicators (EXPANDED)
   if echo "$prompt_lower" | grep -qE "(git|commit|branch|merge|pull.*request|migration|version|pr\b|tag|release|changelog|rebase|cherry.*pick)"; then
     ((domain_count++))
+    detected_domains="${detected_domains}git "
   fi
 
   # Testing domain indicators (EXPANDED)
   if echo "$prompt_lower" | grep -qE "(test|unittest|integration.*test|e2e|coverage|spec\b|assert|mock|stub|fixture|snapshot|playwright|jest|vitest|bats|pytest)"; then
     ((domain_count++))
+    detected_domains="${detected_domains}testing "
   fi
 
   # DevOps domain indicators (EXPANDED)
   if echo "$prompt_lower" | grep -qE "(deploy|ci|cd|docker|build|pipeline|infrastructure|kubernetes|k8s|helm|terraform|ansible|aws|gcp|azure|nginx|ssl|certificate|monitoring|logging|metrics)"; then
     ((domain_count++))
+    detected_domains="${detected_domains}devops "
   fi
+
+  # Trim trailing space
+  detected_domains="${detected_domains% }"
 
   # Calculate domain score (35% weight, normalized to 0-1, now 6 domains)
   local domain_score=$(calc_float "round(${domain_count} / 6.0, 4)")
@@ -276,13 +410,16 @@ calculate_complexity_score() {
     echo "LOC estimate: ${loc_estimate}/1000 → ${loc_weighted}%"
     echo "Parallel opportunity: ${parallel_opportunity} → ${parallel_weighted}%"
     echo "Task complexity: ${task_complexity} → ${task_weighted}%"
+    if [ "$has_sequential_deps" = "true" ]; then
+      echo "Sequential dependencies: DETECTED (parallel not beneficial)"
+    fi
     echo "─────────────────────────────────────────────────────────────"
     echo "TOTAL COMPLEXITY: ${total_score}%"
     echo "─────────────────────────────────────────────────────────────"
   } >> "$ORCHESTRATOR_LOG"
 
-  # Return score and domain count
-  echo "${total_score}|${domain_count}"
+  # Return score, domain count, sequential dependencies flag, and detected domains
+  echo "${total_score}|${domain_count}|${has_sequential_deps}|${detected_domains}"
 }
 
 # ───────────────────────────────────────────────────────────────
@@ -381,7 +518,7 @@ get_skills_for_domain() {
       echo "mcp-semantic-search,workflows-code"
       ;;
     "docs"|"documentation")
-      echo "create-documentation,workflows-conversation"
+      echo "create-documentation,workflows-spec-kit"
       ;;
     "git")
       echo "workflows-git,workflows-save-context"
@@ -488,6 +625,8 @@ dispatch_parallel_agents() {
 COMPLEXITY_RESULT=$(calculate_complexity_score "$PROMPT")
 COMPLEXITY_SCORE=$(echo "$COMPLEXITY_RESULT" | cut -d'|' -f1)
 DOMAIN_COUNT=$(echo "$COMPLEXITY_RESULT" | cut -d'|' -f2)
+HAS_SEQUENTIAL_DEPS=$(echo "$COMPLEXITY_RESULT" | cut -d'|' -f3)
+DETECTED_DOMAINS=$(echo "$COMPLEXITY_RESULT" | cut -d'|' -f4)
 
 # Write complexity state for inter-hook communication
 # Other hooks (like enforce-spec-folder.sh) can read this for template recommendations
@@ -497,21 +636,121 @@ EOF
 )
 write_hook_state "complexity" "$COMPLEXITY_STATE" 2>/dev/null || true
 
-# Check for collaborative zone (25-34% with ≥2 domains)
-if [ "$PYTHON_AVAILABLE" = true ]; then
-  COLLABORATIVE_CHECK=$(python3 -c "print('true' if 25 <= ${COMPLEXITY_SCORE} < 35 and ${DOMAIN_COUNT} >= 2 else 'false')")
+# ───────────────────────────────────────────────────────────────
+# SEQUENTIAL DEPENDENCIES CHECK
+# ───────────────────────────────────────────────────────────────
+# If task has sequential dependencies, skip parallel dispatch question
+# and force direct handling (parallel execution provides no benefit)
+
+if [ "$HAS_SEQUENTIAL_DEPS" = "true" ]; then
+  {
+    echo "─────────────────────────────────────────────────────────────"
+    echo "SEQUENTIAL DEPENDENCIES DETECTED"
+    echo "Task requires sequential execution (e.g., 'first X then Y')"
+    echo "Skipping parallel dispatch question - no parallelization benefit"
+    echo "Forcing SEQUENTIAL handling"
+    echo "─────────────────────────────────────────────────────────────"
+  } >> "$ORCHESTRATOR_LOG"
+
+  # Don't set any state - just let it proceed with normal flow
+  # The DECISION will be set to SEQUENTIAL below
+fi
+
+# ───────────────────────────────────────────────────────────────
+# PARALLEL DISPATCH DECISION WITH MANDATORY QUESTION
+# ───────────────────────────────────────────────────────────────
+
+if has_hook_state "$DISPATCH_STATE_KEY" "$DISPATCH_STATE_EXPIRY"; then
+  DISPATCH_STATE=$(read_hook_state "$DISPATCH_STATE_KEY" "$DISPATCH_STATE_EXPIRY")
+  DISPATCH_CHOICE=$(echo "$DISPATCH_STATE" | jq -r '.choice // ""')
+
+  echo "[DISPATCH_DECISION] Using existing choice: $DISPATCH_CHOICE" >> "$ORCHESTRATOR_LOG"
+
+  if [ "$DISPATCH_CHOICE" = "auto" ]; then
+    if [ "$PYTHON_AVAILABLE" = true ]; then
+      QUALIFIES=$(python3 -c "print('true' if ${COMPLEXITY_SCORE} >= 35 and ${DOMAIN_COUNT} >= 2 else 'false')")
+    else
+      QUALIFIES=$(awk "BEGIN { print (${COMPLEXITY_SCORE} >= 35 && ${DOMAIN_COUNT} >= 2) ? \"true\" : \"false\" }")
+    fi
+
+    if [ "$QUALIFIES" = "true" ]; then
+      DECISION="DISPATCH"
+      {
+        echo "AUTO-DISPATCH (complexity ${COMPLEXITY_SCORE}% ≥ 35%, domains ${DOMAIN_COUNT} ≥ 2)"
+        echo "─────────────────────────────────────────────────────────────"
+      } >> "$ORCHESTRATOR_LOG"
+    else
+      DECISION="SEQUENTIAL"
+      {
+        echo "AUTO-DIRECT (below thresholds)"
+        echo "─────────────────────────────────────────────────────────────"
+      } >> "$ORCHESTRATOR_LOG"
+    fi
+  elif [ "$DISPATCH_CHOICE" = "parallel" ]; then
+    DECISION="DISPATCH"
+  elif [ "$DISPATCH_CHOICE" = "direct" ]; then
+    DECISION="SEQUENTIAL"
+  fi
 else
-  # Use awk for the range check
-  COLLABORATIVE_CHECK=$(awk "BEGIN { print (${COMPLEXITY_SCORE} >= 25 && ${COMPLEXITY_SCORE} < 35 && ${DOMAIN_COUNT} >= 2) ? \"true\" : \"false\" }")
+  # Check if we should ask (threshold met AND no sequential dependencies)
+  if [ "$HAS_SEQUENTIAL_DEPS" = "true" ]; then
+    # Sequential dependencies detected - skip question, force direct handling
+    SHOULD_ASK="false"
+    DECISION="SEQUENTIAL"
+  elif [ "$PYTHON_AVAILABLE" = true ]; then
+    SHOULD_ASK=$(python3 -c "print('true' if ${COMPLEXITY_SCORE} >= 20 and ${DOMAIN_COUNT} >= 2 else 'false')")
+  else
+    SHOULD_ASK=$(awk "BEGIN { print (${COMPLEXITY_SCORE} >= 20 && ${DOMAIN_COUNT} >= 2) ? \"true\" : \"false\" }")
+  fi
+
+  if [ "$SHOULD_ASK" = "true" ]; then
+    echo "[DISPATCH_REQUIRED] Complexity: $COMPLEXITY_SCORE%, Domains: $DOMAIN_COUNT" >> "$ORCHESTRATOR_LOG"
+
+    # Build skills list from detected domains (already calculated in complexity scoring)
+    # DETECTED_DOMAINS is space-separated: "code analysis git"
+    skills_list=""
+    IFS=' ' read -ra DOMAINS_ARRAY <<< "$DETECTED_DOMAINS"
+    for domain in "${DOMAINS_ARRAY[@]}"; do
+      if [[ -n "$domain" ]]; then
+        domain_skills=$(get_skills_for_domain "$domain")
+        skills_list="${skills_list}${domain_skills},"
+      fi
+    done
+    skills_list="${skills_list%,}"
+
+    is_first_time="false"
+    if ! has_hook_state "parallel_dispatch_asked_ever" 86400; then
+      is_first_time="true"
+      write_hook_state "parallel_dispatch_asked_ever" '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+    fi
+
+    emit_parallel_dispatch_question "$COMPLEXITY_SCORE" "$DOMAIN_COUNT" "$skills_list" "$is_first_time"
+
+    set_question_flow "$DISPATCH_FLOW_STAGE" "" "" ""
+
+    {
+      echo "MANDATORY QUESTION EMITTED"
+      echo "─────────────────────────────────────────────────────────────"
+    } >> "$ORCHESTRATOR_LOG"
+
+    END_TIME=$(date +%s%N)
+    DURATION_MS=$(( (END_TIME - START_TIME) / 1000000 ))
+    echo "EXECUTION TIME: ${DURATION_MS}ms" >> "$ORCHESTRATOR_LOG"
+
+    exit 0
+  else
+    DECISION="SEQUENTIAL"
+    {
+      echo "BELOW THRESHOLD (complexity: $COMPLEXITY_SCORE%, domains: $DOMAIN_COUNT)"
+      echo "─────────────────────────────────────────────────────────────"
+    } >> "$ORCHESTRATOR_LOG"
+  fi
 fi
 
-if [[ "$COLLABORATIVE_CHECK" == "true" ]]; then
-  # In collaborative zone - log the decision point
-  show_collaborative_prompt "$COMPLEXITY_SCORE" "$DOMAIN_COUNT" "$PROMPT"
+# Make dispatch decision (legacy path - now set above)
+if [ -z "$DECISION" ]; then
+  DECISION=$(make_dispatch_decision "$COMPLEXITY_SCORE" "$DOMAIN_COUNT")
 fi
-
-# Make dispatch decision
-DECISION=$(make_dispatch_decision "$COMPLEXITY_SCORE" "$DOMAIN_COUNT")
 
 {
   echo "DECISION: $DECISION"
@@ -599,11 +838,11 @@ EOF
   } >> "$ORCHESTRATOR_LOG"
 
   # ─────────────────────────────────────────────────────────────────
-  # INFORMATIONAL: Display dispatch recommendation (non-blocking)
+  # STATE SET: Enforcement delegated to validate-dispatch-requirement.sh
   # ─────────────────────────────────────────────────────────────────
-  # Changed from exit 1 (blocking) to exit 0 (informational) on 2025-11-25
-  # Agent tracking now handled by PreToolUse/announce-task-dispatch.sh
-  # and PostToolUse/summarize-task-completion.sh for lifecycle visibility
+  # State written above (line 583), PreToolUse hook will enforce blocking
+  # We remain informational here to allow the workflow to continue
+  # until a non-Task tool is attempted
   exit 0
 
 else
@@ -613,7 +852,7 @@ else
   } >> "$ORCHESTRATOR_LOG"
 
   # Clear any pending dispatch state
-  write_hook_state "pending_dispatch" "" 2>/dev/null || true
+  clear_hook_state "pending_dispatch" 2>/dev/null || true
 fi
 
 # Performance timing END

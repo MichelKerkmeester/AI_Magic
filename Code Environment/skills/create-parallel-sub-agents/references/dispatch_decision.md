@@ -2,7 +2,7 @@
 
 Dispatch only when parallel execution or specialization benefits exceed orchestration overhead - measure benefit in time saved, not tasks completed.
 
-> **Implementation Note**: The `orchestrate-skill-validation.sh` hook operates in **informational mode** (always exits 0). It calculates complexity scores and writes recommendations to `.claude/hooks/logs/orchestrator.log`, but the AI agent makes the final dispatch decision.
+> **Implementation Note**: The `orchestrate-skill-validation.sh` hook emits **mandatory questions** when complexity ≥20% + ≥2 domains (unless sequential dependencies detected). User must respond via AskUserQuestion with choice A) Direct, B) Parallel, or C) Auto-decide before the AI can proceed. User preferences persist for 1 hour (session-level). Auto-dispatch (no question) occurs for ≥50% complexity + 3+ domains.
 
 **Prerequisites:** Follow [Agent Orchestrator Workflow](../SKILL.md) for complete context:
 - **Complexity Scoring**: See [complexity_scoring.md](./complexity_scoring.md) for threshold calculation
@@ -12,39 +12,34 @@ Dispatch only when parallel execution or specialization benefits exceed orchestr
 
 ## 1. 🌲 THE DECISION TREE
 
-You MUST evaluate ALL checkpoints in order before dispatching.
+**Hook Enforcement (Automatic):** The `orchestrate-skill-validation.sh` hook handles most decisions automatically:
 
 ```
-START
+USER PROMPT
   │
-  ├─ [Checkpoint 1: Token Budget]
+  ├─ [Hook Auto-Check: Complexity + Domains]
   │   │
-  │   ├─ Budget < 20% → DIRECT (insufficient resources)
-  │   └─ Budget ≥ 20% → Continue
-  │
-  ├─ [Checkpoint 2: Complexity Score]
+  │   ├─ <20% → DIRECT (silent, no question)
+  │   ├─ 20-49% + <2 domains → DIRECT (silent, no question)
+  │   ├─ Sequential dependencies → DIRECT (logged, no question)
+  │   ├─ Override phrase detected → Apply preference, no question
+  │   ├─ 20-49% + ≥2 domains → **MANDATORY QUESTION** (blocks until answered)
+  │   │   │
+  │   │   ├─ User chooses A) Direct → DIRECT
+  │   │   ├─ User chooses B) Parallel → DISPATCH
+  │   │   └─ User chooses C) Auto-decide → Store preference (1h)
   │   │
-  │   ├─ Score < 25% → DIRECT (too simple)
-  │   ├─ Score 25-34% → COLLABORATIVE (ask user)
-  │   └─ Score ≥ 35% → Continue
+  │   └─ ≥50% + ≥3 domains → AUTO-DISPATCH (notification only)
   │
-  ├─ [Checkpoint 3: Domain Count]
-  │   │
-  │   ├─ Domains = 1 → DIRECT (no specialization benefit)
-  │   └─ Domains ≥ 2 → Continue
-  │
-  ├─ [Checkpoint 4: Dependencies]
-  │   │
-  │   ├─ Sequential only → DIRECT (no parallel benefit)
-  │   └─ Parallel possible → Continue
-  │
-  ├─ [Checkpoint 5: Overhead Analysis]
-  │   │
-  │   ├─ Overhead > 30% → DIRECT (overhead too high)
-  │   └─ Overhead < 30% → DISPATCH
-  │
-  └─ DISPATCH SUB-AGENTS
+  └─ AI proceeds with user's choice or auto-decision
 ```
+
+**AI Validation Checkpoints** (only if user chose parallel or auto-dispatch):
+
+1. **Token Budget**: Budget ≥ 20% required
+2. **Domain Count**: Domains ≥ 2 for specialization benefit
+3. **Dependencies**: Parallel possible (not sequential-only)
+4. **Overhead Analysis**: Overhead < 30% of task time
 
 **Validation**: `dispatch_decision_made`
 

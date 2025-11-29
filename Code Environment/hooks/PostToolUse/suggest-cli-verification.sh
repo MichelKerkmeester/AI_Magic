@@ -14,18 +14,24 @@ START_TIME=$(date +%s)
 # Parse tool input from stdin
 TOOL_INPUT=$(cat)
 
-# Extract tool name
-TOOL_NAME=$(echo "$TOOL_INPUT" | jq -r '.tool // empty')
+# Extract tool name (use .tool_name which is the actual JSON field)
+TOOL_NAME=$(echo "$TOOL_INPUT" | jq -r '.tool_name // .toolName // .tool // empty')
 
 # Only process Write, Edit, NotebookEdit tools
 if [[ ! "$TOOL_NAME" =~ ^(Write|Edit|NotebookEdit)$ ]]; then
   exit 0
 fi
 
-# Extract file path from tool_input
+# Extract file path from tool_input (support both snake_case and camelCase)
 FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '
   .tool_input.file_path //
+  .tool_input.filePath //
+  .tool_input.path //
   .tool_input.notebook_path //
+  .parameters.file_path //
+  .parameters.filePath //
+  .parameters.path //
+  .parameters.notebook_path //
   empty
 ')
 
@@ -65,7 +71,7 @@ fi
 # Performance tracking (log only, no threshold check)
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
-echo "[$(date +'%Y-%m-%d %H:%M:%S')] suggest-cli-verification.sh completed in ${DURATION}s" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] suggest-cli-verification.sh completed in ${DURATION}s (tool: $TOOL_NAME, matched: $([ -n "$FILE_PATH" ] && [[ "$FILE_PATH" =~ src/.*\.(js|css)$ ]] && echo 'yes' || echo 'no'))" >> "$LOG_FILE"
 
 # Exit 0 (allow, non-blocking suggestion)
 exit 0

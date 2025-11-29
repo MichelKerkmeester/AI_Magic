@@ -1,16 +1,23 @@
 #!/bin/bash
 
 # ───────────────────────────────────────────────────────────────
-# CDN VERSION REMINDER HOOK
+# CDN VERSION REMINDER HOOK - ENHANCED PRODUCTION DETECTION
 # ───────────────────────────────────────────────────────────────
 # Post-ToolUse hook that reminds to run CDN version updater
-# after JavaScript file modifications
+# after JavaScript file modifications in production/staging contexts
 #
-# Author: Auto-generated from spec 090-code-workflows-orchestrator-restructure
-# Date: 2025-11-19
-# Version: 1.0.0
+# Author: Enhanced from spec 090-code-workflows-orchestrator-restructure
+# Date: 2025-11-29
+# Version: 2.0.0
 #
-# PERFORMANCE TARGET: <200ms (file path checks, pattern matching)
+# ENHANCEMENTS (v2.0.0):
+# - Multi-tier production detection (production/staging/development)
+# - Branch-based environment detection (main/master = production)
+# - Environment variable checks (NODE_ENV, RAILS_ENV, etc.)
+# - Smart caching to prevent spam on same file
+# - Deployment context awareness (build scripts, output directories)
+#
+# PERFORMANCE TARGET: <200ms (file path checks, pattern matching, cache)
 # COMPATIBILITY: Bash 3.2+ (macOS and Linux compatible)
 #
 # EXECUTION ORDER: PostToolUse hook (runs AFTER tool completion)
@@ -55,59 +62,224 @@ if [ "$TOOL_NAME" != "Edit" ] && [ "$TOOL_NAME" != "Write" ]; then
 fi
 
 # Check if file is a JavaScript file
-if ! echo "$FILE_PATH" | grep -qE '\.js$'; then
-  exit 0
-fi
-
-# Check if file is in src/2_javascript/ directory
-if ! echo "$FILE_PATH" | grep -qE 'src/2_javascript/'; then
+if ! echo "$FILE_PATH" | grep -qE '\.(js|jsx|ts|tsx|mjs|cjs)$'; then
   exit 0
 fi
 
 # ───────────────────────────────────────────────────────────────
-# REMINDER OUTPUT
+# MULTI-TIER PRODUCTION DETECTION
 # ───────────────────────────────────────────────────────────────
+# Tier 1: Critical production files (versioning MANDATORY)
+# Tier 2: Staging files (versioning RECOMMENDED)
+# Tier 3: Development files (no reminder needed)
 
-# Get relative file path for display
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || (cd "$SCRIPT_DIR/../.." && pwd))
 REL_FILE_PATH=${FILE_PATH#$PROJECT_ROOT/}
 
-echo ""
-echo "⚡ REMINDER: JavaScript file modified"
-echo "───────────────────────────────────────────────────────────────"
-echo "File: $REL_FILE_PATH"
-echo ""
-echo "After JavaScript changes, update HTML version parameters:"
-echo ""
-echo "  python3 .claude/hooks/scripts/update_html_versions.py"
-echo ""
-echo "This increments version numbers in HTML files (e.g., page_loader.js?v=1.0.2)"
-echo "to force browsers to download fresh files instead of using cached versions."
-echo ""
-echo "Purpose: CDN cache-busting"
-echo "See: workflows-code skill, Implementation Phase (Sections 1-3)"
-echo "Reference: .claude/skills/workflows-code/references/implementation_workflows.md"
-echo "───────────────────────────────────────────────────────────────"
-echo ""
+# Initialize tier and environment
+ENVIRONMENT_TIER="development"
+ENVIRONMENT_NAME="Development"
+REMINDER_PRIORITY="INFO"
+
+# ───────────────────────────────────────────────────────────────
+# TIER 1: PRODUCTION DETECTION
+# ───────────────────────────────────────────────────────────────
+
+# Check 1: Production output directories
+if echo "$REL_FILE_PATH" | grep -qE '^(public|dist|build|out|.next/static|_site|deploy|release)/'; then
+  ENVIRONMENT_TIER="production"
+  ENVIRONMENT_NAME="Production Output"
+  REMINDER_PRIORITY="CRITICAL"
+fi
+
+# Check 2: Git branch detection (main/master = production)
+if [ "$ENVIRONMENT_TIER" = "development" ]; then
+  CURRENT_BRANCH=$(git branch --show-current 2>/dev/null)
+  if echo "$CURRENT_BRANCH" | grep -qE '^(main|master|production|prod|release)$'; then
+    # Check if in source directory (not test files)
+    if echo "$REL_FILE_PATH" | grep -qE '^(src|lib|app|assets|static)/'; then
+      ENVIRONMENT_TIER="production"
+      ENVIRONMENT_NAME="Production Branch ($CURRENT_BRANCH)"
+      REMINDER_PRIORITY="CRITICAL"
+    fi
+  fi
+fi
+
+# Check 3: Environment variables
+if [ "$ENVIRONMENT_TIER" = "development" ]; then
+  if [ "${NODE_ENV:-}" = "production" ] || \
+     [ "${RAILS_ENV:-}" = "production" ] || \
+     [ "${DJANGO_ENV:-}" = "production" ] || \
+     [ "${FLASK_ENV:-}" = "production" ] || \
+     [ "${APP_ENV:-}" = "production" ]; then
+    ENVIRONMENT_TIER="production"
+    ENVIRONMENT_NAME="Production Environment"
+    REMINDER_PRIORITY="CRITICAL"
+  fi
+fi
+
+# Check 4: Project-specific production paths (example.com structure)
+if [ "$ENVIRONMENT_TIER" = "development" ]; then
+  # src/2_javascript/ is production-ready code for this project
+  if echo "$REL_FILE_PATH" | grep -qE '^src/2_javascript/'; then
+    ENVIRONMENT_TIER="production"
+    ENVIRONMENT_NAME="Production JavaScript"
+    REMINDER_PRIORITY="CRITICAL"
+  fi
+fi
+
+# ───────────────────────────────────────────────────────────────
+# TIER 2: STAGING DETECTION
+# ───────────────────────────────────────────────────────────────
+
+if [ "$ENVIRONMENT_TIER" = "development" ]; then
+  # Check 1: Staging output directories
+  if echo "$REL_FILE_PATH" | grep -qE '^(staging|stage|preview|.next/preview)/'; then
+    ENVIRONMENT_TIER="staging"
+    ENVIRONMENT_NAME="Staging"
+    REMINDER_PRIORITY="WARN"
+  fi
+
+  # Check 2: Staging branch
+  if [ "$ENVIRONMENT_TIER" = "development" ]; then
+    if echo "$CURRENT_BRANCH" | grep -qE '^(staging|stage|develop|dev|preview)$'; then
+      if echo "$REL_FILE_PATH" | grep -qE '^(src|lib|app|assets|static)/'; then
+        ENVIRONMENT_TIER="staging"
+        ENVIRONMENT_NAME="Staging Branch ($CURRENT_BRANCH)"
+        REMINDER_PRIORITY="WARN"
+      fi
+    fi
+  fi
+
+  # Check 3: Project-specific staging paths
+  if [ "$ENVIRONMENT_TIER" = "development" ]; then
+    if echo "$REL_FILE_PATH" | grep -qE '^src/3_staging/'; then
+      ENVIRONMENT_TIER="staging"
+      ENVIRONMENT_NAME="Staging Directory"
+      REMINDER_PRIORITY="WARN"
+    fi
+  fi
+fi
+
+# ───────────────────────────────────────────────────────────────
+# TIER 3: DEVELOPMENT (Skip Reminder)
+# ───────────────────────────────────────────────────────────────
+
+if [ "$ENVIRONMENT_TIER" = "development" ]; then
+  # No reminder needed for development files
+  exit 0
+fi
+
+# ───────────────────────────────────────────────────────────────
+# SMART CACHING - PREVENT SPAM
+# ───────────────────────────────────────────────────────────────
+# Track which files have already been reminded in this session
+# Cache expires after 1 hour or on hook restart
+
+CACHE_DIR="/tmp/cdn_versioning_cache"
+mkdir -p "$CACHE_DIR" 2>/dev/null
+
+# Generate cache key from file path
+CACHE_KEY=$(echo -n "$REL_FILE_PATH" | cksum | cut -d' ' -f1)
+CACHE_FILE="$CACHE_DIR/${CACHE_KEY}.reminded"
+
+# Check if reminder was already shown recently (within 1 hour)
+if [ -f "$CACHE_FILE" ]; then
+  CACHE_AGE=$(( $(date +%s) - $(stat -f %m "$CACHE_FILE" 2>/dev/null || stat -c %Y "$CACHE_FILE" 2>/dev/null || echo 0) ))
+  if [ "$CACHE_AGE" -lt 3600 ]; then
+    # Already reminded recently, skip
+    exit 0
+  fi
+fi
+
+# Mark this file as reminded
+touch "$CACHE_FILE" 2>/dev/null
+
+# ───────────────────────────────────────────────────────────────
+# TIERED REMINDER OUTPUT
+# ───────────────────────────────────────────────────────────────
 
 # Log reminder
 LOG_DIR="$HOOKS_DIR/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 
-{
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] CDN VERSION REMINDER"
-  echo "Tool: $TOOL_NAME"
-  echo "File: $REL_FILE_PATH"
-  echo "Action: Modified JavaScript file in src/2_javascript/"
-  echo "Reminder: Run update_html_versions.py script"
-  echo "───────────────────────────────────────────────────────────────"
-} >> "$LOG_FILE"
+# Rotate log if needed
+rotate_log_if_needed "$LOG_FILE" 102400
+
+# Build reminder message based on tier
+case "$ENVIRONMENT_TIER" in
+  production)
+    echo ""
+    echo "🔴 CRITICAL: Production JavaScript Modified"
+    echo "───────────────────────────────────────────────────────────────"
+    echo "File: $REL_FILE_PATH"
+    echo "Context: $ENVIRONMENT_NAME"
+    echo ""
+    echo "⚡ REQUIRED ACTION: Update CDN version parameters"
+    echo ""
+    echo "  python3 .claude/hooks/scripts/update_html_versions.py"
+    echo ""
+    echo "Why: Production files require cache-busting to ensure browsers"
+    echo "     download fresh JavaScript instead of serving stale cached versions."
+    echo ""
+    echo "Impact: Users may experience bugs if cached old code conflicts with"
+    echo "        new server-side changes or updated HTML."
+    echo ""
+    echo "Reference: .claude/skills/workflows-code/references/implementation_workflows.md"
+    echo "───────────────────────────────────────────────────────────────"
+    echo ""
+
+    {
+      echo "[$(date '+%Y-%m-%d %H:%M:%S')] PRODUCTION CDN VERSION REMINDER"
+      echo "Tool: $TOOL_NAME"
+      echo "File: $REL_FILE_PATH"
+      echo "Context: $ENVIRONMENT_NAME"
+      echo "Priority: CRITICAL - Versioning REQUIRED"
+      echo "Action: Modified production JavaScript"
+      echo "Reminder: Run update_html_versions.py script BEFORE deployment"
+      echo "───────────────────────────────────────────────────────────────"
+    } >> "$LOG_FILE"
+    ;;
+
+  staging)
+    echo ""
+    echo "🟡 RECOMMENDED: Staging JavaScript Modified"
+    echo "───────────────────────────────────────────────────────────────"
+    echo "File: $REL_FILE_PATH"
+    echo "Context: $ENVIRONMENT_NAME"
+    echo ""
+    echo "💡 RECOMMENDED: Update CDN version parameters"
+    echo ""
+    echo "  python3 .claude/hooks/scripts/update_html_versions.py"
+    echo ""
+    echo "Why: Staging environments benefit from cache-busting to ensure"
+    echo "     accurate testing of JavaScript changes."
+    echo ""
+    echo "Note: While not critical, versioning helps prevent false negatives"
+    echo "      in testing due to cached code."
+    echo ""
+    echo "Reference: .claude/skills/workflows-code/references/implementation_workflows.md"
+    echo "───────────────────────────────────────────────────────────────"
+    echo ""
+
+    {
+      echo "[$(date '+%Y-%m-%d %H:%M:%S')] STAGING CDN VERSION REMINDER"
+      echo "Tool: $TOOL_NAME"
+      echo "File: $REL_FILE_PATH"
+      echo "Context: $ENVIRONMENT_NAME"
+      echo "Priority: RECOMMENDED - Versioning helpful for testing"
+      echo "Action: Modified staging JavaScript"
+      echo "Reminder: Consider running update_html_versions.py script"
+      echo "───────────────────────────────────────────────────────────────"
+    } >> "$LOG_FILE"
+    ;;
+esac
 
 # Performance timing END
 END_TIME=$(date +%s%N)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] remind-cdn-versioning.sh ${DURATION}ms" >> "$SCRIPT_DIR/../logs/performance.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] remind-cdn-versioning.sh ${DURATION}ms (tier=$ENVIRONMENT_TIER)" >> "$SCRIPT_DIR/../logs/performance.log"
 
 # Allow request to proceed
 exit 0

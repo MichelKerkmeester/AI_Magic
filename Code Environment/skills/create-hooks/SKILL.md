@@ -398,7 +398,7 @@ Hook is production-ready when:
 **Claude Code Skill Integration**:
 - **workflows-save-context**: Called by PreCompact hooks for context preservation
 - **create-documentation**: Referenced for documenting custom hook implementations
-- **workflows-conversation**: Used for spec folder creation during hook development
+- **workflows-spec-kit**: Used for spec folder creation during hook development
 
 **System Dependencies**:
 - **jq** (JSON processor): Required for all hooks parsing JSON payloads

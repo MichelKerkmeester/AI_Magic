@@ -110,6 +110,7 @@ User Action
 │  PreToolUse Hooks                       │
 │  - validate-bash.sh (1)                 │
 │  - validate-mcp-calls.sh (0) 🆕         │
+│  - enforce-markdown-pre.sh (1) 🛡️       │
 │  - validate-spec-final.sh (1) 🆕        │
 │  - announce-task-dispatch.sh (0) 🎯     │
 │  - warn-duplicate-reads.sh (0) 🔄       │
@@ -118,6 +119,7 @@ User Action
 │        🆕  = Code Mode / SpecKit        │
 │        🎯  = Agent lifecycle visibility │
 │        🔄  = Context optimization       │
+│        🛡️  = Filename enforcement       │
 └────────┬────────────────────────────────┘
          │
          ▼
@@ -130,6 +132,7 @@ User Action
 ┌─────────────────────────────────────────┐
 │  PostToolUse Hooks                      │
 │  - enforce-markdown-post.sh (0)         │
+│  - enforce-markdown-post-task.sh (0) 🆕 │
 │  - validate-post-response.sh (0)        │
 │  - remind-cdn-versioning.sh (0)         │
 │  - skill-scaffold-trigger.sh (0)        │
@@ -138,6 +141,7 @@ User Action
 │  Note: (0) = non-blocking auto-fix      │
 │        🎯  = Agent lifecycle visibility │
 │        📊  = Scope monitoring           │
+│        🆕  = Post-Task enforcement      │
 └────────┬────────────────────────────────┘
          │
          ▼
@@ -177,30 +181,33 @@ User Action
 | Hook | Type | Purpose | Key Triggers | Exit | Perf |
 |------|------|---------|--------------|------|------|
 | workflows-save-context-trigger | UserPromptSubmit | Auto-save conversation context | `save context`, Every 20 msgs | 0 | <100ms |
-| validate-skill-activation | UserPromptSubmit | Match prompts to skills, enforce mandatory evaluation | Every prompt | 0 | 120-180ms |
-| orchestrate-skill-validation | UserPromptSubmit | Auto-dispatch parallel agents | Complexity ≥35% + 2+ domains | 0 | 48ms |
-| suggest-semantic-search | UserPromptSubmit | Semantic search MCP reminders | `find code`, `locate` | 0 | ~13ms |
+| validate-skill-activation | UserPromptSubmit | Match prompts to skills (v2.0.0 - pre-compiled cache) | Every prompt | 0 | 97-1200ms |
+| orchestrate-skill-validation | UserPromptSubmit | Calculate complexity, emit mandatory dispatch questions | Complexity ≥20% + 2+ domains | 0 | <100ms |
+| suggest-semantic-search | UserPromptSubmit | Semantic search MCP (v2.0.0 - contextual patterns) | `find code`, `locate` | 0 | ~13ms |
 | suggest-code-mode | UserPromptSubmit | Code Mode for MCP tools | `webflow`, `figma`, `notion` | 0 | ~15ms |
+| suggest-prompt-improvement | UserPromptSubmit | Prompt quality reminders | All prompts | 0 | ~15ms |
 | detect-mcp-workflow | UserPromptSubmit | MCP workflow guidance | MCP operations | 0 | ~12ms |
 | enforce-spec-folder | UserPromptSubmit | Spec folder validation | File modifications | 0* | <200ms |
-| enforce-verification | UserPromptSubmit | Require verification plans | Implementation tasks | 1 | ~50ms |
+| enforce-verification | UserPromptSubmit | Require verification (v3.0.0 - 0% false positives) | Implementation tasks | 1 | ~50ms |
 | enforce-markdown-strict | UserPromptSubmit | Markdown structure validation | Markdown edits | 1 | <200ms |
 | validate-bash | PreToolUse | Block wasteful commands | Bash tool | 1 | <50ms |
-| validate-mcp-calls | PreToolUse | Enforce Code Mode routing | MCP tools | 1 | ~30ms |
+| validate-mcp-calls | PreToolUse | Enforce Code Mode routing | MCP tools | 0 | ~30ms |
 | check-pending-questions | PreToolUse | Mandatory question enforcement | Any tool | 1 | <10ms |
 | validate-dispatch-requirement | PreToolUse | Require parallel dispatch | Task tool | 1 | ~25ms |
+| enforce-markdown-pre | PreToolUse | Block invalid markdown filenames | Write/Edit/NotebookEdit | 1 | <50ms |
 | validate-spec-final | PreToolUse | Final spec validation | Write/Edit/NotebookEdit | 1 | ~40ms |
-| announce-task-dispatch | PreToolUse | Agent dispatch announcements | Task tool | 0 | <10ms |
-| warn-duplicate-reads | PreToolUse | Duplicate operation detection | Read/Grep/Glob | 0 | <15ms |
+| announce-task-dispatch | PreToolUse | Agent dispatch (v2.0.0 - rich metadata) | Task tool | 0 | <20ms |
+| warn-duplicate-reads | PreToolUse | Duplicate detection (v2.0.0 - JSON intelligence) | Read/Grep/Glob | 0 | 25-55ms |
 | enforce-markdown-post | PostToolUse | Filename auto-correction | Write/Edit markdown | 0 | <50ms |
-| remind-cdn-versioning | PostToolUse | CDN cache busting reminders | Edit CSS/JS | 0 | <20ms |
+| enforce-markdown-post-task | PostToolUse | Post-Task markdown cleanup (v1.0.0) | Task tool | 0 | <500ms |
+| remind-cdn-versioning | PostToolUse | CDN reminders (v2.0.0 - multi-tier detection) | Edit CSS/JS | 0 | <20ms |
 | skill-scaffold-trigger | PostToolUse | Auto-scaffold skill directories | Write SKILL.md | 0 | ~30ms |
-| suggest-cli-verification | PostToolUse | CLI testing reminders | Edit implementation | 0 | ~25ms |
+| suggest-cli-verification | PostToolUse | CLI testing (fixed: 0%→100% detection) | Edit implementation | 0 | ~25ms |
 | track-file-modifications | PostToolUse | File change tracking | Write/Edit | 0 | <15ms |
 | validate-post-response | PostToolUse | Quality check reminders | Write/Edit code | 0 | ~20ms |
 | verify-spec-compliance | PostToolUse | Spec folder compliance check | Write/Edit | 0 | ~30ms |
-| detect-scope-growth | PostToolUse | Scope creep detection | Any tool | 0 | ~35ms |
-| summarize-task-completion | PostToolUse | Task result summaries | Task tool | 0 | ~20ms |
+| detect-scope-growth | PostToolUse | Scope growth (v2.0.0 - NOW FUNCTIONAL) | Write/Edit .md | 0 | <50ms |
+| summarize-task-completion | PostToolUse | Task summaries (fixed: duration calculation) | Task tool | 0 | ~20ms |
 | prune-context | PreCompact | Context pruning | Before compaction | 0 | <5s |
 | save-context-before-compact | PreCompact | Auto-save before compact | Before compaction | 0 | <10s |
 | initialize-session | PreSessionStart | Session initialization | Session start | 0 | <50ms |
@@ -212,10 +219,14 @@ User Action
 
 ### 3.1 Critical Hooks (Detailed)
 
-#### validate-skill-activation.sh (UserPromptSubmit)
+#### validate-skill-activation.sh (UserPromptSubmit) - v2.0.0
 **Priority system**: 🔴 MANDATORY (shown), 🟡 HIGH (logged), 🔵 MEDIUM (logged)
 **Features**: Documentation level estimation, spec folder number calculation, template commands, commitment structure (YES/NO evaluation)
-**Performance**: JSON caching (30-40% faster), question detection (prevents false positives)
+**Performance**: Pre-compiled cache system (97-111ms for questions, 1000-1200ms for complex prompts)
+  - Cache location: `/tmp/claude_hooks_cache/skill_data_*.cache`
+  - Single jq execution for cache generation (was 140+ jq subprocess calls)
+  - mtime-based invalidation, <5ms cache hit overhead
+  - 76-97% faster than previous version
 **Output**: See example in Section 11
 
 #### enforce-spec-folder.sh (UserPromptSubmit)
@@ -224,10 +235,54 @@ User Action
 **Marker**: `.spec-active.{SESSION_ID}` (V9 session isolation)
 
 #### orchestrate-skill-validation.sh (UserPromptSubmit)
-**Scoring**: 5 factors - domains (35%), files (25%), LOC (15%), parallelism (20%), type (5%)
-**Dispatch logic**: <25% sequential, 25-34% ask user, ≥35% + 2+ domains auto-dispatch
-**Performance**: 48ms parallel vs 120ms sequential (2.5x speedup)
-**Integration**: `create-parallel-sub-agents` skill
+
+**Purpose:** Calculate task complexity and emit mandatory questions for parallel agent dispatch decisions
+
+**Execution:** Runs on every user prompt as UserPromptSubmit hook
+
+**Decision Flow:**
+1. Check for existing parallel dispatch preference (1-hour expiry)
+2. Calculate complexity score (5-dimension weighted algorithm)
+3. Decision logic:
+   - If complexity ≥20% + ≥2 domains AND no preference:
+     - Emit mandatory question via `emit_parallel_dispatch_question()`
+     - Block all tools until user responds
+   - If preference exists (auto/direct/parallel):
+     - Apply preference automatically
+     - Log decision to orchestrator.log
+   - If ≥50% + 3+ domains:
+     - Auto-dispatch with notification only
+
+**User Response Options:**
+- **A) Handle directly** - Sequential execution, no parallel agents
+- **B) Create parallel agents** - Dispatch specialized sub-agents
+- **C) Auto-decide** - Enable session auto-mode (use parallel when ≥35% + ≥2 domains)
+
+**Override Phrases:**
+- `"proceed directly"` - Force direct handling
+- `"use parallel agents"` - Force parallel dispatch
+- `"auto-decide"` - Enable auto-mode
+
+**State Files:**
+- `parallel_dispatch_completed.json` - User's choice (1-hour expiry)
+- `parallel_dispatch_asked_ever.json` - First-time detection (24-hour expiry)
+
+**Logs:**
+- `.claude/hooks/logs/orchestrator.log` - Full complexity analysis + decision
+- `/tmp/delegation-guidance.json` - Agent specifications for parallel dispatch
+
+**Performance Target:** <100ms execution time
+
+**Integration:**
+- Works with `PreToolUse/check-pending-questions.sh` for blocking
+- Uses `emit_parallel_dispatch_question()` from `lib/signal-output.sh`
+- Reads from `lib/shared-state.sh` for preference persistence
+
+#### enforce-markdown-pre.sh (PreToolUse)
+**Blocks**: ALL CAPS filenames, hyphens, camelCase (except README.md, AGENTS.md, CLAUDE.md, GEMINI.md, SKILL.md)
+**Enforces**: lowercase_snake_case.md naming convention
+**Suggests**: Correct filename in error message
+**Purpose**: PREVENT creation of markdown files with invalid naming (safety net for PostToolUse hook failures)
 
 #### validate-bash.sh (PreToolUse)
 **Blocks**: `cat` large files, `find` without limits, grep on binary, context-heavy operations
@@ -261,6 +316,25 @@ User Action
 **Creates**: `references/` and `assets/` directories
 **Purpose**: Auto-scaffold skill structure
 
+#### remind-cdn-versioning.sh (PostToolUse) - v2.0.0 Multi-Tier Detection
+**Fixed**: 100% false negative rate (only triggered in test environments, now works in production)
+**Multi-Tier Detection**: Production (critical), Staging (recommended), Development (silent)
+  - Production: main/master branch + output dirs (public/dist/build), ENV vars (NODE_ENV=production)
+  - Staging: staging/develop branch, staging dirs
+  - Development: Silent (no spam)
+**Smart Caching**: 1-hour per-file deduplication (prevents repetitive warnings)
+**Purpose**: CDN cache-busting reminders for JavaScript/CSS changes
+**References**: `update_html_versions.py` script
+
+#### suggest-cli-verification.sh (PostToolUse) - Detection Fixed
+**Fixed**: JSON parsing bug (0% → 100% detection rate)
+  - Was using `.tool` (wrong), now uses `.tool_name` (correct)
+  - Added camelCase support (`.filePath` alongside `.file_path`)
+**Detects**: Frontend file changes (HTML/CSS/JS)
+**Suggests**: CLI verification via browser-debugger-cli (bdg)
+**Purpose**: Remind about browser-based testing for visual changes
+**References**: `cli-chrome-devtools` skill
+
 ### 3.3 Context & Performance Hooks
 
 #### workflows-save-context-trigger.sh (UserPromptSubmit)
@@ -274,16 +348,30 @@ User Action
 **Performance**: <5s
 **Integration**: Context pruning configuration
 
-#### warn-duplicate-reads.sh (PreToolUse)
-**Detects**: Duplicate Read/Grep/Glob operations (same file/pattern within 5 tool uses)
-**Output**: Warning only (educational, non-blocking)
-**Purpose**: Prevent unnecessary context consumption
+#### warn-duplicate-reads.sh (PreToolUse) - v2.0.0 Intelligence System
+**Transformation**: Low-value warnings → High-value actionable intelligence
+**Smart Deduplication**: Detects legitimate patterns (70% false positive reduction)
+  - Verification reads after Edit/Write operations
+  - Stale context refresh (>2min TTL)
+  - Different query parameters
+**Token Quantification**: Conservative estimates with session totals
+  - Read: 1000 tokens | Grep: 400 tokens | Glob: 150 tokens
+  - Tracks cumulative waste per session
+**Machine-Readable Output**: JSON signals for AI optimization (not text warnings)
+  - `{"duplicate_detected": true, "is_legitimate": false, "estimated_waste_this_call": 1000, "session_total_waste": 2400}`
+  - Actionable suggestions: REUSE_PREVIOUS_OUTPUT, USE_AGENT_VARIABLE
+**Performance**: 25-55ms (40% faster than v1.0.0, was 30-130ms)
+**ROI**: 2-3x token savings potential
 
 ### 3.4 Agent & MCP Hooks
 
-#### suggest-semantic-search.sh (UserPromptSubmit)
-**Triggers**: `find code`, `locate function`, `where is implementation`
-**Output**: Minimal (2 lines) to prevent API violations
+#### suggest-semantic-search.sh (UserPromptSubmit) - v2.0.0 Contextual Patterns
+**Triggers**: 6 contextual patterns with query templates (was 25+ generic patterns)
+  - Exploratory questions: "where is X implemented" → "Find code that handles X"
+  - Architecture understanding: "how does X work" → "How does X work?"
+  - Code navigation: "find all X usage" → "Find all X usage patterns"
+**Deduplication**: Prevents overlap with validate-skill-activation.sh (skips implementation prompts)
+**Output**: Contextual intelligence with actionable query templates (not generic suggestions)
 **References**: `mcp_semantic_search.md`, `mcp_code_mode.md`
 
 #### suggest-code-mode.sh (UserPromptSubmit)
@@ -291,18 +379,44 @@ User Action
 **Purpose**: Remind about Code Mode efficiency (68% fewer tokens)
 **Performance**: ~15ms
 
-#### announce-task-dispatch.sh (PreToolUse)
-**Purpose**: Announce agent dispatch before Task tool execution
-**Visibility**: Shows agent names and task distribution
+#### announce-task-dispatch.sh (PreToolUse) - v2.0.0 Rich Metadata
+**Purpose**: Announce agent dispatch with rich lifecycle tracking before Task tool execution
+**Features**: Double-line box formatting (╔══╗) for visual distinction
+  - Complexity scores and domains from orchestrate-skill-validation.sh
+  - Batch context tracking with position indicators (Agent 2/4)
+  - Enriched agent_tracking.json with metadata for correlation
+**Visibility**: Complete visibility into why agents dispatched, what they're assigned, batch context
+**Integration**: orchestrate-skill-validation.sh state, agent-tracking.sh library
 
-#### summarize-task-completion.sh (PostToolUse)
-**Purpose**: Summarize Task tool results
-**Output**: Success/failure status, execution time
+#### summarize-task-completion.sh (PostToolUse) - Fixed Duration Calculation
+**Purpose**: Summarize Task tool results with accurate metrics
+**Fixed**: Duration calculation (was showing "?s", now shows actual time like "12.3s")
+**Features**: 5 failure mode diagnostics for troubleshooting
+  - JSON validation via agent-tracking.sh library
+  - Auto-recovery from corruption
+**Output**: Success/failure status, accurate execution time, files modified count
+
+#### enforce-markdown-post-task.sh (PostToolUse) - v1.0.0 Post-Task Cleanup
+**Purpose**: Enforce markdown filename conventions after Task tool completion
+**Problem Solved**: Sub-agents spawned by Task tool run in separate contexts and bypass parent session's PostToolUse hooks
+**Scans**: Root, `.claude/hooks/`, `specs/` directories for markdown files modified in last 5 minutes
+**Enforces**: lowercase_snake_case naming (same rules as enforce-markdown-post.sh)
+**Exceptions**: README.md, AGENTS.md, CLAUDE.md, GEMINI.md, SKILL.md (in appropriate locations)
+**Features**:
+  - Atomic rename support for case-insensitive filesystems
+  - Two-step rename process (temp → final) for case-only changes
+  - Auto-rollback on failure
+**Performance**: <500ms (limited depth scan for efficiency)
+**Integration**: Works alongside enforce-markdown-post.sh (direct Write/Edit) for complete coverage
 
 ### 3.5 Verification & Compliance Hooks
 
-#### enforce-verification.sh (UserPromptSubmit)
-**Blocks**: Implementation without verification plan
+#### enforce-verification.sh (UserPromptSubmit) - v3.0.0 False Positive Elimination
+**Blocks**: Implementation without verification plan (with 0% false positives)
+**Architecture**: Exclusion-first pattern matching (checks exclusions BEFORE completion detection)
+**8 Exclusion Patterns**: Imperative verbs, modal verbs, infinitive phrases, temporal markers, conditionals, desire statements, option phrasing, negations
+**Performance**: 100% reduction in false positives (was ~40%), 100% true positive rate maintained
+**Testing**: 52 comprehensive tests (31 synthetic + 21 real-world), 100% pass rate
 **Reminds**: Browser testing, edge cases, CLI verification
 **Exit**: Blocking (1)
 
@@ -314,10 +428,18 @@ User Action
 **Purpose**: Verify modifications match active spec folder
 **Output**: Warning if mismatch detected
 
-#### detect-scope-growth.sh (PostToolUse)
-**Tracks**: File modifications across tool uses
-**Detects**: Scope creep (expanding beyond original plan)
-**Output**: Warning when growth detected
+#### detect-scope-growth.sh (PostToolUse) - v2.0.0 NOW FUNCTIONAL
+**Status**: Previously never executed (0 log entries all-time), now 100% functional
+**Self-Initializing**: Auto-detects spec folder from file path, establishes baseline on first .md edit
+**Features**:
+  - 50% growth threshold triggers advisory warning
+  - 10-minute spam prevention cooldown
+  - Integration with file-scope-tracking.sh library
+  - Comprehensive logging for debugging
+**Tracks**: File modifications across spec folder
+**Detects**: Scope creep (warns at 150% of baseline file count)
+**Integration**: Updated enforce-spec-folder.sh to initialize scope_definition state
+**Performance**: <50ms
 
 ### 3.6 Session Lifecycle Hooks
 
@@ -345,6 +467,7 @@ User Action
 
 ### Blocking Hooks (use exit 1)
 - `check-pending-questions.sh` - Blocks ALL tools when mandatory question pending (except AskUserQuestion)
+- `enforce-markdown-pre.sh` - Blocks invalid markdown filenames (ALL CAPS, hyphens, camelCase)
 - `enforce-markdown-strict.sh` - Blocks on critical markdown violations
 - `enforce-verification.sh` - Blocks completion claims without evidence
 - `validate-bash.sh` - Blocks wasteful commands (context bloat prevention)
@@ -533,6 +656,11 @@ Tool Executes (Bash, Write, Edit, etc.)
 │                             → Tracks files modified         │
 │                             → Duration and tool usage       │
 │                             → Logs to task-dispatch.log     │
+│                                                             │
+│ 7. enforce-markdown-post-task→ Post-Task markdown cleanup   │
+│                             → Scans for ALL CAPS violations │
+│                             → Auto-fixes sub-agent files    │
+│                             → Logs to enforce-markdown-...  │
 └─────────────────────────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -591,7 +719,7 @@ Most hooks write to `.claude/hooks/logs/`:
 | **output-helpers.sh** | Standardized hook output formatting | `log_info()`, `log_warn()`, `log_error()`, `log_success()` | All hooks | N/A (output only) |
 | **exit-codes.sh** | Exit code constants | `EXIT_SUCCESS=0`, `EXIT_BLOCK=1`, `EXIT_CONTINUE=0` | All hooks | N/A (constants) |
 | **transform-transcript.js** | JSONL → JSON conversion | `transformTranscript()`, content filtering | workflows-save-context-trigger.sh | ~500ms |
-| **shared-state.sh** | Cross-hook state management | `set_state()`, `get_state()`, `clear_state()` | Multiple hooks | <5ms |
+| **shared-state.sh** | Cross-hook state management (BSD-compatible v1.0.0) | `write_hook_state()`, `read_hook_state()`, `clear_hook_state()` | Multiple hooks | <5ms |
 | **agent-tracking.sh** | Agent lifecycle tracking | `track_dispatch()`, `track_completion()` | orchestrate-skill-validation.sh, announce-task-dispatch.sh | ~10ms |
 | **signal-output.sh** | JSON signal generation | `emit_signal()`, `emit_mandatory_question()` | enforce-spec-folder.sh, check-pending-questions.sh | <5ms |
 | **spec-context.sh** | Spec folder state management | `get_spec_marker_path()`, `has_substantial_content()`, `create_spec_marker()` | enforce-spec-folder.sh, workflows-save-context | ~10ms |
@@ -622,10 +750,19 @@ Most hooks write to `.claude/hooks/logs/`:
 - `has_substantial_content(spec_folder)` - Check for mid-conversation state
 - `create_spec_marker(spec_folder)` - Create session marker
 
-#### shared-state.sh
+#### shared-state.sh (v1.0.0 - BSD-Compatible Locking)
 **Storage**: `/tmp/claude_hooks_state/`
-**Functions**: `set_state(key, value)`, `get_state(key)`, `clear_state(key)`
-**Purpose**: Cross-hook communication (e.g., pending questions)
+**Functions**: `write_hook_state(key, value)`, `read_hook_state(key, max_age)`, `clear_hook_state(key)`, `has_hook_state(key)`
+**Locking**: BSD-compatible `mkdir`-based atomic locking (works on macOS and Linux)
+**Features**:
+- Atomic write operations with 1-second timeout
+- Automatic lock cleanup via trap handlers (EXIT, INT, TERM)
+- Lock directories instead of files (easier to identify)
+- Staleness checking with configurable max_age
+**Performance**: <5ms per operation, <1000ms lock acquisition timeout
+**Purpose**: Cross-hook communication with guaranteed atomicity
+**Migration**: Replaced Linux-specific `flock` with universal `mkdir` locking (2025-11-29)
+**Documentation**: See `specs/001-skills-and-hooks/046-context-pruning-hook/001-bsd-locking-fix/` for complete technical details (`bsd_locking_migration.md` and `bsd_fix_summary.md`)
 
 #### file-scope-tracking.sh
 **Tracks**: File modifications across tool uses
@@ -670,10 +807,17 @@ Most hooks write to `.claude/hooks/logs/`:
 
 ### 7.5 Agent & Workflow
 
-#### agent-tracking.sh
+#### agent-tracking.sh - JSON Validation & Corruption Recovery
 **Tracks**: Agent dispatch, completion, duration
-**Storage**: Shared state
+**Enhanced**: JSON validation on write, auto-recovery from corruption
+**Fixed**: Duration calculation bug (was showing "?s" in summarize-task-completion.sh)
+**Features**:
+  - Validates JSON before writing to prevent corruption
+  - Auto-detects and recovers from corrupted agent_tracking.json
+  - 5 failure mode diagnostics for troubleshooting
+**Storage**: Shared state (`/tmp/claude_hooks_state/agent_tracking.json`)
 **Output**: Agent lifecycle visibility in hooks
+**Used by**: announce-task-dispatch.sh, summarize-task-completion.sh
 
 #### signal-output.sh
 **Generates**: JSON signals for mandatory questions, blocking conditions

@@ -75,6 +75,10 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/summarize-task-completion.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/enforce-markdown-post-task.sh"
           }
         ]
       },
@@ -145,21 +149,11 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/check-pending-questions.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
+          },
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-dispatch-requirement.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
+          },
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-mcp-calls.sh"
@@ -178,6 +172,10 @@
       {
         "matcher": "Edit",
         "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/enforce-markdown-pre.sh"
+          },
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
@@ -207,6 +205,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/enforce-markdown-pre.sh"
+          },
+          {
+            "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
           }
         ]
@@ -232,6 +234,10 @@
       {
         "matcher": "Write",
         "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/enforce-markdown-pre.sh"
+          },
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
@@ -265,6 +271,10 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/suggest-code-mode.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/suggest-prompt-improvement.sh"
           },
           {
             "type": "command",

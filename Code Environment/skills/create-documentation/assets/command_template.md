@@ -18,7 +18,7 @@ Templates and best practices for creating production-quality slash commands in C
 | `name` | ❌ No | Override command name | kebab-case (inferred from filename) |
 | `model` | ❌ No | Override default model (use sparingly) | `opus` for complex reasoning only |
 
-> **Note on `model` field**: Only use for commands requiring complex reasoning (e.g., `plan_claude` uses `opus` for parallel exploration). Most commands should NOT specify a model and use the default.
+> **Note on `model` field**: Only use for commands requiring complex reasoning (e.g., `plan/with_claude` uses `opus` for parallel exploration). Most commands should NOT specify a model and use the default.
 
 ### Command Types
 
@@ -188,7 +188,7 @@ $ARGUMENTS
 
 ## Templates Used
 
-- `.opencode/speckit/templates/[template].md`
+- `.claude/commands/spec_kit/assets/templates/[template].md`
 - [Other template references]
 
 ---
@@ -537,7 +537,7 @@ name: command-name
 model: opus
 # Override default model (USE SPARINGLY)
 # Only for commands requiring complex reasoning
-# Example: plan_claude uses opus for parallel exploration
+# Example: plan/with_claude uses opus for parallel exploration
 # Most commands should NOT specify model
 
 version: 1.0.0
@@ -594,7 +594,7 @@ Use the appropriate pattern based on command type:
 | `STATUS=OK` | Simple success | Basic commands |
 | `STATUS=OK RESULTS_COUNT=N` | Search/query | `/index:search` |
 | `STATUS=OK ACTION=<action>` | State change | `/index:start`, `/index:stop` |
-| `STATUS=OK ACTION=<action> PATH=<path>` | File creation | `/plan_claude`, `/spec_kit:complete` |
+| `STATUS=OK ACTION=<action> PATH=<path>` | File creation | `/plan:with_claude`, `/spec_kit:complete` |
 | `STATUS=FAIL ERROR="<message>"` | All failures | Error handling |
 | `STATUS=CANCELLED ACTION=cancelled` | User abort | Interactive commands |
 
@@ -675,7 +675,7 @@ Include this table in the command's Notes section:
 | Simple single-action command | ❌ No |
 | Sequential workflow | ❌ No |
 
-### Example: plan_claude Command
+### Example: plan/with_claude Command
 
 ```markdown
 ### Phase 2: Parallel Exploration (Sonnet Agents)
@@ -720,4 +720,4 @@ Opus synthesizes and validates:
 - `.claude/commands/index/reset.md` - Destructive operation pattern
 - `.claude/commands/speckit_complete.md` - Mode-based workflow
 - `.claude/commands/save_context.md` - Context-aware targeting
-- `.claude/commands/plan_claude.md` - Orchestrator + Workers pattern (Opus + Sonnet)
+- `.claude/commands/plan/with_claude.md` - File path (command: `/plan:with_claude`) - Orchestrator + Workers pattern (Opus + Sonnet)

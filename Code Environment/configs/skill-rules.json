@@ -1076,11 +1076,11 @@
         ]
       }
     },
-    "workflows-plan-claude": {
+    "workflows-planning": {
       "type": "workflow",
       "enforcement": "suggest",
       "priority": "high",
-      "description": "4-agent parallel exploration for comprehensive planning. Spawns Architecture/Feature/Dependency/Test Sonnet explorers, synthesizes findings, and generates verified plan.md (.claude/skills/workflows-plan-claude/)",
+      "description": "4-agent parallel exploration for comprehensive planning. Spawns Architecture/Feature/Dependency/Test Sonnet explorers, synthesizes findings, and generates verified plan.md (.claude/skills/workflows-planning/)",
       "promptTriggers": {
         "keywords": [
           "plan with exploration",
@@ -1100,7 +1100,7 @@
         ]
       },
       "fileTriggers": {
-        "pathPatterns": [".claude/skills/workflows-plan-claude/**"],
+        "pathPatterns": [".claude/skills/workflows-planning/**"],
         "contentPatterns": []
       }
     }

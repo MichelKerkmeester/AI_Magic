@@ -90,75 +90,100 @@ if [ "$TOOL_NAME" = "AskUserQuestion" ]; then
 fi
 
 # ───────────────────────────────────────────────────────────────
-# CHECK FOR PENDING QUESTION
+# ATOMIC CHECK FOR PENDING QUESTION
 # ───────────────────────────────────────────────────────────────
 # Check if a mandatory question is pending (with 5-minute expiry)
+# CRITICAL: This must be atomic to prevent TOCTOU race conditions
 QUESTION_EXPIRY=300  # 5 minutes in seconds
 
-if has_hook_state "pending_question" "$QUESTION_EXPIRY"; then
-  # Pending question exists and is not expired
-  PENDING=$(read_hook_state "pending_question" "$QUESTION_EXPIRY" 2>/dev/null)
+# Atomically read pending question state (single operation)
+PENDING=$(read_hook_state "pending_question" "$QUESTION_EXPIRY" 2>/dev/null)
 
-  # Extract question details for the error message
-  QUESTION_TYPE=$(echo "$PENDING" | jq -r '.type // "UNKNOWN"' 2>/dev/null)
-  QUESTION_TEXT=$(echo "$PENDING" | jq -r '.question // "Pending question"' 2>/dev/null)
-  ASKED_AT=$(echo "$PENDING" | jq -r '.asked_at // "unknown"' 2>/dev/null)
+# If no pending question OR state is empty, allow all tools
+if [ -z "$PENDING" ]; then
+  exit $EXIT_ALLOW
+fi
 
-  # ─────────────────────────────────────────────────────────────
-  # VIOLATION TRACKING
-  # ─────────────────────────────────────────────────────────────
-  # Track how many times the AI has attempted to use tools without responding
-  VIOLATIONS_STATE=$(read_hook_state "question_violations" 600 2>/dev/null) || VIOLATIONS_STATE='{}'
-  VIOLATION_COUNT=$(echo "$VIOLATIONS_STATE" | jq -r '.count // 0' 2>/dev/null) || VIOLATION_COUNT=0
-  VIOLATION_COUNT=$((VIOLATION_COUNT + 1))
+# Validate JSON integrity (corrupted state should be cleared)
+if ! echo "$PENDING" | jq empty 2>/dev/null; then
+  # Invalid JSON, clear and allow
+  clear_hook_state "pending_question" 2>/dev/null || true
+  exit $EXIT_ALLOW
+fi
 
-  # Update violation state
-  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date +%Y-%m-%dT%H:%M:%SZ)
-  write_hook_state "question_violations" "{\"count\":$VIOLATION_COUNT,\"last_tool\":\"$TOOL_NAME\",\"timestamp\":\"$TIMESTAMP\"}" 2>/dev/null || true
+# Extract timestamp and re-validate freshness (double-check pattern)
+QUESTION_TIMESTAMP=$(echo "$PENDING" | jq -r '.timestamp // 0' 2>/dev/null)
+CURRENT_TIME=$(date +%s 2>/dev/null || echo "0")
+QUESTION_AGE=$((CURRENT_TIME - QUESTION_TIMESTAMP))
 
-  # Log the block with violation count
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] BLOCKED: $TOOL_NAME (pending: $QUESTION_TYPE, violation #$VIOLATION_COUNT)" >> "$LOG_FILE" 2>/dev/null
-
-  # Output blocking message with violation tracking
-  echo ""
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo "🔴 TOOL BLOCKED - Mandatory Question Pending"
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  echo "Blocked Tool: $TOOL_NAME"
-  echo "Question Type: $QUESTION_TYPE"
-  echo "Violation Count: $VIOLATION_COUNT"
-  echo ""
-  echo "Question: $QUESTION_TEXT"
-  echo ""
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo "🔴 REQUIRED ACTION: Use AskUserQuestion tool FIRST"
-  echo ""
-  echo "The pending question MUST be answered before any other tools."
-  echo "All tools are BLOCKED until you use AskUserQuestion."
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-  # Record performance
-  END_TIME=$(date +%s%N 2>/dev/null || date +%s)
-  if [[ "$START_TIME" =~ ^[0-9]+$ ]] && [[ "$END_TIME" =~ ^[0-9]+$ ]]; then
-    DURATION=$(((END_TIME - START_TIME) / 1000000))
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] check-pending-questions.sh ${DURATION}ms (blocked: $TOOL_NAME, violation #$VIOLATION_COUNT)" >> "$HOOKS_DIR/logs/performance.log" 2>/dev/null
-  fi
-
-  exit $EXIT_BLOCK  # HARD BLOCK tool execution
+# If question is expired, clear and allow
+if [ "$QUESTION_AGE" -gt "$QUESTION_EXPIRY" ] 2>/dev/null; then
+  # Expired, clear and allow
+  clear_hook_state "pending_question" 2>/dev/null || true
+  exit $EXIT_ALLOW
 fi
 
 # ───────────────────────────────────────────────────────────────
-# NO PENDING QUESTION - ALLOW TOOL
+# QUESTION IS VALID AND FRESH - PROCEED WITH BLOCKING
 # ───────────────────────────────────────────────────────────────
-# Record performance (success case)
+
+# Extract question details for the error message
+QUESTION_TYPE=$(echo "$PENDING" | jq -r '.type // "UNKNOWN"' 2>/dev/null)
+QUESTION_TEXT=$(echo "$PENDING" | jq -r '.question // "Pending question"' 2>/dev/null)
+ASKED_AT=$(echo "$PENDING" | jq -r '.asked_at // "unknown"' 2>/dev/null)
+
+# ─────────────────────────────────────────────────────────────
+# ATOMIC VIOLATION TRACKING
+# ─────────────────────────────────────────────────────────────
+# Track how many times the AI has attempted to use tools without responding
+# Read current violations atomically
+VIOLATION_COUNT=0
+if has_hook_state "question_violations" 600 2>/dev/null; then
+  VIOLATIONS_STATE=$(read_hook_state "question_violations" 600 2>/dev/null)
+  VIOLATION_COUNT=$(echo "$VIOLATIONS_STATE" | jq -r '.count // 0' 2>/dev/null || echo "0")
+fi
+
+# Increment violation counter
+VIOLATION_COUNT=$((VIOLATION_COUNT + 1))
+
+# Write back with timestamp (use jq for JSON construction to avoid escaping issues)
+VIOLATION_JSON=$(jq -n \
+  --arg count "$VIOLATION_COUNT" \
+  --arg tool "$TOOL_NAME" \
+  '{count: ($count | tonumber), last_tool: $tool, timestamp: now}' 2>/dev/null)
+
+write_hook_state "question_violations" "$VIOLATION_JSON" 2>/dev/null || true
+
+# Log the block with violation count
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] BLOCKED: $TOOL_NAME (pending: $QUESTION_TYPE, violation #$VIOLATION_COUNT)" >> "$LOG_FILE" 2>/dev/null
+
+# ─────────────────────────────────────────────────────────────
+# IMPROVED BLOCKING MESSAGE
+# ─────────────────────────────────────────────────────────────
+echo "" >&2
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+echo "🔴 MANDATORY USER QUESTION PENDING" >&2
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+echo "" >&2
+echo "Type: $QUESTION_TYPE" >&2
+echo "Question: $QUESTION_TEXT" >&2
+echo "" >&2
+echo "You MUST use the AskUserQuestion tool to respond." >&2
+echo "All other tools are blocked until you answer." >&2
+echo "" >&2
+if [ "$VIOLATION_COUNT" -gt 0 ] 2>/dev/null; then
+  echo "⚠️  Violation count: $VIOLATION_COUNT (tool bypass attempts)" >&2
+  echo "" >&2
+fi
+echo "The pending question signal was already displayed above." >&2
+echo "Please scroll up to see the question and options." >&2
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+
+# Record performance
 END_TIME=$(date +%s%N 2>/dev/null || date +%s)
 if [[ "$START_TIME" =~ ^[0-9]+$ ]] && [[ "$END_TIME" =~ ^[0-9]+$ ]]; then
   DURATION=$(((END_TIME - START_TIME) / 1000000))
-  # Only log if >10ms to avoid log spam
-  if [ "$DURATION" -gt 10 ] 2>/dev/null; then
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] check-pending-questions.sh ${DURATION}ms (allowed: $TOOL_NAME)" >> "$HOOKS_DIR/logs/performance.log" 2>/dev/null
-  fi
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] check-pending-questions.sh ${DURATION}ms (blocked: $TOOL_NAME, violation #$VIOLATION_COUNT)" >> "$HOOKS_DIR/logs/performance.log" 2>/dev/null
 fi
 
-exit $EXIT_ALLOW  # ALLOW tool execution
+exit $EXIT_BLOCK  # HARD BLOCK tool execution
