@@ -11,7 +11,7 @@
 - **Prefer simplicity**, reuse existing patterns, and cite evidence with sources
 - Solve only the stated problem; **avoid over-engineering** and premature optimization
 - **Verify with checks** (simplicity, performance, maintainability, scope) before making changes
-- **Use Sequential Thinking MCP** for complex reasoning tasks when available (Problem Definition → Research → Analysis → Synthesis → Conclusion)
+- **Use Sequential Thinking MCP** for complex reasoning tasks **when available** (Problem Definition → Research → Analysis → Synthesis → Conclusion) - optional tool, not always present
 
 ---
 
@@ -27,14 +27,14 @@
 - Before **initialization code**: Follow initialization pattern in .claude/skills/workflows-code/references/code_quality_standards.md
 - Before **animation implementation**: See .claude/skills/workflows-code/references/animation_workflows.md
 - Before **searching codebase**: Use mcp-semantic-search skill for intent-based code discovery
-- Before **complex multi-domain tasks**: Consider create-parallel-sub-agents skill for orchestration (≥35% complexity + ≥2 domains auto-dispatch; see `.claude/skills/create-parallel-sub-agents/`)
-- Before **spec folder creation**: workflows-conversation skill enforces template structure and sub-folder organization
+- Before **complex multi-domain tasks**: Consider create-parallel-sub-agents skill for orchestration (≥20% complexity + ≥2 domains triggers mandatory question; ≥50% + ≥3 domains auto-dispatch; see `.claude/skills/create-parallel-sub-agents/`)
+- Before **spec folder creation**: workflows-spec-kit skill enforces template structure and sub-folder organization
 - Before **conversation milestones**: workflows-save-context auto-triggers every 20 messages for context preservation
 - **If conflict exists**: Code quality standards override general practices
 
 **Violation handling:** If proposed solution contradicts code quality standards, STOP and ask for clarification or revise approach.
 
-#### ⚡ Collaboration First
+####⚡ Collaboration First
 Before ANY code/file changes or terminal commands:
 
 1. Determine documentation level (see Section 2)
@@ -88,8 +88,11 @@ Example: `I'M UNCERTAIN ABOUT THIS: The endpoint may require auth scope "read:fo
 - Users make critical decisions based on your output - accuracy > speed
 - Preserve truth even when it means saying "I don't know"
 
-#### ⚡ Sequential Thinking (Complex Reasoning)
-When Sequential Thinking MCP is available, use it for complex tasks:
+#### ⚡ Sequential Thinking (Complex Reasoning) - OPTIONAL
+
+**Availability:** Only use when Sequential Thinking MCP server is installed and available. Not present by default.
+
+**Use cases (when available):**
 - Multi-step problem solving or debugging
 - Architecture or design decisions
 - Analyzing requirements or specifications
@@ -101,35 +104,65 @@ When Sequential Thinking MCP is available, use it for complex tasks:
 
 #### ⚡ Common Failure Patterns & Detection
 
-**Quick Reference:**
+**Quick Reference (12 Critical Patterns):**
 
-| Pattern                   | Prevention                                                         | Example                                                                   |
-| ------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Task Misinterpretation    | Parse request carefully, confirm scope                             | Implementing when asked to investigate                                    |
-| Rush to Code              | Analyze → Verify → Choose simplest approach                        | Starting code before understanding problem                                |
-| Fabrication/Lying         | Output "UNKNOWN" when uncertain, verify before claiming completion | Responding without verification, saying "tests pass" without running them |
-| Skipping Verification     | Follow process even for "trivial" changes, run ALL tests           | Skipping tests for "comment-only" changes                                 |
-| Assumption-Based Changes  | Read existing code first, verify evidence                          | "Fixing" working S3 upload unnecessarily                                  |
-| Cascading Breaks          | Reproduce problem before fixing                                    | Breaking code by "fixing" non-existent issues                             |
-| Skipping Process Steps    | Follow checklists consistently, no shortcuts                       | "I already know this, skip the checklist"                                 |
-| Over-Engineering          | Solve ONLY stated problem, YAGNI principle                         | Complex state management vs simple variable                               |
-| Clever Over Clear         | Obvious code > clever tricks                                       | One-liner regex vs readable string operations                             |
-| Retaining Legacy Code     | Remove unused code unless explicitly told otherwise                | Keeping old code "just in case"                                           |
-| Skipping Complexity Check | Calculate score before dispatch (see create-parallel-sub-agents)   | Dispatching sub-agents for single-file changes                            |
-| Claiming Without Browser  | Browser test before completion claims (see workflows-code)         | Saying "works" without opening browser                                    |
+**1. Task Misinterpretation**
+- **Prevention:** Parse request carefully, confirm scope
+- **Example:** Implementing when asked to investigate
 
-**Critical Pattern Detection:**
+**2. Rush to Code**
+- **Prevention:** Analyze → Verify → Choose simplest approach
+- **Example:** Starting code before understanding problem
 
-| #   | Pattern                         | ⚠️ Detection Trigger                                         | ✅ Action                               |
-| --- | ------------------------------- | ----------------------------------------------------------- | -------------------------------------- |
-| 1   | **Fabrication**                 | "straightforward", "obvious" without verifying              | Output "UNKNOWN" or verify first       |
-| 2   | **Lying About Completion**      | "I've completed X" without proof                            | Show output, or say "NOT yet verified" |
-| 3   | **Skipping Verification**       | "trivial edit", "just a comment"                            | Run ALL tests, no exceptions           |
-| 4   | **Skipping Process**            | "I already know this"                                       | Follow checklist anyway                |
-| 5   | **No Skill Check**              | Starting work without checking skills                       | Check `.claude/skills/` first          |
-| 6   | **Retaining Legacy**            | "just in case", "don't change too much"                     | Remove unused code, ask if unsure      |
-| 7   | **Skipping Parallel Dispatch**  | Multi-domain task (≥2 domains) + complexity ≥35%            | Use Task tool with sub-agents          |
-| 8   | **Ignoring Mandatory Question** | Sees `🔴 MANDATORY_USER_QUESTION` but uses other tools first | STOP, use AskUserQuestion immediately  |
+**3. Fabrication/Lying**
+- **Prevention:** Output "UNKNOWN" when uncertain, verify before claiming completion
+- **Example:** Responding without verification, saying "tests pass" without running them
+- **Detection Trigger:** "straightforward", "obvious" without verifying
+- **Action:** Output "UNKNOWN" or verify first
+
+**4. Skipping Verification**
+- **Prevention:** Follow process even for "trivial" changes, run ALL tests
+- **Example:** Skipping tests for "comment-only" changes
+- **Detection Trigger:** "trivial edit", "just a comment"
+- **Action:** Run ALL tests, no exceptions
+
+**5. Assumption-Based Changes**
+- **Prevention:** Read existing code first, verify evidence
+- **Example:** "Fixing" working S3 upload unnecessarily
+
+**6. Cascading Breaks**
+- **Prevention:** Reproduce problem before fixing
+- **Example:** Breaking code by "fixing" non-existent issues
+
+**7. Skipping Process Steps**
+- **Prevention:** Follow checklists consistently, no shortcuts
+- **Example:** "I already know this, skip the checklist"
+- **Detection Trigger:** "I already know this"
+- **Action:** Follow checklist anyway
+
+**8. Over-Engineering**
+- **Prevention:** Solve ONLY stated problem, YAGNI principle
+- **Example:** Complex state management vs simple variable
+
+**9. Clever Over Clear**
+- **Prevention:** Obvious code > clever tricks
+- **Example:** One-liner regex vs readable string operations
+
+**10. Retaining Legacy Code**
+- **Prevention:** Remove unused code unless explicitly told otherwise
+- **Example:** Keeping old code "just in case"
+- **Detection Trigger:** "just in case", "don't change too much"
+- **Action:** Remove unused code, ask if unsure
+
+**11. Skipping Complexity Check**
+- **Prevention:** Calculate score before dispatch (see create-parallel-sub-agents)
+- **Example:** Dispatching sub-agents for single-file changes
+- **Detection Trigger:** Multi-domain task (≥2 domains) + complexity ≥35%
+- **Action:** Use Task tool with sub-agents
+
+**12. Claiming Without Browser Verification**
+- **Prevention:** Browser test before completion claims (see workflows-code)
+- **Example:** Saying "works" without opening browser
 
 **Enforcement Protocol:** If you detect ANY pattern above:
 1. **STOP** - Do not proceed
@@ -137,18 +170,50 @@ When Sequential Thinking MCP is available, use it for complex tasks:
 3. **Correct** - Follow proper procedure
 4. **Verify** - Show evidence of correct process
 
+```python
+# ──────────────────────────────────────────────────────────────────────────────
+# ANTI-PATTERN DETECTION ENGINE (Executable Logic)
+# ──────────────────────────────────────────────────────────────────────────────
+ANTI_PATTERNS = {
+    "task_misinterpretation": {"triggers": ["implementing", "asked to investigate"], "severity": "high"},
+    "rush_to_code": {"triggers": ["starting code", "before understanding"], "severity": "critical"},
+    "fabrication": {"keywords": ["straightforward", "obvious", "I've completed"], "missing": "evidence", "severity": "critical"},
+    "skipping_verification": {"keywords": ["trivial edit", "just a comment"], "severity": "high"},
+    "assumption_based": {"triggers": ["without reading", "assuming"], "severity": "high"},
+    "skipping_process": {"keywords": ["I already know", "skip the checklist"], "severity": "high"},
+    "over_engineering": {"complexity_threshold": 50, "scope_creep": True, "severity": "medium"},
+    "retaining_legacy": {"keywords": ["just in case", "don't change too much"], "severity": "medium"},
+    "mandatory_ignored": {"signal": "🔴 MANDATORY_USER_QUESTION", "tool_before_response": True, "severity": "critical"}
+}
+
+def detect_anti_patterns(message: str, context: dict, tool: str = None) -> list:
+    """Scan message/context for anti-patterns, return violations."""
+    detected = []
+    for name, cfg in ANTI_PATTERNS.items():
+        if _matches(message, context, cfg, tool):
+            detected.append({"pattern": name, "severity": cfg["severity"]})
+    return detected
+
+def _matches(msg: str, ctx: dict, cfg: dict, tool: str) -> bool:
+    if "keywords" in cfg and any(k in msg.lower() for k in cfg["keywords"]): return True
+    if "signal" in cfg and cfg["signal"] in ctx.get("last_hook_output", ""): return True
+    if "complexity_threshold" in cfg and ctx.get("complexity", 0) >= cfg["complexity_threshold"]: return True
+    if cfg.get("missing") == "evidence" and not ctx.get("has_evidence", False): return True
+    return False
+
+def enforce(violations: list) -> str | None:
+    """Block critical violations."""
+    critical = [v for v in violations if v["severity"] == "critical"]
+    return f"🚨 BLOCKING: {critical[0]['pattern']}" if critical else None
+```
+
 #### 🔴 Mandatory Hook Signal Detection
 
-When you see `🔴 MANDATORY_USER_QUESTION` or `{"signal": "MANDATORY_QUESTION"` in hook output:
+When you see `🔴 MANDATORY_USER_QUESTION` **and** `{"signal": "MANDATORY_QUESTION"` in hook output (both formats emitted simultaneously - text for humans, JSON for AI):
 
 1. **STOP** all other processing immediately
 2. **USE** AskUserQuestion with the options from the JSON
 3. **WAIT** for user response - ALL tools are BLOCKED until you respond
-
-| Signal                      | Action                          |
-| --------------------------- | ------------------------------- |
-| `🔴 MANDATORY_USER_QUESTION` | AskUserQuestion IMMEDIATELY     |
-| `"blocking": true` in JSON  | Question MUST be answered first |
 
 **Enforcement:** `PreToolUse/check-pending-questions.sh` BLOCKS all tools except AskUserQuestion when question pending.
 
@@ -168,24 +233,12 @@ When you see `🔴 MANDATORY_USER_QUESTION` or `{"signal": "MANDATORY_QUESTION"`
 
 **See:** `.claude/hooks/README.md` Section 3.2 (`check-pending-questions.sh`) and Section 7 (`signal-output.sh`) for full specification.
 
-#### 🔴 Spec Folder Compliance Self-Check
-
-Before EVERY Write/Edit file modification, verify:
-- □ Is there an active spec folder? (`.claude/.spec-active.{SESSION_ID}` or legacy `.spec-active` exists)
-- □ Does my modification match the spec folder topic?
-- □ Did I respond to any pending `MANDATORY_USER_QUESTION` signals?
-
-**Self-Audit Trigger:**
-If about to write code without spec folder verification:
-"I was about to skip spec folder verification, which violates process discipline."
-→ Stop and verify compliance before proceeding.
-
 ---
 
 ## 2. 📝 MANDATORY: CONVERSATION DOCUMENTATION
 
 Every conversation that modifies files (code, documentation, configuration, templates, skills, etc.) MUST have a spec folder. This applies to ALL conversations (SpecKit AND regular chat queries).
-**Full details**: workflows-conversation skill (`.claude/skills/workflows-conversation/`)
+**Full details**: workflows-spec-kit skill (`.claude/skills/workflows-spec-kit/`)
 
 **What requires a spec folder:**
 - ✅ Code files (JS, TS, Python, CSS, HTML, etc.)
@@ -195,12 +248,22 @@ Every conversation that modifies files (code, documentation, configuration, temp
 - ✅ Template files (`.opencode/speckit/templates/*.md`)
 - ✅ Build/tooling files (package.json, etc.)
 
-#### Levels Overview
-| Level | LOC  | Core Files        | Optional Files                            | Use When                  |
-| ----- | ---- | ----------------- | ----------------------------------------- | ------------------------- |
-| **1** | <100 | spec.md           | checklist.md                              | Trivial to simple changes |
-| **2** | <500 | spec.md + plan.md | tasks.md, checklist.md                    | Moderate feature          |
-| **3** | ≥500 | Full SpecKit      | research-spike-*.md, decision-record-*.md | Complex feature           |
+#### Documentation Levels Overview
+
+**Level 1: Trivial to Simple Changes** (<100 LOC)
+- **Core Files:** spec.md
+- **Optional Files:** checklist.md
+- **Use When:** Small bug fixes, config tweaks, minor updates
+
+**Level 2: Moderate Features** (<500 LOC)
+- **Core Files:** spec.md + plan.md
+- **Optional Files:** tasks.md, checklist.md
+- **Use When:** New features, refactors, multi-file changes
+
+**Level 3: Complex Features** (≥500 LOC)
+- **Core Files:** spec.md + plan.md + tasks.md
+- **Optional Files:** research-spike-*.md, decision-record-*.md
+- **Use When:** Large features, architecture changes, system redesigns
 
 #### Supporting Templates & Decision Rules
 **Optional templates** (in `.opencode/speckit/templates/`):
@@ -216,6 +279,29 @@ Every conversation that modifies files (code, documentation, configuration, temp
 - **Multi-file changes often need higher level** than LOC alone suggests
 - **Secondary factors:** Risk, dependencies, testing needs, architectural impact
 
+```python
+# ──────────────────────────────────────────────────────────────────────────────
+# DOCUMENTATION LEVEL DETECTION (Executable Logic)
+# ──────────────────────────────────────────────────────────────────────────────
+LEVELS = {
+    1: {"loc_max": 100, "core": ["spec.md"], "optional": ["checklist.md"]},
+    2: {"loc_max": 500, "core": ["spec.md", "plan.md"], "optional": ["tasks.md", "checklist.md"]},
+    3: {"loc_min": 500, "core": ["spec.md", "plan.md", "tasks.md"], "optional": ["research-spike-*.md", "decision-record-*.md"]}
+}
+
+def detect_documentation_level(loc: int, files: int, risk: str, has_deps: bool, arch_impact: bool) -> int:
+    """Determine level. Rule: When in doubt → choose higher level."""
+    # Override checks (complexity/risk can override LOC)
+    if risk == "high" or arch_impact: return 3
+    if files > 5 or has_deps: return max(2, _loc_level(loc))
+    return _loc_level(loc)
+
+def _loc_level(loc: int) -> int:
+    if loc < 100: return 1
+    elif loc < 500: return 2
+    else: return 3
+```
+
 ### Spec Folder: `/specs/[###-short-name]/`
 **Find next #**: `ls -d specs/[0-9]*/ | sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n | tail -1`
 **Name format**: 2-3 words, lowercase, hyphens (e.g., `fix-typo`, `add-auth`, `mcp-code-mode`)
@@ -229,6 +315,9 @@ Every conversation that modifies files (code, documentation, configuration, temp
 - **New work**: Create sub-folder `002-{user-name}/`, `003-{user-name}/`, etc.
 - **Memory**: Each sub-folder has independent `memory/` context
 - **Marker**: `.spec-active.{SESSION_ID}` tracks active sub-folder per session (V9: session-isolated)
+  - **Session Isolation**: Prevents conflicts when running multiple concurrent Claude Code sessions - each session has its own marker
+  - **Auto-cleanup**: Stale markers (pointing to non-existent folders) are automatically removed
+  - **Backward compatible**: Legacy `.spec-active` still supported
 - **Migration**: Execute `.claude/hooks/lib/migrate-spec-folder.sh <spec-folder> <new-name>`
 - **Process**:
   1. User selects Option A to reuse existing spec folder
@@ -279,21 +368,34 @@ When continuing work in an existing spec folder (mid-conversation with substanti
 **Core Principle:** If not sure or confidence < 80%, pause and ask for clarification. Present a multiple-choice path forward.
 
 #### Thresholds & Actions
-- **80–100:** Proceed.
-- **40–79:** Proceed with caution. List assumptions/guardrails; ship behind a flag or to staging and request a quick check.
-- **0–39:** Ask for clarification with a multiple-choice question.
-- **Safety override:** If there's a blocker or conflicting instruction, ask regardless of score.
-
-**Confidence Gates:**
-- Scale interpretation: 0–39% LOW | 40–79% MEDIUM | 80–100% HIGH
-- If any core claim <40%: Mark "UNKNOWN" or request sources before proceeding
-- If 40–79%: Provide caveats and counter-evidence; proceed with caution posture
-- If ≥80%: Require at least one citable source or strong evidence-based justification
+- **80–100% (HIGH):** Proceed with at least one citable source or strong evidence
+- **40–79% (MEDIUM):** Proceed with caution - provide caveats and counter-evidence
+- **0–39% (LOW):** Ask for clarification with multiple-choice question or mark "UNKNOWN"
+- **Safety override:** If there's a blocker or conflicting instruction, ask regardless of score
 
 #### Confidence Scoring (0–100%)
 **Front-end code weights**: Requirements clarity (25) + Component API (15) + State/data flow (15) + Type safety (10) + Performance (10) + Accessibility (10) + Tooling (10) + Risk (5) = 100%
 
 Compute as weighted sum of factor scores (0–1), round to whole percent.
+
+```python
+# ──────────────────────────────────────────────────────────────────────────────
+# CONFIDENCE SCORING (Executable Logic)
+# ──────────────────────────────────────────────────────────────────────────────
+WEIGHTS = {
+    "frontend": {"requirements_clarity": 25, "component_api": 15, "state_data_flow": 15, "type_safety": 10, "performance": 10, "accessibility": 10, "tooling": 10, "risk": 5},
+    "backend": {"requirements_clarity": 25, "api_design": 20, "data_flow": 15, "security": 15, "performance": 10, "testing": 10, "risk": 5}
+}
+
+def calculate_confidence(domain: str, factor_scores: dict) -> int:
+    """Calculate confidence (0-100%) as weighted sum. Factor scores: 0.0-1.0."""
+    return round(sum(WEIGHTS[domain][f] * factor_scores.get(f, 0.0) for f in WEIGHTS[domain]))
+
+def recommend_action(confidence: int) -> str:
+    if confidence >= 80: return "proceed"
+    elif confidence >= 40: return "proceed_with_caution"
+    else: return "ask_clarification"
+```
 
 #### Standard Reply Format
 - **Confidence:** NN%
@@ -330,22 +432,107 @@ Compute as weighted sum of factor scores (0–1), round to whole percent.
 
 **Before ANY action or file changes, work through these phases:**
 
-### Solution Flow Overview
+```python
+# ──────────────────────────────────────────────────────────────────────────────
+# REQUEST ANALYSIS WORKFLOW (7 Phases - Executable Logic)
+# ──────────────────────────────────────────────────────────────────────────────
+def analyze_request(user_input: str) -> Request:
+    """
+    7-Phase Request Analysis & Solution Framework:
+
+    1. CLASSIFY    → Determine request type (feature|bug|refactor|investigate)
+                     Parse carefully: What is ACTUALLY requested?
+
+    2. SCOPE       → Estimate LOC, files, risk; select documentation level
+                     What's the MINIMUM needed to satisfy this request?
+
+    3. CONTEXT     → Discover files, patterns, standards (use semantic search)
+                     Gather evidence: read files, check knowledge base
+
+    4. DESIGN      → Create solution (simplicity_first, evidence_based)
+                     What's the SIMPLEST solution that works?
+                     Does this follow patterns? Is it performant?
+
+    5. VALIDATE    → Check simplicity, performance, maintainability, scope
+                     Am I solving ONLY what was asked? (Avoid over-engineering)
+
+    6. VERIFY      → Calculate confidence, detect anti-patterns
+                     If ambiguous or <80% confidence: ask clarifying question
+
+    7. REVIEW      → Final verification summary with evidence
+                     Return structured Request or raise ValidationError
+
+    Returns: Request(raw, type, scope, confidence, doc_level, spec_folder, solution)
+    Raises: ValidationError, NeedsClarification, BlockingViolation
+    """
+
+    # ─── PHASE 1: CLASSIFY ─────────────────────────────────────────────────────
+    request_type = classify(user_input)  # "feature" | "bug" | "refactor" | "investigate"
+    scope = estimate_scope(user_input)
+
+    # ─── PHASE 2: SCOPE ────────────────────────────────────────────────────────
+    doc_level = detect_documentation_level(scope["loc"], scope["files"], scope["risk"], scope["has_deps"], scope["arch_impact"])
+    spec_folder = f"/specs/{next_number():03d}-{slugify(user_input)}/"
+
+    # ─── PHASE 3: CONTEXT ──────────────────────────────────────────────────────
+    context = {
+        "files": discover_files(user_input),
+        "patterns": find_patterns(user_input),
+        "standards": load_standards()  # code_quality_standards.md
+    }
+
+    # ─── PHASE 4: DESIGN ───────────────────────────────────────────────────────
+    solution = design_solution(
+        request_type, context, scope,
+        principles=["simplicity_first", "evidence_based", "effectiveness_over_elegance"]
+    )
+
+    # ─── PHASE 5: VALIDATE ─────────────────────────────────────────────────────
+    checks = validate(solution, ["simplicity", "performance", "maintainability", "scope"])
+    if not checks["passes"]: raise ValidationError(checks["failed"])
+
+    # ─── PHASE 6: VERIFY ───────────────────────────────────────────────────────
+    confidence = calculate_confidence(
+        "frontend" if "ui" in user_input.lower() else "backend",
+        assess_factors(context, solution)
+    )
+    if confidence < 80: raise NeedsClarification(generate_questions(context))
+
+    violations = detect_anti_patterns(solution["description"], context)
+    if blocking := enforce(violations): raise BlockingViolation(blocking)
+
+    # ─── PHASE 7: REVIEW ───────────────────────────────────────────────────────
+    return Request(
+        raw=user_input, type=request_type, scope=scope,
+        confidence=confidence, doc_level=doc_level,
+        spec_folder=spec_folder, solution=solution
+    )
+
+def classify(text: str) -> str:
+    """Classify request type from input text."""
+    kw = {
+        "feature": ["add", "implement", "create"],
+        "bug": ["fix", "broken", "error"],
+        "refactor": ["refactor", "restructure"],
+        "investigate": ["investigate", "analyze", "explore"]
+    }
+    return next((t for t, w in kw.items() if any(k in text.lower() for k in w)), "unknown")
+
+def estimate_scope(text: str) -> dict:
+    """Estimate LOC, files, risk from request text."""
+    scope_kw = {"small": 100, "feature": 200, "refactor": 300, "system": 500}
+    loc = next((v for k, v in scope_kw.items() if k in text.lower()), 300)
+    multi = any(w in text.lower() for w in ["all", "multiple", "across"])
+    risk_kw = ["critical", "security", "auth"]
+    return {
+        "loc": loc,
+        "files": 5 if multi else 2,
+        "risk": "high" if any(w in text.lower() for w in risk_kw) else "medium",
+        "has_deps": "dependency" in text.lower(),
+        "arch_impact": any(w in text.lower() for w in ["architecture", "redesign"])
+    }
 ```
-Request Received → [Parse carefully: What is ACTUALLY requested?]
-                    ↓
-         Gather Context → [Use semantic search for intent-based discovery, read files, check knowledge base]
-                    ↓
-  Identify Approach → [What's the SIMPLEST solution that works?]
-                    ↓
-    Validate Choice → [Does this follow patterns? Is it performant?]
-                    ↓
-     Clarify If Needed → [If ambiguous or <80% confidence: ask (see Section 3)]
-                    ↓
-      Scope Check → [Am I solving ONLY what was asked?]
-                    ↓
-           Execute  → [Implement with minimal complexity]
-```
+
 #### Phase 1: Initial Request Classification
 ```markdown
 REQUEST CLASSIFICATION:
@@ -386,16 +573,16 @@ CURRENT STATE:
 CONTEXT GATHERING:
 □ What files are mentioned or implied?
 □ What existing patterns should be followed?
-□ What documentation is relevant? (Check .claude/skills/workflows-code/references/code_quality_standards.md)
+□ What documentation is relevant? (Check code_quality_standards.md)
 □ What dependencies or side effects exist?
 □ Which tools verify this? (semantic search for intent-based discovery, view for files, rg for patterns, Glob for file discovery)
-  ⚠️ Note: Semantic search only available for CLI AI agents (Claude Code AI, GitHub Copilot CLI)
+  ⚠️ Note: Semantic search only available for CLI AI agents
 
 SOLUTION REQUIREMENTS:
 □ What is the MINIMUM needed to satisfy this request?
 □ What would be over-engineering for this case?
 □ What existing code can be reused or extended?
-□ What approach is most maintainable per .claude/skills/workflows-code/references/code_quality_standards.md?
+□ What approach is most maintainable per code_quality_standards.md?
 ```
 
 #### Phase 4: Solution Design & Selection
@@ -413,7 +600,7 @@ SOLUTION REQUIREMENTS:
 
 3. **Effectiveness Over Elegance**
    - Performant + Maintainable + Concise + Clear
-   - Follow .claude/skills/workflows-code/references/code_quality_standards.md patterns
+   - Follow code_quality_standards.md patterns
    - Obviously correct code > clever tricks
    - Scope discipline: Solve ONLY stated problem, no gold-plating
 
@@ -433,7 +620,7 @@ PERFORMANCE CHECK:
 □ Am I caching what should be cached?
 □ Does this scale appropriately for the use case?
 
-MAINTAINABILITY CHECK (per .claude/skills/workflows-code/references/code_quality_standards.md):
+MAINTAINABILITY CHECK (per code_quality_standards.md):
 □ Does this follow established project patterns?
 □ Will the next developer understand this easily?
 □ Is the code self-documenting?
@@ -463,33 +650,16 @@ Include uncertainty statement and citations; mark "UNKNOWN" if insufficient.
 
 **If multiple ❓ remain** → Read more code; if still <80% confidence, ask clarifying question
 
-**Micro-loop for grounding and verification:**
-```
-Sense → Interpret → Verify → Reflect → Publish
-- Sense: gather only relevant sources
-- Interpret: break into atomic sub-claims
-- Verify: check claims independently; label TRUE / FALSE / UNKNOWN
-- Reflect: resolve conflicts; reduce entropy; shorten
-- Publish: answer + uncertainty + citations
-```
-
-**⚠️ Anti-Fabrication Detection - Check for these common rationalizations:**
-- □ Am I about to respond without verifying? (See Section 1.4)
-- □ Am I thinking "this is straightforward/trivial" without running through process? (See Section 1.5)
-- □ Am I about to claim completion without showing evidence? (See Section 1.4)
-- □ Am I about to skip tests because "it's just a small change"? (See Section 1.5)
-- □ Am I proceeding despite uncertainty to appear helpful? (See Section 1.4)
-- □ Am I about to skip the checklist because "I already know this"? (See Section 1.5)
-- □ Am I leaving old code "just in case"? (See Section 1.5)
-
-**If ANY detection triggers fire → STOP and follow the proper procedure (see Section 1.5 Enforcement Protocol)**
+**⚠️ Run anti-pattern detection before proceeding** (see Section 1, lines 170-205 for executable logic)
 
 **Pre-Change Checklist - Before making ANY file changes, verify:**
 
 ```markdown
 □ I have parsed the request correctly (not assuming or extrapolating)
 □ I have determined the documentation level (Section 2 decision tree)
-□ I have created the spec folder: /specs/[###-short-name]/
+□ Active spec folder exists (.claude/.spec-active.{SESSION_ID})
+□ Modification matches the spec folder topic
+□ No pending MANDATORY_USER_QUESTION signals
 □ I have created the required documentation files for the level
 □ I understand which files need changes (read them first)
 □ I know what success looks like (clear acceptance criteria)
@@ -497,7 +667,7 @@ Sense → Interpret → Verify → Reflect → Publish
 □ If confidence < 80% or requirements are ambiguous: ask a clarifying question (see Section 3)
 □ I can explain why this approach is optimal
 □ I have cited sources for key claims or marked "UNKNOWN"
-□ I ran a quick self-check for contradictions/inconsistencies
+□ I ran anti-pattern detection (Section 1, lines 170-205)
 □ I avoided fabrication; missing info is labeled "UNKNOWN"
 □ I have explained my approach and received explicit user approval
 ```
@@ -526,23 +696,161 @@ Review response for:
 
 **Number Handling:** Prefer ranges or orders of magnitude unless confidence ≥80% and source is cited. Use qualifiers: "approximately," "range of," "circa." Never fabricate specific statistics to appear precise.
 
-**Example reasoning trace:**
-Request: "Add loading spinner to form submission"
+---
 
-→ Gather Context: search_codebase("form submission handling") → Found src/components/ContactForm.ts
-→ Read ContactForm.ts → No existing loading state
-→ Read .claude/skills/workflows-code/references/code_quality_standards.md → "Reuse existing components" [illustrative]
-→ search_codebase("loading spinner component") → Found shared/LoadingSpinner.ts (existing component)
-→ Reasoning: Import existing component (follows reuse pattern)
-→ Validate: Simple (no new abstraction), maintainable (centralized component)
-→ Execute: Import LoadingSpinner, show on submit, hide on response
+## 5. 🏎️ TOOL SELECTION & ROUTING
+
+#### Tool Selection
+
+**Key Routing Rules:**
+- **Code Mode (mcp-code-mode):** MANDATORY for all MCP tools except Sequential Thinking (68% fewer tokens, 98.7% context reduction)
+- **Semantic Search (mcp-semantic-search):** MANDATORY for CLI AI agents doing code discovery ("Find code that...", "How does...")
+- **Sequential Thinking (OPTIONAL):** Complex reasoning tasks - call MCP directly when available, NOT through Code Mode (5 stages: Problem→Research→Analysis→Synthesis→Conclusion)
+- **Parallel Sub-Agents (create-parallel-sub-agents):** MANDATORY when complexity ≥20% + 2+ domains (auto-dispatch ≥50% + 3+ domains)
+- **Chrome DevTools (cli-chrome-devtools):** Browser debugging via terminal (bdg CLI tool)
+- **Native Tools:** Read/Grep/Glob/Bash for file operations and simple tasks
+
+See executable routing logic below and Quick Decision tree in Section 6.
+
+```python
+# ──────────────────────────────────────────────────────────────────────────────
+# TOOL ROUTING (Executable Logic)
+# ──────────────────────────────────────────────────────────────────────────────
+TOOLS = {
+    "read": {"triggers": ["known_file_path"], "use": "Specific file access"},
+    "grep": {"triggers": ["exact_symbol", "keyword"], "use": "Literal text search"},
+    "glob": {"triggers": ["file_pattern"], "use": "File discovery by pattern"},
+    "bash": {"triggers": ["terminal_op"], "use": "System commands"},
+    "semantic_search": {"triggers": ["find code that", "how does", "where do we"], "mandatory_for": "cli_ai_agents", "priority": "FIRST for code exploration"},
+    "sequential_thinking": {"triggers": ["complex reasoning", "architecture_decision"], "exception": "call_directly_not_code_mode", "availability": "optional_mcp_server"},
+    "code_mode": {"triggers": ["ANY MCP except Sequential"], "mandatory": True, "benefits": "68% fewer tokens"},
+    "chrome_devtools": {"triggers": ["bdg", "browser debugging"], "tool": "browser-debugger-cli"},
+    "parallel_agents": {"triggers": ["complexity >= 20%", "multi_domain"], "thresholds": {"auto": 50, "ask": 20, "direct": 0}}
+}
+
+def route_tool(intent: str, file_known: bool = False, is_cli: bool = True, complexity: int = 0) -> str:
+    """Route to most appropriate tool."""
+    # Mandatory routing
+    if complexity >= 20 and _is_multi_domain(intent): return "parallel_agents"
+    if _is_external_mcp(intent) and "reasoning" not in intent: return "code_mode"
+    # Intent-based
+    if is_cli and any(t in intent.lower() for t in ["find code that", "how does"]): return "semantic_search"
+    if any(t in intent.lower() for t in ["analyze", "design decision"]): return "sequential_thinking"
+    if any(t in intent.lower() for t in ["bdg", "browser debug"]): return "chrome_devtools"
+    # File operations
+    if file_known: return "read"
+    if "pattern" in intent.lower(): return "glob"
+    if "keyword" in intent.lower(): return "grep"
+    return "bash"
+
+def _is_multi_domain(intent: str) -> bool:
+    return sum(d in intent.lower() for d in ["code", "docs", "git", "testing", "devops"]) >= 2
+
+def _is_external_mcp(intent: str) -> bool:
+    return any(t in intent.lower() for t in ["figma", "webflow", "notion", "clickup"])
+```
 
 ---
 
-## 5. 🏎️ QUICK REFERENCE
+## 6. 🎯 SKILL ACTIVATION QUICK REFERENCE
+
+**workflows-spec-kit**
+- **Trigger:** Any file modification
+- **Reference:** Section 2
+
+**workflows-save-context**
+- **Trigger:** Every 20 messages, "save context"
+- **Reference:** Auto-triggered
+
+**workflows-planning**
+- **Trigger:** Complex planning, parallel exploration, verified plan
+- **Reference:** Auto-invoked by spec_kit:plan at step_6_planning
+
+**workflows-code**
+- **Trigger:** Frontend code changes
+- **Reference:** `.claude/skills/workflows-code/`
+
+**mcp-semantic-search**
+- **Trigger:** "Find code that...", "How does..."
+- **Reference:** Section 5, Tool #4
+
+**mcp-code-mode**
+- **Trigger:** ANY MCP tool call (except Sequential Thinking)
+- **Reference:** Section 5, Tool #3
+
+**cli-chrome-devtools**
+- **Trigger:** "bdg", "browser debugging", Chrome DevTools CLI
+- **Reference:** Section 5, Tool #5
+
+**create-parallel-sub-agents**
+- **Trigger:** Complexity ≥20% + 2+ domains (mandatory question)
+- **Reference:** `.claude/skills/create-parallel-sub-agents/`
+
+**create-documentation**
+- **Trigger:** Creating/editing docs or skills
+- **Reference:** `.claude/skills/create-documentation/`
+
+#### The Iron Law (workflows-code)
+**NO COMPLETION CLAIMS WITHOUT BROWSER VERIFICATION**
+- Open actual browser before saying "works", "fixed", "done"
+- Test Chrome + mobile viewport (375px) minimum
+- Check DevTools console for errors
+- See: `.claude/skills/workflows-code/` for full 3-phase lifecycle
+
+```python
+# ──────────────────────────────────────────────────────────────────────────────
+# SKILL DISPATCH (Executable Logic)
+# ──────────────────────────────────────────────────────────────────────────────
+COMPLEXITY_FORMULA = {"domains": 35, "files": 25, "loc": 15, "parallel": 20, "task_type": 5}
+
+def calculate_complexity(task: dict) -> int:
+    """Calculate complexity (0-100%). Args: {domains, files, loc, parallel_opportunity, complexity_rating}"""
+    return round(
+        COMPLEXITY_FORMULA["domains"] * _norm(task["domains"], "domains", max=5) +
+        COMPLEXITY_FORMULA["files"] * _norm(task["files"], "files", max=10) +
+        COMPLEXITY_FORMULA["loc"] * _norm(task["loc"], "loc", max=500) +
+        COMPLEXITY_FORMULA["parallel"] * task["parallel_opportunity"] +
+        COMPLEXITY_FORMULA["task_type"] * task["complexity_rating"]
+    )
+
+def _norm(val: int, cat: str, max: int) -> float:
+    """Normalize value to 0.0-1.0."""
+    return min(val / max, 1.0)
+
+def dispatch_decision(complexity: int, domains: int) -> dict:
+    if complexity >= 50 and domains >= 3:
+        return {"action": "auto_dispatch", "reason": "≥50% + 3+ domains"}
+    elif complexity >= 20 and domains >= 2:
+        return {"action": "ask_user", "reason": "20-49% + 2+ domains"}
+    else:
+        return {"action": "handle_direct", "reason": "<20%"}
+```
+
+#### Tool Routing (Quick Decision)
+```
+Known file path? → Read()
+Know what code DOES? → search_codebase() [semantic search - CLI only]
+Exact symbol/keyword? → Grep()
+File structure? → Glob()
+Complex reasoning? → process_thought() [Sequential Thinking MCP - IF AVAILABLE, direct call]
+Browser debugging? → cli-chrome-devtools skill [bdg CLI tool]
+External MCP tools? → call_tool_chain() [Code Mode - MANDATORY except Sequential]
+Complexity ≥20% + multi-domain? → See dispatch_decision() function in Section 6
+```
+
+**User Override Phrases:**
+- `"proceed directly"` - Force direct handling
+- `"use parallel agents"` - Force parallel dispatch
+- `"auto-decide"` - Enable session auto-mode
+
+**Example:** Auth + tests + docs = 3 domains (35%) + 8 files (25%) + 300 LOC (15%) + high parallel (20%) + complex (5%) = **100%** → AUTO-DISPATCH (≥50% + 3 domains threshold met, notification only, no question asked)
+
+---
+
+## 7. 🏎️ QUICK REFERENCE
 
 **Navigation Guide:**
-- **First time?** Read: TL;DR → Section 1 → Section 5 (this section)
+- **First time?** Read: TL;DR → Section 1 → Section 7 (this section)
 - **Implementing?** Follow: Section 2 → Section 4 (use Phase 6 checklist) → Section 3 if stuck
 - **Stuck/Low confidence?** Check: Section 3 (Confidence) → Section 1 (Anti-patterns)
 
@@ -574,7 +882,7 @@ Request: "Add loading spinner to form submission"
 - Got explicit user approval?
 
 **Quality Standards:**
-- .claude/skills/workflows-code/references/code_quality_standards.md is law
+- code_quality_standards.md is law
 - Consistency > Personal preference
 - Maintainability > Brevity
 - Truth/Safety > Engagement | Verification > Assumption
@@ -582,113 +890,3 @@ Request: "Add loading spinner to form submission"
 - Never lie or fabricate | Always verify before claiming completion
 - Run ALL tests, no exceptions | Follow process even for "trivial" changes
 - Output "UNKNOWN" when uncertain | Remove legacy code unless told otherwise
-
-#### Tool Selection
-**Decision Framework: When to Use Which Approach**
-
-1. **Native Tools (Read/Grep/Glob/Bash)**
-   - File exploration and discovery
-   - Text-based searches
-   - Simple file operations
-   - Quick content checks
-   - **When to use:** Known file paths, exact symbol searches, literal text matching
-
-2. **Sequential Thinking MCP (Complex Reasoning)**
-   - Multi-step problem solving or debugging
-   - Architecture or design decisions
-   - Analyzing requirements or specifications
-   - Planning implementations before changes
-   - **The 5 Stages:** Problem Definition → Research → Analysis → Synthesis → Conclusion
-   - **Tools:** `process_thought` (record reasoning), `generate_summary` (review before action)
-   - **⚠️ EXCEPTION:** Do NOT use Code Mode for Sequential Thinking - call MCP tools directly
-
-3. **Code Mode UTCP - MANDATORY FOR MCP TOOL CALLS (except Sequential Thinking)**
-   - **REQUIRED:** All MCP tools (Figma, Webflow, Semantic Search)
-   - **EXCEPTION:** Sequential Thinking MCP tools are called directly, not through Code Mode
-   - **Pattern:** `call_tool_chain` with TypeScript, `search_tools` for discovery
-   - **Benefits:** 68% fewer tokens, 98.7% context reduction, 60% faster
-   - **⚠️ NAMING:** `{manual_name}.{manual_name}_{tool_name}`
-     - ✅ `webflow.webflow_sites_list()` | ❌ `webflow.sites_list()`
-   - **See:** `.claude/skills/mcp-code-mode/` for examples and full patterns
-
-4. **Semantic Search MCP (Intent-Based Code Discovery) - MANDATORY FOR CLI AI AGENTS**
-   - **REQUIRED when:** Finding code by what it does, exploring unfamiliar areas, locating implementations
-   - Finding code by what it does, not what it's called
-   - Exploring unfamiliar codebase areas
-   - Understanding feature implementations
-   - Locating patterns across multiple files
-   - **Usage triggers:** "Find code that handles X", "Where do we implement Y?", "Show me how X works"
-   - **Priority:** Use FIRST before grep/read when exploring code functionality
-   - **See:** mcp-semantic-search skill (`.claude/skills/mcp-semantic-search/`)
-   - **Availability:** Only CLI AI agents (Claude Code AI, GitHub Copilot CLI, etc.) - NOT IDE integrations
-   - **Enforcement:** If you have semantic search access, you MUST use it for code discovery tasks
-
-5. **Chrome DevTools CLI (Browser Debugging & Automation)**
-   - **Tool**: browser-debugger-cli (bdg) via cli-chrome-devtools skill
-   - Browser debugging via terminal
-   - Quick screenshots, HAR files, console logs
-   - DOM inspection and JavaScript execution
-   - Token-efficient alternative to MCP for simple browser tasks
-   - **When to use:** Terminal-first workflow, lightweight automation, quick debugging
-   - **See:** `.claude/skills/cli-chrome-devtools/` for complete patterns
-
-6. **Parallel Sub-Agents - MANDATORY FOR COMPLEX MULTI-DOMAIN TASKS**
-   - **REQUIRED when:** Complexity ≥35% AND 2+ domains detected
-   - **Domains:** code, docs, git, testing, devops
-   - **Thresholds:**
-     - <25%: Handle directly (overhead exceeds benefit)
-     - 25-34%: Ask user preference (borderline case)
-     - ≥35% + 2+ domains: **DISPATCH** sub-agents via Task tool
-   - **Formula:** Domain(35%) + Files(25%) + LOC(15%) + Parallel(20%) + TaskType(5%)
-   - **See:** `.claude/skills/create-parallel-sub-agents/` for orchestration patterns
-   - **Enforcement:** `orchestrate-skill-validation.sh` BLOCKS all tools except Task when dispatch required
-   - **Detection:** About to implement auth + tests + docs + git in one response? → STOP, dispatch sub-agents
-
----
-
-## 6. 🎯 SKILL ACTIVATION QUICK REFERENCE
-
-| Skill                      | Activation Trigger                              | Reference                                    |
-| -------------------------- | ----------------------------------------------- | -------------------------------------------- |
-| workflows-conversation     | Any file modification                           | Section 2                                    |
-| workflows-save-context     | Every 20 messages, "save context"               | Auto-triggered                               |
-| workflows-code             | Frontend code changes                           | `.claude/skills/workflows-code/`             |
-| mcp-semantic-search        | "Find code that...", "How does..."              | Section 5, Tool #4                           |
-| mcp-code-mode              | ANY MCP tool call (except Sequential Thinking)  | Section 5, Tool #3                           |
-| cli-chrome-devtools        | "bdg", "browser debugging", Chrome DevTools CLI | Section 5, Tool #5                           |
-| create-parallel-sub-agents | Complexity ≥35% + 2+ domains                    | `.claude/skills/create-parallel-sub-agents/` |
-| create-documentation       | Creating/editing docs or skills                 | `.claude/skills/create-documentation/`       |
-
-#### The Iron Law (workflows-code)
-**NO COMPLETION CLAIMS WITHOUT BROWSER VERIFICATION**
-- Open actual browser before saying "works", "fixed", "done"
-- Test Chrome + mobile viewport (375px) minimum
-- Check DevTools console for errors
-- See: `.claude/skills/workflows-code/` for full 3-phase lifecycle
-
-#### Tool Routing (Quick Decision)
-```
-Known file path? → Read()
-Know what code DOES? → search_codebase() [semantic search]
-Exact symbol/keyword? → Grep()
-File structure? → Glob()
-Complex reasoning? → process_thought() [Sequential Thinking - direct call]
-Browser debugging? → cli-chrome-devtools skill [bdg CLI tool]
-External MCP tools? → call_tool_chain() [Code Mode - MANDATORY, except Sequential Thinking]
-```
-
-#### Dispatch Decision (create-parallel-sub-agents)
-- <25% complexity: Handle directly (overhead exceeds benefit)
-- 25-34%: Ask user preference (borderline - let user decide)
-- ≥35% + 2+ domains: **DISPATCH** sub-agents via Task tool (BLOCKING)
-
-**Complexity Quick-Calc:**
-| Factor    | Weight | Low (0) | Med (0.5) | High (1.0) |
-| --------- | ------ | ------- | --------- | ---------- |
-| Domains   | 35%    | 1       | 2         | 3+         |
-| Files     | 25%    | 1-2     | 3-5       | 6+         |
-| LOC       | 15%    | <50     | 50-200    | 200+       |
-| Parallel  | 20%    | None    | Some      | High       |
-| Task Type | 5%     | Trivial | Moderate  | Complex    |
-
-**Example:** Auth + tests + docs = 3 domains (35%) + 8 files (25%) + 300 LOC (15%) + high parallel (20%) + complex (5%) = **100%** → DISPATCH REQUIRED
