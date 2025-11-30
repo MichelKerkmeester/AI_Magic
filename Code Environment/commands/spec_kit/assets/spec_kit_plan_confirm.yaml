@@ -256,7 +256,15 @@ workflow:
       phase_domains: [code, docs]
       complexity_boost: 0
       decision_logic: |
-        BEFORE starting this phase, evaluate parallel dispatch using parallel_dispatch_config thresholds.
+        BEFORE starting this phase, evaluate parallel dispatch:
+        1. Check for override phrases in user request
+        2. Check for session preference (from previous "Auto-decide" selection)
+        3. Check for sequential dependencies (skip if detected)
+        4. Calculate phase complexity using parallel_dispatch_config
+        5. Apply thresholds:
+           - <20% → proceed directly (silent)
+           - ≥50% + 3 domains → auto-dispatch with notification
+           - ≥20% + 2 domains → ask user via AskUserQuestion
       on_parallel_dispatch:
         agents:
           - name: "spec_explorer"

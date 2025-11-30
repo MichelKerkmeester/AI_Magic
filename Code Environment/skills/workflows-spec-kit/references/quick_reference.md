@@ -35,33 +35,33 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research
 ### Level 1: Baseline (ALL features start here)
 
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
-cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
-cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
+cp .opencode/speckit/templates/spec.md specs/###-name/spec.md
+cp .opencode/speckit/templates/plan.md specs/###-name/plan.md
+cp .opencode/speckit/templates/tasks.md specs/###-name/tasks.md
 ```
 
 ### Level 2: Add Verification (to Level 1)
 
 ```bash
 ## First copy all Level 1 files, then add:
-cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
+cp .opencode/speckit/templates/checklist.md specs/###-name/checklist.md
 ```
 
 ### Level 3: Add Decision Record (to Level 2)
 
 ```bash
 ## First copy all Level 2 files, then add:
-cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
+cp .opencode/speckit/templates/decision-record.md specs/###-name/decision-record-[topic].md
 ```
 
 ### Optional Templates (Level 3 Only)
 
 ```bash
 ## Research-Spike (use descriptive name):
-cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md
+cp .opencode/speckit/templates/research-spike.md specs/###-name/research-spike-performance.md
 
 ## Comprehensive Research:
-cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md
+cp .opencode/speckit/templates/research.md specs/###-name/research.md
 ```
 
 ---
@@ -263,7 +263,7 @@ If scope grows during implementation, add the required files:
 - ✅ Documentation files (*.md, *.txt, docs/)
 - ✅ Configuration files (*.json, *.yaml, *.toml)
 - ✅ Knowledge base (.claude/knowledge/*.md)
-- ✅ Templates (.claude/commands/spec_kit/assets/templates/*.md)
+- ✅ Templates (.opencode/speckit/templates/*.md)
 - ✅ Build files (package.json, requirements.txt)
 
 **Exceptions (no spec needed):**
@@ -307,7 +307,7 @@ If scope grows during implementation, add the required files:
 | Documentation | ✅ Yes | Markdown, README updates, guides |
 | Configuration | ✅ Yes | JSON, YAML, TOML, .env templates |
 | Knowledge base | ✅ Yes | `.claude/knowledge/*.md` updates |
-| Templates | ✅ Yes | `.claude/commands/spec_kit/assets/templates/*.md` modifications |
+| Templates | ✅ Yes | `.opencode/speckit/templates/*.md` modifications |
 | Build/tooling | ✅ Yes | package.json, requirements.txt, Dockerfile |
 
 **Exceptions (no spec needed):**
@@ -352,7 +352,7 @@ Skipping documentation:
 
 Before presenting documentation to user:
 
-- [ ] All REQUIRED templates for level copied from `.claude/commands/spec_kit/assets/templates/`:
+- [ ] All REQUIRED templates for level copied from `.opencode/speckit/templates/`:
   - [ ] Level 1: spec.md + plan.md + tasks.md
   - [ ] Level 2: Level 1 + checklist.md
   - [ ] Level 3: Level 2 + decision-record.md
@@ -394,7 +394,7 @@ Before presenting documentation to user:
 ### Absolutely Required
 
 - **NEVER create documentation from scratch** - Always copy from templates
-- **ALWAYS copy from `.claude/commands/spec_kit/assets/templates/`** directory
+- **ALWAYS copy from `.opencode/speckit/templates/`** directory
 - **ALWAYS copy ALL REQUIRED templates for chosen level**:
   - Level 1: spec.md + plan.md + tasks.md
   - Level 2: Level 1 + checklist.md
@@ -415,7 +415,7 @@ Before presenting documentation to user:
 - Documentation files (*.md, README, docs/)
 - Configuration files (*.json, *.yaml, *.toml)
 - Knowledge base files (.claude/knowledge/*.md)
-- Template files (.claude/commands/spec_kit/assets/templates/*.md)
+- Template files (.opencode/speckit/templates/*.md)
 - Build files (package.json, requirements.txt)
 
 **No exceptions** (unless user explicitly selects Option D)

@@ -6,7 +6,7 @@ Complete mapping of documentation levels to templates using the **progressive en
 
 ## 1. 📍 TEMPLATE LOCATION
 
-**All templates located in:** `.claude/commands/spec_kit/assets/templates/`
+**All templates located in:** `.opencode/speckit/templates/`
 
 **Critical Rule:** ALWAYS copy templates from this directory - NEVER create documentation files from scratch.
 
@@ -30,23 +30,23 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.m
 
 **Level 1 Copy Commands (Baseline):**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
-cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
-cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
+cp .opencode/speckit/templates/spec.md specs/###-name/spec.md
+cp .opencode/speckit/templates/plan.md specs/###-name/plan.md
+cp .opencode/speckit/templates/tasks.md specs/###-name/tasks.md
 ```
 
 **Level 2 Copy Commands (adds to Level 1):**
 ```bash
 # First copy all Level 1 files, then add:
-cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
+cp .opencode/speckit/templates/checklist.md specs/###-name/checklist.md
 ```
 
 **Level 3 Copy Commands (adds to Level 2):**
 ```bash
 # First copy all Level 2 files, then add:
-cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
+cp .opencode/speckit/templates/decision-record.md specs/###-name/decision-record-[topic].md
 # Optional:
-cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-[topic].md
+cp .opencode/speckit/templates/research-spike.md specs/###-name/research-spike-[topic].md
 ```
 
 ---
@@ -57,8 +57,8 @@ These templates are OPTIONAL and only apply to Level 3 documentation:
 
 | Template File | Copy As | When to Use | Copy Command |
 |--------------|---------|-------------|--------------|
-| `research-spike.md` | `research-spike-[topic].md` | Time-boxed research, POC, feasibility testing | `cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md` |
-| `research.md` | `research.md` | Comprehensive research documentation | `cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md` |
+| `research-spike.md` | `research-spike-[topic].md` | Time-boxed research, POC, feasibility testing | `cp .opencode/speckit/templates/research-spike.md specs/###-name/research-spike-performance.md` |
+| `research.md` | `research.md` | Comprehensive research documentation | `cp .opencode/speckit/templates/research.md specs/###-name/research.md` |
 
 **Notes:**
 - Use descriptive names for research-spikes (not generic "final" or "new")
@@ -172,7 +172,7 @@ Accountability reminder (remove after filling):
 
 **Non-negotiable rules:**
 
-1. **Always copy from `.claude/commands/spec_kit/assets/templates/`** - Never freehand documentation
+1. **Always copy from `.opencode/speckit/templates/`** - Never freehand documentation
 2. **Preserve numbering and emojis** - Maintain visual scanning pattern
 3. **Fill every placeholder** - Replace `[PLACEHOLDER]` with actual content
 4. **Remove instructional comments** - Delete `<!-- SAMPLE -->` blocks
@@ -205,31 +205,31 @@ mkdir -p specs/###-short-name/
 
 **Level 1 (Baseline) - ALL features start here:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
-cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
-cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
+cp .opencode/speckit/templates/spec.md specs/###-name/spec.md
+cp .opencode/speckit/templates/plan.md specs/###-name/plan.md
+cp .opencode/speckit/templates/tasks.md specs/###-name/tasks.md
 ```
 
 **Level 2 (Verification) - Add to Level 1:**
 ```bash
 # Copy all Level 1 files first, then add:
-cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
+cp .opencode/speckit/templates/checklist.md specs/###-name/checklist.md
 ```
 
 **Level 3 (Full) - Add to Level 2:**
 ```bash
 # Copy all Level 2 files first, then add:
-cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
+cp .opencode/speckit/templates/decision-record.md specs/###-name/decision-record-[topic].md
 ```
 
 ### Step 5: Copy Optional Templates (Level 3 Only - If Needed)
 
 ```bash
 # Research-Spike (use descriptive name)
-cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md
+cp .opencode/speckit/templates/research-spike.md specs/###-name/research-spike-performance.md
 
 # Comprehensive Research
-cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md
+cp .opencode/speckit/templates/research.md specs/###-name/research.md
 ```
 
 ### Step 6: Fill Templates

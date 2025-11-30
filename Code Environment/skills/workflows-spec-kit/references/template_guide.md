@@ -17,7 +17,7 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.m
 
 ### Core Principles
 
-1. **Never create from scratch** - Always copy from `.claude/commands/spec_kit/assets/templates/`
+1. **Never create from scratch** - Always copy from `.opencode/speckit/templates/`
 2. **Always adapt to feature** - Templates are starting points, not final documents
 3. **Preserve structure** - Maintain numbering, emojis, and section organization
 4. **Remove placeholders** - Replace ALL `[PLACEHOLDER]` text with actual content
@@ -47,9 +47,9 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.m
 
 **Copy commands:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
-cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
-cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
+cp .opencode/speckit/templates/spec.md specs/###-name/spec.md
+cp .opencode/speckit/templates/plan.md specs/###-name/plan.md
+cp .opencode/speckit/templates/tasks.md specs/###-name/tasks.md
 ```
 
 **When to use:**
@@ -97,7 +97,7 @@ cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
 **Copy commands:**
 ```bash
 # First copy all Level 1 files, then add:
-cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
+cp .opencode/speckit/templates/checklist.md specs/###-name/checklist.md
 ```
 
 **When to use:**
@@ -134,13 +134,13 @@ cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checkl
 **Copy commands:**
 ```bash
 # First copy all Level 2 files, then add:
-cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
+cp .opencode/speckit/templates/decision-record.md specs/###-name/decision-record-[topic].md
 ```
 
 **Optional Templates:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-[topic].md
-cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md
+cp .opencode/speckit/templates/research-spike.md specs/###-name/research-spike-[topic].md
+cp .opencode/speckit/templates/research.md specs/###-name/research.md
 ```
 
 **When to use:**
@@ -275,7 +275,7 @@ submissions are duplicates.
 
 **Step 1: Copy Template**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/[template].md specs/###-name/[target].md
+cp .opencode/speckit/templates/[template].md specs/###-name/[target].md
 ```
 
 **Step 2: Fill Metadata Block**
@@ -335,7 +335,7 @@ cp .claude/commands/spec_kit/assets/templates/[template].md specs/###-name/[targ
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md
+cp .opencode/speckit/templates/research.md specs/###-name/research.md
 ```
 
 **Sections to fill:**
@@ -377,7 +377,7 @@ cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/researc
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
+cp .opencode/speckit/templates/tasks.md specs/###-name/tasks.md
 ```
 
 **Sections to fill:**
@@ -403,7 +403,7 @@ cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
+cp .opencode/speckit/templates/checklist.md specs/###-name/checklist.md
 ```
 
 **Sections to fill:**
@@ -430,7 +430,7 @@ cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checkl
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-[topic].md
+cp .opencode/speckit/templates/research-spike.md specs/###-name/research-spike-[topic].md
 ```
 
 **Use descriptive name:** `research-spike-performance.md`, `research-spike-library-comparison.md`
@@ -461,7 +461,7 @@ cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/r
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
+cp .opencode/speckit/templates/decision-record.md specs/###-name/decision-record-[topic].md
 ```
 
 **Use descriptive name:** `decision-record-database.md`, `decision-record-auth-library.md`
@@ -495,7 +495,7 @@ cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/
 
 **Non-negotiable:**
 
-1. **Always copy from `.claude/commands/spec_kit/assets/templates/`** - Never freehand
+1. **Always copy from `.opencode/speckit/templates/`** - Never freehand
 2. **Preserve numbering and emojis** - Maintain visual scanning pattern
 3. **Fill every placeholder** - Replace `[PLACEHOLDER]` with actual content
 4. **Remove instructional comments** - Delete `<!-- SAMPLE -->` blocks
@@ -510,7 +510,7 @@ cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/
 
 Before presenting documentation to user, verify:
 
-- [ ] All templates copied from `.claude/commands/spec_kit/assets/templates/` (not created from scratch)
+- [ ] All templates copied from `.opencode/speckit/templates/` (not created from scratch)
 - [ ] All placeholders replaced (`[PLACEHOLDER]`, `[NEEDS CLARIFICATION: ...]`)
 - [ ] All sample content removed (`<!-- SAMPLE CONTENT -->`)
 - [ ] Template footer deleted
@@ -536,7 +536,7 @@ echo "# Spec" > specs/042-feature/spec.md
 
 **Right:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec.md specs/042-feature/spec.md
+cp .opencode/speckit/templates/spec.md specs/042-feature/spec.md
 ```
 
 **Why wrong:** Loses structure, misses sections, inconsistent format

@@ -1,22 +1,22 @@
 # ───────────────────────────────────────────────────────────────────
-# SMART SPECKIT: IMPLEMENT WORKFLOW (AUTONOMOUS MODE)
+# SMART SPECKIT: IMPLEMENT WORKFLOW (INTERACTIVE MODE)
 # ───────────────────────────────────────────────────────────────────
-role: Expert Developer using Smart SpecKit for fully autonomous implementation
-purpose: Spec-driven implementation with complete autonomous execution
-action: Execute from task breakdown to completion with self-validation
+role: Expert Developer using Smart SpecKit for interactive implementation
+purpose: Spec-driven implementation with step-by-step user approval
+action: Execute from task breakdown to completion with user checkpoints
 
 operating_mode:
   workflow: sequential
   workflow_compliance: MANDATORY
-  workflow_execution: autonomous
-  approvals: none
+  workflow_execution: interactive
+  approvals: step_by_step
   tracking: progressive_task_checklists
-  validation: continuous_self_validation
+  validation: checkpoint_based
 
 implementation_philosophy:
   principle: "Correctness first, elegance second"
-  approach: "Systematic execution with continuous validation"
-  mandate: "Build incrementally, test thoroughly, deliver confidently"
+  approach: "Systematic execution with user validation at checkpoints"
+  mandate: "Build incrementally, review with user, deliver confidently"
 
 # ───────────────────────────────────────────────────────────────────
 # USER INPUTS (Transformed from raw text)
@@ -54,7 +54,7 @@ user_inputs:
 # REQUEST HANDLING
 # ─────────────────────────────────────────────────────────────────
 request_handling:
-  default: "Conduct a comprehensive review of the spec folder and carry out its implementation fully autonomously."
+  default: "Conduct a comprehensive review of the spec folder and carry out its implementation with user approval at each step."
   override: "Use [REQUEST] if provided, else use default above"
 
 # ─────────────────────────────────────────────────────────────────
@@ -182,6 +182,30 @@ parallel_dispatch_config:
     - step_6_development
 
 # ─────────────────────────────────────────────────────────────────
+# CHECKPOINT OPTIONS
+# ─────────────────────────────────────────────────────────────────
+checkpoint_options:
+  standard:
+  - label: "Approve"
+    description: "Approve this step and proceed to next"
+  - label: "Review Details"
+    description: "Show more details about what was done"
+  - label: "Modify"
+    description: "Request changes before proceeding"
+  - label: "Skip"
+    description: "Skip this step (if optional)"
+
+  code_review:
+  - label: "Approve Code"
+    description: "Code looks good, proceed"
+  - label: "Show Diff"
+    description: "Show code changes in detail"
+  - label: "Request Changes"
+    description: "Request modifications to code"
+  - label: "Run Tests"
+    description: "Execute test suite first"
+
+# ─────────────────────────────────────────────────────────────────
 # WORKFLOW (8 STEPS - STANDALONE IMPLEMENTATION)
 # ─────────────────────────────────────────────────────────────────
 workflow:
@@ -203,14 +227,17 @@ workflow:
     - research.md
     - research-spike-*.md
     - decision-record-*.md
-    deep_analysis:
-      focus: comprehensive_plan_review
-      outputs:
-      - requirements_summary
-      - technical_approach_understanding
-      - identified_dependencies
-      - potential_challenges
     validation: planning_artifacts_understood
+    checkpoint:
+      question: "Step 1 Complete: Plan and spec reviewed. How would you like to proceed?"
+      use: AskUserQuestion
+      options:
+      - label: "Proceed"
+        description: "Plan is clear, proceed to task breakdown"
+      - label: "Review Plan"
+        description: "Show plan.md for detailed review"
+      - label: "Review Spec"
+        description: "Show spec.md for reference"
 
   step_2_task_breakdown:
     purpose: Create or validate tasks.md (Level 1+ requirement)
@@ -228,6 +255,16 @@ workflow:
     - tasks.md: implementation_breakdown
     template: .opencode/speckit/templates/tasks.md
     validation: tasks_documented
+    checkpoint:
+      question: "Step 2 Complete: Tasks defined. Review tasks.md?"
+      use: AskUserQuestion
+      options:
+      - label: "Approve Tasks"
+        description: "Task breakdown looks good"
+      - label: "Review Tasks"
+        description: "Show tasks.md for review"
+      - label: "Modify Tasks"
+        description: "Request changes to task breakdown"
 
   step_3_analysis:
     purpose: Verify consistency across all artifacts
@@ -240,6 +277,10 @@ workflow:
     - consistency_report
     - coverage_verification
     validation: consistency_verified
+    checkpoint:
+      question: "Step 3 Complete: Consistency verified. How would you like to proceed?"
+      use: AskUserQuestion
+      options: checkpoint_options.standard
 
   step_4_quality_checklist:
     purpose: Validate checklists before implementation (Level 2+ requirement)
@@ -253,6 +294,16 @@ workflow:
     outputs:
     - checklist_status: pass_or_fail
     validation: checklists_verified
+    checkpoint:
+      question: "Step 4 Complete: Checklists validated. Ready to implement?"
+      use: AskUserQuestion
+      options:
+      - label: "Start Implementation"
+        description: "Begin development phase"
+      - label: "Review Checklists"
+        description: "Show checklist status details"
+      - label: "Address Issues"
+        description: "Fix checklist issues first"
 
   step_5_implementation_check:
     purpose: Verify all prerequisites for implementation
@@ -266,6 +317,16 @@ workflow:
       blockers: none
       environment: ready
     validation: prerequisites_verified
+    checkpoint:
+      question: "Step 5 Complete: Environment ready. Proceed with development?"
+      use: AskUserQuestion
+      options:
+      - label: "Start Coding"
+        description: "Begin implementation"
+      - label: "Check Environment"
+        description: "Show environment status"
+      - label: "Hold"
+        description: "Wait before proceeding"
 
   step_6_development:
     purpose: Execute implementation following task plan
@@ -276,7 +337,15 @@ workflow:
       phase_domains: [code, testing]
       complexity_boost: 15
       decision_logic: |
-        BEFORE starting this phase, evaluate parallel dispatch using parallel_dispatch_config thresholds.
+        BEFORE starting this phase, evaluate parallel dispatch:
+        1. Check for override phrases in user request
+        2. Check for session preference (from previous "Auto-decide" selection)
+        3. Check for sequential dependencies (skip if detected)
+        4. Calculate phase complexity using parallel_dispatch_config
+        5. Apply thresholds:
+           - <20% → proceed directly (silent)
+           - ≥50% + 3 domains → auto-dispatch with notification
+           - ≥20% + 2 domains → ask user via AskUserQuestion
       on_parallel_dispatch:
         agents:
           - name: "implementation_agent"
@@ -298,20 +367,17 @@ workflow:
     - Integration work (database, middleware, logging)
     - Update task checklist progressively (mark [X])
     - Log progress after each task
-    approach: autonomous_implementation_with_checkpoints
+    approach: incremental_implementation_with_reviews
     requirements:
     - follow: Check knowledge base or skills folder for coding standards
     - update: task_checklist_progressively
     - test: before_commit
     - validate: continuously
-    checkpoints:
-      major_changes:
-        action: log_progress
-        validation: self_verify
-      issues_found:
-        action: document_resolution
-        validation: verify_fix
     validation: development_complete
+    checkpoint:
+      question: "Step 6 Complete: Development finished. Review implementation?"
+      use: AskUserQuestion
+      options: checkpoint_options.code_review
 
   step_7_completion:
     purpose: Generate implementation summary
@@ -330,11 +396,21 @@ workflow:
       - deviations_from_plan
       - recommended_next_steps
     validation: implementation_complete
+    checkpoint:
+      question: "Step 7 Complete: Implementation summary generated. Review?"
+      use: AskUserQuestion
+      options:
+      - label: "Approve Summary"
+        description: "Summary is complete"
+      - label: "View Summary"
+        description: "Show implementation-summary.md"
+      - label: "Add Details"
+        description: "Add more to summary"
 
   step_8_save_context:
     purpose: Save conversation context
     activities:
-    - Invoke workflows-save-context skill using Skill tool
+    - Invoke workflows-save-context skill
     - Preserve development decisions
     - Preserve debugging insights
     - Preserve code changes
@@ -345,6 +421,14 @@ workflow:
     outputs:
     - context_file: "[SPEC_FOLDER]/memory/[DD-MM-YY_HH-MM]__implementation_session.md"
     validation: context_saved_successfully
+    checkpoint:
+      question: "Step 8 Complete: Implementation workflow finished!"
+      use: AskUserQuestion
+      options:
+      - label: "Done"
+        description: "Complete the workflow"
+      - label: "View Final Summary"
+        description: "Show complete implementation summary"
 
 # ─────────────────────────────────────────────────────────────────
 # WORKFLOW TERMINATION
@@ -358,22 +442,30 @@ termination:
   - Prepare for code review and PR submission
 
 # ─────────────────────────────────────────────────────────────────
-# AUTONOMOUS EXECUTION GUIDANCE
+# INTERACTIVE EXECUTION GUIDANCE
 # ─────────────────────────────────────────────────────────────────
-autonomous_execution:
-  principle: "Execute implementation autonomously with self-validation at each checkpoint"
+interactive_execution:
+  principle: "Execute implementation with user approval at each checkpoint"
 
-  decision_making:
-  - Follow technical plan from planning phase
-  - Make informed implementation decisions
-  - Document reasoning for deviations
-  - Proceed with best judgment
+  checkpoint_behavior:
+  - Complete step activities
+  - Present results summary
+  - Use AskUserQuestion for approval
+  - Wait for user response
+  - Process user feedback
+  - Proceed or modify as directed
 
-  validation_approach:
-  - Self-validate after each code change
-  - Test incrementally before proceeding
-  - Verify against acceptance criteria
-  - Ensure quality standards met
+  code_review_behavior:
+  - Show summary of changes
+  - Offer diff view on request
+  - Run tests when requested
+  - Accept modification requests
+
+  user_feedback_handling:
+    approve: "Proceed to next step"
+    review: "Show detailed output of current step"
+    modify: "Accept changes and re-execute step"
+    skip: "Skip optional step and proceed"
 
 # ─────────────────────────────────────────────────────────────────
 # ERROR RECOVERY
@@ -381,14 +473,14 @@ autonomous_execution:
 error_recovery:
   step_validation_fails:
     action: "Review requirements, ask clarifying questions, retry step"
+  user_rejects_approach:
+    action: "Present alternatives, modify code, document decision"
   tests_fail:
     action: "Debug, fix, re-run before marking complete"
   prerequisites_insufficient:
     action: "Return to /spec_kit:plan workflow or ask user for guidance"
   environment_unavailable:
     action: "Skip browser testing, document limitation"
-  unexpected_error:
-    action: "Log error, document state, attempt graceful recovery"
 
 # ─────────────────────────────────────────────────────────────────
 # RULES
@@ -399,8 +491,8 @@ rules:
   - document_all_changes
   - validate_before_completion
   - update_task_checklist_progressively
-  - self_validate_and_proceed
-  - do_not_prompt_for_user_approval
+  - pause_at_checkpoints_for_approval
+  - respect_user_feedback
   - test_incrementally
 
   NEVER:
@@ -408,4 +500,5 @@ rules:
   - ignore_blockers
   - submit_without_validation
   - expand_scope_beyond_spec
-  - proceed_without_self_validation
+  - proceed_without_user_approval
+  - ignore_user_modification_requests

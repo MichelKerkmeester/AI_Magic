@@ -82,9 +82,9 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.m
 
 ### Template Sources
 
-- `.claude/commands/spec_kit/assets/templates/spec.md`
-- `.claude/commands/spec_kit/assets/templates/plan.md`
-- `.claude/commands/spec_kit/assets/templates/tasks.md`
+- `.opencode/speckit/templates/spec.md`
+- `.opencode/speckit/templates/plan.md`
+- `.opencode/speckit/templates/tasks.md`
 
 ### Template Adaptation
 
@@ -155,10 +155,10 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.m
 
 ### Template Sources
 
-- `.claude/commands/spec_kit/assets/templates/spec.md`
-- `.claude/commands/spec_kit/assets/templates/plan.md`
-- `.claude/commands/spec_kit/assets/templates/tasks.md`
-- `.claude/commands/spec_kit/assets/templates/checklist.md`
+- `.opencode/speckit/templates/spec.md`
+- `.opencode/speckit/templates/plan.md`
+- `.opencode/speckit/templates/tasks.md`
+- `.opencode/speckit/templates/checklist.md`
 
 ### Template Adaptation
 
@@ -232,13 +232,13 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.m
 
 ### Template Sources
 
-- `.claude/commands/spec_kit/assets/templates/spec.md`
-- `.claude/commands/spec_kit/assets/templates/plan.md`
-- `.claude/commands/spec_kit/assets/templates/tasks.md`
-- `.claude/commands/spec_kit/assets/templates/checklist.md`
-- `.claude/commands/spec_kit/assets/templates/decision-record.md`
-- `.claude/commands/spec_kit/assets/templates/research-spike.md` (optional)
-- `.claude/commands/spec_kit/assets/templates/research.md` (optional)
+- `.opencode/speckit/templates/spec.md`
+- `.opencode/speckit/templates/plan.md`
+- `.opencode/speckit/templates/tasks.md`
+- `.opencode/speckit/templates/checklist.md`
+- `.opencode/speckit/templates/decision-record.md`
+- `.opencode/speckit/templates/research-spike.md` (optional)
+- `.opencode/speckit/templates/research.md` (optional)
 
 ### Template Adaptation
 

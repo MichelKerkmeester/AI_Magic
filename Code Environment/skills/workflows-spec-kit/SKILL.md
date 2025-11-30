@@ -34,7 +34,7 @@ Orchestrates mandatory spec folder creation for all conversations involving file
 - Documentation files (Markdown, README, guides)
 - Configuration files (JSON, YAML, TOML, env templates)
 - Knowledge base files (`.claude/knowledge/*.md`)
-- Template files (`.claude/commands/spec_kit/assets/templates/*.md`)
+- Template files (`.opencode/speckit/templates/*.md`)
 - Build/tooling files (package.json, requirements.txt, Dockerfile)
 
 **User request patterns:**
@@ -98,7 +98,7 @@ def route_conversation_resources(task):
 
 # LOC as soft guidance: <100 (L1), 100-499 (L2), ≥500 (L3)
 # Progressive enhancement: each level BUILDS on previous
-# templates in: .claude/commands/spec_kit/assets/templates/
+# templates in: .opencode/speckit/templates/
 ```
 
 ---
@@ -116,7 +116,7 @@ def route_conversation_resources(task):
 | Document | Purpose | Key Insight |
 |----------|---------|-------------|
 | **assets/level_decision_matrix.md** | LOC thresholds and decision factors | **LOC is soft guidance**; progressive enhancement model |
-| **assets/template_mapping.md** | Template-to-level mapping with copy commands | Always copy from `.claude/commands/spec_kit/assets/templates/` - **never freehand** |
+| **assets/template_mapping.md** | Template-to-level mapping with copy commands | Always copy from `.opencode/speckit/templates/` - **never freehand** |
 | **references/level_specifications.md** | Complete Level 1-3 specifications | **Progressive enhancement**: each level builds on previous |
 | **references/template_guide.md** | Template selection and adaptation rules | Fill **ALL placeholders**, remove sample content |
 | **references/automation_workflows.md** | Hook enforcement and context auto-save | **Hard enforcement** - hooks block commits with missing files |
@@ -178,7 +178,7 @@ LOC thresholds are **SOFT GUIDANCE** - these factors can push to higher level:
 
 ### Template System (Progressive Enhancement)
 
-**All templates located in**: `.claude/commands/spec_kit/assets/templates/`
+**All templates located in**: `.opencode/speckit/templates/`
 
 **Required templates by level (progressive):**
 - Level 1: `spec.md` + `plan.md` + `tasks.md` (baseline)
@@ -425,7 +425,7 @@ specs/122-skill-standardization/
    - Assess complexity and risk
    - Choose higher level when uncertain
 
-2. **ALWAYS copy templates from `.claude/commands/spec_kit/assets/templates/` - NEVER create from scratch**
+2. **ALWAYS copy templates from `.opencode/speckit/templates/` - NEVER create from scratch**
    - Use exact template files for level
    - Rename correctly after copying
    - Preserve template structure
@@ -459,7 +459,7 @@ specs/122-skill-standardization/
 
 ### ❌ NEVER 
 
-1. **NEVER create documentation files from scratch** - Always copy from `.claude/commands/spec_kit/assets/templates/`
+1. **NEVER create documentation files from scratch** - Always copy from `.opencode/speckit/templates/`
 
 2. **NEVER skip spec folder creation** (unless user explicitly selects Option D)
    - All file modifications require spec folders
@@ -525,7 +525,7 @@ specs/122-skill-standardization/
 
 ### Template Quality
 
-- [ ] Templates copied from `.claude/commands/spec_kit/assets/templates/` (not created from scratch)
+- [ ] Templates copied from `.opencode/speckit/templates/` (not created from scratch)
 - [ ] Template structure preserved (numbered H2 sections with emojis)
 - [ ] Metadata block filled correctly
 - [ ] All sections relevant (N/A stated if not applicable)
@@ -583,7 +583,7 @@ specs/122-skill-standardization/
 
 ### External Dependencies
 
-- `.claude/commands/spec_kit/assets/templates/` - All template files
+- `.opencode/speckit/templates/` - All template files
 - `.claude/hooks/UserPromptSubmit/enforce-spec-folder.sh` - Hook enforcement
 - `.claude/hooks/UserPromptSubmit/save-context-trigger.sh` - Context auto-save
 - `/spec_kit:complete` - Level 3 auto-generation command
