@@ -59,31 +59,45 @@ Orchestrates mandatory spec folder creation for all conversations involving file
 
 ```python
 def route_conversation_resources(task):
-    # level 1: simple changes (< 100 LOC)
-    if task.estimated_loc < 100:
-        return load("templates/spec.md")  # spec.md only
+    """
+    Progressive Enhancement Model:
+    - Level 1 (Baseline):     spec.md + plan.md + tasks.md
+    - Level 2 (Verification): Level 1 + checklist.md
+    - Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
 
-    # level 2: moderate changes (100-499 LOC)
-    if task.estimated_loc < 500:
-        load("templates/spec.md")  # spec.md
-        return load("templates/plan.md")  # + plan.md
+    LOC thresholds are SOFT GUIDANCE (not enforcement):
+    - <100 LOC suggests Level 1
+    - 100-499 LOC suggests Level 2
+    - ≥500 LOC suggests Level 3
 
-    # level 3: complex changes (>= 500 LOC)
-    if task.estimated_loc >= 500:
-        return execute("/spec_kit:complete")  # auto-generates all core files
+    Enforcement is HARD - hooks block commits with missing required templates.
+    """
 
-    # supporting templates (optional, load as needed)
-    if task.needs_task_breakdown:
-        return load("templates/tasks.md")
-    if task.needs_validation_checklist:
-        return load("templates/checklist.md")
-    if task.documenting_decision:
-        return load("templates/decision-record.md")
-    if task.doing_research:
-        return load("templates/research-spike.md")
+    # Level 1: Baseline (all tasks start here)
+    # Required: spec.md + plan.md + tasks.md
+    load("templates/spec.md")
+    load("templates/plan.md")
+    load("templates/tasks.md")
 
-# levels: 1 (< 100 LOC), 2 (100-499 LOC), 3 (>= 500 LOC)
-# high risk/complexity bumps to at least level 2
+    # Level 2: Add verification (QA validation needed)
+    # Required: Level 1 + checklist.md
+    if task.needs_qa_validation or task.estimated_loc >= 100:
+        load("templates/checklist.md")
+
+    # Level 3: Full documentation (complex/architectural)
+    # Required: Level 2 + decision-record.md
+    # Optional: research-spike.md
+    if task.is_complex or task.has_arch_impact or task.estimated_loc >= 500:
+        load("templates/decision-record.md")
+        if task.needs_research:
+            load("templates/research-spike.md")
+
+    # Overrides: High risk OR arch impact OR >5 files → bump to higher level
+    # Enforcement: Hard block - hooks prevent commits with missing files
+    # Rule: When in doubt → choose higher level
+
+# LOC as soft guidance: <100 (L1), 100-499 (L2), ≥500 (L3)
+# Progressive enhancement: each level BUILDS on previous
 # templates in: .claude/commands/spec_kit/assets/templates/
 ```
 
@@ -101,71 +115,79 @@ def route_conversation_resources(task):
 
 | Document | Purpose | Key Insight |
 |----------|---------|-------------|
-| **assets/level_decision_matrix.md** | LOC thresholds and decision factors | **LOC is primary**; complexity/risk can override |
+| **assets/level_decision_matrix.md** | LOC thresholds and decision factors | **LOC is soft guidance**; progressive enhancement model |
 | **assets/template_mapping.md** | Template-to-level mapping with copy commands | Always copy from `.claude/commands/spec_kit/assets/templates/` - **never freehand** |
-| **references/level_specifications.md** | Complete Level 1-3 specifications | **When in doubt, choose higher level** |
+| **references/level_specifications.md** | Complete Level 1-3 specifications | **Progressive enhancement**: each level builds on previous |
 | **references/template_guide.md** | Template selection and adaptation rules | Fill **ALL placeholders**, remove sample content |
-| **references/automation_workflows.md** | Hook enforcement and context auto-save | Hook prompts **at conversation start**, not mid-work |
+| **references/automation_workflows.md** | Hook enforcement and context auto-save | **Hard enforcement** - hooks block commits with missing files |
 | **references/quick_reference.md** | Commands, checklists, troubleshooting | Pre-implementation checklist is **mandatory** |
 
 ---
 
 ## 4. ⚙️ HOW IT WORKS
 
-### 3-Level Decision Framework
+### 3-Level Progressive Enhancement Framework
 
-The conversation documentation system uses a graduated approach based on Lines of Code (LOC) and complexity:
+The conversation documentation system uses a **progressive enhancement** approach where each level BUILDS on the previous:
 
-**Level 1: Simple (<100 LOC)**
-- Localized to one component or trivial changes
-- Clear, well-defined requirements
-- Low to moderate complexity
-- **Documentation**: `spec.md` (from `spec.md`)
-- **Optional**: `checklist.md` for validation
+```
+Level 1 (Baseline):     spec.md + plan.md + tasks.md
+                              ↓
+Level 2 (Verification): Level 1 + checklist.md
+                              ↓
+Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
+```
+
+**Level 1: Baseline Documentation** (LOC guidance: <100)
+- **Required Files**: `spec.md` + `plan.md` + `tasks.md`
+- **Optional Files**: None (baseline is complete)
+- **Use When**: All features - this is the minimum documentation for any work
+- **Enforcement**: Hard block if any required file missing
 - **Example**: Add email validation, fix bug, loading spinner, typo fix
 
-**Level 2: Moderate (100-499 LOC)**
-- Multiple files or components
-- Moderate complexity
-- Requires planning and coordination
-- **Documentation**: `spec.md` + `plan.md` (from standard templates)
-- **Optional**: `tasks.md`, `checklist.md`, `research-spike-*.md`, `decision-record-*.md`
+**Level 2: Verification Added** (LOC guidance: 100-499)
+- **Required Files**: Level 1 + `checklist.md`
+- **Optional Files**: None
+- **Use When**: Features needing systematic QA validation
+- **Enforcement**: Hard block if `checklist.md` missing
 - **Example**: Modal component, auth flow, library migration
 
-**Level 3: Complex (≥500 LOC)**
-- High complexity
-- Multiple systems
-- Significant architectural impact
-- **Process**: Use `/spec_kit:complete` command (auto-generates all core files)
-- **Auto-generated**: `spec.md`, `plan.md`, `tasks.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`
-- **Optional**: `checklist.md` (manual copy)
+**Level 3: Full Documentation** (LOC guidance: ≥500)
+- **Required Files**: Level 2 + `decision-record.md`
+- **Optional Files**: `research-spike.md`, `research.md`
+- **Use When**: Complex features, architecture changes, major decisions
+- **Enforcement**: Hard block if `decision-record.md` missing
 - **Example**: Major feature, system redesign, multi-team projects
 
 
 ### Secondary Factors (Can Override LOC)
 
+LOC thresholds are **SOFT GUIDANCE** - these factors can push to higher level:
+
 - **Complexity**: Architectural changes vs simple refactors
 - **Risk**: Config cascades, authentication, security implications
-- **Dependencies**: Multiple systems affected
+- **Dependencies**: Multiple systems affected (>5 files suggests higher level)
 - **Testing needs**: Integration vs unit test requirements
 
-**Decision rule**: When in doubt, choose the **higher level**.
+**Decision rules**:
+- **When in doubt → choose higher level** (better to over-document than under-document)
+- **Risk/complexity can override LOC** (e.g., 50 LOC security change = Level 2+)
+- **Multi-file changes often need higher level** than LOC alone suggests
+- **Enforcement is HARD** - hooks block commits with missing required templates
 
 
-### Template System
+### Template System (Progressive Enhancement)
 
 **All templates located in**: `.claude/commands/spec_kit/assets/templates/`
 
-**Core templates by level:**
-- Level 1: `spec.md` → `spec.md`
-- Level 2: `spec.md` + `plan.md` → `spec.md` + `plan.md`
-- Level 3: `/spec_kit:complete` command (auto-generates)
+**Required templates by level (progressive):**
+- Level 1: `spec.md` + `plan.md` + `tasks.md` (baseline)
+- Level 2: Level 1 + `checklist.md` (adds verification)
+- Level 3: Level 2 + `decision-record.md` (adds decision records)
 
-**Supporting templates (optional):**
-- `tasks.md` → `tasks.md` (after plan, before coding)
-- `checklist.md` → `checklist.md` (validation needs)
-- `decision-record.md` → `decision-record-[name].md` (major decisions)
+**Optional templates (Level 3 only):**
 - `research-spike.md` → `research-spike-[name].md` (research/POC)
+- `research.md` → `research.md` (comprehensive research)
 
 
 ### Folder Naming Convention

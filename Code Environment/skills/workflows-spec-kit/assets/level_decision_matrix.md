@@ -1,30 +1,44 @@
 # 📊 Level Decision Matrix - Quick Reference for Documentation Level Selection
 
-Quick reference for selecting the appropriate documentation level based on Lines of Code (LOC) and complexity factors. Use this matrix to quickly determine whether your change requires Level 1, 2, or 3 documentation.
+Quick reference for selecting the appropriate documentation level using the **progressive enhancement** model. LOC thresholds are **SOFT GUIDANCE** - use judgment based on complexity/risk.
 
 ---
 
-## 1. 📊 DECISION MATRIX TABLE
+## 1. 📊 DECISION MATRIX TABLE (Progressive Enhancement)
 
-| Level | LOC Range | Core Files | Use When | Example Scenarios |
-|-------|-----------|------------|----------|------------------|
-| **1: Simple** | <100 | `spec.md` | Localized change, clear requirements | Typo fix, bug fix, small enhancement |
-| **2: Moderate** | 100-499 | `spec.md` + `plan.md` | Multiple files, moderate complexity | New feature, refactoring |
-| **3: Complex** | ≥500 | Full SpecKit | High complexity, multiple systems | Major features, system redesign |
+| Level | LOC Guidance | Required Files | Adds To Previous | Use When |
+|-------|-------------|----------------|------------------|----------|
+| **1: Baseline** | <100 | `spec.md` + `plan.md` + `tasks.md` | (foundation) | All features - minimum documentation |
+| **2: Verification** | 100-499 | Level 1 + `checklist.md` | QA checklist | Needs systematic validation |
+| **3: Full** | ≥500 | Level 2 + `decision-record.md` | ADR + optional research | Complex/architectural changes |
+
+**Progressive Enhancement Model:**
+```
+Level 1 (Baseline):     spec.md + plan.md + tasks.md
+                              ↓
+Level 2 (Verification): Level 1 + checklist.md
+                              ↓
+Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
+```
 
 ---
 
-## 2. 🎯 PRIMARY DECISION FACTOR: LINES OF CODE (LOC)
+## 2. 🎯 LOC AS SOFT GUIDANCE (Not Enforcement)
 
 **How to count:**
 - Count all files being modified
 - Include new files being created
 - Estimate conservatively (round up when uncertain)
 
-**LOC thresholds:**
-- **<100 LOC** → Level 1 (Simple)
-- **100-499 LOC** → Level 2 (Moderate)
-- **≥500 LOC** → Level 3 (Complex)
+**LOC thresholds suggest (not enforce):**
+- **<100 LOC** → Suggests Level 1 (Baseline)
+- **100-499 LOC** → Suggests Level 2 (Verification)
+- **≥500 LOC** → Suggests Level 3 (Full)
+
+**Key distinction:**
+- LOC thresholds are **SOFT GUIDANCE** - use judgment
+- **Enforcement is HARD** - hooks block commits with missing required templates
+- Risk/complexity can override LOC (e.g., 50 LOC security change = Level 2+)
 
 **Note:** Single typo/whitespace fixes (<5 characters in one file) are exempt from spec requirements.
 
@@ -58,16 +72,17 @@ These factors can push you to a higher level even if LOC suggests lower:
 
 ## 4. ⚠️ EDGE CASE GUIDANCE
 
-| Scenario | LOC | Suggested Level | Rationale |
-|----------|-----|----------------|-----------|
-| Typo in one file | 1 | Exempt | Truly trivial (<5 chars, single file) |
-| Typo across 5 files | 5 | Level 1 | Multi-file coordination |
-| 95 LOC feature | 95 | Level 1 | Under threshold |
-| 105 LOC feature | 105 | Level 2 | Just over, safer with plan |
-| Refactor (no new logic) | 200 | Level 2 | Complexity matters more than LOC |
-| Config cascade | 50 | Level 2 | Risk trumps LOC |
-| Authentication change | 80 | Level 2 | Security implications require planning |
-| System redesign | 300 | Level 3 | Architectural impact trumps LOC |
+| Scenario | LOC | Suggested Level | Required Files | Rationale |
+|----------|-----|----------------|----------------|-----------|
+| Typo in one file | 1 | Exempt | None | Truly trivial (<5 chars, single file) |
+| Typo across 5 files | 5 | Level 1 | spec + plan + tasks | Multi-file coordination |
+| 95 LOC feature | 95 | Level 1 | spec + plan + tasks | Under threshold, baseline docs |
+| 105 LOC feature | 105 | Level 2 | L1 + checklist | Just over, needs QA validation |
+| Refactor (no new logic) | 200 | Level 2 | L1 + checklist | Complexity needs verification |
+| Config cascade | 50 | Level 2 | L1 + checklist | Risk trumps LOC - needs validation |
+| Authentication change | 80 | Level 2 | L1 + checklist | Security implications require QA |
+| System redesign | 300 | Level 3 | L2 + decision-record | Architectural decisions must be recorded |
+| Multi-team project | 400 | Level 3 | L2 + decision-record + research | Coordination needs full documentation |
 
 ---
 
@@ -102,18 +117,19 @@ These factors can push you to a higher level even if LOC suggests lower:
 
 ## 6. 🔄 LEVEL MIGRATION DURING IMPLEMENTATION
 
-If scope grows during implementation, you can escalate to a higher level:
+If scope grows during implementation, escalate by adding the required files:
 
-| From Level | To Level | Action | Document Change |
-|-----------|----------|--------|----------------|
-| 1 → 2 | Add `plan.md` to same folder | Update level field, add changelog |
-| 2 → 3 | Use `/spec_kit:plan` in same folder | Update level field, add changelog |
+| From Level | To Level | Action | Files to Add |
+|-----------|----------|--------|--------------|
+| 1 → 2 | Add verification | `checklist.md` |
+| 2 → 3 | Add decision documentation | `decision-record.md` (+ optional `research-spike.md`) |
 
 **Changelog example:**
 ```markdown
 ## Change Log
-- 2025-11-15: Created as Level 1 (simple bug fix)
-- 2025-11-16: Escalated to Level 2 (discovered architectural changes needed)
+- 2025-11-15: Created as Level 1 (simple bug fix) - spec.md, plan.md, tasks.md
+- 2025-11-16: Escalated to Level 2 (discovered validation needs) - added checklist.md
+- 2025-11-17: Escalated to Level 3 (architectural decision required) - added decision-record.md
 ```
 
 **Note:** Going down levels is rare (keep higher-level docs even if not all used).
@@ -123,28 +139,36 @@ If scope grows during implementation, you can escalate to a higher level:
 ## 7. 🚀 QUICK DECISION FLOWCHART
 
 ```
-Estimate LOC
+Any file modification?
     ↓
 Single typo? ──YES──→ Exempt (no spec needed)
 (<5 chars, 1 file)
     │
     NO
     ↓
-<100 LOC? ──YES──→ Level 1 (unless complexity/risk high)
-    │
-    NO
+Start with Level 1 (Baseline)
+Required: spec.md + plan.md + tasks.md
     ↓
-<500 LOC? ──YES──→ Level 2
+Needs QA validation? ──YES──→ Level 2 (add checklist.md)
+(risk, multi-file, testing)
     │
-    NO
+    NO (stay Level 1)
     ↓
-≥500 LOC ────────→ Level 3
+Architectural decision? ──YES──→ Level 3 (add decision-record.md)
+(complex, arch impact)
+    │
+    NO (stay current level)
 ```
 
-**Check secondary factors:**
-- High complexity? → +1 level
-- High risk? → +1 level
-- Multiple dependencies? → +1 level
-- Complex testing needs? → +1 level
+**LOC as soft guidance (suggests level):**
+- <100 LOC → Suggests Level 1
+- 100-499 LOC → Suggests Level 2
+- ≥500 LOC → Suggests Level 3
+
+**Override factors (can bump level):**
+- High complexity? → Consider higher level
+- High risk? → Consider higher level
+- Multiple dependencies? → Consider higher level
+- Complex testing needs? → Consider higher level
 
 **Final check:** If confidence < 80% on level choice → Ask user or choose higher level.

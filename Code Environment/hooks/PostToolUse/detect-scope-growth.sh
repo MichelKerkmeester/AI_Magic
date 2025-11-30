@@ -110,13 +110,20 @@ if [ -z "$baseline_state" ]; then
   baseline_files=$(find "$spec_folder" -maxdepth 2 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
 
   # Infer documentation level from existing files
+  # NEW LEVEL STRUCTURE (Progressive Enhancement):
+  #   Level 1 (Baseline):     spec.md + plan.md + tasks.md
+  #   Level 2 (Verification): Level 1 + checklist.md
+  #   Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
   doc_level=1
-  if [ -f "$spec_folder/plan.md" ]; then
+
+  # Check for Level 3: Has decision-record (Full documentation)
+  if [ -f "$spec_folder/decision-record.md" ] || ls "$spec_folder"/decision-record-*.md 1>/dev/null 2>&1; then
+    doc_level=3
+  # Check for Level 2: Has checklist (Verification level)
+  elif [ -f "$spec_folder/checklist.md" ]; then
     doc_level=2
   fi
-  if [ -f "$spec_folder/tasks.md" ] || [ -f "$spec_folder/checklist.md" ]; then
-    doc_level=3
-  fi
+  # Default: Level 1 (Baseline)
 
   timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date +%Y-%m-%dT%H:%M:%SZ)
 
@@ -169,13 +176,13 @@ if [ "$current_files" -gt "$baseline_files" ]; then
       echo "Current files: $current_files"
       echo "Growth: +$((growth_ratio - 100))%"
       echo ""
-      echo "Consider:"
+      echo "Consider upgrading documentation level:"
       if [ "$baseline_level" -eq 1 ]; then
-        echo "  • Upgrading to Level 2 (add plan.md)"
+        echo "  • Upgrade to Level 2: Add checklist.md for verification"
       fi
       if [ "$baseline_level" -le 2 ]; then
-        echo "  • Adding tasks.md for tracking"
-        echo "  • Adding checklist.md for validation"
+        echo "  • Upgrade to Level 3: Add decision-record.md for architectural decisions"
+        echo "  • Optional: Add research-spike.md for investigation work"
       fi
       echo ""
       echo "This is advisory only - continue if scope growth is expected."

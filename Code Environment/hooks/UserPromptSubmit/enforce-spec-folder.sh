@@ -722,22 +722,73 @@ file_has_structure() {
 # ───────────────────────────────────────────────────────────────
 
 # Helper: Detect spec folder level based on file presence
+# NEW LEVEL STRUCTURE (Progressive Enhancement):
+#   Level 1 (Baseline):     spec.md + plan.md + tasks.md
+#   Level 2 (Verification): Level 1 + checklist.md
+#   Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
 detect_spec_level() {
   local spec_folder="$1"
 
-  # Level 1: spec.md only
-  if [ -f "$spec_folder/spec.md" ] && [ ! -f "$spec_folder/plan.md" ]; then
-    echo "1"
+  # Level 3: Has decision-record (Full documentation)
+  if [ -f "$spec_folder/decision-record.md" ] || ls "$spec_folder"/decision-record-*.md 1>/dev/null 2>&1; then
+    echo "3"
     return
   fi
 
-  # Level 2/3: spec.md + plan.md
-  if [ -f "$spec_folder/spec.md" ] && [ -f "$spec_folder/plan.md" ]; then
+  # Level 2: Has checklist (Verification level)
+  if [ -f "$spec_folder/checklist.md" ]; then
     echo "2"
     return
   fi
 
-  echo "unknown"
+  # Level 1: Baseline (spec + plan + tasks)
+  # This is the default/minimum level
+  echo "1"
+}
+
+# Helper: Get required files for documentation level
+# NEW LEVEL STRUCTURE (Progressive Enhancement):
+#   Level 1 (Baseline):     spec.md + plan.md + tasks.md
+#   Level 2 (Verification): Level 1 + checklist.md
+#   Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
+get_required_files_for_level() {
+  local level="$1"
+  case "$level" in
+    1) echo "spec.md plan.md tasks.md" ;;
+    2) echo "spec.md plan.md tasks.md checklist.md" ;;
+    3) echo "spec.md plan.md tasks.md checklist.md decision-record.md" ;;
+    *) echo "spec.md plan.md tasks.md" ;;  # Default to L1
+  esac
+}
+
+# Helper: Validate required files exist for given level
+# Returns 0 if all required files exist, 1 if missing files
+# Outputs: List of missing files on stdout
+validate_required_files() {
+  local spec_folder="$1"
+  local level="$2"
+  local required_files
+  local missing_files=""
+
+  required_files=$(get_required_files_for_level "$level")
+
+  for file in $required_files; do
+    # Handle decision-record specially (can have suffixes)
+    if [ "$file" = "decision-record.md" ]; then
+      if [ ! -f "$spec_folder/decision-record.md" ] && ! ls "$spec_folder"/decision-record-*.md 1>/dev/null 2>&1; then
+        missing_files="${missing_files}${file} "
+      fi
+    elif [ ! -f "$spec_folder/$file" ]; then
+      missing_files="${missing_files}${file} "
+    fi
+  done
+
+  if [ -n "$missing_files" ]; then
+    echo "$missing_files"
+    return 1
+  fi
+
+  return 0
 }
 
 # Helper: Extract metadata block from file (YAML frontmatter or ### Metadata section)
@@ -2084,10 +2135,10 @@ DOC_LEVEL=$(estimate_documentation_level "$PROMPT_LOWER")
 
 get_level_label() {
   case "$DOC_LEVEL" in
-    1) echo "1 (Simple)" ;;
-    2) echo "2 (Moderate)" ;;
-    3) echo "3 (Complex)" ;;
-    *) echo "2 (Moderate)" ;;  # Default
+    1) echo "1 (Baseline: spec + plan + tasks)" ;;
+    2) echo "2 (Verification: L1 + checklist)" ;;
+    3) echo "3 (Full: L2 + decision-record)" ;;
+    *) echo "1 (Baseline: spec + plan + tasks)" ;;  # Default to L1
   esac
 }
 
@@ -2413,18 +2464,18 @@ EOF
   echo ""
   case "$DOC_LEVEL" in
     1)
-      echo "📌 Suggested: Level 1 (Simple)"
-      echo "   Templates: spec.md only"
-      echo "   Typical LOC: <100 lines"
+      echo "📌 Suggested: Level 1 (Baseline)"
+      echo "   Templates: spec.md + plan.md + tasks.md (all required)"
+      echo "   Typical LOC: <100 lines (soft guidance)"
       echo ""
-      echo "   Why: Detected simple/trivial change patterns"
-      echo "   (typo, rename, small fix, docs only, etc.)"
+      echo "   Why: Baseline documentation for all work"
+      echo "   (every feature gets spec + plan + tasks)"
       ;;
     2)
-      echo "📌 Suggested: Level 2 (Moderate)"
-      echo "   Templates: spec.md + plan.md (mandatory)"
-      echo "   Optional: tasks.md, checklist.md"
-      echo "   Typical LOC: 100-500 lines"
+      echo "📌 Suggested: Level 2 (Verification)"
+      echo "   Templates: Level 1 + checklist.md (required)"
+      echo "   All files: spec.md, plan.md, tasks.md, checklist.md"
+      echo "   Typical LOC: 100-500 lines (soft guidance)"
       echo ""
       echo "   Why: Detected feature work or sensitive areas"
       echo "   (auth, api, database, config, integration, etc.)"

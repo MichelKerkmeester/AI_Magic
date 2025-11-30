@@ -177,45 +177,63 @@ Every conversation that modifies files (code, documentation, configuration, temp
 - ✅ Skill files
 - ✅ Template files
 
-#### Documentation Levels Overview
+#### Documentation Levels Overview (Progressive Enhancement)
 
-**Level 1: Trivial to Simple Changes** (<100 LOC)
-- **Core Files:** spec.md
-- **Optional Files:** checklist.md
-- **Use When:** Small bug fixes, config tweaks, minor updates
+Each level BUILDS on the previous - higher levels include all files from lower levels.
 
-**Level 2: Moderate Features** (<500 LOC)
-- **Core Files:** spec.md + plan.md
-- **Optional Files:** tasks.md, checklist.md
-- **Use When:** New features, refactors, multi-file changes
+**Level 1: Baseline Documentation** (LOC guidance: <100)
+- **Required Files:** spec.md + plan.md + tasks.md
+- **Optional Files:** None (baseline is complete)
+- **Use When:** All features - this is the minimum documentation for any work
+- **Enforcement:** Hard block if any required file missing
 
-**Level 3: Complex Features** (≥500 LOC)
-- **Core Files:** spec.md + plan.md + tasks.md
-- **Optional Files:** research-spike-*.md, decision-record-*.md
-- **Use When:** Large features, architecture changes, system redesigns
+**Level 2: Verification Added** (LOC guidance: 100-499)
+- **Required Files:** Level 1 + checklist.md
+- **Optional Files:** None
+- **Use When:** Features needing systematic QA validation
+- **Enforcement:** Hard block if checklist.md missing
+
+**Level 3: Full Documentation** (LOC guidance: ≥500)
+- **Required Files:** Level 2 + decision-record.md
+- **Optional Files:** research-spike.md, research.md
+- **Use When:** Complex features, architecture changes, major decisions
+- **Enforcement:** Hard block if decision-record.md missing
+
+#### Progressive Enhancement Model
+```
+Level 1 (Baseline):     spec.md + plan.md + tasks.md
+                              ↓
+Level 2 (Verification): Level 1 + checklist.md
+                              ↓
+Level 3 (Full):         Level 2 + decision-record.md + optional research
+```
 
 #### Supporting Templates & Decision Rules
-**Optional templates** (in `.opencode/speckit/templates/`):
-- `tasks.md` - Break plan into actionable tasks (create after plan.md, before coding)
-- `checklist.md` - Validation/QA checklists (when systematic validation needed)
-- `research.md` - Comprehensive feature research documentation (for deep technical investigation spanning multiple areas before implementation; use before research-spike for larger research efforts)
-- `research-spike.md` - Research/proof-of-concept work (time-boxed experimentation to answer specific technical questions or validate approaches, prefix with topic)
-- `decision-record.md` - Architecture Decision Records/ADRs (major technical decisions, prefix with topic)
+**All templates** (in `.opencode/speckit/templates/`):
+- `spec.md` → Requirements and user stories (ALL levels)
+- `plan.md` → Technical implementation plan (ALL levels)
+- `tasks.md` → Task breakdown by user story (ALL levels)
+- `checklist.md` → Validation/QA checklists (Level 2+)
+- `decision-record.md` → Architecture Decision Records/ADRs (Level 3, prefix with topic)
+- `research-spike.md` → Time-boxed research/PoC (Level 3 optional, prefix with topic)
+- `research.md` → Comprehensive research documentation (Level 3 optional)
 
 **Decision rules:**
 - **When in doubt → choose higher level** (better to over-document than under-document)
-- **Complexity/risk can override LOC** (e.g., 50 LOC config cascade = Level 2)
+- **LOC thresholds are SOFT GUIDANCE** - use judgment based on complexity/risk
+- **Risk/complexity can override LOC** (e.g., 50 LOC security change = Level 2+)
 - **Multi-file changes often need higher level** than LOC alone suggests
-- **Secondary factors:** Risk, dependencies, testing needs, architectural impact
+- **Enforcement is HARD** - hooks block commits with missing required templates
 
 ```python
 # ──────────────────────────────────────────────────────────────────────────────
-# DOCUMENTATION LEVEL DETECTION (Executable Logic)
-**Level Selection**:
-- <100 LOC → Level 1 | Core: spec.md
-- <500 LOC → Level 2 | Core: spec.md, plan.md
-- ≥500 LOC → Level 3 | Core: spec.md, plan.md, tasks.md
-- **Overrides**: High risk OR arch impact OR >5 files OR dependencies → Level 3
+# DOCUMENTATION LEVEL DETECTION (Executable Logic - Progressive Enhancement)
+**Level Selection** (LOC as soft guidance):
+- Any task → Level 1 minimum | Required: spec.md, plan.md, tasks.md
+- Needs QA validation → Level 2 | Required: L1 + checklist.md
+- Complex/architectural → Level 3 | Required: L2 + decision-record.md
+- **Overrides**: High risk OR arch impact OR >5 files → bump to higher level
+- **Enforcement**: Hard block - hooks prevent commits with missing files
 - **Rule**: When in doubt → choose higher level
 ```
 

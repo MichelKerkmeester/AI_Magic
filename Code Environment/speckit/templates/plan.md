@@ -360,10 +360,10 @@ ios/ or android/
 - Team needs shared understanding of implementation strategy
 - Testing strategy and success metrics must be documented upfront
 
-**Skip plan.md when:**
-- Using Level 1 (simple changes - spec.md sufficient)
-- Feature is straightforward with obvious implementation approach
-- No phases, testing strategy, or coordination needed
+**Never skip plan.md:**
+- plan.md is REQUIRED for ALL levels (Level 1, 2, and 3)
+- Even simple features benefit from documented technical approach
+- Use a minimal plan for straightforward features
 
 **Related templates:**
 - Start with `spec.md` for requirements and user stories

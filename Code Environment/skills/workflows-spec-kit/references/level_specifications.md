@@ -1,28 +1,44 @@
 # 📐 Level Specifications - Complete Level 1-3 Requirements
 
-Complete specifications for all three documentation levels (1-3) with detailed requirements, examples, and escalation criteria. Reference this document for comprehensive understanding of when to use each level and what content is expected.
+Complete specifications for all three documentation levels (1-3) using the **progressive enhancement** model. Each level BUILDS on the previous - higher levels include all files from lower levels.
+
+**Progressive Enhancement Model:**
+```
+Level 1 (Baseline):     spec.md + plan.md + tasks.md
+                              ↓
+Level 2 (Verification): Level 1 + checklist.md
+                              ↓
+Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
+```
+
+**Key Points:**
+- LOC thresholds are **SOFT GUIDANCE** (not enforcement)
+- **Enforcement is HARD** - hooks block commits with missing required templates
+- When in doubt, choose higher level
 
 **Note:** Single typo/whitespace fixes (<5 characters in one file) are exempt from spec folder requirements.
 
 ---
 
-## 1. 🔵 LEVEL 1: SIMPLE CHANGES (<100 LOC)
+## 1. 🔵 LEVEL 1: BASELINE DOCUMENTATION (LOC guidance: <100)
 
 ### When to Use
 
+- **All features start here** - this is the minimum documentation for any work
 - Localized to one component or module
 - Includes trivial changes (typos, single-line fixes)
 - Clear, well-defined requirements
 - Low to moderate complexity
-- Minimal dependencies on other systems
 
-### Required Files
+### Required Files (Baseline)
 
-- `spec.md` (from `spec.md`)
+- `spec.md` (from `spec.md`) - Requirements and user stories
+- `plan.md` (from `plan.md`) - Technical implementation plan
+- `tasks.md` (from `tasks.md`) - Task breakdown by user story
 
 ### Optional Files
 
-- `checklist.md` - When systematic validation needed (QA steps, deployment checks)
+- None (baseline is complete)
 
 ### Content Expectations
 
@@ -33,13 +49,18 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 - Testing approach
 - Success criteria
 
-**Length:** Typically 100-200 lines
+**plan.md required sections:**
+- Implementation approach
+- File changes breakdown
+- Testing strategy
+- Dependencies
 
-**checklist.md (if used):**
-- Pre-implementation checks
-- Implementation validation
-- Testing checklist
-- Deployment verification
+**tasks.md required sections:**
+- Task breakdown by user story
+- Dependencies between tasks
+- Estimated effort per task
+
+**Enforcement:** Hard block if any required file missing
 
 ### Example Scenarios
 
@@ -54,15 +75,16 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 - Refactor single component for clarity
 
 **Escalate to Level 2 if:**
+- Needs systematic QA validation
 - Affects multiple systems (not localized)
-- Requires architectural decisions
-- Needs complex testing strategy
-- Dependencies on other changes
+- High risk (security, config cascades)
 - LOC estimate increases to 100+
 
-### Template Source
+### Template Sources
 
-`.claude/commands/spec_kit/assets/templates/spec.md`
+- `.claude/commands/spec_kit/assets/templates/spec.md`
+- `.claude/commands/spec_kit/assets/templates/plan.md`
+- `.claude/commands/spec_kit/assets/templates/tasks.md`
 
 ### Template Adaptation
 
@@ -72,78 +94,45 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 4. List specific files to modify
 5. Define testing approach (unit tests, manual verification)
 6. State clear success criteria
-7. Remove all sample content and placeholders
+7. Fill plan.md with implementation steps
+8. Fill tasks.md with task breakdown
+9. Remove all sample content and placeholders
 
 ---
 
-## 2. 🟡 LEVEL 2: MODERATE FEATURES (100-499 LOC)
+## 2. 🟡 LEVEL 2: VERIFICATION ADDED (LOC guidance: 100-499)
 
 ### When to Use
 
+- Features needing systematic QA validation
 - Multiple files or components affected
 - Moderate complexity
-- Requires planning and coordination
-- Integration considerations across systems
+- High risk areas (security, config cascades)
+- Requires validation checklists
 
-### Required Files
+### Required Files (Level 1 + checklist)
 
-- `spec.md` (from `spec.md`) - What we're building and why
-- `plan.md` (from `plan.md`) - How we'll build it
+- `spec.md` (from Level 1) - Requirements and user stories
+- `plan.md` (from Level 1) - Technical implementation plan
+- `tasks.md` (from Level 1) - Task breakdown by user story
+- `checklist.md` (NEW at Level 2) - Validation/QA checklists
 
 ### Optional Files
 
-- `tasks.md` - After plan.md, before coding (breaks plan into actionable tasks)
-- `checklist.md` - When systematic validation needed (QA, security review)
-- `research-spike-[name].md` - Before implementation if research needed
-- `decision-record-[name].md` - For significant technical decisions
+- None
 
 ### Content Expectations
 
-**spec.md required sections:**
-- Detailed requirements
-- Technical approach
-- Alternatives considered
-- Success criteria
-- Risks and mitigations
-- Out of scope items
+**All Level 1 content expectations PLUS:**
 
-**Length:** Typically 300-500 lines
-
-**plan.md required sections:**
-- Implementation steps (ordered)
-- File changes breakdown
-- Testing strategy
-- Rollout plan
-- Dependencies
-
-**Length:** Typically 200-400 lines
-
-**tasks.md (if used):**
-- Task breakdown from plan
-- Dependencies between tasks
-- Estimated effort per task
-- Task ownership (if multi-person)
-
-**checklist.md (if used):**
+**checklist.md required sections:**
 - Pre-implementation validation
 - Per-task verification
 - Integration testing steps
-- Security review checklist
+- Security review checklist (if applicable)
 - Deployment verification
 
-**research-spike-[name].md (if used):**
-- Research question
-- Approach and experiments
-- Findings and recommendations
-- Decision (go/no-go)
-- Time-boxed (1-3 days typically)
-
-**decision-record-[name].md (if used):**
-- Context and problem
-- Options considered
-- Decision made
-- Rationale
-- Consequences and trade-offs
+**Enforcement:** Hard block if `checklist.md` missing
 
 ### Example Scenarios
 
@@ -154,12 +143,14 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 - Migrate from library A to library B
 - Build file upload feature with progress tracking
 - Refactor state management approach
+- Config changes affecting multiple systems
+- Security-related changes
 
 **Escalate to Level 3 if:**
+- Requires architectural decisions to be documented
 - Discover >500 LOC during implementation
 - Complexity increases substantially
 - Need multiple developers for coordination
-- Requires extensive research or research-spikes
 - Architectural impact broader than anticipated
 
 ### Template Sources
@@ -168,86 +159,64 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 - `.claude/commands/spec_kit/assets/templates/plan.md`
 - `.claude/commands/spec_kit/assets/templates/tasks.md`
 - `.claude/commands/spec_kit/assets/templates/checklist.md`
-- `.claude/commands/spec_kit/assets/templates/research-spike.md`
-- `.claude/commands/spec_kit/assets/templates/decision-record.md`
 
 ### Template Adaptation
 
-**spec.md:**
-1. Fill complete metadata block (category, tags, priority, status, created date)
-2. Replace `[FEATURE_NAME]` throughout
-3. Fill all functional requirements (FR-001, FR-002, etc.)
-4. Document non-functional requirements (performance, usability, etc.)
-5. List edge cases and error scenarios
-6. Define measurable success criteria
-7. Document dependencies and risks
-8. Explicitly list out-of-scope items
-9. Remove all sample content
+**All Level 1 adaptations PLUS:**
 
-**plan.md:**
-1. Document architecture decisions
-2. Break down implementation into ordered phases
-3. List file changes per phase
-4. Define testing strategy (unit, integration, E2E)
-5. Document rollback plan
-6. Identify dependencies (internal and external)
-7. Estimate timeline per phase
-8. Remove all sample content
+**checklist.md:**
+1. Fill pre-implementation checks specific to feature
+2. Add implementation validation steps
+3. Define testing checklist items
+4. Include deployment verification steps
+5. Add security checks if applicable
+6. Remove all sample content
 
 ---
 
-## 3. 🔴 LEVEL 3: COMPLEX FEATURES (≥500 LOC)
+## 3. 🔴 LEVEL 3: FULL DOCUMENTATION (LOC guidance: ≥500)
 
 ### When to Use
 
+- Complex features, architecture changes, major decisions
 - High complexity
 - Multiple systems or components involved
 - Requires coordination across teams
 - Significant architectural impact
+- Major technical decisions need to be documented
 
-### Process
+### Required Files (Level 2 + decision-record)
 
-**Use `/spec_kit:complete` slash command** - it auto-generates all core files.
+- `spec.md` (from Level 2) - Requirements and user stories
+- `plan.md` (from Level 2) - Technical implementation plan
+- `tasks.md` (from Level 2) - Task breakdown by user story
+- `checklist.md` (from Level 2) - Validation/QA checklists
+- `decision-record.md` (NEW at Level 3) - Architecture Decision Records/ADRs
 
-**Do NOT create Level 3 files manually** - SpecKit handles this automatically.
+### Optional Files
 
-### Auto-Generated Files
-
-When you run `/spec_kit:complete`, SpecKit creates:
-
-- `spec.md` - Feature specification
-- `plan.md` - Implementation plan
-- `tasks.md` - Task breakdown
-- `research.md` - Research findings
-- `data-model.md` - Data structures
-- `quickstart.md` - Getting started guide
-- `contracts/` - API contracts directory
-
-### Optional Files (Copy Manually)
-
-- `checklist.md` (from `checklist.md`)
-- `research-spike-[name].md` (from `research-spike.md`)
-- `decision-record-[name].md` (from `decision-record.md`)
+- `research-spike.md` - Time-boxed research/PoC (prefix with topic)
+- `research.md` - Comprehensive research documentation
 
 ### Content Expectations
 
-**SpecKit auto-fills:**
-- All required sections based on user input
-- Structured requirements
-- Detailed implementation plan
-- Task dependencies
-- Research sections for unknowns
-- Data model schemas
-- API contracts
+**All Level 2 content expectations PLUS:**
 
-**Length:** Typically 500-1500 lines total across all files
+**decision-record.md required sections:**
+- Context and problem
+- Options considered (2-4 typically)
+- Decision made
+- Rationale
+- Consequences and trade-offs
 
-**You adapt:**
-- Review auto-generated content
-- Fill in unknowns flagged by SpecKit
-- Add additional decision records if needed
-- Add research-spikes for uncertain areas
-- Add checklist for systematic validation
+**research-spike-[name].md (if used):**
+- Research question
+- Approach and experiments
+- Findings and recommendations
+- Decision (go/no-go)
+- Time-boxed (1-3 days typically)
+
+**Enforcement:** Hard block if `decision-record.md` missing
 
 ### Example Scenarios
 
@@ -258,35 +227,41 @@ When you run `/spec_kit:complete`, SpecKit creates:
 - Multi-team projects (integration with external systems)
 - New product vertical (marketplace feature)
 - Performance overhaul (real-time collaboration)
+- Database or framework choices
+- Major refactoring approaches
 
-### SpecKit Command
+### Template Sources
 
-```bash
-/spec_kit:complete
-```
+- `.claude/commands/spec_kit/assets/templates/spec.md`
+- `.claude/commands/spec_kit/assets/templates/plan.md`
+- `.claude/commands/spec_kit/assets/templates/tasks.md`
+- `.claude/commands/spec_kit/assets/templates/checklist.md`
+- `.claude/commands/spec_kit/assets/templates/decision-record.md`
+- `.claude/commands/spec_kit/assets/templates/research-spike.md` (optional)
+- `.claude/commands/spec_kit/assets/templates/research.md` (optional)
 
-**SpecKit will prompt for:**
-- Feature name
-- High-level description
-- Key requirements
-- Known constraints
-- Integration points
+### Template Adaptation
 
-**SpecKit then:**
-- Creates spec folder
-- Generates all core files
-- Fills templates with provided info
-- Flags unknowns for user input
+**All Level 2 adaptations PLUS:**
 
-### Manual Adaptation After SpecKit
+**decision-record-[topic].md:**
+1. Document context and problem clearly
+2. Present 2-4 viable options (not every possible choice)
+3. Fair comparison (pros/cons for each)
+4. State clear decision with rationale
+5. Document trade-offs honestly
+6. Note what was sacrificed for chosen path
+7. Use descriptive filename (e.g., `decision-record-database-choice.md`)
+8. Remove all sample content
 
-1. Review all auto-generated files
-2. Fill `[NEEDS CLARIFICATION: ...]` placeholders
-3. Add decision records for major technical choices
-4. Add research-spikes for uncertain/risky areas
-5. Create comprehensive checklist for validation
-6. Cross-link all sibling documents
-7. Remove any remaining sample content
+**research-spike-[topic].md (if used):**
+1. State clear research question upfront
+2. Document approach and experiments
+3. Provide data-driven findings (not opinions)
+4. Make clear recommendation with rationale
+5. Time-box appropriately (don't let spike become implementation)
+6. Use descriptive filename
+7. Remove all sample content
 
 ---
 
@@ -294,25 +269,24 @@ When you run `/spec_kit:complete`, SpecKit creates:
 
 ### When Scope Grows During Implementation
 
-If you discover mid-work that scope is larger than anticipated, escalate to higher level:
+If you discover mid-work that scope is larger than anticipated, escalate by adding the required files:
 
-| From | To | Action | Document |
+| From | To | Action | Files to Add |
 |------|----|---------| ---------|
-| 1 → 2 | Add `plan.md` to same folder | Update level field, add changelog |
-| 2 → 3 | Use `/spec_kit:plan` in same folder | Update level field, add changelog |
+| 1 → 2 | Add verification | `checklist.md` |
+| 2 → 3 | Add decision documentation | `decision-record.md` (+ optional `research-spike.md`) |
 
 **Changelog example:**
 
 ```markdown
 ## Change Log
-- 2025-11-15: Created as Level 1 (simple feature)
-- 2025-11-16: Escalated to Level 2 (discovered architectural changes needed)
-  - Added plan.md to document multi-phase approach
-  - Estimated LOC increased from 80 to 250
+- 2025-11-15: Created as Level 1 (simple feature) - spec.md, plan.md, tasks.md
+- 2025-11-16: Escalated to Level 2 (discovered validation needs) - added checklist.md
+- 2025-11-17: Escalated to Level 3 (architectural decision required) - added decision-record.md
 ```
 
 **Rules:**
-- Keep existing documentation (don't delete lower-level files)
+- Keep existing documentation (progressive enhancement - don't delete lower-level files)
 - Update `level:` field in metadata
 - Document reason for escalation
 - Inform user of level change and implications

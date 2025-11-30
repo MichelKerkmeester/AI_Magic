@@ -128,7 +128,7 @@
 - Complex implementations with multiple phases
 
 **When NOT to Use**:
-- Level 1 simple changes (spec.md sufficient)
+- Never skip - plan.md is REQUIRED for all levels (Level 1+)
 - Before requirements are clear (do spec first)
 
 **Integration**: Commands `/spec_kit:complete`, `/spec_kit:plan` | Skill `workflows-spec-kit`

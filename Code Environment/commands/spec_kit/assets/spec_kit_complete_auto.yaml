@@ -102,16 +102,60 @@ field_handling:
     rule: "Limit file operations to scope when provided"
 
 # ─────────────────────────────────────────────────────────────────
+# DOCUMENTATION LEVELS (Progressive Enhancement)
+# ─────────────────────────────────────────────────────────────────
+documentation_levels:
+  level_1_baseline:
+    name: "Level 1 (Baseline)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    loc_guidance: "<100 LOC"
+    use_case: "Simple changes, bug fixes, minor features"
+
+  level_2_verification:
+    name: "Level 2 (Verification)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    - checklist.md
+    loc_guidance: "100-499 LOC"
+    use_case: "Medium features, refactoring, multi-file changes"
+
+  level_3_full:
+    name: "Level 3 (Full)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    - checklist.md
+    - decision-record.md
+    optional_files:
+    - research-spike.md
+    loc_guidance: ">=500 LOC"
+    use_case: "Complex features, architecture changes, high-risk modifications"
+
+  level_selection:
+    note: "LOC thresholds are SOFT GUIDANCE - choose level based on complexity and risk"
+    default: "Level 1 for simple tasks, escalate based on analysis"
+
+# ─────────────────────────────────────────────────────────────────
 # AVAILABLE TEMPLATES
 # ─────────────────────────────────────────────────────────────────
 available_templates:
-  spec: .opencode/speckit/templates/spec_template.md
-  plan: .opencode/speckit/templates/plan_template.md
-  tasks: .opencode/speckit/templates/tasks_template.md
-  checklist: .opencode/speckit/templates/checklist_template.md
-  research: .opencode/speckit/templates/research_template.md
-  research_spike: .opencode/speckit/templates/research_spike_template.md
-  decision_record: .opencode/speckit/templates/decision_record_template.md
+  # Level 1+ (Baseline - required at all levels)
+  spec: .opencode/speckit/templates/spec.md
+  plan: .opencode/speckit/templates/plan.md
+  tasks: .opencode/speckit/templates/tasks.md
+  # Level 2+ (Verification)
+  checklist: .opencode/speckit/templates/checklist.md
+  # Level 3 (Full)
+  decision_record: .opencode/speckit/templates/decision-record.md
+  # Optional (any level)
+  research: .opencode/speckit/templates/research.md
+  research_spike: .opencode/speckit/templates/research-spike.md
 
 # ─────────────────────────────────────────────────────────────────
 # WORKFLOW (12 STEPS - ALL LOGIC ABSORBED)
@@ -181,8 +225,11 @@ workflow:
     - Fetch all remote branches for latest information
     - Find highest feature number across all sources
     - Run create-new-feature.sh script with calculated number
-    - Estimate complexity and select documentation level
-    - Load spec_template.md and use as EXACT structure
+    - Estimate complexity and select documentation level using progressive enhancement:
+      - Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md
+      - Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md
+      - Level 3 (Full): >=500 LOC - Level 2 + decision-record.md
+    - Load spec.md and use as EXACT structure
     - Parse user description and extract key concepts
     - Identify actors, actions, data, constraints
     - Make informed guesses based on context for unclear aspects
@@ -190,7 +237,10 @@ workflow:
     - Generate Functional Requirements (testable)
     - Define Success Criteria (measurable, technology-agnostic)
     - Identify Key Entities if data involved
-    - For Level 2+, include mandatory sections:
+    - For Level 2+, include mandatory checklist.md with:
+      - Requirement completeness checks
+      - Feature readiness checks
+    - For Level 3, include decision-record.md with:
       - Traceability Mapping (User Stories -> FRs)
       - Risk Matrix (minimum 2 risks)
       - Rollback Plan
@@ -202,7 +252,7 @@ workflow:
     optional_documents:
     - research-spike-[name].md: "Time-boxed research BEFORE implementation"
     - decision-record-[name].md: "Architecture Decision Records"
-    template: .opencode/speckit/templates/spec_template.md
+    template: .opencode/speckit/templates/spec.md
     chrome_devtools:
       when: analyzing_existing_features
       approach: Navigate → Snapshot → Analyze → Document
@@ -242,7 +292,7 @@ workflow:
       autonomous: true
     spike_option:
       when: technical_uncertainty_requires_investigation
-      template: .opencode/speckit/templates/research_spike_template.md
+      template: .opencode/speckit/templates/research-spike.md
       note: "Use for time-boxed research before committing to approach"
     deep_analysis:
       focus: ambiguity_resolution
@@ -255,21 +305,22 @@ workflow:
     validation: requirements_clear
 
   step_5_quality_checklist:
-    purpose: Generate validation checklist for quality assurance
+    purpose: Generate validation checklist for quality assurance (Level 2+ requirement)
+    level_requirement: "Level 2+ (Verification and Full)"
     activities:
-    - Load checklist_template.md
+    - Check documentation level - skip for Level 1, required for Level 2+
+    - Load checklist.md template
     - Generate domain-specific validation items
     - Create checklist file at FEATURE_DIR/checklists/requirements.md
     - Include content quality checks
     - Include requirement completeness checks
-    - Include Level 2 mandatory section checks if applicable
     - Include feature readiness checks
     - Run validation check against checklist
     - Document specific issues found
     outputs:
     - quality_checklist: generated
     - location: specs/[NNN-feature]/checklists/requirements.md
-    template: .opencode/speckit/templates/checklist_template.md
+    template: .opencode/speckit/templates/checklist.md
     deep_analysis:
       focus: quality_validation_preparation
       approach: comprehensive_checklist_design
@@ -304,7 +355,7 @@ workflow:
     activities:
     - Run setup-plan.sh --json and parse FEATURE_SPEC, IMPL_PLAN, etc.
     - Load FEATURE_SPEC and AGENTS.md
-    - Load plan_template.md and preserve exact structure
+    - Load plan.md and preserve exact structure
     - Fill Technical Context (mark unknowns as NEEDS CLARIFICATION)
     - Fill Constitution Check section
     - Evaluate gates (ERROR if violations unjustified)
@@ -324,14 +375,19 @@ workflow:
     - contracts/: API_specifications
     - dependencies: identified
     - upstream_docs: reviewed
-    optional_documents:
-    - tasks.md: "Implementation task breakdown AFTER plan.md"
-    - checklist.md: "Additional validation checklists"
+    level_1_baseline:
+    - spec.md: "Feature specification"
+    - plan.md: "Technical approach"
+    - tasks.md: "Implementation task breakdown"
+    level_2_verification:
+    - checklist.md: "Validation checklists (required at Level 2+)"
+    level_3_full:
+    - decision-record.md: "Architecture Decision Records (required at Level 3)"
     decision_records:
       when: significant_technical_decision_needs_documentation
-      template: .opencode/speckit/templates/decision_record_template.md
+      template: .opencode/speckit/templates/decision-record.md
       note: "Document architecture decisions with full context"
-    template: .opencode/speckit/templates/plan_template.md
+    template: .opencode/speckit/templates/plan.md
     chrome_devtools:
       when: analyzing_current_implementation
       actions:
@@ -353,7 +409,8 @@ workflow:
     validation: approach_defined
 
   step_7_task_breakdown:
-    purpose: Break plan into executable implementation tasks
+    purpose: Break plan into executable implementation tasks (Level 1+ requirement)
+    level_requirement: "Level 1+ (Baseline - required at all levels)"
     activities:
     - Run check-prerequisites.sh --json to get FEATURE_DIR
     - Load plan.md for tech stack and architecture
@@ -365,14 +422,14 @@ workflow:
     - Mark parallel-executable tasks with [P]
     - Define task phases (Setup, Tests, Core, Integration, Polish)
     - Generate time estimates (15-60 min per task)
-    - Create tasks.md with proper structure
+    - Create tasks.md with proper structure (required at all levels)
     - Validate task format and coverage
     outputs:
     - tasks.md: implementation_breakdown
     - task_phases: defined
     - dependencies: mapped
     - parallel_markers: assigned
-    template: .opencode/speckit/templates/tasks_template.md
+    template: .opencode/speckit/templates/tasks.md
     deep_analysis:
       focus: implementation_task_design
       approach: systematic_breakdown

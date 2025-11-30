@@ -1,6 +1,8 @@
 # 🤖 Automation Workflows - Hook Enforcement & Context Auto-Save
 
-Hook-based enforcement, context auto-save, and mandatory process workflows for AI agents. This document explains how the enforce-spec-folder.sh and save-context-trigger.sh hooks work and defines required AI agent behavior.
+Hook-based **HARD enforcement**, context auto-save, and mandatory process workflows for AI agents. This document explains how the enforce-spec-folder.sh and save-context-trigger.sh hooks work and defines required AI agent behavior.
+
+**Key Point:** Enforcement is HARD - hooks block commits with missing required templates based on the progressive enhancement model.
 
 ---
 
@@ -398,22 +400,20 @@ Detail: Removed stale .spec-active marker (path: specs/999-deleted)
    mkdir -p specs/###-short-name/
    ```
 
-6. **Copy appropriate templates** from `.claude/commands/spec_kit/assets/templates/`
-   - Level 1: `spec.md` → `spec.md`
-   - Level 2: `spec.md` + `plan.md` → `spec.md` + `plan.md`
-   - Level 3: Use `/spec_kit:complete` command
+6. **Copy REQUIRED templates** from `.claude/commands/spec_kit/assets/templates/` (Progressive Enhancement)
+   - Level 1 (Baseline): `spec.md` + `plan.md` + `tasks.md`
+   - Level 2 (Verification): Level 1 + `checklist.md`
+   - Level 3 (Full): Level 2 + `decision-record.md`
 
-7. **Fill template content**
+7. **Copy OPTIONAL templates** (Level 3 only, if needed)
+   - `research-spike.md` → `research-spike-[name].md` (research required)
+   - `research.md` → `research.md` (comprehensive research)
+
+8. **Fill template content**
    - Replace ALL `[PLACEHOLDER]` text
    - Remove sample/example sections
    - Adapt to specific feature
    - Remove instructional comments
-
-8. **Add supporting templates** (if needed)
-   - `tasks.md` → `tasks.md` (after plan, before coding)
-   - `checklist.md` → `checklist.md` (validation needs)
-   - `research-spike.md` → `research-spike-[name].md` (research required)
-   - `decision-record.md` → `decision-record-[name].md` (major decisions)
 
 9. **Present to user**
    - Documentation level chosen
@@ -425,22 +425,34 @@ Detail: Removed stale .spec-active marker (path: specs/999-deleted)
     - Get explicit "yes/go ahead/proceed"
     - Do not start file changes without explicit approval
 
-### Enforcement Checkpoints
+### Enforcement Checkpoints (HARD Enforcement)
+
+**Progressive Enhancement Required Files:**
+```
+Level 1 (Baseline):     spec.md + plan.md + tasks.md
+Level 2 (Verification): Level 1 + checklist.md
+Level 3 (Full):         Level 2 + decision-record.md
+```
 
 **At each stage, verify:**
 
 1. **Request Analysis**
-   - Classified level (1/2/3) based on LOC and complexity
+   - Classified level (1/2/3) based on LOC (soft guidance) and complexity
    - Secondary factors considered (risk, dependencies, testing)
+   - LOC thresholds are soft guidance; enforcement is hard
 
 2. **Hook Confirmation**
    - If hook presented options → Asked user for choice
    - User's selection documented
    - Choice honored (A/B/C/D)
 
-3. **Template Selection**
+3. **Template Selection (HARD ENFORCEMENT)**
    - Copied from `.claude/commands/spec_kit/assets/templates/` (not created from scratch)
-   - Correct templates for selected level
+   - ALL required templates for selected level present
+   - Hooks will block commits if required templates missing:
+     - Level 1: blocks if spec.md OR plan.md OR tasks.md missing
+     - Level 2: blocks if checklist.md missing
+     - Level 3: blocks if decision-record.md missing
    - Renamed correctly
 
 4. **Content Adaptation**
@@ -450,7 +462,7 @@ Detail: Removed stale .spec-active marker (path: specs/999-deleted)
    - Instructional comments deleted
 
 5. **Pre-Change Validation**
-   - Spec folder exists with filled templates
+   - Spec folder exists with ALL required templates for level
    - User reviewed approach
    - Templates are complete and accurate
 
@@ -460,9 +472,11 @@ Detail: Removed stale .spec-active marker (path: specs/999-deleted)
 
 7. **Final Review**
    - Documentation complete and accurate
+   - All required templates present for level
    - Ready to begin file changes
 
 **If ANY checkpoint fails → STOP and fix before proceeding.**
+**If required template missing → Hook blocks commit**
 
 ---
 

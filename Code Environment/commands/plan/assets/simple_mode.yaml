@@ -15,11 +15,12 @@ action: Execute 9-phase planning workflow with spec.md + plan.md output
 workflow_metadata:
   name: "Simple Mode Planning"
   mode: "simple"
-  target_features: "Features <500 LOC, straightforward scope"
-  output: "spec.md + plan.md (SpecKit Level 2)"
+  target_features: "Features of any size, straightforward scope"
+  output: "Level 1: spec.md + plan.md + tasks.md | Level 2: +checklist.md | Level 3: +decision-record.md"
   phases: 9
   estimated_duration: "50-100 seconds"
   speckit_alignment: "MANDATORY - follows AGENTS.md Section 2 requirements"
+  level_structure: "Progressive Enhancement (Level 1 -> Level 2 -> Level 3)"
 
 # ───────────────────────────────────────────────────────────────────
 # NOTE: This is a self-contained workflow file merging:
@@ -35,8 +36,25 @@ workflow_metadata:
 phase_0_documentation_level:
   phase_name: "Documentation Level Detection"
   emoji: "📊"
-  purpose: "Determine SpecKit documentation level (2 or 3) per AGENTS.md Section 2"
-  mandatory: "All plan commands create AT LEAST Level 2 documentation"
+  purpose: "Determine SpecKit documentation level (1, 2, or 3) per AGENTS.md Section 2"
+  mandatory: "All plan commands create AT LEAST Level 1 documentation"
+
+  level_structure:
+    description: "Progressive Enhancement Model"
+    levels:
+      level_1:
+        name: "Baseline"
+        required_files: ["spec.md", "plan.md", "tasks.md"]
+        description: "All tasks get this minimum"
+      level_2:
+        name: "Verification"
+        required_files: ["spec.md", "plan.md", "tasks.md", "checklist.md"]
+        description: "Level 1 + checklist.md for tasks needing verification"
+      level_3:
+        name: "Full"
+        required_files: ["spec.md", "plan.md", "tasks.md", "checklist.md", "decision-record.md"]
+        optional_files: ["research-spike.md", "research.md"]
+        description: "Level 2 + decision-record.md for complex/architectural tasks"
 
   steps:
     step_0_1_extract_loc_estimate:
@@ -47,50 +65,67 @@ phase_0_documentation_level:
 
     step_0_2_apply_decision_matrix:
       action: "Apply SpecKit decision matrix from AGENTS.md Section 2"
+      note: "LOC thresholds are SOFT GUIDANCE, hooks enforce HARD requirements"
       logic: |
-        # Decision Matrix (from AGENTS.md lines 119-143)
-        if loc_estimate < 500:
-          documentation_level = 2
-          required_files = ["spec.md", "plan.md"]
-          optional_files = ["tasks.md", "checklist.md"]
-          rationale = "Plan command implies need for plan → minimum Level 2"
-        else:
-          documentation_level = 3
+        # Progressive Enhancement Decision Matrix
+        # LOC thresholds are suggestions, not hard rules
+
+        if any_task:
+          # Level 1 is the BASELINE for all tasks
+          documentation_level = 1
           required_files = ["spec.md", "plan.md", "tasks.md"]
-          optional_files = ["research-spike-*.md", "decision-record-*.md"]
-          rationale = "≥500 LOC requires task breakdown → Level 3"
+          optional_files = []
+          rationale = "Baseline documentation for any task"
+
+        if needs_verification OR loc_estimate >= 100:
+          # Level 2 adds verification checklist
+          documentation_level = 2
+          required_files = ["spec.md", "plan.md", "tasks.md", "checklist.md"]
+          optional_files = []
+          rationale = "Task needs verification tracking"
+
+        if complex_or_architectural OR loc_estimate >= 500:
+          # Level 3 adds decision documentation
+          documentation_level = 3
+          required_files = ["spec.md", "plan.md", "tasks.md", "checklist.md", "decision-record.md"]
+          optional_files = ["research-spike.md", "research.md"]
+          rationale = "Complex task requires decision documentation"
 
     step_0_3_check_secondary_factors:
-      action: "Check secondary factors that can override LOC"
+      action: "Check secondary factors that can override LOC suggestion"
+      note: "These factors can bump the level UP, never down"
       factors:
         complexity:
           high_indicators: ["architecture change", "system redesign", "multi-service"]
-          action_if_high: "Bump to Level 3 even if <500 LOC"
+          action_if_high: "Bump to Level 3"
         risk:
           high_indicators: ["authentication", "security", "data migration", "breaking change"]
-          action_if_high: "Bump to Level 3 even if <500 LOC"
+          action_if_high: "Bump to Level 3"
+        verification_needed:
+          indicators: ["testing required", "QA review", "performance validation"]
+          action_if_true: "Bump to Level 2 minimum"
         dependencies:
           multiple_systems: true
           action_if_true: "Consider Level 3"
-      note: "When in doubt, choose higher level (AGENTS.md line 280)"
+      note: "When in doubt, choose higher level (AGENTS.md guidance)"
 
     step_0_4_store_level:
       action: "Store documentation level for use in Phase 6"
       outputs:
-        - documentation_level  # 2 or 3
-        - required_files       # ["spec.md", "plan.md"] or ["spec.md", "plan.md", "tasks.md"]
-        - optional_files       # Level-specific optional templates
+        - documentation_level  # 1, 2, or 3
+        - required_files       # Level-specific required templates
+        - optional_files       # Level-specific optional templates (Level 3 only)
         - level_rationale      # Justification for level selection
 
   outputs:
-    - documentation_level  # 2 or 3
+    - documentation_level  # 1, 2, or 3
     - required_files
     - optional_files
     - level_rationale
 
   notification:
     format: |
-      📊 SpecKit Documentation Level: {documentation_level}
+      SpecKit Documentation Level: {documentation_level}
       Required Files: {required_files}
       Rationale: {level_rationale}
 
@@ -431,10 +466,21 @@ phase_5_hypothesis_verification:
 phase_6_document_creation:
   phase_name: "Document Creation (SpecKit)"
   emoji: "📝"
-  purpose: "Generate spec.md + plan.md (+ tasks.md for Level 3) using SpecKit templates"
+  purpose: "Generate level-appropriate SpecKit documentation using templates"
   mode: "simple"
-  output: "Level 2: spec.md + plan.md | Level 3: spec.md + plan.md + tasks.md"
+  output: "Level 1: spec.md + plan.md + tasks.md | Level 2: +checklist.md | Level 3: +decision-record.md"
   mandatory: "MUST create spec.md FIRST per AGENTS.md Section 2"
+
+  level_outputs:
+    level_1:
+      required: ["spec.md", "plan.md", "tasks.md"]
+      optional: []
+    level_2:
+      required: ["spec.md", "plan.md", "tasks.md", "checklist.md"]
+      optional: []
+    level_3:
+      required: ["spec.md", "plan.md", "tasks.md", "checklist.md", "decision-record.md"]
+      optional: ["research-spike.md"]
 
   steps:
     step_16_create_spec_md:
@@ -444,7 +490,7 @@ phase_6_document_creation:
 
       template_usage:
         read_template:
-          path: ".opencode/speckit/templates/spec_template.md"
+          path: ".opencode/speckit/templates/spec.md"
           purpose: "Feature specification - requirements and user stories"
           requirement: "Use as skeleton, preserve all section headings"
 
@@ -556,7 +602,7 @@ phase_6_document_creation:
 
       template_usage:
         read_template:
-          path: ".opencode/speckit/templates/plan_template.md"
+          path: ".opencode/speckit/templates/plan.md"
           purpose: "Technical approach and architecture"
           requirement: "Use as skeleton, preserve all section headings"
 
@@ -665,14 +711,14 @@ phase_6_document_creation:
           **USER: Please review spec.md and plan.md. Edit any section directly, then confirm to proceed.**
 
     step_18_create_tasks_md:
-      description: "STEP 3: Create tasks.md (Level 3 ONLY - ≥500 LOC)"
-      condition: "ONLY execute if documentation_level == 3"
+      description: "STEP 3: Create tasks.md (ALL LEVELS - part of baseline)"
+      condition: "Execute for ALL documentation levels (1, 2, 3)"
       action: "Create tasks.md at {spec_folder_path}/tasks.md"
-      note: "Task breakdown for complex features"
+      note: "Task breakdown is now part of baseline documentation"
 
       template_usage:
         read_template:
-          path: ".opencode/speckit/templates/tasks_template.md"
+          path: ".opencode/speckit/templates/tasks.md"
           purpose: "Implementation task list organized by user story"
           requirement: "Use as skeleton, preserve structure"
 
@@ -695,12 +741,102 @@ phase_6_document_creation:
       - "Each task has checkbox, description, estimate"
       - "File paths included where applicable"
 
+    step_19_create_checklist_md:
+      description: "STEP 4: Create checklist.md (Level 2+ ONLY)"
+      condition: "Execute if documentation_level >= 2"
+      action: "Create checklist.md at {spec_folder_path}/checklist.md"
+      note: "Verification checklist for quality assurance"
+
+      template_usage:
+        read_template:
+          path: ".opencode/speckit/templates/checklist.md"
+          purpose: "Verification checklist for testing and QA"
+          requirement: "Use as skeleton, preserve structure"
+
+        fill_placeholders:
+          pattern: "[YOUR_VALUE_HERE: ...]"
+          action: "Replace with verification items from spec.md and plan.md"
+          sources:
+          - "spec.md acceptance criteria"
+          - "plan.md testing strategy"
+          - "tasks.md completion criteria"
+
+      content_population:
+        checklist_items:
+          action: "Create verification checklist items"
+          categories:
+          - "Pre-implementation checks"
+          - "Implementation verification"
+          - "Testing checklist"
+          - "Post-implementation validation"
+          format: "- [ ] Verification item (requirement reference)"
+
+      validation:
+      - "Checklist items traceable to requirements"
+      - "All acceptance criteria covered"
+      - "Testing items align with plan.md strategy"
+
+    step_20_create_decision_record_md:
+      description: "STEP 5: Create decision-record.md (Level 3 ONLY)"
+      condition: "Execute if documentation_level == 3"
+      action: "Create decision-record.md at {spec_folder_path}/decision-record.md"
+      note: "Architecture Decision Record for complex/architectural tasks"
+
+      template_usage:
+        read_template:
+          path: ".opencode/speckit/templates/decision-record.md"
+          purpose: "Document architectural decisions and rationale"
+          requirement: "Use as skeleton, preserve ADR structure"
+
+        fill_placeholders:
+          pattern: "[YOUR_VALUE_HERE: ...]"
+          action: "Replace with decisions from exploration findings"
+          sources:
+          - "Phase 5 verified architecture findings"
+          - "Phase 5 risk assessment"
+          - "User feedback from Phase 7 (if revision)"
+
+      content_population:
+        adr_sections:
+          action: "Document key architectural decisions"
+          structure:
+          - "Context: Why this decision was needed"
+          - "Decision: What was decided"
+          - "Consequences: Impact and trade-offs"
+          - "Alternatives: Options considered and rejected"
+
+      validation:
+      - "All major architectural decisions documented"
+      - "Trade-offs clearly explained"
+      - "Alternatives listed with rejection rationale"
+
+    step_21_create_research_spike_md:
+      description: "STEP 6: Create research-spike.md (Level 3 OPTIONAL)"
+      condition: "Execute if documentation_level == 3 AND research_needed"
+      action: "Create research-spike.md at {spec_folder_path}/research-spike.md"
+      note: "Optional research documentation for technical spikes"
+      optional: true
+
+      template_usage:
+        read_template:
+          path: ".opencode/speckit/templates/research-spike.md"
+          purpose: "Document technical research and findings"
+          requirement: "Use as skeleton if research conducted"
+
+      trigger_conditions:
+      - "Exploration agents identified unknown technologies"
+      - "Task involves POC or feasibility assessment"
+      - "User explicitly requested research documentation"
+
   outputs:
   - spec_file_path: "{spec_folder_path}/spec.md"
   - plan_file_path: "{spec_folder_path}/plan.md"
-  - tasks_file_path: "{spec_folder_path}/tasks.md (Level 3 only)"
-  - documentation_level: "2 or 3"
-  - files_created: "spec.md + plan.md (+ tasks.md if Level 3)"
+  - tasks_file_path: "{spec_folder_path}/tasks.md"
+  - checklist_file_path: "{spec_folder_path}/checklist.md (Level 2+)"
+  - decision_record_file_path: "{spec_folder_path}/decision-record.md (Level 3)"
+  - research_spike_file_path: "{spec_folder_path}/research-spike.md (Level 3, optional)"
+  - documentation_level: "1, 2, or 3"
+  - files_created: "Level-appropriate files per progressive enhancement"
   - template_validated: true
   - placeholders_removed: true
 
@@ -712,52 +848,65 @@ phase_7_user_review:
   purpose: "Request approval, wait for edits, re-read all documents after confirmation"
 
   steps:
-    step_19_request_approval:
+    step_22_request_approval:
       action: "Inform user that SpecKit documents have been created"
       notification_format: |
-        SpecKit Documentation Created:
-        ✅ spec.md - Feature specification and requirements
-        ✅ plan.md - Technical implementation plan
-        {✅ tasks.md - Task breakdown (Level 3 only)}
+        SpecKit Documentation Created (Level {documentation_level}):
+        - spec.md - Feature specification and requirements
+        - plan.md - Technical implementation plan
+        - tasks.md - Task breakdown
+        {- checklist.md - Verification checklist (Level 2+)}
+        {- decision-record.md - Decision documentation (Level 3)}
+        {- research-spike.md - Research documentation (Level 3, if created)}
 
         Location: {spec_folder_path}/
 
         Please review the documentation and confirm to proceed.
         Options:
-          - Review and edit files directly (spec.md, plan.md, tasks.md)
+          - Review and edit files directly
           - Reply "confirm" to proceed with implementation
           - Reply "cancel" to abort
 
       wait_for: "Explicit confirmation (confirm or cancel)"
       blocking: "DO NOT write implementation files until confirmed"
 
-    step_20_handle_response:
+    step_23_handle_response:
       on_confirm:
-        action: "Proceed to step 21 (re-read documents)"
+        action: "Proceed to step 24 (re-read documents)"
       on_reject:
         action: "Set STATUS=CANCELLED ACTION=user_rejected"
         capture: "REASON=[reason from user]"
 
-    step_21_reread_documents:
+    step_24_reread_documents:
       purpose: "User may have edited any of the documentation files"
-      action: "Re-read all created documents"
+      action: "Re-read all created documents based on documentation level"
       tool: "Read (parallel calls for efficiency)"
       files:
-        - path: "{spec_folder_path}/spec.md"
-          required: true
-        - path: "{spec_folder_path}/plan.md"
-          required: true
-        - path: "{spec_folder_path}/tasks.md"
-          required: "Level 3 only"
+        level_1:
+          - path: "{spec_folder_path}/spec.md"
+            required: true
+          - path: "{spec_folder_path}/plan.md"
+            required: true
+          - path: "{spec_folder_path}/tasks.md"
+            required: true
+        level_2:
+          - path: "{spec_folder_path}/checklist.md"
+            required: true
+        level_3:
+          - path: "{spec_folder_path}/decision-record.md"
+            required: true
+          - path: "{spec_folder_path}/research-spike.md"
+            required: false
       analysis:
       - "Note any changes the user made to any file"
       - "Acknowledge the changes before proceeding"
       - "Begin implementation following spec.md and plan.md exactly"
 
-    step_22_return_status:
+    step_25_return_status:
       on_awaiting_review:
-        status_level_2: "STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md PATH={spec_folder_path}/"
-        status_level_3: "STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md PATH={spec_folder_path}/"
+        status_level_1: "STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md PATH={spec_folder_path}/"
+        status_level_2: "STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.md PATH={spec_folder_path}/"
+        status_level_3: "STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.md,decision-record.md PATH={spec_folder_path}/"
       on_rejected:
         status: "STATUS=CANCELLED ACTION=user_rejected REASON=[reason]"
 
@@ -766,7 +915,9 @@ phase_7_user_review:
   - documents_edited # true/false
   - spec_final_content
   - plan_final_content
-  - tasks_final_content # if Level 3
+  - tasks_final_content
+  - checklist_final_content # if Level 2+
+  - decision_record_final_content # if Level 3
   - ready_for_implementation
 
 # ───────────────────────────────────────────────────────────────────
@@ -852,47 +1003,72 @@ phase_8_context_persistence:
 # ───────────────────────────────────────────────────────────────────
 simple_mode_features:
   file_output:
-    type: "Multi-file SpecKit documentation"
+    type: "Multi-file SpecKit documentation (Progressive Enhancement)"
     files:
       spec_md:
         path: "{spec_folder_path}/spec.md"
-        template: "spec_template.md"
+        template: "spec.md"
         size: "300-1000 lines (requirements, user stories)"
+        level: "ALL (baseline)"
       plan_md:
         path: "{spec_folder_path}/plan.md"
-        template: "plan_template.md"
+        template: "plan.md"
         size: "500-2000 lines (technical approach)"
+        level: "ALL (baseline)"
       tasks_md:
-        path: "{spec_folder_path}/tasks.md (Level 3 only)"
-        template: "tasks_template.md"
+        path: "{spec_folder_path}/tasks.md"
+        template: "tasks.md"
         size: "200-500 lines (task breakdown)"
+        level: "ALL (baseline)"
+      checklist_md:
+        path: "{spec_folder_path}/checklist.md"
+        template: "checklist.md"
+        size: "50-200 lines (verification checklist)"
+        level: "Level 2+"
+      decision_record_md:
+        path: "{spec_folder_path}/decision-record.md"
+        template: "decision-record.md"
+        size: "100-400 lines (ADR)"
+        level: "Level 3"
+      research_spike_md:
+        path: "{spec_folder_path}/research-spike.md"
+        template: "research-spike.md"
+        size: "100-500 lines (research documentation)"
+        level: "Level 3 (optional)"
 
   structure:
-    level_2: "spec.md + plan.md"
-    level_3: "spec.md + plan.md + tasks.md"
+    level_1: "spec.md + plan.md + tasks.md (Baseline)"
+    level_2: "Level 1 + checklist.md (Verification)"
+    level_3: "Level 2 + decision-record.md + optional research-spike.md (Full)"
     templates: ".opencode/speckit/templates/"
     sections_spec: 11
     sections_plan: 10
 
+  loc_thresholds:
+    note: "SOFT GUIDANCE - hooks enforce HARD requirements"
+    level_1: "<100 LOC suggests Level 1"
+    level_2: "100-499 LOC suggests Level 2"
+    level_3: ">=500 LOC suggests Level 3"
+
   target_features:
-    loc: "<500 LOC (Level 2) or ≥500 LOC (Level 3)"
-    iterations: "<4"
-    complexity: "Low to moderate"
-    file_count: "1-10 files"
+    level_1: "Simple tasks, bug fixes, small enhancements"
+    level_2: "Features needing verification, medium complexity"
+    level_3: "Complex features, architecture changes, high-risk modifications"
 
   advantages:
-  - "Complete SpecKit Level 2+ documentation"
-  - "Separation of concerns (requirements vs technical approach)"
+  - "Progressive enhancement - start with baseline, add as needed"
+  - "Separation of concerns (requirements vs technical approach vs verification)"
   - "Aligned with AGENTS.md Section 2 requirements"
-  - "Supports workflows-spec-kit enforcement"
-  - "Task breakdown for complex features (Level 3)"
+  - "Supports workflows-spec-kit enforcement with HARD hooks"
+  - "Task breakdown for ALL tasks (part of baseline)"
+  - "Verification checklist for quality assurance (Level 2+)"
+  - "Decision documentation for architectural choices (Level 3)"
 
   when_to_use:
-  - "New features requiring planning"
-  - "Refactoring with clear requirements"
-  - "Multi-file changes with dependencies"
-  - "Features needing stakeholder review"
-  - "Any task running plan command (implies need for Level 2+)"
+  - "Level 1: Simple tasks, bug fixes, small features (<100 LOC)"
+  - "Level 2: Features needing verification, testing, QA review (100-499 LOC)"
+  - "Level 3: Architecture changes, complex features, high-risk (>=500 LOC)"
+  - "Any task running plan command (implies need for Level 1 minimum)"
 
 # ───────────────────────────────────────────────────────────────────
 # TEMPLATE VALIDATION
@@ -917,7 +1093,7 @@ template_validation:
 
   post_write_validation:
   - check: "Template source marker present"
-    marker: "<!-- SPECKIT_TEMPLATE_SOURCE: plan_template | v1.0 -->"
+    marker: "<!-- SPECKIT_TEMPLATE_SOURCE: plan | v1.0 -->"
     action_if_missing: "Add marker at top of file"
 
   - check: "All 10 sections present"
@@ -944,16 +1120,24 @@ simple_mode_completion:
   ready_for_review: true
 
   verification_checklist:
-  - "spec.md file exists at {spec_folder_path}/spec.md"
-  - "plan.md file exists at {spec_folder_path}/plan.md"
-  - "tasks.md file exists at {spec_folder_path}/tasks.md (Level 3 only)"
-  - "All placeholders removed from all files"
-  - "Exploration findings integrated into plan.md"
-  - "Requirements and user stories documented in spec.md"
-  - "Template validation passed for all files"
-  - "User review prompt presented for all documents"
-  - "Documentation level (2 or 3) correctly determined and applied"
-  - "SpecKit template sources referenced in all files"
+    level_1_baseline:
+    - "spec.md file exists at {spec_folder_path}/spec.md"
+    - "plan.md file exists at {spec_folder_path}/plan.md"
+    - "tasks.md file exists at {spec_folder_path}/tasks.md"
+    level_2_additions:
+    - "checklist.md file exists at {spec_folder_path}/checklist.md"
+    level_3_additions:
+    - "decision-record.md file exists at {spec_folder_path}/decision-record.md"
+    - "research-spike.md file exists (optional, if research conducted)"
+    all_levels:
+    - "All placeholders removed from all files"
+    - "Exploration findings integrated into plan.md"
+    - "Requirements and user stories documented in spec.md"
+    - "Template validation passed for all files"
+    - "User review prompt presented for all documents"
+    - "Documentation level (1, 2, or 3) correctly determined and applied"
+    - "SpecKit template sources referenced in all files"
+    - "Progressive enhancement: higher levels include all lower level files"
 
 # ───────────────────────────────────────────────────────────────────
 # ERROR HANDLING
@@ -961,7 +1145,7 @@ simple_mode_completion:
 error_handling:
   template_not_found:
     action: "Use inline template structure as fallback"
-    notification: "Template file missing at .opencode/speckit/templates/plan_template.md"
+    notification: "Template file missing at .opencode/speckit/templates/plan.md"
 
   placeholder_filling_incomplete:
     action: "Mark remaining placeholders as [NEEDS CLARIFICATION: user input required]"

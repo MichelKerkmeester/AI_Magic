@@ -1,6 +1,15 @@
 # 📝 Template Guide - Template Selection, Adaptation & Quality Standards
 
-Comprehensive guide to template selection, copying, adaptation, and quality standards for all documentation levels. Use this guide to understand template philosophy, selection criteria, adaptation process, and common mistakes to avoid.
+Comprehensive guide to template selection, copying, adaptation, and quality standards using the **progressive enhancement** model. Each level BUILDS on the previous - higher levels include all files from lower levels.
+
+**Progressive Enhancement Model:**
+```
+Level 1 (Baseline):     spec.md + plan.md + tasks.md
+                              ↓
+Level 2 (Verification): Level 1 + checklist.md
+                              ↓
+Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
+```
 
 ---
 
@@ -30,30 +39,44 @@ Comprehensive guide to template selection, copying, adaptation, and quality stan
 
 ---
 
-## 2. 🎯 TEMPLATE SELECTION BY LEVEL
+## 2. 🎯 TEMPLATE SELECTION BY LEVEL (Progressive Enhancement)
 
-### Level 1: Simple Changes
+### Level 1: Baseline Documentation (LOC guidance: <100)
 
-**Template:** `spec.md`
+**Required Templates:** `spec.md` + `plan.md` + `tasks.md`
 
-**Copy command:**
+**Copy commands:**
 ```bash
 cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
+cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
+cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
 ```
 
 **When to use:**
-- <100 LOC
+- **All features start here** - this is the minimum documentation
+- <100 LOC (soft guidance)
 - Localized to one component or trivial changes
 - Clear requirements
 - Low to moderate complexity
 
-**Sections to fill:**
+**spec.md sections to fill:**
 - Metadata block (created, status, level, LOC estimate)
 - Problem statement
 - Proposed solution
 - Files to change
 - Testing approach
 - Success criteria
+
+**plan.md sections to fill:**
+- Implementation approach
+- File changes breakdown
+- Testing strategy
+- Dependencies
+
+**tasks.md sections to fill:**
+- Task breakdown by user story
+- Dependencies between tasks
+- Estimated effort per task
 
 **Adaptation tips:**
 - Keep problem statement focused and specific
@@ -63,86 +86,95 @@ cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
 - Testing approach should match scope (unit tests? manual verification?)
 - Success criteria should be measurable
 
-**Optional addition:**
-- `checklist.md` if systematic validation needed
+**Enforcement:** Hard block if any required file missing
 
 ---
 
-### Level 2: Moderate Features
+### Level 2: Verification Added (LOC guidance: 100-499)
 
-**Templates:** `spec.md` + `plan.md`
+**Required Templates:** Level 1 + `checklist.md`
 
 **Copy commands:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
-cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
+# First copy all Level 1 files, then add:
+cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
 ```
 
 **When to use:**
-- 100-499 LOC
+- Features needing systematic QA validation
+- 100-499 LOC (soft guidance)
 - Multiple files/components
 - Moderate complexity
-- Requires planning
+- High risk areas (security, config cascades)
 
-**spec.md sections to fill:**
-- Complete metadata block
-- Detailed requirements (functional + non-functional)
-- Technical approach and alternatives considered
-- Success criteria with measurable outcomes
-- Risk assessment and mitigations
-- Explicit out-of-scope items
-- Dependencies
+**All Level 1 sections PLUS:**
 
-**plan.md sections to fill:**
-- Architecture decisions
-- Implementation phases (ordered)
-- File changes per phase
-- Testing strategy (unit, integration, E2E)
-- Rollback plan
-- Dependencies (internal + external)
-- Timeline estimates
+**checklist.md sections to fill:**
+- Pre-implementation checks
+- Implementation validation
+- Testing checklist
+- Deployment verification
+- Security checks (if applicable)
 
 **Adaptation tips:**
-- spec.md focuses on WHAT and WHY
-- plan.md focuses on HOW and WHEN
-- Cross-reference between spec and plan
-- Break plan into clear phases (3-5 typical)
-- Testing strategy should be comprehensive
+- All Level 1 tips apply
+- Make checklist specific to feature (not generic)
+- Include edge cases and error scenarios
+- Add security checks if relevant
+- Include rollback verification
 
-**Optional additions:**
-- `tasks.md` - After plan, before coding (breaks plan into actionable tasks)
-- `checklist.md` - When systematic validation needed
-- `research-spike-[name].md` - Before implementation if research needed
-- `decision-record-[name].md` - For significant technical decisions
+**Enforcement:** Hard block if `checklist.md` missing
 
 ---
 
-### Level 3: Complex Features
+### Level 3: Full Documentation (LOC guidance: >=500)
 
-**Process:** Use `/spec_kit:complete` command
+**Required Templates:** Level 2 + `decision-record.md`
 
-**Do NOT manually create Level 3 files** - SpecKit handles this automatically.
+**Copy commands:**
+```bash
+# First copy all Level 2 files, then add:
+cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
+```
 
-**What SpecKit generates:**
-- `spec.md` - Feature specification
-- `plan.md` - Implementation plan
-- `tasks.md` - Task breakdown
-- `research.md` - Research findings
-- `data-model.md` - Data structures
-- `quickstart.md` - Getting started guide
-- `contracts/` - API contracts directory
+**Optional Templates:**
+```bash
+cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-[topic].md
+cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md
+```
 
-**Your role after SpecKit:**
-1. Review all auto-generated files
-2. Fill `[NEEDS CLARIFICATION: ...]` placeholders
-3. Add decision records for major technical choices
-4. Add research-spikes for uncertain/risky areas
-5. Create comprehensive checklist for validation
-6. Cross-link all sibling documents
-7. Remove any remaining sample content
+**When to use:**
+- Complex features, architecture changes, major decisions
+- >=500 LOC (soft guidance)
+- Multiple systems involved
+- Significant architectural impact
+- Major technical decisions need documentation
 
-**Optional manual additions:**
-- `checklist.md` (copy from template)
+**All Level 2 sections PLUS:**
+
+**decision-record-[topic].md sections to fill:**
+- Context and problem
+- Options considered (2-4 typically)
+- Decision made
+- Rationale
+- Consequences and trade-offs
+
+**research-spike-[topic].md (if used):**
+- Research question
+- Approach and experiments
+- Findings and recommendations
+- Decision (go/no-go)
+- Time-boxed (1-3 days typically)
+
+**Adaptation tips:**
+- All Level 2 tips apply
+- Present 2-4 viable options (not every possible choice)
+- Fair comparison (pros/cons for each)
+- Clear decision with rationale
+- Document trade-offs honestly
+- Note what was sacrificed for chosen path
+
+**Enforcement:** Hard block if `decision-record.md` missing
 
 ---
 

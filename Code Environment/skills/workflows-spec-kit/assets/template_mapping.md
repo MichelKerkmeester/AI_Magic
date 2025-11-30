@@ -1,6 +1,6 @@
 # 🗂️ Template Mapping - Template-to-Level Guide with Copy Commands
 
-Complete mapping of documentation levels to templates with copy commands and file structure examples. Use this guide to identify which templates to copy for each documentation level and see exact folder structure patterns.
+Complete mapping of documentation levels to templates using the **progressive enhancement** model. Each level BUILDS on the previous - higher levels include all files from lower levels.
 
 ---
 
@@ -12,98 +12,116 @@ Complete mapping of documentation levels to templates with copy commands and fil
 
 ---
 
-## 2. 📋 CORE TEMPLATES BY LEVEL
+## 2. 📋 REQUIRED TEMPLATES BY LEVEL (Progressive Enhancement)
 
-| Level | Template File | Copy As | Copy Command |
-|-------|--------------|---------|--------------|
-| **1: Simple** | `spec.md` | `spec.md` | `cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md` |
-| **2: Moderate** | `spec.md`<br>`plan.md` | `spec.md`<br>`plan.md` | `cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md`<br>`cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md` |
-| **3: Complex** | SpecKit auto-generates | Multiple files | `/spec_kit:complete` command |
+```
+Level 1 (Baseline):     spec.md + plan.md + tasks.md
+                              ↓
+Level 2 (Verification): Level 1 + checklist.md
+                              ↓
+Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
+```
+
+| Level | Required Files | Adds To Previous | Copy Commands |
+|-------|---------------|------------------|---------------|
+| **1: Baseline** | `spec.md` + `plan.md` + `tasks.md` | (foundation) | See Level 1 commands below |
+| **2: Verification** | Level 1 + `checklist.md` | QA checklist | See Level 2 commands below |
+| **3: Full** | Level 2 + `decision-record.md` | ADR + optional research | See Level 3 commands below |
+
+**Level 1 Copy Commands (Baseline):**
+```bash
+cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
+cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
+cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
+```
+
+**Level 2 Copy Commands (adds to Level 1):**
+```bash
+# First copy all Level 1 files, then add:
+cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
+```
+
+**Level 3 Copy Commands (adds to Level 2):**
+```bash
+# First copy all Level 2 files, then add:
+cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
+# Optional:
+cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-[topic].md
+```
 
 ---
 
-## 3. 📦 SUPPORTING TEMPLATES (OPTIONAL)
+## 3. 📦 OPTIONAL TEMPLATES (Level 3 Only)
 
-Additional templates for specific needs - use descriptive names:
+These templates are OPTIONAL and only apply to Level 3 documentation:
 
 | Template File | Copy As | When to Use | Copy Command |
 |--------------|---------|-------------|--------------|
-| `tasks.md` | `tasks.md` | After plan.md, before coding - breaks plan into actionable tasks | `cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md` |
-| `checklist.md` | `checklist.md` | When systematic validation needed (QA, security, deployment) | `cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md` |
-| `decision-record.md` | `decision-record-[topic].md` | Major technical decisions (database choice, architecture) | `cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-database.md` |
-| `research-spike.md` | `research-spike-[topic].md` | Before uncertain work - research, POC, feasibility | `cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md` |
+| `research-spike.md` | `research-spike-[topic].md` | Time-boxed research, POC, feasibility testing | `cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md` |
+| `research.md` | `research.md` | Comprehensive research documentation | `cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md` |
 
 **Notes:**
-- Use descriptive names for decision records and research-spikes (not generic "final" or "new")
-- Multiple decision records/research-spikes can exist per spec folder
-- Only copy when explicitly needed (not mandatory)
+- Use descriptive names for research-spikes (not generic "final" or "new")
+- Multiple research-spikes can exist per spec folder
+- These are OPTIONAL - only copy when research is needed
+- `decision-record.md` is REQUIRED at Level 3, not optional
 
 ---
 
-## 4. 🗂️ FOLDER STRUCTURE BY LEVEL
+## 4. 🗂️ FOLDER STRUCTURE BY LEVEL (Progressive Enhancement)
 
-### Level 1: Simple Changes
+### Level 1: Baseline Documentation
 
 ```
 specs/043-add-email-validation/
-├── spec.md                      (from spec.md)
-└── checklist.md                 (optional, from checklist.md)
+├── spec.md                      (REQUIRED - from spec.md)
+├── plan.md                      (REQUIRED - from plan.md)
+└── tasks.md                     (REQUIRED - from tasks.md)
 ```
 
 **Content expectations:**
-- Problem statement or feature description
-- Proposed solution
-- Files to change
-- Testing approach
-- Success criteria
+- **spec.md**: Problem statement, requirements, success criteria
+- **plan.md**: Implementation approach, file changes, testing strategy
+- **tasks.md**: Task breakdown by user story, ordered by dependencies
+
+**Enforcement:** Hard block if any required file missing
 
 ---
 
-### Level 2: Moderate Features
+### Level 2: Verification Added
 
 ```
 specs/044-modal-component/
-├── spec.md                      (from spec.md)
-├── plan.md                      (from plan.md)
-├── tasks.md                     (optional, from tasks.md)
-├── checklist.md                 (optional, from checklist.md)
-├── research-spike-animation-perf.md (optional, from research-spike.md)
-└── decision-record-library.md   (optional, from decision-record.md)
+├── spec.md                      (REQUIRED - from Level 1)
+├── plan.md                      (REQUIRED - from Level 1)
+├── tasks.md                     (REQUIRED - from Level 1)
+└── checklist.md                 (REQUIRED - adds QA validation)
 ```
 
-**spec.md expectations:**
-- Detailed requirements
-- Technical approach
-- Alternatives considered
-- Success criteria
-- Risks and mitigations
+**Additional expectations:**
+- **checklist.md**: Pre-implementation checks, implementation validation, testing checklist, deployment verification
 
-**plan.md expectations:**
-- Implementation steps (ordered)
-- File changes breakdown
-- Testing strategy
-- Rollout plan
-- Dependencies
+**Enforcement:** Hard block if `checklist.md` missing
 
 ---
 
-### Level 3: Complex Features
+### Level 3: Full Documentation
 
 ```
 specs/045-user-dashboard/
-├── spec.md                      (SpecKit auto-generated)
-├── plan.md                      (SpecKit auto-generated)
-├── tasks.md                     (SpecKit auto-generated)
-├── research.md                  (SpecKit auto-generated)
-├── data-model.md                (SpecKit auto-generated)
-├── quickstart.md                (SpecKit auto-generated)
-├── contracts/                   (SpecKit auto-generated)
-└── checklist.md                 (optional, manual copy)
+├── spec.md                      (REQUIRED - from Level 2)
+├── plan.md                      (REQUIRED - from Level 2)
+├── tasks.md                     (REQUIRED - from Level 2)
+├── checklist.md                 (REQUIRED - from Level 2)
+├── decision-record-[topic].md   (REQUIRED - architecture decisions)
+├── research-spike-[topic].md    (OPTIONAL - if research needed)
+└── research.md                  (OPTIONAL - comprehensive research)
 ```
 
-**Process:** Use `/spec_kit:complete` command - it auto-generates all core files.
+**Additional expectations:**
+- **decision-record.md**: Context, options considered, decision made, rationale, consequences
 
-**Optional files:** Copy manually from templates if needed.
+**Enforcement:** Hard block if `decision-record.md` missing
 
 ---
 
@@ -167,10 +185,10 @@ Accountability reminder (remove after filling):
 
 ---
 
-## 7. 🎯 STEP-BY-STEP TEMPLATE USAGE
+## 7. 🎯 STEP-BY-STEP TEMPLATE USAGE (Progressive Enhancement)
 
 ### Step 1: Determine Level
-Use decision matrix (LOC + complexity factors)
+Use LOC as soft guidance + complexity/risk factors
 
 ### Step 2: Find Next Number
 ```bash
@@ -183,38 +201,35 @@ Add 1 to get next number.
 mkdir -p specs/###-short-name/
 ```
 
-### Step 4: Copy Core Templates
+### Step 4: Copy Required Templates (Progressive)
 
-**Level 1:**
-```bash
-cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
-```
-
-**Level 2:**
+**Level 1 (Baseline) - ALL features start here:**
 ```bash
 cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
 cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
-```
-
-**Level 3:**
-```bash
-/spec_kit:complete
-```
-
-### Step 5: Copy Supporting Templates (If Needed)
-
-```bash
-# Tasks (after plan, before coding)
 cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
+```
 
-# Checklist (validation needs)
+**Level 2 (Verification) - Add to Level 1:**
+```bash
+# Copy all Level 1 files first, then add:
 cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
+```
 
-# Decision Record (use descriptive name)
-cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-database.md
+**Level 3 (Full) - Add to Level 2:**
+```bash
+# Copy all Level 2 files first, then add:
+cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
+```
 
+### Step 5: Copy Optional Templates (Level 3 Only - If Needed)
+
+```bash
 # Research-Spike (use descriptive name)
 cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md
+
+# Comprehensive Research
+cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md
 ```
 
 ### Step 6: Fill Templates
@@ -226,8 +241,10 @@ cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/r
 ### Step 7: Present to User
 - Show level chosen
 - Show folder path
-- Show which templates used
+- Show which templates used (required vs optional)
 - Explain approach
 
 ### Step 8: Wait for Approval
 Get explicit "yes/go ahead/proceed" before ANY file changes.
+
+**Enforcement:** Hooks will block commits if required templates are missing for the chosen level.

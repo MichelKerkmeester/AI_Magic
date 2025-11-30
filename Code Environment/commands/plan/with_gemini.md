@@ -38,11 +38,17 @@ Enter PLANNING MODE to create detailed, verified SpecKit documentation. This com
 - **Intelligent Fallback**: Automatically adapts if Sonnet agents unavailable
 - **SpecKit Integration**: Creates complete Level 2+ documentation per AGENTS.md requirements
 
-**Documentation Levels:**
-- **Level 2** (<500 LOC): spec.md + plan.md using `simple_mode.yaml`
-- **Level 3** (≥500 LOC): spec.md + plan.md + tasks.md using `simple_mode.yaml`
+**Documentation Levels (Progressive Enhancement):**
+- **Level 1** (Baseline): spec.md + plan.md + tasks.md - All tasks get this minimum
+- **Level 2** (Verification): Level 1 + checklist.md - Tasks needing verification
+- **Level 3** (Full): Level 2 + decision-record.md + optional research-spike.md - Complex/architectural tasks
 
-**Note**: All plan commands create AT LEAST Level 2 documentation (spec.md + plan.md) because running a plan command implies the need for a plan.
+**LOC Thresholds (Soft Guidance):**
+- <100 LOC suggests Level 1
+- 100-499 LOC suggests Level 2
+- >=500 LOC suggests Level 3
+
+**Note**: All plan commands create AT LEAST Level 1 documentation (spec.md + plan.md + tasks.md) because running a plan command implies structured planning.
 
 ---
 
@@ -52,7 +58,10 @@ Enter PLANNING MODE to create detailed, verified SpecKit documentation. This com
 **Outputs:** SpecKit documentation at `specs/###-name/`:
   - `spec.md` - Feature specification and requirements (ALL levels)
   - `plan.md` - Technical implementation plan (ALL levels)
-  - `tasks.md` - Task breakdown (Level 3 only)
+  - `tasks.md` - Task breakdown (ALL levels - part of baseline)
+  - `checklist.md` - Verification checklist (Level 2+)
+  - `decision-record.md` - Decision documentation (Level 3)
+  - `research-spike.md` - Research documentation (Level 3, optional)
   - `STATUS=<OK|FAIL|CANCELLED>`
 
 ---
@@ -110,9 +119,10 @@ If no mode override specified, analyze task complexity:
 7. **YAML workflow executes with Gemini orchestration + Sonnet exploration:**
 
    The loaded YAML prompt contains the complete 9-phase workflow (SpecKit aligned):
+   - **Phase 0**: Documentation Level Detection (SpecKit Level 1, 2, or 3)
    - **Phases 1-3**: Task Understanding (Gemini + optional web research), Spec Folder Setup, Context Loading
    - **Phases 4-5**: Parallel Exploration (4 Sonnet agents), Hypothesis Verification (Gemini)
-   - **Phase 6: Document Creation (spec.md + plan.md + tasks.md) (Gemini synthesis + web insights)
+   - **Phase 6**: Document Creation (level-appropriate files) (Gemini synthesis + web insights)
    - **Phases 7-8**: User Review & Confirmation, Context Persistence
 
    **CRITICAL OVERRIDE for Phase 4 (Parallel Exploration):**
@@ -163,32 +173,35 @@ If no mode override specified, analyze task complexity:
    3. Other available models (Haiku, etc.)
    4. Self-exploration (no agents - inline analysis + optional web research)
 
-   All phases execute sequentially: 1 → 2 → 3 → 4 (Sonnet/fallback) → 5 (Gemini verifies) → 6 → 7 → 8
+   All phases execute sequentially: 0 → 1 → 2 → 3 → 4 (Sonnet/fallback) → 5 (Gemini verifies) → 6 → 7 → 8
 
    **Expected outputs:**
-   - Simple mode: `specs/###-name/plan.md` (500-2000 lines)
-   - Complex mode (future): `specs/###-name/plan/` directory with manifest
+   - Level 1: `specs/###-name/spec.md` + `plan.md` + `tasks.md`
+   - Level 2: Level 1 + `checklist.md`
+   - Level 3: Level 2 + `decision-record.md` (+ optional `research-spike.md`)
 
 ### Step 4: Monitor Progress
 
 8. **Display phase progress to user:**
    ```
-   🔍 Planning Mode Activated (Gemini Orchestrator + Sonnet Explorers)
+   Planning Mode Activated (Gemini Orchestrator + Sonnet Explorers)
 
    Task: {task_description}
    Mode: {SIMPLE/COMPLEX} ({loc_estimate} LOC estimated)
+   Documentation Level: {1, 2, or 3}
    Orchestrator: Gemini 3.0 pro via Copilot
    Explorers: Sonnet agents (with fallback)
    Web Research: {Enabled/Disabled}
 
-   📋 Phase 1: Task Understanding & Session Initialization (Gemini)...
-   📁 Phase 2: Spec Folder Setup...
-   🧠 Phase 3: Context Loading...
-   📊 Phase 4: Parallel Exploration (4 Sonnet agents)...
-   🔬 Phase 5: Hypothesis Verification (Gemini review)...
-   📝 Phase 6: Document Creation (spec.md + plan.md + tasks.md) (Gemini synthesis)...
-   👤 Phase 7: User Review & Confirmation...
-   💾 Phase 8: Context Persistence...
+   Phase 0: Documentation Level Detection...
+   Phase 1: Task Understanding & Session Initialization (Gemini)...
+   Phase 2: Spec Folder Setup...
+   Phase 3: Context Loading...
+   Phase 4: Parallel Exploration (4 Sonnet agents)...
+   Phase 5: Hypothesis Verification (Gemini review)...
+   Phase 6: Document Creation (level-appropriate files) (Gemini synthesis)...
+   Phase 7: User Review & Confirmation...
+   Phase 8: Context Persistence...
    ```
 
 ---
@@ -248,7 +261,7 @@ If no mode override specified, analyze task complexity:
 ## Example Output
 
 ```
-🔍 Planning Mode Activated (Gemini Orchestrator + Sonnet Explorers + SpecKit)
+Planning Mode Activated (Gemini Orchestrator + Sonnet Explorers + SpecKit)
 
 Task: Add user authentication with OAuth2
 Mode: SIMPLE (300 LOC estimated)
@@ -256,55 +269,59 @@ Orchestrator: Gemini 3.0 pro via Copilot
 Explorers: Sonnet agents
 Web Research: Enabled
 
-📊 Phase 0: Documentation Level Detection
-  ✓ LOC estimate: 300 (<500 LOC)
-  ✓ Documentation Level: 2 (spec.md + plan.md)
-  ✓ Required files: spec.md, plan.md
+Phase 0: Documentation Level Detection
+  LOC estimate: 300 (suggests Level 2)
+  Documentation Level: 2 (Verification)
+  Required files: spec.md, plan.md, tasks.md, checklist.md
 
-📋 Phase 1: Task Understanding & Session Initialization (Gemini)
-  ✓ Task parsed: Implement OAuth2 authentication flow
-  ✓ SESSION_ID extracted: abc123
-  🌐 Web research: Current OAuth2 best practices reviewed
+Phase 1: Task Understanding & Session Initialization (Gemini)
+  Task parsed: Implement OAuth2 authentication flow
+  SESSION_ID extracted: abc123
+  Web research: Current OAuth2 best practices reviewed
 
-📁 Phase 2: Spec Folder Setup
-  ✓ Creating new spec folder: specs/042-oauth2-auth/
-  ✓ Marker set: .spec-active.abc123
+Phase 2: Spec Folder Setup
+  Creating new spec folder: specs/042-oauth2-auth/
+  Marker set: .spec-active.abc123
 
-🧠 Phase 3: Context Loading
-  ℹ No previous memory files found - starting fresh
+Phase 3: Context Loading
+  No previous memory files found - starting fresh
 
-📊 Phase 4: Parallel Exploration (4 Sonnet agents)
-  ├─ Architecture Explorer (Sonnet): analyzing project structure...
-  ├─ Feature Explorer (Sonnet): finding auth patterns...
-  ├─ Dependency Explorer (Sonnet): mapping imports...
-  └─ Test Explorer (Sonnet): reviewing test infrastructure...
-  ✅ Exploration Complete (28 files identified)
+Phase 4: Parallel Exploration (4 Sonnet agents)
+  Architecture Explorer (Sonnet): analyzing project structure...
+  Feature Explorer (Sonnet): finding auth patterns...
+  Dependency Explorer (Sonnet): mapping imports...
+  Test Explorer (Sonnet): reviewing test infrastructure...
+  Exploration Complete (28 files identified)
 
-🔬 Phase 5: Hypothesis Verification (Gemini review)
-  ├─ Verifying Sonnet hypotheses (Gemini reading files)...
-  ├─ Cross-referencing agent findings with web research...
-  └─ Building complete mental model with Gemini perspective...
-  ✅ Verification Complete
+Phase 5: Hypothesis Verification (Gemini review)
+  Verifying Sonnet hypotheses (Gemini reading files)...
+  Cross-referencing agent findings with web research...
+  Building complete mental model with Gemini perspective...
+  Verification Complete
 
-📝 Phase 6: Document Creation (SpecKit - Gemini synthesis)
-  ✓ spec.md created: specs/042-oauth2-auth/spec.md
-  ✓ plan.md created: specs/042-oauth2-auth/plan.md
-  ✓ Gemini perspective applied with current best practices
-  🌐 Incorporated OAuth2 security recommendations from web research
+Phase 6: Document Creation (SpecKit Level 2 - Gemini synthesis)
+  spec.md created: specs/042-oauth2-auth/spec.md
+  plan.md created: specs/042-oauth2-auth/plan.md
+  tasks.md created: specs/042-oauth2-auth/tasks.md
+  checklist.md created: specs/042-oauth2-auth/checklist.md
+  Gemini perspective applied with current best practices
+  Incorporated OAuth2 security recommendations from web research
 
-👤 Phase 7: User Review & Confirmation
-  SpecKit Documentation Created:
-  ✅ spec.md - Feature specification and requirements
-  ✅ plan.md - Technical implementation plan
+Phase 7: User Review & Confirmation
+  SpecKit Documentation Created (Level 2):
+  - spec.md - Feature specification and requirements
+  - plan.md - Technical implementation plan
+  - tasks.md - Task breakdown
+  - checklist.md - Verification checklist
 
   Please review and confirm to proceed.
   [User confirms]
-  ✓ Documents re-read (no edits)
+  Documents re-read (no edits)
 
-💾 Phase 8: Context Persistence
-  ✓ Context saved: specs/042-oauth2-auth/memory/29-11-25_14-30__oauth2-auth.md
+Phase 8: Context Persistence
+  Context saved: specs/042-oauth2-auth/memory/29-11-25_14-30__oauth2-auth.md
 
-STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md PATH=specs/042-oauth2-auth/
+STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.md PATH=specs/042-oauth2-auth/
 ```
 
 ---
@@ -313,10 +330,12 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md PATH=specs/042-oaut
 
 - **SpecKit Alignment:**
   - MANDATORY compliance with AGENTS.md Section 2 requirements
-  - Creates Level 2+ documentation (spec.md + plan.md minimum)
-  - Level 3 automatically includes tasks.md for complex features
+  - Creates Level 1+ documentation (spec.md + plan.md + tasks.md baseline)
+  - Level 2 adds checklist.md for verification tasks
+  - Level 3 adds decision-record.md (required) + research-spike.md (optional)
   - All templates from `.opencode/speckit/templates/`
   - Documentation level detection in Phase 0
+  - LOC thresholds are SOFT guidance; hooks enforce HARD requirements
 
 - **Gemini Orchestration:**
   - Gemini 3.0 pro handles task understanding, agent coordination, verification, synthesis

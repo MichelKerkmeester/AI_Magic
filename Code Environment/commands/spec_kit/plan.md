@@ -133,13 +133,24 @@ See CLAUDE.md Section 2 for full memory file handling details.
 | Missing required field | Apply intelligent default or ask user |
 | Validation failure | Log issue and attempt resolution |
 
+## Documentation Levels (Progressive Enhancement)
+
+| Level | Required Files | LOC Guidance | Use Case |
+|-------|---------------|--------------|----------|
+| **Level 1 (Baseline)** | spec.md + plan.md + tasks.md | <100 LOC | Simple changes, bug fixes |
+| **Level 2 (Verification)** | Level 1 + checklist.md | 100-499 LOC | Medium features, refactoring |
+| **Level 3 (Full)** | Level 2 + decision-record.md | >=500 LOC | Complex features, architecture changes |
+
+**Note:** LOC thresholds are soft guidance. Choose level based on complexity and risk.
+
 ## Templates Used
 
-- `.opencode/speckit/templates/spec_template.md`
-- `.opencode/speckit/templates/plan_template.md`
-- `.opencode/speckit/templates/checklist_template.md`
-- `.opencode/speckit/templates/research_spike_template.md` (optional)
-- `.opencode/speckit/templates/decision_record_template.md` (optional)
+- `.opencode/speckit/templates/spec.md` (Level 1+)
+- `.opencode/speckit/templates/plan.md` (Level 1+)
+- `.opencode/speckit/templates/tasks.md` (Level 1+ - created during implementation)
+- `.opencode/speckit/templates/checklist.md` (Level 2+)
+- `.opencode/speckit/templates/decision-record.md` (Level 3)
+- `.opencode/speckit/templates/research-spike.md` (optional, any level)
 
 ## Completion Report
 

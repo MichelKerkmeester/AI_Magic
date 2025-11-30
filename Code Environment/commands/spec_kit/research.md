@@ -158,11 +158,21 @@ See CLAUDE.md Section 2 for full memory file handling details.
 | External sources unavailable | Document limitation, continue with available info |
 | Conflicting findings | Document both perspectives with analysis |
 
+## Documentation Levels (Progressive Enhancement)
+
+| Level | Required Files | LOC Guidance | Use Case |
+|-------|---------------|--------------|----------|
+| **Level 1 (Baseline)** | spec.md + plan.md + tasks.md | <100 LOC | Simple changes, bug fixes |
+| **Level 2 (Verification)** | Level 1 + checklist.md | 100-499 LOC | Medium features, refactoring |
+| **Level 3 (Full)** | Level 2 + decision-record.md | >=500 LOC | Complex features, architecture changes |
+
+**Note:** LOC thresholds are soft guidance. Choose level based on complexity and risk.
+
 ## Templates Used
 
-- `.opencode/speckit/templates/research_template.md`
-- `.opencode/speckit/templates/research_spike_template.md` (optional for time-boxed sub-investigations)
-- `.opencode/speckit/templates/decision_record_template.md` (optional for significant decisions)
+- `.opencode/speckit/templates/research.md` (primary output)
+- `.opencode/speckit/templates/research-spike.md` (optional for time-boxed sub-investigations)
+- `.opencode/speckit/templates/decision-record.md` (Level 3 - for significant decisions)
 
 ## Completion Report
 

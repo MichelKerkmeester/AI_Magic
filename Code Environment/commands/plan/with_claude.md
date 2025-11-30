@@ -24,11 +24,17 @@ Enter PLANNING MODE to create detailed, verified SpecKit documentation. This com
 5. Optionally creates tasks.md for complex features (Level 3)
 6. Requires user approval before implementation begins
 
-**Documentation Levels:**
-- **Level 2** (<500 LOC): spec.md + plan.md using `simple_mode.yaml`
-- **Level 3** (≥500 LOC): spec.md + plan.md + tasks.md using `simple_mode.yaml`
+**Documentation Levels (Progressive Enhancement):**
+- **Level 1** (Baseline): spec.md + plan.md + tasks.md - All tasks get this minimum
+- **Level 2** (Verification): Level 1 + checklist.md - Tasks needing verification
+- **Level 3** (Full): Level 2 + decision-record.md + optional research-spike.md - Complex/architectural tasks
 
-**Note**: All plan commands create AT LEAST Level 2 documentation (spec.md + plan.md) because running a plan command implies the need for a plan.
+**LOC Thresholds (Soft Guidance):**
+- <100 LOC suggests Level 1
+- 100-499 LOC suggests Level 2
+- >=500 LOC suggests Level 3
+
+**Note**: All plan commands create AT LEAST Level 1 documentation (spec.md + plan.md + tasks.md) because running a plan command implies structured planning.
 
 ---
 
@@ -38,7 +44,10 @@ Enter PLANNING MODE to create detailed, verified SpecKit documentation. This com
 **Outputs:** SpecKit documentation at `specs/###-name/`:
   - `spec.md` - Feature specification and requirements (ALL levels)
   - `plan.md` - Technical implementation plan (ALL levels)
-  - `tasks.md` - Task breakdown (Level 3 only)
+  - `tasks.md` - Task breakdown (ALL levels - part of baseline)
+  - `checklist.md` - Verification checklist (Level 2+)
+  - `decision-record.md` - Decision documentation (Level 3)
+  - `research-spike.md` - Research documentation (Level 3, optional)
   - `STATUS=<OK|FAIL|CANCELLED>`
 
 ---
@@ -96,37 +105,38 @@ If no mode override specified, analyze task complexity:
 7. **YAML workflow executes automatically:**
 
    The loaded YAML prompt contains the complete 9-phase workflow (SpecKit aligned):
-   - **Phase 0**: Documentation Level Detection (SpecKit Level 2 or 3)
+   - **Phase 0**: Documentation Level Detection (SpecKit Level 1, 2, or 3)
    - **Phases 1-3**: Task Understanding, Spec Folder Setup, Context Loading
    - **Phases 4-5**: Parallel Exploration (4 Sonnet agents), Hypothesis Verification (Opus)
-   - **Phase 6**: Document Creation (spec.md + plan.md + tasks.md)
+   - **Phase 6**: Document Creation (level-appropriate files)
    - **Phases 7-8**: User Review & Confirmation, Context Persistence
 
    All phases execute sequentially: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
    **Expected outputs:**
-   - Level 2: `specs/###-name/spec.md` + `plan.md`
-   - Level 3: `specs/###-name/spec.md` + `plan.md` + `tasks.md`
+   - Level 1: `specs/###-name/spec.md` + `plan.md` + `tasks.md`
+   - Level 2: Level 1 + `checklist.md`
+   - Level 3: Level 2 + `decision-record.md` (+ optional `research-spike.md`)
 
 ### Step 4: Monitor Progress
 
 8. **Display phase progress to user:**
    ```
-   🔍 Planning Mode Activated (Opus Orchestrator + SpecKit)
+   Planning Mode Activated (Opus Orchestrator + SpecKit)
 
    Task: {task_description}
    Mode: {SIMPLE/COMPLEX} ({loc_estimate} LOC estimated)
-   Documentation Level: {2 or 3}
+   Documentation Level: {1, 2, or 3}
 
-   📊 Phase 0: Documentation Level Detection...
-   📋 Phase 1: Task Understanding & Session Initialization...
-   📁 Phase 2: Spec Folder Setup...
-   🧠 Phase 3: Context Loading...
-   📊 Phase 4: Parallel Exploration (4 Sonnet agents)...
-   🔬 Phase 5: Hypothesis Verification (Opus review)...
-   📝 Phase 6: Document Creation (spec.md + plan.md + tasks.md)...
-   👤 Phase 7: User Review & Confirmation...
-   💾 Phase 8: Context Persistence...
+   Phase 0: Documentation Level Detection...
+   Phase 1: Task Understanding & Session Initialization...
+   Phase 2: Spec Folder Setup...
+   Phase 3: Context Loading...
+   Phase 4: Parallel Exploration (4 Sonnet agents)...
+   Phase 5: Hypothesis Verification (Opus review)...
+   Phase 6: Document Creation (level-appropriate files)...
+   Phase 7: User Review & Confirmation...
+   Phase 8: Context Persistence...
    ```
 
 ---
@@ -181,57 +191,61 @@ If no mode override specified, analyze task complexity:
 ## Example Output
 
 ```
-🔍 Planning Mode Activated (Opus Orchestrator + SpecKit)
+Planning Mode Activated (Opus Orchestrator + SpecKit)
 
 Task: Add user authentication with OAuth2
 Mode: SIMPLE (300 LOC estimated)
 
-📊 Phase 0: Documentation Level Detection
-  ✓ LOC estimate: 300 (<500 LOC)
-  ✓ Documentation Level: 2 (spec.md + plan.md)
-  ✓ Required files: spec.md, plan.md
+Phase 0: Documentation Level Detection
+  LOC estimate: 300 (suggests Level 2)
+  Documentation Level: 2 (Verification)
+  Required files: spec.md, plan.md, tasks.md, checklist.md
 
-📋 Phase 1: Task Understanding & Session Initialization
-  ✓ Task parsed: Implement OAuth2 authentication flow
-  ✓ SESSION_ID extracted: abc123
+Phase 1: Task Understanding & Session Initialization
+  Task parsed: Implement OAuth2 authentication flow
+  SESSION_ID extracted: abc123
 
-📁 Phase 2: Spec Folder Setup
-  ✓ Creating new spec folder: specs/042-oauth2-auth/
-  ✓ Marker set: .spec-active.abc123
+Phase 2: Spec Folder Setup
+  Creating new spec folder: specs/042-oauth2-auth/
+  Marker set: .spec-active.abc123
 
-🧠 Phase 3: Context Loading
-  ℹ No previous memory files found - starting fresh
+Phase 3: Context Loading
+  No previous memory files found - starting fresh
 
-📊 Phase 4: Parallel Exploration (4 Sonnet agents)
-  ├─ Architecture Explorer: analyzing project structure...
-  ├─ Feature Explorer: finding auth patterns...
-  ├─ Dependency Explorer: mapping imports...
-  └─ Test Explorer: reviewing test infrastructure...
-  ✅ Exploration Complete (23 files identified)
+Phase 4: Parallel Exploration (4 Sonnet agents)
+  Architecture Explorer: analyzing project structure...
+  Feature Explorer: finding auth patterns...
+  Dependency Explorer: mapping imports...
+  Test Explorer: reviewing test infrastructure...
+  Exploration Complete (23 files identified)
 
-🔬 Phase 5: Hypothesis Verification (Opus review)
-  ├─ Verifying architecture hypotheses...
-  ├─ Cross-referencing agent findings...
-  └─ Building complete mental model...
-  ✅ Verification Complete
+Phase 5: Hypothesis Verification (Opus review)
+  Verifying architecture hypotheses...
+  Cross-referencing agent findings...
+  Building complete mental model...
+  Verification Complete
 
-📝 Phase 6: Document Creation (SpecKit)
-  ✓ spec.md created: specs/042-oauth2-auth/spec.md
-  ✓ plan.md created: specs/042-oauth2-auth/plan.md
+Phase 6: Document Creation (SpecKit Level 2)
+  spec.md created: specs/042-oauth2-auth/spec.md
+  plan.md created: specs/042-oauth2-auth/plan.md
+  tasks.md created: specs/042-oauth2-auth/tasks.md
+  checklist.md created: specs/042-oauth2-auth/checklist.md
 
-👤 Phase 7: User Review & Confirmation
-  SpecKit Documentation Created:
-  ✅ spec.md - Feature specification and requirements
-  ✅ plan.md - Technical implementation plan
+Phase 7: User Review & Confirmation
+  SpecKit Documentation Created (Level 2):
+  - spec.md - Feature specification and requirements
+  - plan.md - Technical implementation plan
+  - tasks.md - Task breakdown
+  - checklist.md - Verification checklist
 
   Please review and confirm to proceed.
   [User confirms]
-  ✓ Documents re-read (no edits)
+  Documents re-read (no edits)
 
-💾 Phase 8: Context Persistence
-  ✓ Context saved: specs/042-oauth2-auth/memory/28-11-25_14-30__oauth2-auth.md
+Phase 8: Context Persistence
+  Context saved: specs/042-oauth2-auth/memory/28-11-25_14-30__oauth2-auth.md
 
-STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md PATH=specs/042-oauth2-auth/
+STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.md PATH=specs/042-oauth2-auth/
 ```
 
 ---
@@ -240,10 +254,12 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md PATH=specs/042-oaut
 
 - **SpecKit Alignment:**
   - MANDATORY compliance with AGENTS.md Section 2 requirements
-  - Creates Level 2+ documentation (spec.md + plan.md minimum)
-  - Level 3 automatically includes tasks.md for complex features
+  - Creates Level 1+ documentation (spec.md + plan.md + tasks.md baseline)
+  - Level 2 adds checklist.md for verification tasks
+  - Level 3 adds decision-record.md (required) + research-spike.md (optional)
   - All templates from `.opencode/speckit/templates/`
   - Documentation level detection in Phase 0
+  - LOC thresholds are SOFT guidance; hooks enforce HARD requirements
 
 - **YAML Architecture:**
   - Command file (~150 lines): Mode detection + prompt loading
@@ -272,4 +288,4 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md PATH=specs/042-oaut
 - **Future Enhancements:**
   - Complex mode with multi-file plan/ directory (Phase 5 upgrade)
   - Mode selection refinement based on usage patterns
-  - Auto-generation of additional SpecKit templates (research-spike, decision-record)
+  - Enhanced Level 3 support with guided research-spike creation

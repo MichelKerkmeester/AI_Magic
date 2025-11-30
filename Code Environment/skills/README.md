@@ -243,10 +243,10 @@ Starting new feature:
 - **Template Integration**: Automated template selection based on documentation level
 - **Skip Option**: Option D for trivial explorations (creates technical debt warning)
 
-**Decision Levels**:
-- **Level 1 (<100 LOC)**: spec.md + optional checklist.md - Simple isolated changes
-- **Level 2 (<500 LOC)**: spec.md + plan.md + optional tasks.md - Moderate features
-- **Level 3 (≥500 LOC)**: Full SpecKit - Complex features with ADRs, spikes
+**Decision Levels** (Progressive Enhancement):
+- **Level 1 (Baseline)**: spec.md + plan.md + tasks.md - All features start here
+- **Level 2 (Verification)**: Level 1 + checklist.md - Features needing QA validation
+- **Level 3 (Full)**: Level 2 + decision-record.md + optional research-spike.md - Complex features
 
 **When to Use**:
 - Before ANY file modifications (code, docs, config, templates)

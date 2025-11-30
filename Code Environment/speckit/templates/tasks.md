@@ -250,11 +250,11 @@ tasks([SPEC_ID]): short action
 - Team needs clear task assignments and dependencies
 - Tasks span multiple phases or team members
 
-**Skip tasks.md when:**
-- Using Level 1 (simple changes - spec.md sufficient)
-- Feature is simple enough to track in spec.md alone
-- Single-developer, single-session work
-- Task breakdown doesn't add value
+**Never skip tasks.md:**
+- tasks.md is REQUIRED for ALL levels (Level 1, 2, and 3)
+- Even simple features benefit from task tracking
+- Use a minimal task list for straightforward features
+- Single-developer work still benefits from task organization
 
 **Related templates:**
 - Generate tasks.md AFTER completing plan.md

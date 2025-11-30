@@ -141,11 +141,11 @@ Custom checklist for feature validation, testing, or review purposes generated b
 - Security or performance review requires documented checks
 - Team needs shared checklist for consistent validation
 
-**Skip checklist.md when:**
-- Feature is simple with obvious completion criteria
-- Validation steps are covered in spec.md acceptance criteria
-- No formal review or quality gates required
-- Single-developer work with informal validation
+**Never skip checklist.md for Level 2+:**
+- checklist.md is REQUIRED for Level 2 (Verification) and Level 3 (Full)
+- For Level 1 (Baseline), checklist.md is optional
+- Even simple features benefit from documented validation criteria
+- Use a minimal checklist for straightforward features
 
 **Common checklist types:**
 - **Pre-Implementation**: Readiness checks before starting work

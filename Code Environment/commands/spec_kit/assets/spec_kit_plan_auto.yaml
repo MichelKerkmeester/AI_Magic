@@ -71,16 +71,60 @@ field_handling:
     rule: "Limit file operations to scope when provided"
 
 # ─────────────────────────────────────────────────────────────────
+# DOCUMENTATION LEVELS (Progressive Enhancement)
+# ─────────────────────────────────────────────────────────────────
+documentation_levels:
+  level_1_baseline:
+    name: "Level 1 (Baseline)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    loc_guidance: "<100 LOC"
+    use_case: "Simple changes, bug fixes, minor features"
+
+  level_2_verification:
+    name: "Level 2 (Verification)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    - checklist.md
+    loc_guidance: "100-499 LOC"
+    use_case: "Medium features, refactoring, multi-file changes"
+
+  level_3_full:
+    name: "Level 3 (Full)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    - checklist.md
+    - decision-record.md
+    optional_files:
+    - research-spike.md
+    loc_guidance: ">=500 LOC"
+    use_case: "Complex features, architecture changes, high-risk modifications"
+
+  level_selection:
+    note: "LOC thresholds are SOFT GUIDANCE - choose level based on complexity and risk"
+    default: "Level 1 for simple tasks, escalate based on analysis"
+
+# ─────────────────────────────────────────────────────────────────
 # AVAILABLE TEMPLATES
 # ─────────────────────────────────────────────────────────────────
 available_templates:
-  spec: .opencode/speckit/templates/spec_template.md
-  plan: .opencode/speckit/templates/plan_template.md
-  tasks: .opencode/speckit/templates/tasks_template.md
-  checklist: .opencode/speckit/templates/checklist_template.md
-  research: .opencode/speckit/templates/research_template.md
-  research_spike: .opencode/speckit/templates/research_spike_template.md
-  decision_record: .opencode/speckit/templates/decision_record_template.md
+  # Level 1+ (Baseline - required at all levels)
+  spec: .opencode/speckit/templates/spec.md
+  plan: .opencode/speckit/templates/plan.md
+  tasks: .opencode/speckit/templates/tasks.md
+  # Level 2+ (Verification)
+  checklist: .opencode/speckit/templates/checklist.md
+  # Level 3 (Full)
+  decision_record: .opencode/speckit/templates/decision-record.md
+  # Optional (any level)
+  research: .opencode/speckit/templates/research.md
+  research_spike: .opencode/speckit/templates/research-spike.md
 
 # ─────────────────────────────────────────────────────────────────
 # WORKFLOW (7 STEPS)
@@ -124,14 +168,17 @@ workflow:
     - Generate concise short name for branch
     - Check for existing branches
     - Run create-new-feature.sh script
-    - Estimate complexity and select documentation level
-    - Load and fill spec_template.md
+    - Estimate complexity and select documentation level using progressive enhancement:
+      - Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md
+      - Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md
+      - Level 3 (Full): >=500 LOC - Level 2 + decision-record.md
+    - Load and fill spec.md
     - Generate functional requirements
     - Define success criteria
     outputs:
     - feature_branch: created
     - spec.md: acceptance_criteria
-    template: .opencode/speckit/templates/spec_template.md
+    template: .opencode/speckit/templates/spec.md
     validation: spec_complete
 
   step_4_clarification:
@@ -149,15 +196,17 @@ workflow:
     validation: requirements_clear
 
   step_5_quality_checklist:
-    purpose: Generate validation checklist
+    purpose: Generate validation checklist (Level 2+ requirement)
+    level_requirement: "Level 2+ (Verification and Full)"
     activities:
-    - Load checklist_template.md
+    - Check documentation level - skip for Level 1, required for Level 2+
+    - Load checklist.md template
     - Generate domain-specific validation items
     - Create checklist file
     - Run validation check
     outputs:
     - quality_checklist: generated
-    template: .opencode/speckit/templates/checklist_template.md
+    template: .opencode/speckit/templates/checklist.md
     validation: checklist_generated
 
   step_6_planning:
@@ -184,7 +233,7 @@ workflow:
     # FALLBACK: Inline planning if skill invocation fails
     activities:
     - Run setup-plan.sh --json
-    - Load plan_template.md
+    - Load plan.md
     - Fill Technical Context
     - Fill Constitution Check section
     - Phase 0: Generate research.md to resolve unknowns
@@ -199,7 +248,7 @@ workflow:
     - plan.md: technical_approach
     - planning-summary.md: overview
     - research.md: resolved_unknowns
-    template: .opencode/speckit/templates/plan_template.md
+    template: .opencode/speckit/templates/plan.md
     validation: approach_defined
 
   step_7_save_context:

@@ -1,46 +1,67 @@
 # ⚡ Quick Reference - Commands, Checklists & Troubleshooting
 
-Fast lookup for commands, checklists, and troubleshooting common spec folder scenarios. Use this as your quick-start guide for template copy commands, folder naming, and essential workflows.
+Fast lookup for commands, checklists, and troubleshooting using the **progressive enhancement** model. Each level BUILDS on the previous - higher levels include all files from lower levels.
 
----
-
-## 1. 🎯 LEVEL DECISION SHORTCUTS
-
-| Situation | Level | Core Templates | Supporting Templates |
-|-----------|-------|----------------|---------------------|
-| Typo, bug fix, <100 lines | 1 | spec.md | checklist.md |
-| Feature, <500 lines | 2 | spec.md + plan.md | tasks.md, checklist.md, research-spike-*.md |
-| Complex, 500+ lines | 3 | SpecKit (auto) | checklist.md |
-
----
-
-## 2. 💻 TEMPLATE COPY COMMANDS
-
-### Core Templates
-
-```bash
-## Level 1:
-cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
-
-## Level 2:
-cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
-cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
+**Progressive Enhancement Model:**
+```
+Level 1 (Baseline):     spec.md + plan.md + tasks.md
+Level 2 (Verification): Level 1 + checklist.md
+Level 3 (Full):         Level 2 + decision-record.md + optional research
 ```
 
-### Supporting Templates
+**Key Points:**
+- LOC thresholds are **SOFT GUIDANCE** (not enforcement)
+- **Enforcement is HARD** - hooks block commits with missing required templates
+
+---
+
+## 1. 🎯 LEVEL DECISION SHORTCUTS (Progressive Enhancement)
+
+| Situation | Level | Required Templates | Optional Templates |
+|-----------|-------|-------------------|-------------------|
+| Any task (baseline) | 1 | spec.md + plan.md + tasks.md | None |
+| Needs QA validation | 2 | L1 + checklist.md | None |
+| Complex/architectural | 3 | L2 + decision-record.md | research-spike.md, research.md |
+
+**LOC as soft guidance:**
+- <100 LOC suggests Level 1
+- 100-499 LOC suggests Level 2
+- >=500 LOC suggests Level 3
+
+---
+
+## 2. 💻 TEMPLATE COPY COMMANDS (Progressive)
+
+### Level 1: Baseline (ALL features start here)
 
 ```bash
-## Tasks (after plan, before coding):
+cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
+cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
 cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
+```
 
-## Checklist (validation needs):
+### Level 2: Add Verification (to Level 1)
+
+```bash
+## First copy all Level 1 files, then add:
 cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
+```
 
-## Decision Record (use descriptive name):
-cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-database.md
+### Level 3: Add Decision Record (to Level 2)
 
+```bash
+## First copy all Level 2 files, then add:
+cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
+```
+
+### Optional Templates (Level 3 Only)
+
+```bash
 ## Research-Spike (use descriptive name):
 cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md
+
+## Comprehensive Research:
+cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md
 ```
 
 ---
@@ -88,21 +109,25 @@ Context saved to `specs/###-folder/memory/` or `memory/` (fallback).
 
 ---
 
-## 4. ✅ PRE-IMPLEMENTATION CHECKLIST
+## 4. ✅ PRE-IMPLEMENTATION CHECKLIST (Progressive Enhancement)
 
 Before making ANY file changes, verify:
 
 - [ ] Determined level (1/2/3) or exempt (typo fix)
 - [ ] Created `/specs/[###-short-name]/`
-- [ ] Copied appropriate templates from `.claude/commands/spec_kit/assets/templates/`
+- [ ] Copied ALL REQUIRED templates for chosen level:
+  - [ ] Level 1: spec.md + plan.md + tasks.md
+  - [ ] Level 2: Level 1 + checklist.md
+  - [ ] Level 3: Level 2 + decision-record.md
 - [ ] Renamed templates correctly
-- [ ] Filled core template sections with actual content
+- [ ] Filled ALL template sections with actual content
 - [ ] Removed placeholder text and sample sections
-- [ ] Identified and copied needed supporting templates
+- [ ] Copied optional templates if needed (Level 3 only)
 - [ ] Presented approach to user (including templates used)
 - [ ] Got explicit approval ("yes"/"go ahead"/"proceed")
 
 **If ANY unchecked → STOP**
+**If required template missing → Hook blocks commit**
 
 ---
 
@@ -171,19 +196,19 @@ When hook prompts at conversation start:
 
 ---
 
-## 9. 🔄 LEVEL MIGRATION
+## 9. 🔄 LEVEL MIGRATION (Progressive Enhancement)
 
-If scope grows during implementation:
+If scope grows during implementation, add the required files:
 
-| From | To | Action |
-|------|----|---------|
-| 1 → 2 | Add `plan.md` to same folder |
-| 2 → 3 | Use `/spec_kit:plan` in same folder |
+| From | To | Files to Add |
+|------|----|--------------|
+| 1 → 2 | Add verification | checklist.md |
+| 2 → 3 | Add decision documentation | decision-record.md (+ optional research-spike.md) |
 
 **Always:**
 - Update `level:` field in metadata
 - Add changelog entry noting escalation
-- Keep existing documentation (don't delete)
+- Keep existing documentation (progressive - don't delete)
 - Inform user of level change
 
 ---
@@ -323,11 +348,15 @@ Skipping documentation:
 
 ---
 
-## 13. ✅ TEMPLATE ADAPTATION CHECKLIST
+## 13. ✅ TEMPLATE ADAPTATION CHECKLIST (Progressive Enhancement)
 
 Before presenting documentation to user:
 
-- [ ] All templates copied from `.claude/commands/spec_kit/assets/templates/` (not from scratch)
+- [ ] All REQUIRED templates for level copied from `.claude/commands/spec_kit/assets/templates/`:
+  - [ ] Level 1: spec.md + plan.md + tasks.md
+  - [ ] Level 2: Level 1 + checklist.md
+  - [ ] Level 3: Level 2 + decision-record.md
+- [ ] Optional templates copied if needed (Level 3 only)
 - [ ] All placeholders replaced (`[PLACEHOLDER]`, `[NEEDS CLARIFICATION: ...]`)
 - [ ] All sample content removed (`<!-- SAMPLE CONTENT -->`)
 - [ ] Template footer deleted
@@ -339,6 +368,7 @@ Before presenting documentation to user:
 - [ ] Descriptive filenames used (for decision records and research-spikes)
 
 **If ANY unchecked → Fix before user presentation**
+**If required template missing → Hook blocks commit**
 
 ---
 
@@ -359,15 +389,25 @@ Before presenting documentation to user:
 
 ---
 
-## 15. 🤖 AGENT CRITICAL RULES
+## 15. 🤖 AGENT CRITICAL RULES (Progressive Enhancement)
 
 ### Absolutely Required
 
 - **NEVER create documentation from scratch** - Always copy from templates
 - **ALWAYS copy from `.claude/commands/spec_kit/assets/templates/`** directory
+- **ALWAYS copy ALL REQUIRED templates for chosen level**:
+  - Level 1: spec.md + plan.md + tasks.md
+  - Level 2: Level 1 + checklist.md
+  - Level 3: Level 2 + decision-record.md
 - **ALWAYS fill ALL placeholders** - No `[PLACEHOLDER]` in final docs
 - **ALWAYS respond to hook prompts** - Ask user for A/B/C/D choice
 - **ALWAYS get user approval** - Explicit "yes" before file changes
+
+### Hard Enforcement
+
+- **Hooks block commits** if required templates missing for level
+- **LOC thresholds are soft guidance** - use judgment
+- **Enforcement is hard** - missing files = blocked commit
 
 ### Applies to ALL
 

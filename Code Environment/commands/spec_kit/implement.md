@@ -32,12 +32,16 @@ $ARGUMENTS
 
 ## Prerequisites
 
-**REQUIRED**: This command requires existing planning artifacts:
+**REQUIRED** (Level 1 baseline - all levels):
 - `spec.md` - Feature specification
 - `plan.md` - Technical plan
+- `tasks.md` - Task breakdown (will be created if missing)
 
-**OPTIONAL** (will be created if missing):
-- `tasks.md` - Task breakdown
+**REQUIRED for Level 2+:**
+- `checklist.md` - Validation checklist
+
+**REQUIRED for Level 3:**
+- `decision-record.md` - Architecture Decision Records
 
 If prerequisites are missing, guide user to run `/spec_kit:plan` first.
 
@@ -175,10 +179,20 @@ Please run /spec_kit:plan first to create planning artifacts.
 | Checklist failures | Prompt user to proceed or fix |
 | Test failures | Log and report, allow user decision |
 
+## Documentation Levels (Progressive Enhancement)
+
+| Level | Required Files | LOC Guidance | Use Case |
+|-------|---------------|--------------|----------|
+| **Level 1 (Baseline)** | spec.md + plan.md + tasks.md | <100 LOC | Simple changes, bug fixes |
+| **Level 2 (Verification)** | Level 1 + checklist.md | 100-499 LOC | Medium features, refactoring |
+| **Level 3 (Full)** | Level 2 + decision-record.md | >=500 LOC | Complex features, architecture changes |
+
+**Note:** LOC thresholds are soft guidance. Choose level based on complexity and risk.
+
 ## Templates Used
 
-- `.opencode/speckit/templates/tasks_template.md`
-- `.opencode/speckit/templates/checklist_template.md`
+- `.opencode/speckit/templates/tasks.md` (Level 1+)
+- `.opencode/speckit/templates/checklist.md` (Level 2+)
 
 ## Completion Report
 

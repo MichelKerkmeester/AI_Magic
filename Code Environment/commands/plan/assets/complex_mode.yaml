@@ -7,9 +7,10 @@
 
 role: Expert Planning Orchestrator (Opus) for Complex Features
 purpose: Create comprehensive SpecKit Level 3 documentation with multi-file plan
-action: Execute 9-phase planning workflow with spec.md + plan/ directory + tasks.md
+action: Execute 9-phase planning workflow with full Level 3 documentation
 status: STUB - To be implemented in Phase 5 of upgrade
 speckit_alignment: "MANDATORY - creates Level 3 documentation per AGENTS.md Section 2"
+level_structure: "Progressive Enhancement - Level 3 includes all Level 1 and 2 files"
 
 # ───────────────────────────────────────────────────────────────────
 # WORKFLOW METADATA
@@ -18,11 +19,17 @@ workflow_metadata:
   name: "Complex Mode Planning"
   mode: "complex"
   target_features: "Features ≥500 LOC, multiple iterations, high complexity"
-  output: "SpecKit Level 3: spec.md + plan/ directory + tasks.md"
+  output: "SpecKit Level 3: spec.md + plan.md + tasks.md + checklist.md + decision-record.md + plan/ directory"
   phases: 9
   estimated_duration: "60-120 seconds"
   implementation_status: "STUB - Future enhancement"
   speckit_level: 3
+  level_structure: |
+    Progressive Enhancement Model:
+    - Level 1 (Baseline): spec.md + plan.md + tasks.md
+    - Level 2 (Verification): Level 1 + checklist.md
+    - Level 3 (Full): Level 2 + decision-record.md + optional research-spike.md
+    Complex mode ALWAYS creates Level 3 (includes all files from Level 1 and 2)
 
 # ───────────────────────────────────────────────────────────────────
 # INCLUDED WORKFLOWS
@@ -396,14 +403,37 @@ phase_6_document_creation_complex:
 
   planned_structure:
     speckit_files:
+      note: "Level 3 includes ALL files from Level 1 and Level 2 (progressive enhancement)"
       spec_md:
         path: "{spec_folder_path}/spec.md"
-        template: ".opencode/speckit/templates/spec_template.md"
+        template: ".opencode/speckit/templates/spec.md"
         purpose: "Requirements and user stories (MANDATORY - created FIRST)"
+        level: "ALL (baseline)"
+      plan_md:
+        path: "{spec_folder_path}/plan.md"
+        template: ".opencode/speckit/templates/plan.md"
+        purpose: "Technical implementation plan (MANDATORY)"
+        level: "ALL (baseline)"
       tasks_md:
         path: "{spec_folder_path}/tasks.md"
-        template: ".opencode/speckit/templates/tasks_template.md"
-        purpose: "Task breakdown organized by user story (MANDATORY for Level 3)"
+        template: ".opencode/speckit/templates/tasks.md"
+        purpose: "Task breakdown organized by user story (MANDATORY)"
+        level: "ALL (baseline)"
+      checklist_md:
+        path: "{spec_folder_path}/checklist.md"
+        template: ".opencode/speckit/templates/checklist.md"
+        purpose: "Verification checklist for QA (MANDATORY for Level 2+)"
+        level: "Level 2+"
+      decision_record_md:
+        path: "{spec_folder_path}/decision-record.md"
+        template: ".opencode/speckit/templates/decision-record.md"
+        purpose: "Architecture Decision Record (MANDATORY for Level 3)"
+        level: "Level 3"
+      research_spike_md:
+        path: "{spec_folder_path}/research-spike.md"
+        template: ".opencode/speckit/templates/research-spike.md"
+        purpose: "Research documentation (OPTIONAL for Level 3)"
+        level: "Level 3 (optional)"
 
     plan_directory: "{spec_folder_path}/plan/"
     plan_files:
@@ -623,29 +653,43 @@ future_implementation:
 # ───────────────────────────────────────────────────────────────────
 complex_mode_features:
   file_output:
-    type: "Multi-file directory"
+    type: "Multi-file directory with full Level 3 documentation"
     path: "{spec_folder_path}/plan/"
     size: "600-1500 lines total across multiple files"
+    level: "Level 3 (Full) - includes all Level 1 and Level 2 files"
 
   structure:
-    overview_file: "01_overview.md"
-    iteration_files: "02_iteration_NNN.md (one per iteration)"
-    verification_file: "03_verification.md"
-    manifest: "plan_manifest.json"
-    anchors: "20-50 granular anchors"
+    level_3_files:
+      baseline: "spec.md + plan.md + tasks.md (from Level 1)"
+      verification: "checklist.md (from Level 2)"
+      full: "decision-record.md + optional research-spike.md (Level 3)"
+    plan_directory:
+      overview_file: "01_overview.md"
+      iteration_files: "02_iteration_NNN.md (one per iteration)"
+      verification_file: "03_verification.md"
+      manifest: "plan_manifest.json"
+      anchors: "20-50 granular anchors"
+
+  loc_threshold:
+    suggestion: ">=500 LOC suggests Level 3"
+    note: "LOC is SOFT guidance; complexity factors can override"
 
   target_features:
-    loc: "≥500 LOC"
-    iterations: "≥4"
+    loc: ">=500 LOC (soft threshold)"
+    iterations: ">=4"
     complexity: "High"
     file_count: "10+ files"
+    risk: "Architecture changes, security, data migration"
 
   advantages:
-    - "Manageable file sizes (≤500 lines each)"
+    - "Full Level 3 documentation with progressive enhancement"
+    - "Manageable file sizes (<=500 lines each)"
     - "Easy iteration navigation"
     - "Machine-readable manifest for agents"
     - "Granular section anchors"
     - "Scalable to 20+ iterations"
+    - "Complete decision documentation for architectural choices"
+    - "Verification checklist for quality assurance"
 
   when_to_use:
     - "Major features with multiple iterations"
@@ -653,6 +697,8 @@ complex_mode_features:
     - "Large refactorings"
     - "Multi-module changes"
     - "Features requiring extensive documentation"
+    - "Architecture changes requiring decision records"
+    - "High-risk modifications needing verification tracking"
 
 # ───────────────────────────────────────────────────────────────────
 # STATUS SUMMARY
