@@ -55,21 +55,13 @@ fi
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
 # ───────────────────────────────────────────────────────────────
-# DEDUPLICATION - CHECK IF SKILL ALREADY ACTIVATED
-# ───────────────────────────────────────────────────────────────
-# Don't spam if validate-skill-activation.sh already suggested mcp-semantic-search
-
-# Check if this prompt is for implementation (not exploration)
-# If implementing, validate-skill-activation.sh will handle skill suggestions
-if echo "$PROMPT_LOWER" | grep -qiE '\b(implement|create|add|build|fix|refactor|write|update|change|modify|remove|delete)\b'; then
-  # Implementation detected - let validate-skill-activation.sh handle it
-  exit 0
-fi
-
-# ───────────────────────────────────────────────────────────────
 # INTELLIGENT TRIGGER PATTERNS
 # ───────────────────────────────────────────────────────────────
 # Context-aware triggers for different exploration scenarios
+# Note: validate-skill-activation.sh now has mcp-semantic-search in
+# skill-rules.json, so both hooks provide complementary suggestions:
+# - validate-skill-activation.sh: Skill descriptions and documentation
+# - This hook: Contextual query templates and exploration guidance
 
 SHOULD_SUGGEST=false
 SUGGESTION_TYPE=""

@@ -2,7 +2,7 @@
 
 Implementation plan defining technical approach, project structure, and execution strategy.
 
-<!-- SPECKIT_TEMPLATE_SOURCE: plan_template | v1.0 -->
+<!-- SPECKIT_TEMPLATE_SOURCE: plan | v1.0 -->
 
 ---
 
@@ -340,7 +340,7 @@ ios/ or android/
 
 - **Feature Specification**: See `spec.md` for requirements and user stories
 - **Task Breakdown**: See `tasks.md` for implementation task list
-- **Checklist**: See `.opencode/speckit/templates/checklist_template.md` for validation
+- **Checklist**: See `.opencode/speckit/templates/checklist.md` for validation
 
 ### Additional References
 
@@ -361,7 +361,7 @@ ios/ or android/
 - Testing strategy and success metrics must be documented upfront
 
 **Skip plan.md when:**
-- Using Level 0 or Level 1 (trivial or simple changes - README.md or spec.md sufficient)
+- Using Level 1 (simple changes - spec.md sufficient)
 - Feature is straightforward with obvious implementation approach
 - No phases, testing strategy, or coordination needed
 

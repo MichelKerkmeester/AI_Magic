@@ -236,7 +236,175 @@ call_tool_chain({
 
 ---
 
-## 5. 📋 RULES
+## 5. 🏗️ PROJECT CONFIGURATION
+
+### Two MCP Configuration Systems
+
+**IMPORTANT**: Code Mode only accesses tools in `.utcp_config.json`. Sequential Thinking is NOT accessed through Code Mode.
+
+**1. Native MCP** (`.mcp.json`) - Direct tools:
+- **Sequential Thinking**: Called directly, NEVER through Code Mode
+  - Tools: `process_thought()`, `generate_summary()`
+  - Use native MCP interface, not `call_tool_chain()`
+  - **Environment-specific utility**:
+    - **Claude Code**: NOT recommended - use native ultrathink (extended thinking) instead
+    - **VSCode/Copilot/OpenCode**: Valuable - provides reasoning structure those environments lack
+    - **Why**: Claude Code has superior built-in thinking; Sequential Thinking MCP is for other environments
+- **Code Mode server**: The Code Mode tool itself
+
+**2. Code Mode MCP** (`.utcp_config.json`) - External tools accessed through Code Mode:
+- **MCP Config**: `.utcp_config.json` (project root)
+- **Environment Variables**: `.env` (project root)
+- **Vector Database**: `.codebase/vectors.db` (for semantic search if configured)
+- **All external tools**: Webflow, Figma, Chrome DevTools, Semantic Search, etc.
+
+### How to Discover Available Code Mode Tools
+
+**These discovery methods ONLY work for Code Mode tools in `.utcp_config.json`**
+**They do NOT show Sequential Thinking (which is in `.mcp.json`)**
+
+**Step 1: Check Configuration**
+```typescript
+// Read .utcp_config.json to see configured Code Mode MCP servers
+// Look for "manual_call_templates" array
+// Each object has a "name" field (this is the manual name)
+// Check "disabled" field - if true, server is not active
+
+// NOTE: Sequential Thinking is NOT in this file
+// Sequential Thinking is in .mcp.json and called directly
+```
+
+**Step 2: Use Progressive Discovery**
+```typescript
+// Search for Code Mode tools by description
+const tools = await search_tools({
+  task_description: "browser automation",
+  limit: 10
+});
+
+// List all available Code Mode tools
+const allTools = await list_tools();
+
+// Get info about a specific Code Mode tool
+const info = await tool_info({
+  tool_name: "server_name.server_name_tool_name"
+});
+
+// NOTE: These discovery tools are part of Code Mode
+// They only show tools configured in .utcp_config.json
+// Sequential Thinking will NOT appear in these results
+```
+
+### Critical Naming Convention (Code Mode Tools Only)
+
+**Code Mode tools** in `.utcp_config.json` follow this pattern: `{manual_name}.{manual_name}_{tool_name}`
+
+**Examples (Code Mode)**:
+- Config has `"name": "webflow"` → Use `webflow.webflow_sites_list({})`
+- Config has `"name": "chrome_devtools_1"` → Use `chrome_devtools_1.chrome_devtools_1_navigate({})`
+
+**Common Mistakes**:
+- ❌ `webflow.sites_list()` - Missing manual prefix
+- ✅ `webflow.webflow_sites_list()` - Correct pattern
+
+**Sequential Thinking Exception**:
+- NOT in `.utcp_config.json` - uses native MCP tools
+- Call directly: `process_thought()`, `generate_summary()`
+- Does NOT use `{manual_name}.{manual_name}_{tool_name}` pattern
+- Does NOT use `call_tool_chain()`
+- **For Claude Code users**: Use native ultrathink instead - it's superior to Sequential Thinking MCP
+- **For VSCode/Copilot/OpenCode users**: Sequential Thinking MCP provides value those environments lack
+
+### Configuration Structure
+
+```json
+{
+  "manual_call_templates": [
+    {
+      "name": "manual_name",
+      "call_template_type": "mcp",
+      "config": {
+        "mcpServers": {
+          "manual_name": {
+            "transport": "stdio",
+            "command": "npx",
+            "args": ["package-name"],
+            "env": {},
+            "disabled": false
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+### Generic Multi-Tool Workflow Pattern
+
+```typescript
+call_tool_chain({
+  code: `
+    // Step 1: Discover what tools are available
+    const availableTools = await search_tools({
+      task_description: "your task here",
+      limit: 10
+    });
+
+    console.log("Available tools:", availableTools);
+
+    // Step 2: Call tools using correct naming pattern
+    // Pattern: {manual_name}.{manual_name}_{tool_name}
+    const result = await manual_name.manual_name_tool_name({
+      // parameters here
+    });
+
+    // Step 3: Chain multiple tools if needed
+    const result2 = await another_manual.another_manual_other_tool({
+      data: result.output
+    });
+
+    return { result, result2 };
+  `,
+  timeout: 60000
+});
+```
+
+### How to Check Active Code Mode Servers
+
+**IMPORTANT**: This only shows Code Mode servers in `.utcp_config.json`, NOT Sequential Thinking
+
+```typescript
+// This code shows how to discover what Code Mode tools are configured
+call_tool_chain({
+  code: `
+    // List all available tools from all active Code Mode MCP servers
+    // NOTE: This will NOT include Sequential Thinking
+    const allTools = await list_tools();
+
+    // Group by server (manual name is prefix before first dot)
+    const servers = {};
+    allTools.forEach(tool => {
+      const serverName = tool.split('.')[0];
+      if (!servers[serverName]) servers[serverName] = [];
+      servers[serverName].push(tool);
+    });
+
+    console.log("Active Code Mode servers:", Object.keys(servers));
+    console.log("Tool counts:", Object.fromEntries(
+      Object.entries(servers).map(([k, v]) => [k, v.length])
+    ));
+
+    console.log("NOTE: Sequential Thinking is NOT in this list");
+    console.log("Sequential Thinking is a native MCP tool, not a Code Mode tool");
+
+    return servers;
+  `
+});
+```
+
+---
+
+## 6. 📋 RULES
 
 ### ✅ ALWAYS 
 
@@ -270,7 +438,7 @@ call_tool_chain({
 
 ---
 
-## 6. 🎓 SUCCESS CRITERIA
+## 7. 🎓 SUCCESS CRITERIA
 
 **Code Mode implementation complete when**:
 
@@ -287,7 +455,7 @@ call_tool_chain({
 
 ---
 
-## 7. 🔗 INTEGRATION POINTS
+## 8. 🔗 INTEGRATION POINTS
 
 ### Cross-Skill Collaboration
 
@@ -330,7 +498,7 @@ call_tool_chain({
 
 ---
 
-## 8. 🎯 QUICK REFERENCE
+## 9. 🎯 QUICK REFERENCE
 
 ### Essential Commands
 
@@ -390,7 +558,7 @@ call_tool_chain({
 
 ---
 
-## 9. 📚 ADDITIONAL RESOURCES
+## 10. 📚 ADDITIONAL RESOURCES
 
 ### Configuration Files
 

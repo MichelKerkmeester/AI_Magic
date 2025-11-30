@@ -103,28 +103,28 @@ validate_all_template_sources() {
 
   # Validate spec.md (if exists)
   if [ -f "${spec_folder}/spec.md" ]; then
-    if ! validate_template_source "${spec_folder}/spec.md" "spec_template" 2>&1; then
+    if ! validate_template_source "${spec_folder}/spec.md" "spec" 2>&1; then
       has_warnings=true
     fi
   fi
 
   # Validate plan.md (if exists)
   if [ -f "${spec_folder}/plan.md" ]; then
-    if ! validate_template_source "${spec_folder}/plan.md" "plan_template" 2>&1; then
+    if ! validate_template_source "${spec_folder}/plan.md" "plan" 2>&1; then
       has_warnings=true
     fi
   fi
 
   # Validate tasks.md (if exists)
   if [ -f "${spec_folder}/tasks.md" ]; then
-    if ! validate_template_source "${spec_folder}/tasks.md" "tasks_template" 2>&1; then
+    if ! validate_template_source "${spec_folder}/tasks.md" "tasks" 2>&1; then
       has_warnings=true
     fi
   fi
 
   # Validate README.md (if exists)
   if [ -f "${spec_folder}/README.md" ]; then
-    if ! validate_template_source "${spec_folder}/README.md" "readme_template" 2>&1; then
+    if ! validate_template_source "${spec_folder}/README.md" "README" 2>&1; then
       has_warnings=true
     fi
   fi
@@ -146,21 +146,21 @@ validate_all_section_completeness() {
 
   # Validate spec.md (if exists)
   if [ -f "${spec_folder}/spec.md" ]; then
-    if ! validate_section_completeness "${spec_folder}/spec.md" "spec_template" 2>&1; then
+    if ! validate_section_completeness "${spec_folder}/spec.md" "spec" 2>&1; then
       has_errors=true
     fi
   fi
 
   # Validate plan.md (if exists)
   if [ -f "${spec_folder}/plan.md" ]; then
-    if ! validate_section_completeness "${spec_folder}/plan.md" "plan_template" 2>&1; then
+    if ! validate_section_completeness "${spec_folder}/plan.md" "plan" 2>&1; then
       has_errors=true
     fi
   fi
 
   # Validate tasks.md (if exists)
   if [ -f "${spec_folder}/tasks.md" ]; then
-    if ! validate_section_completeness "${spec_folder}/tasks.md" "tasks_template" 2>&1; then
+    if ! validate_section_completeness "${spec_folder}/tasks.md" "tasks" 2>&1; then
       has_errors=true
     fi
   fi

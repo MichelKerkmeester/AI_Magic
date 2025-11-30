@@ -183,11 +183,11 @@ Agents generate **hypotheses** based on their exploration. These are unverified 
 
 ### Template Usage
 
-Plans use `.claude/commands/spec_kit/assets/templates/plan_template.md` structure:
+Plans use `.claude/commands/spec_kit/assets/templates/plan.md` structure:
 
 ```yaml
 read_template:
-  path: ".claude/commands/spec_kit/assets/templates/plan_template.md"
+  path: ".claude/commands/spec_kit/assets/templates/plan.md"
   purpose: "Base structure for plan"
   requirement: "Preserve all section headings"
 ```

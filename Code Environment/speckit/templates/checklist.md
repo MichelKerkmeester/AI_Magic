@@ -2,7 +2,7 @@
 
 Custom checklist for feature validation, testing, or review purposes generated based on feature context.
 
-<!-- SPECKIT_TEMPLATE_SOURCE: checklist_template | v1.0 -->
+<!-- SPECKIT_TEMPLATE_SOURCE: checklist | v1.0 -->
 
 ---
 

@@ -89,8 +89,8 @@ These factors can push you to a higher level even if LOC suggests lower:
 
 | Template | Use When | Time Investment | Output |
 |----------|----------|-----------------|--------|
-| **research_template.md** | Deep technical investigation spanning multiple areas BEFORE implementation | 1-2 days | Comprehensive findings document |
-| **research_spike_template.md** | Time-boxed experimentation to answer specific technical questions | 1-3 hours | Go/no-go decision with rationale |
+| **research.md** | Deep technical investigation spanning multiple areas BEFORE implementation | 1-2 days | Comprehensive findings document |
+| **research-spike.md** | Time-boxed experimentation to answer specific technical questions | 1-3 hours | Go/no-go decision with rationale |
 
 **Decision logic:**
 - **Need to explore multiple approaches?** → Use spike (compare options quickly)

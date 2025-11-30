@@ -61,26 +61,26 @@ Orchestrates mandatory spec folder creation for all conversations involving file
 def route_conversation_resources(task):
     # level 1: simple changes (< 100 LOC)
     if task.estimated_loc < 100:
-        return load("templates/spec_template.md")  # spec.md only
-    
+        return load("templates/spec.md")  # spec.md only
+
     # level 2: moderate changes (100-499 LOC)
     if task.estimated_loc < 500:
-        load("templates/spec_template.md")  # spec.md
-        return load("templates/plan_template.md")  # + plan.md
-    
+        load("templates/spec.md")  # spec.md
+        return load("templates/plan.md")  # + plan.md
+
     # level 3: complex changes (>= 500 LOC)
     if task.estimated_loc >= 500:
         return execute("/spec_kit:complete")  # auto-generates all core files
-    
+
     # supporting templates (optional, load as needed)
     if task.needs_task_breakdown:
-        return load("templates/tasks_template.md")
+        return load("templates/tasks.md")
     if task.needs_validation_checklist:
-        return load("templates/checklist_template.md")
+        return load("templates/checklist.md")
     if task.documenting_decision:
-        return load("templates/decision_record_template.md")
+        return load("templates/decision-record.md")
     if task.doing_research:
-        return load("templates/research_spike_template.md")
+        return load("templates/research-spike.md")
 
 # levels: 1 (< 100 LOC), 2 (100-499 LOC), 3 (>= 500 LOC)
 # high risk/complexity bumps to at least level 2
@@ -95,7 +95,7 @@ def route_conversation_resources(task):
 
 | Document | Purpose | Key Insight |
 |----------|---------|-------------|
-| **Conversation Documentation - Main Workflow** | Orchestrates spec folder creation for all file modifications | **Hook-assisted enforcement with 4-level decision framework** |
+| **Conversation Documentation - Main Workflow** | Orchestrates spec folder creation for all file modifications | **Hook-assisted enforcement with 3-level decision framework** |
 
 ### Bundled Resources
 
@@ -112,7 +112,7 @@ def route_conversation_resources(task):
 
 ## 4. ⚙️ HOW IT WORKS
 
-### 4-Level Decision Framework
+### 3-Level Decision Framework
 
 The conversation documentation system uses a graduated approach based on Lines of Code (LOC) and complexity:
 
@@ -120,7 +120,7 @@ The conversation documentation system uses a graduated approach based on Lines o
 - Localized to one component or trivial changes
 - Clear, well-defined requirements
 - Low to moderate complexity
-- **Documentation**: `spec.md` (from `spec_template.md`)
+- **Documentation**: `spec.md` (from `spec.md`)
 - **Optional**: `checklist.md` for validation
 - **Example**: Add email validation, fix bug, loading spinner, typo fix
 
@@ -157,15 +157,15 @@ The conversation documentation system uses a graduated approach based on Lines o
 **All templates located in**: `.claude/commands/spec_kit/assets/templates/`
 
 **Core templates by level:**
-- Level 1: `spec_template.md` → `spec.md`
-- Level 2: `spec_template.md` + `plan_template.md` → `spec.md` + `plan.md`
+- Level 1: `spec.md` → `spec.md`
+- Level 2: `spec.md` + `plan.md` → `spec.md` + `plan.md`
 - Level 3: `/spec_kit:complete` command (auto-generates)
 
 **Supporting templates (optional):**
-- `tasks_template.md` → `tasks.md` (after plan, before coding)
-- `checklist_template.md` → `checklist.md` (validation needs)
-- `decision_record_template.md` → `decision-record-[name].md` (major decisions)
-- `research_spike_template.md` → `research-spike-[name].md` (research/POC)
+- `tasks.md` → `tasks.md` (after plan, before coding)
+- `checklist.md` → `checklist.md` (validation needs)
+- `decision-record.md` → `decision-record-[name].md` (major decisions)
+- `research-spike.md` → `research-spike-[name].md` (research/POC)
 
 
 ### Folder Naming Convention

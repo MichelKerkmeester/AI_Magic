@@ -2,7 +2,7 @@
 
 Complete research documentation providing in-depth technical analysis, architecture patterns, and implementation guidance.
 
-<!-- SPECKIT_TEMPLATE_SOURCE: research_template | v1.0 -->
+<!-- SPECKIT_TEMPLATE_SOURCE: research | v1.0 -->
 
 ---
 
@@ -16,10 +16,10 @@ Complete research documentation providing in-depth technical analysis, architect
 - Investigation covers 3+ major technical domains (APIs, data models, integrations, etc.)
 
 **Do NOT use when:**
-- Time-boxed experiments (use spike_template.md instead)
-- Simple feature specifications (use spec_template.md)
-- Architecture decisions only (use decision_record_template.md or include in this doc)
-- Quick proof-of-concept work (use spike_template.md)
+- Time-boxed experiments (use research-spike.md instead)
+- Simple feature specifications (use spec.md)
+- Architecture decisions only (use decision-record.md or include in this doc)
+- Quick proof-of-concept work (use research-spike.md)
 
 **This template is designed for comprehensive feature research that will guide implementation.**
 

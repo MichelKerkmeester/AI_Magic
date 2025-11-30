@@ -725,12 +725,6 @@ file_has_structure() {
 detect_spec_level() {
   local spec_folder="$1"
 
-  # Level 0: README.md only
-  if [ -f "$spec_folder/README.md" ] && [ ! -f "$spec_folder/spec.md" ]; then
-    echo "0"
-    return
-  fi
-
   # Level 1: spec.md only
   if [ -f "$spec_folder/spec.md" ] && [ ! -f "$spec_folder/plan.md" ]; then
     echo "1"
@@ -780,10 +774,10 @@ is_valid_status() {
 }
 
 # Helper: Get required metadata fields for level
+# Note: Level 0 was eliminated - typos are Level 1 (or exempt if single typo <5 chars)
 get_required_fields() {
   local level="$1"
   case "$level" in
-    0) echo "date type level loc" ;;
     1) echo "created status level estimated_loc complexity" ;;
     2|3) echo "category tags priority status created level estimated_loc" ;;
     *) echo "" ;;
@@ -793,10 +787,10 @@ get_required_fields() {
 # Helper: Map file name to template name
 map_file_to_template() {
   case "$1" in
-    "spec.md") echo "spec_template.md" ;;
-    "plan.md") echo "plan_template.md" ;;
-    "tasks.md") echo "tasks_template.md" ;;
-    "checklist.md") echo "checklist_template.md" ;;
+    "spec.md") echo "spec.md" ;;
+    "plan.md") echo "plan.md" ;;
+    "tasks.md") echo "tasks.md" ;;
+    "checklist.md") echo "checklist.md" ;;
     *) echo "unknown" ;;
   esac
 }
@@ -888,7 +882,7 @@ validate_template_source() {
   fi
 
   # Check core spec files for template markers
-  local core_files=("spec.md" "plan.md" "README.md")
+  local core_files=("spec.md" "plan.md")
 
   for file_name in "${core_files[@]}"; do
     local file_path="$spec_folder/$file_name"
@@ -944,9 +938,8 @@ validate_metadata_block() {
 
   local level=$(detect_spec_level "$spec_folder")
 
-  # Check spec.md or README.md for metadata
+  # Check spec.md for metadata
   local spec_file="$spec_folder/spec.md"
-  [ -f "$spec_folder/README.md" ] && spec_file="$spec_folder/README.md"
 
   if [ ! -f "$spec_file" ]; then
     return 0  # No spec file to validate
@@ -1122,8 +1115,7 @@ suggest_subfolder_readme() {
       echo ""
       echo "You're working in sub-folder: $subfolder_name"
       echo ""
-      echo "Consider creating a README.md to document this sub-folder's purpose:"
-      echo "  cp .opencode/speckit/templates/subfolder_readme_template.md $current_path/README.md"
+      echo "Consider creating a README.md to document this sub-folder's purpose."
       echo ""
       echo "See: .claude/skills/workflows-spec-kit/references/template_guide.md"
       echo "     (Section: 'Using Sub-Folders for Organization')"
@@ -1149,22 +1141,16 @@ validate_templates() {
   fi
 
   local spec_file="$folder/spec.md"
-  local readme_file="$folder/README.md"
   local plan_file="$folder/plan.md"
 
   local has_valid_spec=false
-  local has_valid_readme=false
 
   if [ -f "$spec_file" ] && file_has_structure "$spec_file"; then
     has_valid_spec=true
   fi
 
-  if [ -f "$readme_file" ] && file_has_structure "$readme_file"; then
-    has_valid_readme=true
-  fi
-
-  if [ "$has_valid_spec" = false ] && [ "$has_valid_readme" = false ]; then
-    VALIDATION_ERRORS+=("spec.md or README.md missing/too small (<200 bytes) or missing numbered sections")
+  if [ "$has_valid_spec" = false ]; then
+    VALIDATION_ERRORS+=("spec.md missing/too small (<200 bytes) or missing numbered sections")
   fi
 
   if [ "$VALIDATION_LEVEL" = "strict" ] && [ -f "$spec_file" ] && ! file_has_structure "$plan_file"; then
@@ -2245,11 +2231,11 @@ find_related_specs() {
 print_template_guidance() {
   case "$DOC_LEVEL" in
     1)
-      print_detail "cp .opencode/speckit/templates/spec_template.md specs/${NEXT_SPEC_NUMBER}-short-name/spec.md"
+      print_detail "cp .opencode/speckit/templates/spec.md specs/${NEXT_SPEC_NUMBER}-short-name/spec.md"
       ;;
     2)
-      print_detail "cp .opencode/speckit/templates/spec_template.md specs/${NEXT_SPEC_NUMBER}-short-name/spec.md"
-      print_detail "cp .opencode/speckit/templates/plan_template.md specs/${NEXT_SPEC_NUMBER}-short-name/plan.md"
+      print_detail "cp .opencode/speckit/templates/spec.md specs/${NEXT_SPEC_NUMBER}-short-name/spec.md"
+      print_detail "cp .opencode/speckit/templates/plan.md specs/${NEXT_SPEC_NUMBER}-short-name/plan.md"
       ;;
     3)
       print_detail "/spec_kit:complete (auto-generates Level 3 bundle)"
@@ -2288,7 +2274,7 @@ print_template_guidance() {
       recommendations_made=true
       echo "🔬 Research-Spike Template: [$spike_result]"
       echo "   Your task involves investigation/POC work"
-      echo "   Command: cp .opencode/speckit/templates/research_spike_template.md specs/${NEXT_SPEC_NUMBER}-short-name/research-spike-[topic].md"
+      echo "   Command: cp .opencode/speckit/templates/research-spike.md specs/${NEXT_SPEC_NUMBER}-short-name/research-spike-[topic].md"
       echo ""
     fi
 
@@ -2300,7 +2286,7 @@ print_template_guidance() {
       recommendations_made=true
       echo "📚 Research Template: [$research_result]"
       echo "   Your task involves comprehensive research/exploration"
-      echo "   Command: cp .opencode/speckit/templates/research_template.md specs/${NEXT_SPEC_NUMBER}-short-name/research.md"
+      echo "   Command: cp .opencode/speckit/templates/research.md specs/${NEXT_SPEC_NUMBER}-short-name/research.md"
       echo ""
     fi
 
@@ -2312,7 +2298,7 @@ print_template_guidance() {
       recommendations_made=true
       echo "📋 Decision Record Template: [$decision_result]"
       echo "   Your task involves architectural/technical decisions"
-      echo "   Command: cp .opencode/speckit/templates/decision_record_template.md specs/${NEXT_SPEC_NUMBER}-short-name/decision-[topic].md"
+      echo "   Command: cp .opencode/speckit/templates/decision-record.md specs/${NEXT_SPEC_NUMBER}-short-name/decision-[topic].md"
       echo ""
     fi
 

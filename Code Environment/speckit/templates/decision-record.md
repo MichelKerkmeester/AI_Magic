@@ -2,7 +2,7 @@
 
 Architecture Decision Record (ADR) documenting a significant technical decision and its rationale.
 
-<!-- SPECKIT_TEMPLATE_SOURCE: decision_record_template | v1.0 -->
+<!-- SPECKIT_TEMPLATE_SOURCE: decision-record | v1.0 -->
 
 ---
 

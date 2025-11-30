@@ -103,16 +103,19 @@ if [ -n "$CONFIG_PATH" ]; then
 fi
 
 # ───────────────────────────────────────────────────────────────
-# DISPLAY TRIGGER NOTIFICATION
+# DISPLAY TRIGGER NOTIFICATION (DCP-style)
 # ───────────────────────────────────────────────────────────────
 
+# DCP-style prefix for consistent output
+DCP_PREFIX="[DCP]"
+
 if [ "$TRIGGER" = "manual" ]; then
-  echo "🧹 Pruning context before compaction (manual trigger)..."
+  echo "$DCP_PREFIX Context pruning triggered (manual)"
   if [ -n "$CUSTOM_INSTRUCTIONS" ]; then
-    echo "   📝 Custom instructions: ${CUSTOM_INSTRUCTIONS:0:80}..."
+    echo "$DCP_PREFIX Instructions: ${CUSTOM_INSTRUCTIONS:0:80}..."
   fi
 else
-  echo "🧹 Pruning context before compaction (auto-compact threshold reached)..."
+  echo "$DCP_PREFIX Context pruning triggered (auto-compact)"
 fi
 
 # ───────────────────────────────────────────────────────────────
@@ -139,7 +142,7 @@ if [ -z "$TRANSCRIPT_PATH" ] || [ ! -f "$TRANSCRIPT_PATH" ]; then
   exit $EXIT_ALLOW
 fi
 
-echo "   📂 Found transcript: $(basename "$TRANSCRIPT_PATH")"
+echo "$DCP_PREFIX Scanning: $(basename "$TRANSCRIPT_PATH")"
 
 # ───────────────────────────────────────────────────────────────
 # EXECUTE PRUNING ENGINE
@@ -154,26 +157,51 @@ if [ ! -f "$PRUNER" ]; then
 fi
 
 # Execute pruning with timeout
+# Handle empty CONFIG_PATH by not passing it as an argument
 if command -v timeout >/dev/null 2>&1; then
-  NODE_OUTPUT=$(timeout 5 node "$PRUNER" "$TRANSCRIPT_PATH" "$CONFIG_PATH" 2>&1)
+  if [ -n "$CONFIG_PATH" ]; then
+    NODE_OUTPUT=$(timeout 5 node "$PRUNER" "$TRANSCRIPT_PATH" "$CONFIG_PATH" 2>&1)
+  else
+    NODE_OUTPUT=$(timeout 5 node "$PRUNER" "$TRANSCRIPT_PATH" 2>&1)
+  fi
 else
-  NODE_OUTPUT=$(node "$PRUNER" "$TRANSCRIPT_PATH" "$CONFIG_PATH" 2>&1)
+  if [ -n "$CONFIG_PATH" ]; then
+    NODE_OUTPUT=$(node "$PRUNER" "$TRANSCRIPT_PATH" "$CONFIG_PATH" 2>&1)
+  else
+    NODE_OUTPUT=$(node "$PRUNER" "$TRANSCRIPT_PATH" 2>&1)
+  fi
 fi
 EXIT_CODE=$?
 
 # ───────────────────────────────────────────────────────────────
-# DISPLAY RESULT
+# HANDLE TIMEOUT SCENARIOS
+# ───────────────────────────────────────────────────────────────
+
+if [ $EXIT_CODE -eq 124 ]; then
+  # timeout command: process exceeded time limit
+  echo "$DCP_PREFIX Warning: Pruning timed out after 5 seconds" >&2
+  echo "$DCP_PREFIX Compaction will proceed with original context" >&2
+  exit $EXIT_ALLOW
+elif [ $EXIT_CODE -eq 137 ]; then
+  # timeout command: process killed with SIGKILL
+  echo "$DCP_PREFIX Warning: Pruning process killed (SIGKILL)" >&2
+  echo "$DCP_PREFIX Compaction will proceed with original context" >&2
+  exit $EXIT_ALLOW
+fi
+
+# ───────────────────────────────────────────────────────────────
+# DISPLAY RESULT (DCP-style)
 # ───────────────────────────────────────────────────────────────
 
 if [ $EXIT_CODE -eq 0 ]; then
   echo "$NODE_OUTPUT"
-  echo "   🎯 Compaction can proceed with pruned context"
+  echo "$DCP_PREFIX Compaction ready (context optimized)"
 else
-  echo "   ⚠️  Pruning failed (exit code: $EXIT_CODE)" >&2
+  echo "$DCP_PREFIX Warning: Pruning failed (exit code: $EXIT_CODE)" >&2
   if [ -n "$NODE_OUTPUT" ]; then
-    echo "   Error: ${NODE_OUTPUT:0:200}" >&2
+    echo "$DCP_PREFIX Error: ${NODE_OUTPUT:0:200}" >&2
   fi
-  echo "   ⚠️  Compaction will proceed with original context" >&2
+  echo "$DCP_PREFIX Compaction will proceed with original context" >&2
 fi
 
 # ───────────────────────────────────────────────────────────────

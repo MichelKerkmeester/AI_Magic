@@ -52,7 +52,7 @@ Platform-agnostic planning workflow supporting 4-agent parallel codebase explora
 - **Triggering**: Via spec_kit step_6, slash commands, or manual invocation
 - **Agents**: 4 parallel Explore agents (model varies by command/platform)
 - **Verification**: Claude-based hypothesis validation (consistent across all variants)
-- **Output**: plan.md using plan_template.md structure
+- **Output**: plan.md using plan.md structure
 - **Fallback**: Graceful degradation if agent spawning fails
 
 ---
@@ -76,7 +76,7 @@ def route_planning_approach(task):
 # - "explore and plan", "deep analysis plan"
 # - Multi-file changes affecting architecture
 
-# Output: specs/###-feature/plan.md (using plan_template.md)
+# Output: specs/###-feature/plan.md (using plan.md)
 ```
 
 ---
@@ -144,7 +144,7 @@ Result: Always produces a plan, adapts to available resources.
 3. 4 Explore agents spawn in parallel (model depends on command/platform)
 4. Agents return findings (files, patterns, hypotheses)
 5. Orchestrator (Claude) verifies hypotheses by reading identified files
-6. plan.md created using plan_template.md + verified findings
+6. plan.md created using plan.md + verified findings
 7. Control returns to spec_kit workflow
 
 **Fallback**: If agent spawning fails, spec_kit uses inline planning logic.
@@ -321,7 +321,7 @@ After agents return, orchestrator (always Claude) verifies their findings:
 
 Generate plan.md using verified findings:
 
-1. **Load Template**: Read plan_template.md (platform-specific path)
+1. **Load Template**: Read plan.md (platform-specific path)
 2. **Fill Sections**: Populate each section with verified findings
 3. **Remove Placeholders**: Replace all `[PLACEHOLDER]` and `[YOUR_VALUE_HERE:]` text
 4. **Add File References**: Include paths with line numbers (format: `path/to/file.ts:123`)
@@ -417,7 +417,7 @@ on_skill_invocation:
 - Spawn agents in parallel (single message, multiple Task calls)
 - Specify model parameter when using GPT/Gemini (OpenCode + Copilot)
 - Verify agent hypotheses before including in plan
-- Use plan_template.md structure for output
+- Use plan.md structure for output
 - Include file paths with line numbers (format: `path:lineNumber`)
 - Document unverified hypotheses as uncertainties
 - Use Claude for verification (consistent quality)

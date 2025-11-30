@@ -208,7 +208,7 @@ User Action
 | verify-spec-compliance | PostToolUse | Spec folder compliance check | Write/Edit | 0 | ~30ms |
 | detect-scope-growth | PostToolUse | Scope growth (v2.0.0 - NOW FUNCTIONAL) | Write/Edit .md | 0 | <50ms |
 | summarize-task-completion | PostToolUse | Task summaries (fixed: duration calculation) | Task tool | 0 | ~20ms |
-| prune-context | PreCompact | Context pruning | Before compaction | 0 | <5s |
+| prune-context | PreCompact | Context pruning (v2.0.0 - DCP-style output) | Before compaction | 0 | <5s |
 | save-context-before-compact | PreCompact | Auto-save before compact | Before compaction | 0 | <10s |
 | initialize-session | PreSessionStart | Session initialization | Session start | 0 | <50ms |
 | cleanup-session | PostSessionEnd | Session cleanup | Session end | 0 | <100ms |
@@ -343,10 +343,38 @@ User Action
 **Execution**: Parallel (non-blocking) when supported
 **Output**: Saves to `specs/###-folder/memory/` (or sub-folder when versioning active)
 
-#### prune-context.sh (PreCompact)
-**Purpose**: Prune conversation context before compaction
+#### prune-context.sh (PreCompact) - v2.0.0 DCP-Style Output
+**Purpose**: Prune conversation context before compaction using intelligent deduplication
+**Output Format**: Inspired by OpenCode Dynamic Context Pruning (DCP) plugin
+**Features**:
+  - `[DCP]` prefix for all output messages (consistent with OpenCode plugin)
+  - Per-tool breakdown table showing duplicates removed per tool type
+  - Actual token estimates (e.g., `~6.3k tokens`) not just percentages
+  - Handles both Claude Code format (`entry.content`) and Anthropic API format (`entry.message.content`)
+  - Timeout handling (exit codes 124/137) with clear error messages
+**Config**: `.claude/configs/context-pruning.json`
+**Deduplication Targets**: Read, Grep, Glob tools (exact parameter matching)
+**Protected Tools**: Task, TodoWrite, TodoRead, AskUserQuestion, Skill, SlashCommand, EnterPlanMode, ExitPlanMode
 **Performance**: <5s
-**Integration**: Context pruning configuration
+**Example Output**:
+```
+[DCP] Context pruning triggered (auto-compact)
+[DCP] Scanning: abc123-session.jsonl
+[DCP] ─────────────────────────────────────────
+[DCP] Deduplication: found 15 duplicates
+[DCP] ─────────────────────────────────────────
+[DCP] Duplicates by tool:
+[DCP] ┌────────────┬───────────┬─────────────┐
+[DCP] │ Tool       │ Removed   │ Tokens      │
+[DCP] ├────────────┼───────────┼─────────────┤
+[DCP] │ Read       │        8  │        4.2k │
+[DCP] │ Grep       │        5  │        1.8k │
+[DCP] │ Glob       │        2  │         350 │
+[DCP] └────────────┴───────────┴─────────────┘
+[DCP] Token savings: ~6.3k tokens (42% reduction)
+[DCP] ─────────────────────────────────────────
+[DCP] Compaction ready (context optimized)
+```
 
 #### warn-duplicate-reads.sh (PreToolUse) - v2.0.0 Intelligence System
 **Transformation**: Low-value warnings → High-value actionable intelligence
@@ -728,7 +756,7 @@ Most hooks write to `.claude/hooks/logs/`:
 | **load-related-context.sh** | Anchor-based context retrieval | `list`, `summary`, `search`, `extract`, `recent`, `smart`, `search_all` | enforce-spec-folder.sh (Option D) | <200ms core, <500ms smart |
 | **relevance-scorer.sh** | 4-dimension relevance scoring | `calculate_relevance()` (category, keywords, recency, proximity) | load-related-context.sh (smart/search_all) | ~10ms per anchor |
 | **file-scope-tracking.sh** | File modification tracking | `track_file()`, `get_modified_files()` | detect-scope-growth.sh, track-file-modifications.sh | <10ms |
-| **context-pruner.js** | Context pruning logic | `pruneContext()`, filter rules | prune-context.sh | <5s |
+| **context-pruner.js** | Context pruning engine (v2.0.0 - DCP-style) | `extractToolCalls()`, `deduplicateToolCalls()`, `displaySummary()` | prune-context.sh | <5s |
 
 ### 7.1 Core Libraries
 
@@ -794,10 +822,18 @@ Most hooks write to `.claude/hooks/logs/`:
 **Filtering**: Content filtering via `lib/content-filter.js`
 **Performance**: ~500ms for typical session
 
-#### context-pruner.js
-**Purpose**: Intelligent context pruning before compaction
+#### context-pruner.js (v2.0.0 - DCP-Style)
+**Purpose**: Intelligent context pruning before compaction using deduplication
+**Output**: DCP-style format with `[DCP]` prefix, token estimates, per-tool breakdown tables
 **Config**: `.claude/configs/context-pruning.json`
-**Filters**: Removes verbose tool outputs, preserves key decisions
+**Key Functions**:
+  - `getContentArray()` - Handles both Claude Code (`entry.content`) and API (`entry.message.content`) formats
+  - `extractToolCalls()` - Extracts tool calls with results for token estimation
+  - `deduplicateToolCalls()` - Safe deduplication with exact parameter matching
+  - `displaySummary()` - DCP-style formatted output with tables
+  - `formatTokenCount()` - Human-readable token counts (e.g., `4.2k`)
+**Protected Tools**: Task, TodoWrite, TodoRead, AskUserQuestion, Skill, SlashCommand, EnterPlanMode, ExitPlanMode
+**Deduplication Targets**: Read, Grep, Glob (configurable via `allowedTools`)
 **Performance**: <5s
 
 #### template-validation.sh
@@ -1007,7 +1043,7 @@ bash .claude/hooks/scripts/validate-config.sh
 ```json
 {
   "templates": {
-    "spec_template": {
+    "spec": {
       "required_sections": ["OBJECTIVE", "SCOPE", "SUCCESS CRITERIA"],
       "optional_sections": ["RISKS", "DEPENDENCIES"],
       "metadata_required": true

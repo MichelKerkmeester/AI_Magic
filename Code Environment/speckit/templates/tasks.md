@@ -2,7 +2,7 @@
 
 Task list template for feature implementation with user story organization and independent testing.
 
-<!-- SPECKIT_TEMPLATE_SOURCE: tasks_template | v1.0 -->
+<!-- SPECKIT_TEMPLATE_SOURCE: tasks | v1.0 -->
 
 ---
 
@@ -214,7 +214,7 @@ tasks([SPEC_ID]): short action
 ### Cross-References
 - **Specification**: See `spec.md` for requirements
 - **Plan**: See `plan.md` for technical approach
-- **Checklist**: See `.opencode/speckit/templates/checklist_template.md` for validation
+- **Checklist**: See `.opencode/speckit/templates/checklist.md` for validation
 
 ---
 
@@ -251,7 +251,7 @@ tasks([SPEC_ID]): short action
 - Tasks span multiple phases or team members
 
 **Skip tasks.md when:**
-- Using Level 0 or Level 1 (trivial or simple changes)
+- Using Level 1 (simple changes - spec.md sufficient)
 - Feature is simple enough to track in spec.md alone
 - Single-developer, single-session work
 - Task breakdown doesn't add value

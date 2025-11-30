@@ -399,8 +399,8 @@ Detail: Removed stale .spec-active marker (path: specs/999-deleted)
    ```
 
 6. **Copy appropriate templates** from `.claude/commands/spec_kit/assets/templates/`
-   - Level 1: `spec_template.md` → `spec.md`
-   - Level 2: `spec_template.md` + `plan_template.md` → `spec.md` + `plan.md`
+   - Level 1: `spec.md` → `spec.md`
+   - Level 2: `spec.md` + `plan.md` → `spec.md` + `plan.md`
    - Level 3: Use `/spec_kit:complete` command
 
 7. **Fill template content**
@@ -410,10 +410,10 @@ Detail: Removed stale .spec-active marker (path: specs/999-deleted)
    - Remove instructional comments
 
 8. **Add supporting templates** (if needed)
-   - `tasks_template.md` → `tasks.md` (after plan, before coding)
-   - `checklist_template.md` → `checklist.md` (validation needs)
-   - `research_spike_template.md` → `research-spike-[name].md` (research required)
-   - `decision_record_template.md` → `decision-record-[name].md` (major decisions)
+   - `tasks.md` → `tasks.md` (after plan, before coding)
+   - `checklist.md` → `checklist.md` (validation needs)
+   - `research-spike.md` → `research-spike-[name].md` (research required)
+   - `decision-record.md` → `decision-record-[name].md` (major decisions)
 
 9. **Present to user**
    - Documentation level chosen

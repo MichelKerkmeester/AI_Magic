@@ -16,8 +16,8 @@ Complete mapping of documentation levels to templates with copy commands and fil
 
 | Level | Template File | Copy As | Copy Command |
 |-------|--------------|---------|--------------|
-| **1: Simple** | `spec_template.md` | `spec.md` | `cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/###-name/spec.md` |
-| **2: Moderate** | `spec_template.md`<br>`plan_template.md` | `spec.md`<br>`plan.md` | `cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/###-name/spec.md`<br>`cp .claude/commands/spec_kit/assets/templates/plan_template.md specs/###-name/plan.md` |
+| **1: Simple** | `spec.md` | `spec.md` | `cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md` |
+| **2: Moderate** | `spec.md`<br>`plan.md` | `spec.md`<br>`plan.md` | `cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md`<br>`cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md` |
 | **3: Complex** | SpecKit auto-generates | Multiple files | `/spec_kit:complete` command |
 
 ---
@@ -28,10 +28,10 @@ Additional templates for specific needs - use descriptive names:
 
 | Template File | Copy As | When to Use | Copy Command |
 |--------------|---------|-------------|--------------|
-| `tasks_template.md` | `tasks.md` | After plan.md, before coding - breaks plan into actionable tasks | `cp .claude/commands/spec_kit/assets/templates/tasks_template.md specs/###-name/tasks.md` |
-| `checklist_template.md` | `checklist.md` | When systematic validation needed (QA, security, deployment) | `cp .claude/commands/spec_kit/assets/templates/checklist_template.md specs/###-name/checklist.md` |
-| `decision_record_template.md` | `decision-record-[topic].md` | Major technical decisions (database choice, architecture) | `cp .claude/commands/spec_kit/assets/templates/decision_record_template.md specs/###-name/decision-record-database.md` |
-| `research_spike_template.md` | `research-spike-[topic].md` | Before uncertain work - research, POC, feasibility | `cp .claude/commands/spec_kit/assets/templates/research_spike_template.md specs/###-name/research-spike-performance.md` |
+| `tasks.md` | `tasks.md` | After plan.md, before coding - breaks plan into actionable tasks | `cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md` |
+| `checklist.md` | `checklist.md` | When systematic validation needed (QA, security, deployment) | `cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md` |
+| `decision-record.md` | `decision-record-[topic].md` | Major technical decisions (database choice, architecture) | `cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-database.md` |
+| `research-spike.md` | `research-spike-[topic].md` | Before uncertain work - research, POC, feasibility | `cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md` |
 
 **Notes:**
 - Use descriptive names for decision records and research-spikes (not generic "final" or "new")
@@ -46,8 +46,8 @@ Additional templates for specific needs - use descriptive names:
 
 ```
 specs/043-add-email-validation/
-├── spec.md                      (from spec_template.md)
-└── checklist.md                 (optional, from checklist_template.md)
+├── spec.md                      (from spec.md)
+└── checklist.md                 (optional, from checklist.md)
 ```
 
 **Content expectations:**
@@ -63,12 +63,12 @@ specs/043-add-email-validation/
 
 ```
 specs/044-modal-component/
-├── spec.md                      (from spec_template.md)
-├── plan.md                      (from plan_template.md)
-├── tasks.md                     (optional, from tasks_template.md)
-├── checklist.md                 (optional, from checklist_template.md)
-├── research-spike-animation-perf.md (optional, from research_spike_template.md)
-└── decision-record-library.md   (optional, from decision_record_template.md)
+├── spec.md                      (from spec.md)
+├── plan.md                      (from plan.md)
+├── tasks.md                     (optional, from tasks.md)
+├── checklist.md                 (optional, from checklist.md)
+├── research-spike-animation-perf.md (optional, from research-spike.md)
+└── decision-record-library.md   (optional, from decision-record.md)
 ```
 
 **spec.md expectations:**
@@ -187,13 +187,13 @@ mkdir -p specs/###-short-name/
 
 **Level 1:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/###-name/spec.md
+cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
 ```
 
 **Level 2:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/###-name/spec.md
-cp .claude/commands/spec_kit/assets/templates/plan_template.md specs/###-name/plan.md
+cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
+cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
 ```
 
 **Level 3:**
@@ -205,16 +205,16 @@ cp .claude/commands/spec_kit/assets/templates/plan_template.md specs/###-name/pl
 
 ```bash
 # Tasks (after plan, before coding)
-cp .claude/commands/spec_kit/assets/templates/tasks_template.md specs/###-name/tasks.md
+cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
 
 # Checklist (validation needs)
-cp .claude/commands/spec_kit/assets/templates/checklist_template.md specs/###-name/checklist.md
+cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
 
 # Decision Record (use descriptive name)
-cp .claude/commands/spec_kit/assets/templates/decision_record_template.md specs/###-name/decision-record-database.md
+cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-database.md
 
 # Research-Spike (use descriptive name)
-cp .claude/commands/spec_kit/assets/templates/research_spike_template.md specs/###-name/research-spike-performance.md
+cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md
 ```
 
 ### Step 6: Fill Templates

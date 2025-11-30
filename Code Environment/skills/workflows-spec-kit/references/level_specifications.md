@@ -18,7 +18,7 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 
 ### Required Files
 
-- `spec.md` (from `spec_template.md`)
+- `spec.md` (from `spec.md`)
 
 ### Optional Files
 
@@ -62,7 +62,7 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 
 ### Template Source
 
-`.claude/commands/spec_kit/assets/templates/spec_template.md`
+`.claude/commands/spec_kit/assets/templates/spec.md`
 
 ### Template Adaptation
 
@@ -87,8 +87,8 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 
 ### Required Files
 
-- `spec.md` (from `spec_template.md`) - What we're building and why
-- `plan.md` (from `plan_template.md`) - How we'll build it
+- `spec.md` (from `spec.md`) - What we're building and why
+- `plan.md` (from `plan.md`) - How we'll build it
 
 ### Optional Files
 
@@ -164,12 +164,12 @@ Complete specifications for all three documentation levels (1-3) with detailed r
 
 ### Template Sources
 
-- `.claude/commands/spec_kit/assets/templates/spec_template.md`
-- `.claude/commands/spec_kit/assets/templates/plan_template.md`
-- `.claude/commands/spec_kit/assets/templates/tasks_template.md`
-- `.claude/commands/spec_kit/assets/templates/checklist_template.md`
-- `.claude/commands/spec_kit/assets/templates/research_spike_template.md`
-- `.claude/commands/spec_kit/assets/templates/decision_record_template.md`
+- `.claude/commands/spec_kit/assets/templates/spec.md`
+- `.claude/commands/spec_kit/assets/templates/plan.md`
+- `.claude/commands/spec_kit/assets/templates/tasks.md`
+- `.claude/commands/spec_kit/assets/templates/checklist.md`
+- `.claude/commands/spec_kit/assets/templates/research-spike.md`
+- `.claude/commands/spec_kit/assets/templates/decision-record.md`
 
 ### Template Adaptation
 
@@ -225,9 +225,9 @@ When you run `/spec_kit:complete`, SpecKit creates:
 
 ### Optional Files (Copy Manually)
 
-- `checklist.md` (from `checklist_template.md`)
-- `research-spike-[name].md` (from `research_spike_template.md`)
-- `decision-record-[name].md` (from `decision_record_template.md`)
+- `checklist.md` (from `checklist.md`)
+- `research-spike-[name].md` (from `research-spike.md`)
+- `decision-record-[name].md` (from `decision-record.md`)
 
 ### Content Expectations
 

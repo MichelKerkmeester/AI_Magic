@@ -34,11 +34,11 @@ Comprehensive guide to template selection, copying, adaptation, and quality stan
 
 ### Level 1: Simple Changes
 
-**Template:** `spec_template.md`
+**Template:** `spec.md`
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/###-name/spec.md
+cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
 ```
 
 **When to use:**
@@ -70,12 +70,12 @@ cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/###-name/sp
 
 ### Level 2: Moderate Features
 
-**Templates:** `spec_template.md` + `plan_template.md`
+**Templates:** `spec.md` + `plan.md`
 
 **Copy commands:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/###-name/spec.md
-cp .claude/commands/spec_kit/assets/templates/plan_template.md specs/###-name/plan.md
+cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
+cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
 ```
 
 **When to use:**
@@ -293,17 +293,17 @@ cp .claude/commands/spec_kit/assets/templates/[template].md specs/###-name/[targ
 
 ## 5. 📦 SUPPORTING TEMPLATES
 
-### research_template.md - Comprehensive Feature Research
+### research.md - Comprehensive Feature Research
 
 **When to use:** Before implementation for complex features requiring deep technical investigation
 
 **Purpose:** Comprehensive research documentation spanning multiple technical areas
 
-**Template:** `research_template.md`
+**Template:** `research.md`
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/research_template.md specs/###-name/research.md
+cp .claude/commands/spec_kit/assets/templates/research.md specs/###-name/research.md
 ```
 
 **Sections to fill:**
@@ -341,11 +341,11 @@ cp .claude/commands/spec_kit/assets/templates/research_template.md specs/###-nam
 
 **Purpose:** Break implementation plan into actionable tasks
 
-**Template:** `tasks_template.md`
+**Template:** `tasks.md`
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/tasks_template.md specs/###-name/tasks.md
+cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
 ```
 
 **Sections to fill:**
@@ -367,11 +367,11 @@ cp .claude/commands/spec_kit/assets/templates/tasks_template.md specs/###-name/t
 
 **Purpose:** QA steps, deployment checks, security review
 
-**Template:** `checklist_template.md`
+**Template:** `checklist.md`
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/checklist_template.md specs/###-name/checklist.md
+cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
 ```
 
 **Sections to fill:**
@@ -394,11 +394,11 @@ cp .claude/commands/spec_kit/assets/templates/checklist_template.md specs/###-na
 
 **Purpose:** Time-boxed exploration to inform decisions
 
-**Template:** `research_spike_template.md`
+**Template:** `research-spike.md`
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/research_spike_template.md specs/###-name/research-spike-[topic].md
+cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-[topic].md
 ```
 
 **Use descriptive name:** `research-spike-performance.md`, `research-spike-library-comparison.md`
@@ -425,11 +425,11 @@ cp .claude/commands/spec_kit/assets/templates/research_spike_template.md specs/#
 
 **Purpose:** Document significant choices with rationale
 
-**Template:** `decision_record_template.md`
+**Template:** `decision-record.md`
 
 **Copy command:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/decision_record_template.md specs/###-name/decision-record-[topic].md
+cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-[topic].md
 ```
 
 **Use descriptive name:** `decision-record-database.md`, `decision-record-auth-library.md`
@@ -504,7 +504,7 @@ echo "# Spec" > specs/042-feature/spec.md
 
 **Right:**
 ```bash
-cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/042-feature/spec.md
+cp .claude/commands/spec_kit/assets/templates/spec.md specs/042-feature/spec.md
 ```
 
 **Why wrong:** Loses structure, misses sections, inconsistent format
@@ -699,47 +699,17 @@ specs/###-parent-feature/
 mkdir -p specs/122-skill-standardization/spec-enforcement-improvements
 ```
 
-**3. Create README.md from template:**
-```bash
-cp .claude/commands/spec_kit/assets/templates/subfolder_readme_template.md \
-   specs/122-skill-standardization/spec-enforcement-improvements/README.md
-```
+**3. Create README.md:**
+- Document the sub-folder's purpose
+- Link to parent spec
+- Explain organization and structure
 
-**4. Fill out the README template:**
+**4. Fill out the README:**
 - Parent spec reference (link to `../spec.md` or parent folder)
 - Sub-folder purpose and scope
 - Key documents and their roles
 - Status and progress tracking
 - References to related sub-folders (if applicable)
-
-### Sub-Folder README Template
-
-The `subfolder_readme_template.md` template includes:
-
-**Metadata:**
-- Parent spec link
-- Sub-folder purpose
-- Created date, status, owner
-
-**Purpose & Scope:**
-- Why this sub-folder exists
-- Relationship to parent spec
-- What's in scope vs out of scope
-
-**Structure & Organization:**
-- File organization tree
-- Key documents with descriptions
-- Navigation guidance
-
-**Workflow & Usage:**
-- When to use this sub-folder
-- Integration with parent spec
-- Dependencies and deliverables
-
-**Status & Progress:**
-- Completion checklist
-- Current status and blockers
-- Next steps
 
 ### Sub-Folder Naming Conventions
 
@@ -801,7 +771,7 @@ specs/122-skill-standardization/
 
 The enforce-spec-folder hook includes sub-folder detection:
 - **Automatic suggestion:** When working in a sub-folder without README
-- **Template recommendation:** Suggests copying `subfolder_readme_template.md`
+- **Template recommendation:** Suggests creating a README.md to document the sub-folder
 - **Non-blocking:** Suggestion only, not enforced
 - **Skips memory/ folder:** No README needed for auto-generated context
 

@@ -512,16 +512,15 @@ calculate_next_spec_number() {
 
 level_label() {
   case "$1" in
-    0) echo "Level 0 (Minimal)" ;;
-    1) echo "Level 1 (Concise)" ;;
+    1) echo "Level 1 (Simple)" ;;
     2) echo "Level 2 (Standard)" ;;
     3) echo "Level 3 (Complete)" ;;
+    *) echo "Unknown Level" ;;
   esac
 }
 
 documentation_time_for_level() {
   case "$1" in
-    0) echo "≈5 minutes" ;;
     1) echo "≈10 minutes" ;;
     2) echo "≈20 minutes" ;;
     3) echo "≈30 minutes" ;;
@@ -533,11 +532,11 @@ print_required_template_commands() {
   local spec_number="$2"
   case "$level" in
     1)
-      echo "   cp .opencode/speckit/templates/spec_template.md specs/${spec_number}-your-feature-name/spec.md"
+      echo "   cp .opencode/speckit/templates/spec.md specs/${spec_number}-your-feature-name/spec.md"
       ;;
     2)
-      echo "   cp .opencode/speckit/templates/spec_template.md specs/${spec_number}-your-feature-name/spec.md"
-      echo "   cp .opencode/speckit/templates/plan_template.md specs/${spec_number}-your-feature-name/plan.md"
+      echo "   cp .opencode/speckit/templates/spec.md specs/${spec_number}-your-feature-name/spec.md"
+      echo "   cp .opencode/speckit/templates/plan.md specs/${spec_number}-your-feature-name/plan.md"
       ;;
     3)
       echo "   /spec_kit:complete (auto-generates spec.md, plan.md, tasks.md, etc.)"
@@ -550,18 +549,18 @@ print_optional_template_commands() {
   local spec_number="$2"
   case "$level" in
     1)
-      echo "   cp .opencode/speckit/templates/checklist_template.md specs/${spec_number}-your-feature-name/checklist.md"
+      echo "   cp .opencode/speckit/templates/checklist.md specs/${spec_number}-your-feature-name/checklist.md"
       ;;
     2)
-      echo "   cp .opencode/speckit/templates/tasks_template.md specs/${spec_number}-your-feature-name/tasks.md"
-      echo "   cp .opencode/speckit/templates/checklist_template.md specs/${spec_number}-your-feature-name/checklist.md"
+      echo "   cp .opencode/speckit/templates/tasks.md specs/${spec_number}-your-feature-name/tasks.md"
+      echo "   cp .opencode/speckit/templates/checklist.md specs/${spec_number}-your-feature-name/checklist.md"
       ;;
     3)
-      echo "   cp .opencode/speckit/templates/tasks_template.md specs/${spec_number}-your-feature-name/tasks.md"
-      echo "   cp .opencode/speckit/templates/checklist_template.md specs/${spec_number}-your-feature-name/checklist.md"
-      echo "   cp .opencode/speckit/templates/decision_record_template.md specs/${spec_number}-your-feature-name/decision-record-topic.md"
-      echo "   cp .opencode/speckit/templates/research_spike_template.md specs/${spec_number}-your-feature-name/research-spike-topic.md"
-      echo "   cp .opencode/speckit/templates/research_template.md specs/${spec_number}-your-feature-name/research.md"
+      echo "   cp .opencode/speckit/templates/tasks.md specs/${spec_number}-your-feature-name/tasks.md"
+      echo "   cp .opencode/speckit/templates/checklist.md specs/${spec_number}-your-feature-name/checklist.md"
+      echo "   cp .opencode/speckit/templates/decision-record.md specs/${spec_number}-your-feature-name/decision-record-topic.md"
+      echo "   cp .opencode/speckit/templates/research-spike.md specs/${spec_number}-your-feature-name/research-spike-topic.md"
+      echo "   cp .opencode/speckit/templates/research.md specs/${spec_number}-your-feature-name/research.md"
       ;;
   esac
 }

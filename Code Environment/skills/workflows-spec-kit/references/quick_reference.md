@@ -20,27 +20,27 @@ Fast lookup for commands, checklists, and troubleshooting common spec folder sce
 
 ```bash
 ## Level 1:
-cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/###-name/spec.md
+cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
 
 ## Level 2:
-cp .claude/commands/spec_kit/assets/templates/spec_template.md specs/###-name/spec.md
-cp .claude/commands/spec_kit/assets/templates/plan_template.md specs/###-name/plan.md
+cp .claude/commands/spec_kit/assets/templates/spec.md specs/###-name/spec.md
+cp .claude/commands/spec_kit/assets/templates/plan.md specs/###-name/plan.md
 ```
 
 ### Supporting Templates
 
 ```bash
 ## Tasks (after plan, before coding):
-cp .claude/commands/spec_kit/assets/templates/tasks_template.md specs/###-name/tasks.md
+cp .claude/commands/spec_kit/assets/templates/tasks.md specs/###-name/tasks.md
 
 ## Checklist (validation needs):
-cp .claude/commands/spec_kit/assets/templates/checklist_template.md specs/###-name/checklist.md
+cp .claude/commands/spec_kit/assets/templates/checklist.md specs/###-name/checklist.md
 
 ## Decision Record (use descriptive name):
-cp .claude/commands/spec_kit/assets/templates/decision_record_template.md specs/###-name/decision-record-database.md
+cp .claude/commands/spec_kit/assets/templates/decision-record.md specs/###-name/decision-record-database.md
 
 ## Research-Spike (use descriptive name):
-cp .claude/commands/spec_kit/assets/templates/research_spike_template.md specs/###-name/research-spike-performance.md
+cp .claude/commands/spec_kit/assets/templates/research-spike.md specs/###-name/research-spike-performance.md
 ```
 
 ---

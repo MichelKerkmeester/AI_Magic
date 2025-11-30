@@ -54,15 +54,6 @@
           "PURPOSE",
           "CHECKLIST ITEMS"
         ],
-        "readme_template": [
-          "METADATA",
-          "FOLDER STRUCTURE",
-          "OBJECTIVE"
-        ],
-        "subfolder_readme_template": [
-          "OVERVIEW",
-          "RELATIONSHIP TO PARENT"
-        ],
         "skill_template": [
           "WHEN TO USE",
           "HOW IT WORKS",

@@ -2,7 +2,7 @@
 
 Complete feature specification defining requirements, user stories, and success criteria.
 
-<!-- SPECKIT_TEMPLATE_SOURCE: spec_template | v1.0 -->
+<!-- SPECKIT_TEMPLATE_SOURCE: spec | v1.0 -->
 
 ---
 
@@ -320,18 +320,15 @@ Select relevant KPIs and define measurable targets:
 
 ## WHEN TO USE THIS TEMPLATE
 
-Use `spec_template.md` when:
+Use `spec.md` when:
 
 - ✅ Feature requires clear requirements and user stories (Level 1+)
 - ✅ Multiple stakeholders need alignment on scope and acceptance criteria
 - ✅ Complexity requires formal requirements documentation
 - ✅ Traceability between user stories and requirements is important
 
-For simpler documentation needs:
-- **Level 0 (trivial changes)**: Use `minimal_readme_template.md`
-
 For more complex features:
-- **Level 2+**: Use spec.md (this template) + `plan_template.md`
+- **Level 2+**: Use spec.md (this template) + `plan.md`
 - **Level 3**: Full SpecKit with additional templates (tasks, research, ADRs, etc.)
 
 ---
@@ -340,7 +337,7 @@ For more complex features:
 
 - **Implementation Plan**: See `plan.md` for technical approach and architecture
 - **Task Breakdown**: See `tasks.md` for implementation task list organized by user story
-- **Validation Checklist**: See `checklist_template.md` for QA and validation procedures
+- **Validation Checklist**: See `checklist.md` for QA and validation procedures
 
 ---
 

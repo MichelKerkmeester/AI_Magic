@@ -6,7 +6,7 @@
 
 1. [📖 OVERVIEW](#1--overview) - What SpecKit provides and key concepts
 2. [🗂️ DIRECTORY STRUCTURE](#2-️-directory-structure) - File organization and layout
-3. [📝 TEMPLATES](#3--templates) - 9 templates with usage guides
+3. [📝 TEMPLATES](#3--templates) - 7 templates with usage guides
 4. [🔧 SCRIPTS](#4--scripts) - 5 automation scripts
 5. [💡 USAGE EXAMPLES](#5--usage-examples) - Common workflows and patterns
 6. [🔗 INTEGRATION](#6--integration) - How SpecKit connects to commands/hooks/skills
@@ -26,7 +26,7 @@
 
 | Stat | Count | Description |
 |------|-------|-------------|
-| Templates | 9 | Markdown templates for specs, plans, research, decisions |
+| Templates | 7 | Markdown templates for specs, plans, research, decisions |
 | Scripts | 5 | Shell scripts for automation and validation |
 | Commands | 4 | Slash commands for workflow execution |
 
@@ -41,7 +41,7 @@
 ### Key Features
 
 **Template Management**:
-- 9 structured templates for documentation levels 0-3
+- 7 structured templates for documentation levels 1-3
 - Placeholder system with validation enforcement
 - Template source markers for traceability
 
@@ -57,7 +57,7 @@
 
 **Integration Points**:
 - Commands: `/spec_kit:complete`, `/spec_kit:plan`, `/spec_kit:implement`, `/spec_kit:research`
-- Skills: `workflows-conversation`, `create-documentation`
+- Skills: `workflows-spec-kit`, `create-documentation`
 - Hooks: `enforce-spec-folder.sh`
 
 ---
@@ -66,16 +66,14 @@
 
 ```
 .opencode/speckit/
-├── templates/              # 10 markdown templates
-│   ├── spec_template.md
-│   ├── plan_template.md
-│   ├── tasks_template.md
-│   ├── checklist_template.md
-│   ├── research_template.md         # Comprehensive feature research
-│   ├── research_spike_template.md   # Time-boxed technical research
-│   ├── decision_record_template.md
-│   ├── readme_template.md
-│   └── subfolder_readme_template.md
+├── templates/              # 7 markdown templates
+│   ├── spec.md
+│   ├── plan.md
+│   ├── tasks.md
+│   ├── checklist.md
+│   ├── research.md         # Comprehensive feature research
+│   ├── research-spike.md   # Time-boxed technical research
+│   └── decision-record.md
 └── scripts/                # 4 shell scripts
     ├── common.sh                     # Shared utility functions
     ├── create-new-feature.sh         # Create feature branch & spec folder
@@ -90,7 +88,7 @@
 
 ### 3.1 Core Templates
 
-#### `spec_template.md`
+#### `spec.md`
 
 **Purpose**: Complete feature specification with user stories, acceptance criteria, and technical requirements
 
@@ -107,14 +105,13 @@
 - Substantial bug fix documentation
 
 **When NOT to Use**:
-- Trivial changes (<10 LOC, Level 0)
-- Research-only work (use `research_template.md`)
+- Research-only work (use `research.md`)
 
 **Integration**: Commands `/spec_kit:complete`, `/spec_kit:plan` | Hook `enforce-spec-folder.sh`
 
 ---
 
-#### `plan_template.md`
+#### `plan.md`
 
 **Purpose**: Implementation plan with architecture decisions, technical approach, and execution phases
 
@@ -131,16 +128,16 @@
 - Complex implementations with multiple phases
 
 **When NOT to Use**:
-- Level 0-1 simple changes
+- Level 1 simple changes (spec.md sufficient)
 - Before requirements are clear (do spec first)
 
-**Integration**: Commands `/spec_kit:complete`, `/spec_kit:plan` | Skill `workflows-conversation`
+**Integration**: Commands `/spec_kit:complete`, `/spec_kit:plan` | Skill `workflows-spec-kit`
 
 ---
 
 ### 3.2 Research Templates
 
-#### `research_template.md`
+#### `research.md`
 
 **Purpose**: Comprehensive technical research spanning multiple domains (architecture, integration, security, performance)
 
@@ -158,14 +155,14 @@
 - Evaluating multiple solution approaches
 
 **When NOT to Use**:
-- Quick feasibility checks (use `research_spike_template.md`)
+- Quick feasibility checks (use `research-spike.md`)
 - Already know the technical approach
 
 **Integration**: Command `/spec_kit:research` | Workflow path: research → plan → implement
 
 ---
 
-#### `research_spike_template.md`
+#### `research-spike.md`
 
 **Purpose**: Time-boxed technical investigation to answer specific questions or validate approaches
 
@@ -182,7 +179,7 @@
 - Answering targeted technical questions
 
 **When NOT to Use**:
-- Comprehensive multi-domain research (use `research_template.md`)
+- Comprehensive multi-domain research (use `research.md`)
 - Already validated approaches
 
 **Integration**: Command `/spec_kit:research` | Often followed by decision record
@@ -191,7 +188,7 @@
 
 ### 3.3 Supporting Templates
 
-#### `tasks_template.md`
+#### `tasks.md`
 
 **Purpose**: Break implementation plan into actionable, trackable tasks
 
@@ -206,11 +203,11 @@
 - Level 2-3 features with multiple implementation steps
 - Team coordination on complex features
 
-**Integration**: Command `/spec_kit:implement` | Skill `workflows-conversation`
+**Integration**: Command `/spec_kit:implement` | Skill `workflows-spec-kit`
 
 ---
 
-#### `checklist_template.md`
+#### `checklist.md`
 
 **Purpose**: Systematic validation and QA procedures
 
@@ -230,7 +227,7 @@
 
 ---
 
-#### `decision_record_template.md`
+#### `decision-record.md`
 
 **Purpose**: Architecture Decision Records (ADRs) for documenting major technical decisions
 
@@ -250,41 +247,6 @@
 
 ---
 
-### 3.4 Documentation Templates
-
-#### `readme_template.md`
-
-**Purpose**: Standard README documentation for projects or packages
-
-**Key Sections**:
-- Project overview and purpose
-- Installation and setup
-- Usage examples
-- API reference (if applicable)
-- Contributing guidelines
-
-**When to Use**:
-- New project documentation
-- Package or library READMEs
-- Level 0 trivial changes (minimal documentation)
-
----
-
-#### `subfolder_readme_template.md`
-
-**Purpose**: Documentation for organizing related work within spec folders
-
-**Key Sections**:
-- Sub-folder purpose
-- Contents summary
-- Relationship to parent spec
-
-**When to Use**:
-- Organizing versioned work in spec folders
-- Multiple related investigations
-- Archive organization
-
----
 
 ## 4. 🔧 SCRIPTS
 
@@ -463,13 +425,13 @@ $ .opencode/speckit/scripts/setup-plan.sh
 
 ```bash
 # Copy research template for comprehensive investigation
-cp .opencode/speckit/templates/research_template.md specs/042-feature/research.md
+cp .opencode/speckit/templates/research.md specs/042-feature/research.md
 
 # Copy research-spike template for time-boxed experiment
-cp .opencode/speckit/templates/research_spike_template.md specs/042-feature/research-spike-auth-library.md
+cp .opencode/speckit/templates/research-spike.md specs/042-feature/research-spike-auth-library.md
 
 # Copy decision record for technical decisions
-cp .opencode/speckit/templates/decision_record_template.md specs/042-feature/decision-record-database.md
+cp .opencode/speckit/templates/decision-record.md specs/042-feature/decision-record-database.md
 ```
 
 ### Checking Prerequisites
@@ -597,7 +559,7 @@ Hooks (`.claude/hooks/`) reference templates directly:
 
 ### With Skills
 
-**workflows-conversation** skill:
+**workflows-spec-kit** skill:
 - Orchestrates spec folder creation for all file modifications
 - Uses template mapping for documentation level selection (0-3)
 - References `.opencode/speckit/templates/` for all template operations
@@ -638,10 +600,9 @@ Hooks (`.claude/hooks/`) reference templates directly:
 
 | LOC | Level | Required Templates | Optional Additions |
 |-----|-------|-------------------|-------------------|
-| <10 | 0 | `readme_template.md` | — |
-| <100 | 1 | `spec_template.md` | `checklist_template.md` |
-| <500 | 2 | `spec_template.md` + `plan_template.md` | `tasks_template.md`, `checklist_template.md` |
-| ≥500 | 3 | Full SpecKit (spec + plan + tasks) | `research_template.md`, `decision_record_template.md` |
+| <100 | 1 | `spec.md` | `checklist.md` |
+| <500 | 2 | `spec.md` + `plan.md` | `tasks.md`, `checklist.md` |
+| ≥500 | 3 | Full SpecKit (spec + plan + tasks) | `research.md`, `decision-record.md` |
 
 ### Command Quick Reference
 
@@ -665,12 +626,12 @@ Hooks (`.claude/hooks/`) reference templates directly:
 
 **Getting Started**:
 - This README → Overview and quick reference
-- `.claude/skills/workflows-conversation/SKILL.md` → Complete workflow documentation
+- `.claude/skills/workflows-spec-kit/SKILL.md` → Complete workflow documentation
 
 **Detailed References**:
-- `workflows-conversation/references/level_specifications.md` → Level decision tree
-- `workflows-conversation/references/template_guide.md` → Template adaptation guide
-- `workflows-conversation/assets/template_mapping.md` → Template-to-level mapping
+- `workflows-spec-kit/references/level_specifications.md` → Level decision tree
+- `workflows-spec-kit/references/template_guide.md` → Template adaptation guide
+- `workflows-spec-kit/assets/template_mapping.md` → Template-to-level mapping
 
 ---
 
@@ -815,11 +776,11 @@ A: Yes, if the change modifies files (code, docs, config). The `enforce-spec-fol
 
 ---
 
-**Q: What's the difference between `research_template.md` and `research_spike_template.md`?**
+**Q: What's the difference between `research.md` and `research-spike.md`?**
 
 A:
-- **`research_template.md`**: Comprehensive multi-domain research (architecture, security, performance). Use for deep investigations before major features.
-- **`research_spike_template.md`**: Time-boxed experiments (2-4 hours). Use for quick proof-of-concept validation or answering specific technical questions.
+- **`research.md`**: Comprehensive multi-domain research (architecture, security, performance). Use for deep investigations before major features.
+- **`research-spike.md`**: Time-boxed experiments (2-4 hours). Use for quick proof-of-concept validation or answering specific technical questions.
 
 ---
 
@@ -835,7 +796,7 @@ A: Use this decision tree:
 **Q: Can I use SpecKit without the slash commands?**
 
 A: Yes. Templates and scripts work independently. You can:
-- Copy templates manually: `cp templates/spec_template.md specs/042-feature/spec.md`
+- Copy templates manually: `cp templates/spec.md specs/042-feature/spec.md`
 - Run scripts directly: `./scripts/create-new-feature.sh "feature name"`
 - Commands just orchestrate these components
 
@@ -896,7 +857,7 @@ A: The `create-documentation` skill validates template usage:
 - ✅ Added 2-tier architecture documentation (commands vs prompts)
 - ✅ Added context loading and failure recovery sections to all commands
 - ✅ Added auto-create behavior documentation
-- ✅ Added `/spec_kit:research` command - Uses `research_template.md` for comprehensive multi-domain research
+- ✅ Added `/spec_kit:research` command - Uses `research.md` for comprehensive multi-domain research
 - ✅ Now both research templates have corresponding commands (research + research-spike)
 
 **2025-11-24**:
@@ -907,7 +868,7 @@ A: The `create-documentation` skill validates template usage:
 - ✅ Added completeness script documentation
 
 **2025-11-23**:
-- ✅ Added `research_template.md` - Comprehensive feature research template (878 lines, 17 sections)
+- ✅ Added `research.md` - Comprehensive feature research template (878 lines, 17 sections)
 - ✅ Moved all files from `.claude/speckit/` to `.opencode/speckit/` (single location)
 - ✅ Removed symlink - Claude can access `.opencode/` directly
 - ✅ Removed duplicate `.claude/commands/speckit/` folder

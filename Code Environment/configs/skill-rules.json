@@ -172,6 +172,44 @@
         "contentPatterns": ["puppeteer", "browser\\.", "page\\."]
       }
     },
+    "mcp-semantic-search": {
+      "type": "tool",
+      "enforcement": "strict",
+      "priority": "critical",
+      "description": "Intent-based code discovery for CLI AI agents using semantic search MCP tools. Mandatory for code exploration tasks when you have MCP access (.claude/skills/mcp-semantic-search/)",
+      "promptTriggers": {
+        "keywords": [
+          "find code that",
+          "where is",
+          "how does",
+          "locate code",
+          "search for",
+          "show me",
+          "what handles",
+          "which component",
+          "discover",
+          "explore codebase",
+          "understand how",
+          "find all usage",
+          "what depends on",
+          "find similar"
+        ],
+        "intentPatterns": [
+          "(find|locate|discover|search).*?(code|component|function|module|implementation)",
+          "(where|how|what|which).*?(implements?|handles?|manages?|processes?|validates?)",
+          "(show|explain|understand).*?(how|where|what).*?(works?|implemented|defined|used)",
+          "(explore|navigate|understand).*?(codebase|architecture|structure|pattern)",
+          "find.*?(all|similar|related).*?(usage|patterns?|implementations?|components?)",
+          "(what|which).*?(depends on|uses|calls|interacts with)",
+          "(how do we|where do we).*?(handle|implement|manage|validate|process)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [".claude/skills/mcp-semantic-search/**"],
+        "contentPatterns": ["search_codebase", "semantic.*search", "mcp.*semantic"]
+      },
+      "alwaysActive": false
+    },
     "code-standards": {
       "type": "knowledge",
       "enforcement": "strict",

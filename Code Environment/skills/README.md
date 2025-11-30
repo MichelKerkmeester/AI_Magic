@@ -239,12 +239,11 @@ Starting new feature:
 
 **Key Features**:
 - **Hook-Assisted Enforcement**: Automatically prompts for spec folder before file modifications
-- **4-Level Decision Framework**: Level 0 (Minimal) → Level 3 (Complete SpecKit)
+- **3-Level Decision Framework**: Level 1 (Simple) → Level 3 (Complete SpecKit)
 - **Template Integration**: Automated template selection based on documentation level
 - **Skip Option**: Option D for trivial explorations (creates technical debt warning)
 
 **Decision Levels**:
-- **Level 0 (<10 LOC)**: README.md only - Trivial fixes
 - **Level 1 (<100 LOC)**: spec.md + optional checklist.md - Simple isolated changes
 - **Level 2 (<500 LOC)**: spec.md + plan.md + optional tasks.md - Moderate features
 - **Level 3 (≥500 LOC)**: Full SpecKit - Complex features with ADRs, spikes

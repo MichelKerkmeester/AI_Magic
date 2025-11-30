@@ -2,7 +2,7 @@
 
 Time-boxed research and experimentation to answer a technical question or validate an approach.
 
-<!-- SPECKIT_TEMPLATE_SOURCE: research_spike_template | v1.0 -->
+<!-- SPECKIT_TEMPLATE_SOURCE: research-spike | v1.0 -->
 
 ---
 
@@ -300,7 +300,7 @@ Time-boxed research and experimentation to answer a technical question or valida
 - Investigating solution to specific technical problem
 
 **Do NOT use when:**
-- Comprehensive research across multiple domains (use research_template.md)
+- Comprehensive research across multiple domains (use research.md)
 - Simple question answerable by reading documentation
 - No experimentation needed (just documentation review)
 - Unlimited time for investigation (spikes should be time-boxed)
