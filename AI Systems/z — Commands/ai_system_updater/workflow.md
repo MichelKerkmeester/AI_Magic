@@ -4,6 +4,34 @@ argument-hint: "<request> <target-files> [context:...] [reference:...] [complexi
 allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion
 ---
 
+# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+
+**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+
+```
+IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
+    → STOP IMMEDIATELY
+    → Use AskUserQuestion tool with this exact question:
+        question: "What would you like to improve and which files?"
+        options:
+          - label: "Describe my request"
+            description: "I'll provide the improvement request and target files"
+    → WAIT for user response
+    → Use their response to extract request and target_files
+    → Only THEN continue with this workflow
+
+IF $ARGUMENTS contains request and target files:
+    → Continue reading this file
+```
+
+**CRITICAL RULES:**
+- **DO NOT** infer requests or target files from context, screenshots, or conversation history
+- **DO NOT** assume what files the user wants to improve based on recent activity
+- **DO NOT** proceed past this point without explicit request AND target files from the user
+- Both request and target_files MUST come from `$ARGUMENTS` or user's answer to the question above
+
+---
+
 # System Update
 
 Execute the system_updater workflow to assess and improve files with optional approval gates. Automates the 5-step workflow (initialization, analysis, planning, artifact preparation, delivery) with intelligent input transformation and mode-based execution.

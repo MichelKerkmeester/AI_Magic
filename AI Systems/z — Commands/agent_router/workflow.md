@@ -1,7 +1,35 @@
 ---
 description: Execute AGENTS.md-compliant workflows - Supports :auto and :confirm modes
-argument-hint: "[request] [:auto|:confirm]"
+argument-hint: "<request> [:auto|:confirm]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Task, AskUserQuestion
+---
+
+# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+
+**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+
+```
+IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
+    → STOP IMMEDIATELY
+    → Use AskUserQuestion tool with this exact question:
+        question: "What request would you like to route?"
+        options:
+          - label: "Describe my request"
+            description: "I'll provide a request to process through AGENTS.md routing"
+    → WAIT for user response
+    → Use their response as the request
+    → Only THEN continue with this workflow
+
+IF $ARGUMENTS contains a request:
+    → Continue reading this file
+```
+
+**CRITICAL RULES:**
+- **DO NOT** infer requests from context, screenshots, or conversation history
+- **DO NOT** assume what the user wants based on open files or recent activity
+- **DO NOT** proceed past this point without an explicit request from the user
+- The request MUST come from `$ARGUMENTS` or user's answer to the question above
+
 ---
 
 # Agent Router
