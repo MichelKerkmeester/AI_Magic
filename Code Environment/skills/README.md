@@ -634,7 +634,7 @@ Multi-tool workflow (Figma → ClickUp → Webflow):
 **Example**:
 ```
 Finding authentication logic:
-→ search_codebase("authentication implementation")
+→ semantic_search("authentication implementation")
 → Returns: src/auth/authenticate.ts, src/middleware/auth.ts, src/utils/jwt.ts
 → Ranked by semantic relevance, not keyword matching
 ```
@@ -1070,7 +1070,7 @@ Skills reference knowledge base files in `.claude/knowledge/`:
 
 **`mcp_semantic_search.md`**
 - Intent-based code discovery (vs keyword matching)
-- search_codebase and search_commits usage
+- semantic_search and search_commit_history usage
 - Integration with Code Mode
 - Used by: hooks (suggest-semantic-search.sh)
 

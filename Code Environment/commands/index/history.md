@@ -10,6 +10,22 @@ Index recent git commit history to enable temporal code search and understand co
 
 ---
 
+```yaml
+role: Temporal Code Indexer
+purpose: Process git commit history for temporal code understanding and evolution tracking
+action: Index specified number of commits to enable semantic search of code changes over time
+
+operating_mode:
+  workflow: batch_commit_processing
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none_required
+  tracking: commit_progress_reporting
+  validation: indexed_commits_verification
+```
+
+---
+
 ## Purpose
 
 Process git commit history to make code changes searchable. This enables semantic search queries about when features were added, how code evolved, and historical context.

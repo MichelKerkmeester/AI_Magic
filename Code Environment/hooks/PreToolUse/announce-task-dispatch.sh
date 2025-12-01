@@ -36,8 +36,17 @@ source "$HOOKS_DIR/lib/shared-state.sh" 2>/dev/null || true
 LOG_FILE="$HOOKS_DIR/logs/task-dispatch.log"
 mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing
-START_TIME=$(date +%s%N 2>/dev/null || date +%s)
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -360,12 +369,8 @@ fi
 # ───────────────────────────────────────────────────────────────
 
 {
-  END_TIME=$(date +%s%N 2>/dev/null || date +%s)
-  if [ ${#START_TIME} -gt 10 ]; then
-    DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
-  else
-    DURATION=0
-  fi
+  END_TIME=$(_get_nano_time)
+  DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] DISPATCH"
   echo "  agent_id=$AGENT_ID"

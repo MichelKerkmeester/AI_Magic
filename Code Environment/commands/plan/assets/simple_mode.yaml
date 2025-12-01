@@ -1,26 +1,61 @@
 # ───────────────────────────────────────────────────────────────────
-# PLAN_CLAUDE: SIMPLE MODE WORKFLOW
+# PLAN: SIMPLE MODE WORKFLOW (PARAMETERIZED AGENT MODEL)
 # ───────────────────────────────────────────────────────────────────
-# Complete 9-phase planning workflow for features <500 LOC
-# Generates spec.md + plan.md using SpecKit templates
-# ───────────────────────────────────────────────────────────────────
+role: Expert Planning Orchestrator (Opus) with Parameterized Exploration Agents
+purpose: Create comprehensive specification and implementation plan with parallel exploration
+action: Execute 9-phase planning workflow producing SpecKit-compliant documentation
 
-role: Expert Planning Orchestrator (Opus) for Simple Features
-purpose: Create comprehensive specification and implementation plan
-action: Execute 9-phase planning workflow with spec.md + plan.md output
+operating_mode:
+  workflow: sequential_9_phase
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous_with_user_review
+  approvals: plan_review_before_implementation
+  tracking: phase_progress_transparent
+  validation: speckit_template_compliance
 
 # ───────────────────────────────────────────────────────────────────
-# WORKFLOW METADATA
+# AGENT MODEL PARAMETER (SET BY PARENT COMMAND)
 # ───────────────────────────────────────────────────────────────────
-workflow_metadata:
-  name: "Simple Mode Planning"
-  mode: "simple"
-  target_features: "Features of any size, straightforward scope"
-  output: "Level 1: spec.md + plan.md + tasks.md | Level 2: +checklist.md | Level 3: +decision-record.md"
-  phases: 9
-  estimated_duration: "50-100 seconds"
-  speckit_alignment: "MANDATORY - follows AGENTS.md Section 2 requirements"
-  level_structure: "Progressive Enhancement (Level 1 -> Level 2 -> Level 3)"
+# The parent command (cc_sonnet.md or cc_opus.md) specifies which model
+# to use for exploration agents. This file adapts its behavior accordingly.
+#
+# Usage: Parent command sets AGENT_MODEL before loading this file
+#   - cc_sonnet.md → AGENT_MODEL=sonnet (fast, cost-effective)
+#   - cc_opus.md → AGENT_MODEL=opus (thorough, deep reasoning)
+#
+# If AGENT_MODEL not set, defaults to "sonnet" for backward compatibility
+# ───────────────────────────────────────────────────────────────────
+agent_model_config:
+  parameter: AGENT_MODEL
+  default: sonnet
+  valid_values: ["sonnet", "opus"]
+
+  model_characteristics:
+    sonnet:
+      name: "Sonnet"
+      description: "Fast, cost-effective exploration"
+      approach: "Opus orchestrates, Sonnet explores in parallel, Opus verifies"
+      estimated_duration: "50-100 seconds"
+      best_for: "Standard features, quick iterations, cost-sensitive projects"
+    opus:
+      name: "Opus 4.5"
+      description: "Thorough, deep-reasoning exploration"
+      approach: "Full Opus stack - Opus orchestrates, Opus explores, Opus cross-validates"
+      estimated_duration: "90-150 seconds"
+      best_for: "Complex architecture, critical features, security-sensitive changes"
+
+planning_philosophy:
+  principle: "Explore thoroughly, plan precisely, verify continuously"
+  approach: "Opus orchestrates, {AGENT_MODEL} explores in parallel, Opus verifies"
+  mandate: "Never assume - verify by reading files. Report findings, not conclusions."
+  agent_model: "{AGENT_MODEL}"  # Set by parent command (sonnet or opus)
+  estimated_duration: "{model_characteristics[AGENT_MODEL].estimated_duration}"
+
+output_structure:
+  level_1_baseline: "spec.md + plan.md + tasks.md"
+  level_2_verification: "Level 1 + checklist.md"
+  level_3_full: "Level 2 + decision-record.md + optional research-spike.md"
+  speckit_alignment: "MANDATORY - follows AGENTS.md Section 2"
 
 # ───────────────────────────────────────────────────────────────────
 # NOTE: This is a self-contained workflow file merging:
@@ -59,7 +94,7 @@ phase_0_documentation_level:
   steps:
     step_0_1_extract_loc_estimate:
       action: "Extract LOC estimate from parent command mode detection"
-      note: "Parent command (with_claude_code.md) already calculated this"
+      note: "Parent command (cc_sonnet.md) already calculated this"
       source: "Mode selection logic in parent command"
       fallback: "If not available, estimate from task description keywords"
 
@@ -285,18 +320,18 @@ phase_3_context_loading:
 
 exploration_philosophy:
   approach: "Hypothesis-driven exploration with verification"
-  pattern: "Explore (Sonnet agents) → Verify (Opus reasoning)"
+  pattern: "Explore ({AGENT_MODEL} agents) → Verify (Opus reasoning)"
   mandate: "Never assume - verify by reading files. Report findings, not conclusions."
 
 # ───────────────────────────────────────────────────────────────────
-# PHASE 4: PARALLEL EXPLORATION (SONNET AGENTS)
+# PHASE 4: PARALLEL EXPLORATION (PARAMETERIZED AGENTS)
 # ───────────────────────────────────────────────────────────────────
 phase_4_parallel_exploration:
-  phase_name: "Parallel Exploration (Sonnet Agents)"
+  phase_name: "Parallel Exploration ({AGENT_MODEL} Agents)"
   emoji: "📊"
   purpose: "Spawn 4 Explore agents in parallel to discover codebase patterns"
   orchestrator_model: "opus"
-  agent_model: "sonnet"
+  agent_model: "{AGENT_MODEL}"  # Set by parent command (sonnet or opus)
 
   steps:
     step_13_spawn_explore_agents:
@@ -304,13 +339,13 @@ phase_4_parallel_exploration:
       tool: "Task"
       parameters:
         subagent_type: "explore"
-        model: "sonnet"  # Claude Code supports model parameter for Opus+Sonnet hierarchy
+        model: "{AGENT_MODEL}"  # Use model from parent command
 
       agents:
         architecture_explorer:
           focus: "Project structure, entry points, component connections"
           purpose: "Understand system architecture"
-          model: "sonnet"
+          model: "{AGENT_MODEL}"
           prompt_template: |
             Explore the codebase to find how the system architecture works.
 
@@ -324,7 +359,7 @@ phase_4_parallel_exploration:
         feature_explorer:
           focus: "Similar features, related patterns"
           purpose: "Find reusable patterns"
-          model: "sonnet"
+          model: "{AGENT_MODEL}"
           prompt_template: |
             Explore the codebase to find similar features or related patterns for: {task_description}
 
@@ -338,7 +373,7 @@ phase_4_parallel_exploration:
         dependency_explorer:
           focus: "Imports, modules, affected areas"
           purpose: "Identify integration points"
-          model: "sonnet"
+          model: "{AGENT_MODEL}"
           prompt_template: |
             Explore the codebase to find dependencies and integration points for: {task_description}
 
@@ -352,7 +387,7 @@ phase_4_parallel_exploration:
         test_explorer:
           focus: "Test patterns, testing infrastructure"
           purpose: "Understand verification approach"
-          model: "sonnet"
+          model: "{AGENT_MODEL}"
           prompt_template: |
             Explore the codebase to find test patterns and testing infrastructure.
 
@@ -364,12 +399,12 @@ phase_4_parallel_exploration:
             Do NOT draw conclusions - just report findings. The main agent will verify.
 
     step_14_agent_spawn_requirements:
-      important: "Claude Code: Use model: 'sonnet' for Opus+Sonnet hierarchy"
-      rationale: "Fast, cost-effective exploration while Opus orchestrates and synthesizes"
+      important: "Claude Code: Use model parameter from parent command (sonnet or opus)"
+      rationale: "Model selection determines exploration depth vs speed trade-off"
       pattern: |
         Task({
           subagent_type: "explore",
-          model: "sonnet",  // Claude Code supports this parameter
+          model: "{AGENT_MODEL}",  // From parent command
           description: "Architecture exploration",
           prompt: "[exploration prompt from agent template]"
         })

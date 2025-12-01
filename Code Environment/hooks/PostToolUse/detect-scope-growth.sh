@@ -41,9 +41,9 @@ log_event() {
 # Read tool input from stdin
 INPUT=$(cat)
 
-# Extract tool name and file path
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null)
-FILE_PATH=$(echo "$INPUT" | jq -r '.parameters.file_path // .parameters.notebook_path // ""' 2>/dev/null)
+# Extract tool name and file path (support multiple JSON payload shapes)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // .toolName // .name // ""' 2>/dev/null)
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.filePath // .tool_input.path // .tool_input.notebook_path // .parameters.file_path // .parameters.notebook_path // ""' 2>/dev/null)
 
 # Only process after Edit/Write operations
 if [[ ! "$TOOL_NAME" =~ ^(Edit|Write|NotebookEdit)$ ]]; then
@@ -51,9 +51,12 @@ if [[ ! "$TOOL_NAME" =~ ^(Edit|Write|NotebookEdit)$ ]]; then
   exit 0
 fi
 
+# Convert absolute path to relative for consistent matching
+REL_FILE_PATH="${FILE_PATH#$PROJECT_ROOT/}"
+
 # Only care about .md files in specs folders
-if [[ ! "$FILE_PATH" =~ ^specs/[0-9]+-[^/]+/.*\.md$ ]]; then
-  log_event "DEBUG" "Skipping non-spec file: $FILE_PATH"
+if [[ ! "$REL_FILE_PATH" =~ ^specs/[0-9]+-[^/]+/.*\.md$ ]]; then
+  log_event "DEBUG" "Skipping non-spec file: $FILE_PATH (rel: $REL_FILE_PATH)"
   exit 0
 fi
 
@@ -80,7 +83,8 @@ scope_def=$(read_hook_state "scope_definition" 7200 2>/dev/null) || scope_def=""
 # If no scope definition exists, initialize it from the current file's spec folder
 if [ -z "$scope_def" ]; then
   # Extract spec folder from file path (e.g., specs/009-feature)
-  if [[ "$FILE_PATH" =~ ^(specs/[0-9]+-[^/]+)/ ]]; then
+  # Use REL_FILE_PATH for consistent matching (handles both absolute and relative paths)
+  if [[ "$REL_FILE_PATH" =~ ^(specs/[0-9]+-[^/]+)/ ]]; then
     SPEC_FOLDER="${BASH_REMATCH[1]}"
     log_event "INFO" "Auto-initializing scope for $SPEC_FOLDER"
     initialize_scope_definition "$SPEC_FOLDER" "" 2>/dev/null || true
@@ -127,15 +131,13 @@ if [ -z "$baseline_state" ]; then
 
   timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date +%Y-%m-%dT%H:%M:%SZ)
 
-  baseline_state=$(cat <<EOF
-{
-  "spec_folder": "$spec_folder",
-  "files_count": $baseline_files,
-  "level": $doc_level,
-  "timestamp": "$timestamp"
-}
-EOF
-)
+  # Use jq for safe JSON construction (prevents injection if spec_folder contains special chars)
+  baseline_state=$(jq -n \
+    --arg folder "$spec_folder" \
+    --argjson count "$baseline_files" \
+    --argjson level "$doc_level" \
+    --arg ts "$timestamp" \
+    '{spec_folder: $folder, files_count: $count, level: $level, timestamp: $ts}' 2>/dev/null)
 
   write_hook_state "scope_baseline" "$baseline_state" 2>/dev/null || true
   log_event "INFO" "Baseline established: $baseline_files files, level $doc_level"

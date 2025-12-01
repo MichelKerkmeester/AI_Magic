@@ -96,6 +96,55 @@ Custom checklist for feature validation, testing, or review purposes generated b
 
 ---
 
+## VERIFICATION PROTOCOL
+
+### AI Self-Verification Requirement
+
+**This checklist is an ACTIVE VERIFICATION TOOL, not passive documentation.**
+
+When this checklist exists (Level 2+), the AI MUST:
+
+1. **Load** this checklist before claiming any completion
+2. **Verify** each item systematically, starting with P0 items
+3. **Mark** items `[x]` with evidence when verified
+4. **Block** completion claims until all P0/P1 items are verified
+5. **Document** any deferred P2 items with reasons
+
+### Priority Enforcement
+
+| Priority | Handling | Completion Impact |
+|----------|----------|-------------------|
+| **[P0] Critical** | HARD BLOCKER | Cannot claim done until complete |
+| **[P1] High** | Required | Must complete OR get user approval to defer |
+| **[P2] Medium** | Optional | Can defer with documented reason |
+
+### Evidence Format
+
+When marking items complete, include evidence:
+
+```markdown
+- [x] CHK001 [P0] Requirements documented | Evidence: [spec.md](./spec.md) sections 1-4
+- [x] CHK006 [P0] Code passes lint | Evidence: `npm run lint` output: 0 errors
+- [x] CHK011 [P0] Acceptance criteria met | Evidence: [test results](./test-output.md)
+- [ ] CHK025 [P2] Performance benchmarks | Deferred: Post-MVP scope per user approval
+```
+
+### Verification Summary
+
+At completion, document verification status:
+
+```markdown
+## Verification Summary
+- **Total Items**: 35
+- **Verified [x]**: 32
+- **P0 Status**: 12/12 COMPLETE
+- **P1 Status**: 15/15 COMPLETE
+- **P2 Deferred**: 3 items (see details below)
+- **Verification Date**: [YYYY-MM-DD]
+```
+
+---
+
 ## 4. USAGE NOTES
 
 ### Checking Items Off

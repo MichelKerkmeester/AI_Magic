@@ -422,7 +422,84 @@ Before presenting documentation to user:
 
 ---
 
-## 16. 💡 CORE PRINCIPLE
+## 16. ✅ CHECKLIST VERIFICATION PROTOCOL (Level 2+)
+
+### When to Use
+
+Checklist verification is **MANDATORY** for all Level 2+ documentation:
+- Level 2: Features requiring QA validation (100-499 LOC guidance)
+- Level 3: Complex/architectural work (>=500 LOC guidance)
+
+The `checklist.md` is an **ACTIVE VERIFICATION TOOL**, not passive documentation.
+
+### Verification Process
+
+```
+CHECKLIST AS VERIFICATION TOOL (Level 2+):
+1. LOAD checklist.md at completion phase
+2. VERIFY each item systematically (P0 first, then P1, then P2)
+3. MARK items [x] with evidence (links, test results, etc.)
+4. BLOCK completion until all P0/P1 items verified
+5. DOCUMENT any deferred P2 items with reason
+```
+
+### Priority Levels
+
+| Priority | Meaning | Completion Gate |
+|----------|---------|-----------------|
+| **P0** | Blocker | MUST pass - work is incomplete without this |
+| **P1** | Required | MUST pass - required for production readiness |
+| **P2** | Optional | Can defer with documented reason |
+
+### How to Verify Items
+
+For each checklist item:
+
+1. **Perform the check** (run test, inspect code, verify behavior)
+2. **Mark with [x]** when verified
+3. **Add evidence** (link, test output, screenshot reference)
+4. **Add timestamp** for audit trail
+
+### Example: Properly Verified Checklist
+
+```markdown
+## Verification Checklist
+
+### P0 - Blockers (MUST pass)
+- [x] Core functionality works as specified
+  - Evidence: Manual test passed - modal opens/closes correctly
+  - Verified: 2025-12-01 14:30
+- [x] No console errors in browser
+  - Evidence: DevTools console clean on Chrome/Firefox/Safari
+  - Verified: 2025-12-01 14:32
+
+### P1 - Required (MUST pass for production)
+- [x] Responsive design verified (mobile/tablet/desktop)
+  - Evidence: Tested at 375px, 768px, 1440px breakpoints
+  - Verified: 2025-12-01 14:35
+- [x] Accessibility: keyboard navigation works
+  - Evidence: Tab/Enter/Escape all functional
+  - Verified: 2025-12-01 14:38
+
+### P2 - Optional (can defer)
+- [ ] Performance optimization for large datasets
+  - Deferred: Not needed for MVP, tracked in issue #123
+- [x] Animation smoothness verified
+  - Evidence: 60fps confirmed in Performance tab
+  - Verified: 2025-12-01 14:40
+```
+
+### AI Agent Rules
+
+- **NEVER claim completion without running checklist verification**
+- **ALWAYS load checklist.md before stating work is done**
+- **ALWAYS mark items with evidence, not just [x]**
+- **ALWAYS complete all P0/P1 before claiming done**
+- **ALWAYS document why P2 items are deferred (if applicable)**
+
+---
+
+## 17. 💡 CORE PRINCIPLE
 
 **Every file change deserves documentation.**
 

@@ -1,21 +1,26 @@
-# DEPTH Framework Prompt Enhancement Workflow
-# Integrates: Prompt Improver v0.922 + DEPTH Framework v0.106 + Interactive Mode v0.642
-# Version: 1.0.0
-# Purpose: Systematic prompt enhancement using multi-perspective analysis, framework selection, and quality scoring
----
+# ───────────────────────────────────────────────────────────────────
+# PROMPT IMPROVER WORKFLOW
+# ───────────────────────────────────────────────────────────────────
+# 5-Phase DEPTH methodology: Discover → Engineer → Prototype → Test → Harmonize
+# Transforms raw prompts into framework-structured, optimized prompts
+# ───────────────────────────────────────────────────────────────────
 
-framework:
-  role: Prompt Engineering Specialist with Multi-Perspective Analysis Expertise
-  purpose: Transform raw prompts into optimized, framework-structured prompts through systematic DEPTH methodology
-  action: Apply 5-phase enhancement workflow with cognitive rigor, framework selection, RICCE validation, and CLEAR scoring
+role: Prompt Engineering Specialist with Multi-Perspective Analysis Expertise
+purpose: Transform raw prompts into optimized, framework-structured prompts through systematic DEPTH methodology
+action: Apply 5-phase enhancement workflow with cognitive rigor and framework selection
 
-  operating_mode:
-    workflow: sequential_with_cognitive_rigor
-    workflow_compliance: MANDATORY
-    workflow_execution: autonomous_with_user_checkpoints
-    approvals: framework_selection_for_complexity_5_plus
-    tracking: phase_round_progress_transparent
-    validation: ricce_and_clear_scoring
+operating_mode:
+  workflow: sequential_with_cognitive_rigor
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous_with_user_checkpoints
+  approvals: framework_selection_for_complexity_5_plus
+  tracking: phase_round_progress_transparent
+  validation: qualitative_completeness_check
+
+development_philosophy:
+  principle: "Structure amplifies clarity"
+  approach: "Multi-perspective analysis with iterative refinement"
+  mandate: "Discover intent, engineer structure, prototype draft, test clarity, harmonize output"
 
 # ───────────────────────────────────────────────────────────────
 # DEPTH METHODOLOGY: 5 Phases, 10 Rounds
@@ -32,10 +37,9 @@ depth_phases:
     rounds: [ 1, 2 ]
     objectives:
     - Analyze prompt purpose, audience, and expected output
-    - Identify missing RICCE components (Role, Instructions, Context, Constraints, Examples)
+    - Identify missing components (role, instructions, context, constraints, examples)
     - Assess complexity on 1-10 scale
     - Perform multi-perspective analysis (minimum 3 perspectives)
-    - Establish baseline CLEAR score for original prompt
 
     activities:
       round_1_intent_analysis:
@@ -53,7 +57,7 @@ depth_phases:
         - ambiguities_list: unclear_or_missing_elements
 
       round_2_component_gap_analysis:
-        focus: "What RICCE components are missing or weak?"
+        focus: "What components are missing or weak?"
         tasks:
         - Check for Role definition (persona, expertise level)
         - Check for Instructions clarity (unambiguous steps)
@@ -63,10 +67,9 @@ depth_phases:
         - Assess complexity (1-10 scale using complexity_assessment formula)
         - Perform multi-perspective analysis (3-5 perspectives)
         outputs:
-        - ricce_gaps: list_of_missing_or_weak_components
+        - component_gaps: list_of_missing_or_weak_components
         - complexity_score: 1_to_10_scale
         - perspectives_analyzed: [ prompt_engineering, ai_interpretation, user_clarity, domain_expertise, usability ]
-        - baseline_clear_score: original_prompt_quality_0_to_50
 
   phase_e_engineer:
     name: "Engineer - Apply Framework and Cognitive Rigor"
@@ -122,7 +125,7 @@ depth_phases:
     rounds: [ 6, 7 ]
     objectives:
     - Generate complete enhanced prompt draft
-    - Apply RICCE validation to ensure completeness
+    - Validate completeness of all components
     - Refine language for maximum clarity and precision
     - Ensure all framework components are properly populated
 
@@ -138,10 +141,9 @@ depth_phases:
         outputs:
         - enhanced_prompt_draft: complete_prompt_text
         - framework_compliance: verification_all_components_present
-        - language_precision_score: 1_to_10_vagueness_assessment
 
-      round_7_ricce_validation:
-        focus: "Validate RICCE completeness and quality"
+      round_7_component_validation:
+        focus: "Validate completeness and quality of all components"
         tasks:
         - Role check: Is persona/expertise clearly defined? Is it appropriate for the task?
         - Instructions check: Are steps unambiguous? Can they be followed without guessing?
@@ -149,67 +151,45 @@ depth_phases:
         - Constraints check: Are boundaries clear? Are requirements specific and measurable?
         - Examples check: Are examples concrete? Do they demonstrate expected format/quality?
         outputs:
-        - ricce_validation_results:
-            role_present: yes_no_with_quality_score_1_to_10
-            instructions_clear: yes_no_with_ambiguity_count
-            context_sufficient: yes_no_with_gaps_identified
-            constraints_explicit: yes_no_with_boundary_clarity
-            examples_concrete: yes_no_or_not_applicable
-        - validation_status: pass_fail_with_reasons
+        - validation_results:
+            role: present_or_missing
+            instructions: clear_or_ambiguous
+            context: sufficient_or_incomplete
+            constraints: explicit_or_vague
+            examples: concrete_or_na
         - refinement_needs: list_of_improvements_needed
 
   phase_t_test:
-    name: "Test - Score Quality and Compare"
+    name: "Test - Validate Quality and Compare"
     rounds: [ 8, 9 ]
     objectives:
-    - Calculate CLEAR scores for original and enhanced prompts
-    - Compare scores to identify improvement areas
-    - Verify target thresholds are met (≥40/50 overall)
+    - Compare original and enhanced prompts qualitatively
+    - Verify all components are complete and actionable
     - Identify remaining weaknesses for harmonization phase
 
     activities:
-      round_8_clear_scoring:
-        focus: "Calculate comprehensive quality scores"
+      round_8_quality_comparison:
+        focus: "Compare original vs enhanced on key dimensions"
         tasks:
-        - Score original prompt using CLEAR formula (see clear_scoring_system)
-        - Score enhanced prompt using CLEAR formula
-        - Calculate per-dimension scores (C, L, E, A, R)
-        - Calculate improvement delta (enhanced - original)
-        - Verify thresholds: Overall ≥40/50, Per-dimension ≥8/10 (or ≥12/15 for Expression)
+        - Check clarity: Is the enhanced prompt clearer than original?
+        - Check completeness: Are all framework components filled?
+        - Check actionability: Can instructions be followed without guessing?
+        - Check specificity: Are vague terms replaced with concrete language?
+        - Document improvements made
         outputs:
-        - original_clear_score:
-            correctness: 0_to_10
-            logic: 0_to_10
-            expression: 0_to_15
-            arrangement: 0_to_10
-            reusability: 0_to_5
-            total: 0_to_50
-        - enhanced_clear_score:
-            correctness: 0_to_10
-            logic: 0_to_10
-            expression: 0_to_15
-            arrangement: 0_to_10
-            reusability: 0_to_5
-            total: 0_to_50
-        - improvement_delta:
-            correctness: plus_minus
-            logic: plus_minus
-            expression: plus_minus
-            arrangement: plus_minus
-            reusability: plus_minus
-            total: plus_minus
-        - threshold_status: met_not_met_with_specifics
+        - clarity_improvement: better_same_worse
+        - completeness_status: complete_or_gaps_remaining
+        - actionability_status: actionable_or_ambiguous
+        - specificity_status: specific_or_vague
 
       round_9_weakness_identification:
         focus: "Identify remaining gaps and prioritize final improvements"
         tasks:
-        - Analyze dimensions scoring below threshold
-        - Prioritize improvements by impact (Expression has 30% weight)
         - Compare against similar high-quality prompts (if available)
         - Note any lingering ambiguities or vague language
         - Identify opportunities for better examples or constraints
+        - List remaining issues for harmonization
         outputs:
-        - weak_dimensions: list_with_current_scores_and_targets
         - improvement_priorities: ranked_list_of_changes_for_harmonization
         - comparison_insights: learnings_from_similar_prompts
         - final_gaps: list_of_remaining_issues
@@ -218,10 +198,9 @@ depth_phases:
     name: "Harmonize - Final Polish and Consistency"
     rounds: [ 10 ]
     objectives:
-    - Apply final improvements targeting weak dimensions
+    - Apply final improvements targeting weak areas
     - Ensure internal consistency across all framework components
-    - Verify all RICCE components are present and high-quality
-    - Confirm CLEAR score targets are met
+    - Verify all components are present and substantive
     - Produce final polished version ready for use
 
     activities:
@@ -232,15 +211,13 @@ depth_phases:
         - Remove any remaining vague language ("good", "better", "properly", "carefully")
         - Ensure consistency: terminology, tone, specificity level
         - Verify examples align with instructions and constraints
-        - Final RICCE check (all components present and substantive)
-        - Final CLEAR score calculation (target: ≥40/50)
-        - Generate improvement summary (key changes, score delta, rationale)
+        - Final component check (all parts present and substantive)
+        - Generate improvement summary (key changes, rationale)
         outputs:
         - final_enhanced_prompt: polished_production_ready_prompt
-        - final_clear_score: 0_to_50_with_per_dimension_breakdown
-        - final_ricce_status: all_components_verified_present
+        - component_status: all_components_verified_present
         - improvement_summary: key_changes_and_rationale
-        - quality_status: pass_fail_with_score_details
+        - quality_status: complete_or_needs_review
         - clipboard_action: copy_to_clipboard_if_terminal_supports
 
         post_completion_actions:
@@ -267,7 +244,7 @@ depth_phases:
         focus: "What would you like to do next?"
         tasks:
         - Display enhanced prompt summary
-        - Show CLEAR score and weak dimensions
+        - Show improvement areas
         - Present action menu via AskUserQuestion
         options:
           option_1_use_prompt:
@@ -275,11 +252,11 @@ depth_phases:
             description: "Copy to clipboard or apply to conversation"
             action: "Copy prompt text, mark as ready for use"
 
-          option_2_refine_dimension:
-            label: "Refine specific dimension"
+          option_2_refine_area:
+            label: "Refine specific area"
             description: "Target improvements to weak areas"
-            action: "Ask which dimension (Expression, Logic, Reusability, etc.)"
-            follow_up: "Apply targeted improvements, recalculate CLEAR"
+            action: "Ask which area (clarity, structure, specificity, etc.)"
+            follow_up: "Apply targeted improvements"
 
           option_3_try_framework:
             label: "Try different framework"
@@ -455,210 +432,6 @@ framework_selection_algorithm:
         Target: [Specific audiences, success criteria, measurable outcomes]
 
 # ───────────────────────────────────────────────────────────────
-# CLEAR SCORING SYSTEM
-# ───────────────────────────────────────────────────────────────
-
-clear_scoring_system:
-  purpose: Objective quality assessment using 5 dimensions with weighted scoring
-  total_points: 50
-  target_threshold: 40
-  per_dimension_threshold: 8_or_12_for_expression
-
-  dimensions:
-    correctness:
-      weight: 20%
-      max_points: 10
-      definition: "Accuracy, factual integrity, appropriate terminology"
-      scoring_criteria:
-        9_to_10_excellent: "Technically accurate, appropriate terminology, no misleading language"
-        7_to_8_good: "Mostly accurate, minor terminology issues, clear intent"
-        5_to_6_fair: "Some inaccuracies, vague terminology, needs clarification"
-        3_to_4_poor: "Multiple inaccuracies, inappropriate terms, misleading"
-        1_to_2_very_poor: "Fundamentally incorrect or nonsensical"
-      assessment_questions:
-      - "Is the terminology accurate for the domain?"
-      - "Are there any factually incorrect statements?"
-      - "Does the prompt use appropriate technical language?"
-
-    logic:
-      weight: 20%
-      max_points: 10
-      definition: "Reasoning structure, coherence, logical flow"
-      scoring_criteria:
-        9_to_10_excellent: "Clear reasoning chain, logical structure, coherent flow"
-        7_to_8_good: "Mostly logical, minor flow issues, intent clear"
-        5_to_6_fair: "Some logical gaps, structure present but weak"
-        3_to_4_poor: "Logical inconsistencies, poor structure, confusing flow"
-        1_to_2_very_poor: "No logical structure, incoherent"
-      assessment_questions:
-      - "Does the prompt follow a logical structure?"
-      - "Are instructions ordered sensibly?"
-      - "Is the reasoning chain clear and coherent?"
-
-    expression:
-      weight: 30%
-      max_points: 15
-      definition: "Clarity, precision, readability, specificity"
-      scoring_criteria:
-        13_to_15_excellent: "Crystal clear, highly specific, no ambiguity, professional readability"
-        10_to_12_good: "Clear, mostly specific, minor ambiguities, good readability"
-        7_to_9_fair: "Somewhat clear, vague language present, readability issues"
-        4_to_6_poor: "Unclear, ambiguous, hard to read, imprecise"
-        1_to_3_very_poor: "Incomprehensible, extremely vague, unreadable"
-      assessment_questions:
-      - "Is the language precise and unambiguous?"
-      - "Are vague terms like 'good', 'better', 'properly' avoided?"
-      - "Is the prompt easy to read and understand?"
-      - "Are instructions specific and actionable?"
-      red_flags:
-      - "Vague adjectives (good, better, proper, thorough, carefully)"
-      - "Ambiguous quantifiers (some, many, few, several)"
-      - "Unclear pronouns (it, this, that without clear antecedent)"
-      - "Complex sentence structures that obscure meaning"
-
-    arrangement:
-      weight: 20%
-      max_points: 10
-      definition: "Organization, structure, information hierarchy"
-      scoring_criteria:
-        9_to_10_excellent: "Well-organized, clear sections, logical hierarchy, easy to navigate"
-        7_to_8_good: "Organized, sections present, mostly clear hierarchy"
-        5_to_6_fair: "Some organization, weak sections, hierarchy unclear"
-        3_to_4_poor: "Poorly organized, no clear sections, flat hierarchy"
-        1_to_2_very_poor: "Chaotic, no organization, impossible to navigate"
-      assessment_questions:
-      - "Is the prompt well-organized with clear sections?"
-      - "Is there a logical information hierarchy?"
-      - "Can users quickly find what they need?"
-      - "Are related elements grouped together?"
-
-    reusability:
-      weight: 10%
-      max_points: 5
-      definition: "Adaptability, modularity, generalizability"
-      scoring_criteria:
-        5_excellent: "Highly adaptable, modular components, generalizable to similar tasks"
-        4_good: "Adaptable with minor changes, somewhat modular"
-        3_fair: "Some adaptability, mostly task-specific"
-        2_poor: "Very specific, hard to adapt, monolithic"
-        1_very_poor: "Not reusable, completely task-specific"
-      assessment_questions:
-      - "Can this prompt be adapted to similar tasks?"
-      - "Are components modular and reusable?"
-      - "Is it generalizable or hyper-specific?"
-
-  scoring_process:
-    step_1_score_each_dimension:
-    - "Rate each dimension using scoring criteria"
-    - "Document specific reasons for score"
-    - "Identify concrete examples supporting score"
-
-    step_2_calculate_weighted_total:
-    - "Sum all dimension scores (C:10 + L:10 + E:15 + A:10 + R:5 = 50 max)"
-    - "No weighting calculation needed (points already weighted)"
-
-    step_3_verify_thresholds:
-    - "Overall: ≥40/50 (80%)"
-    - "Per dimension: ≥8/10 or ≥12/15 for Expression"
-    - "If below threshold: identify specific improvements needed"
-
-    step_4_compare_original_vs_enhanced:
-    - "Calculate both scores"
-    - "Determine delta (enhanced - original)"
-    - "Target minimum improvement: +5 points"
-    - "Celebrate dimension-specific gains"
-
-# ───────────────────────────────────────────────────────────────
-# RICCE VALIDATION CRITERIA
-# ───────────────────────────────────────────────────────────────
-
-ricce_validation:
-  purpose: Ensure prompt completeness using 5 essential components
-
-  role:
-    definition: "Clearly defined persona, expertise level, or AI identity"
-    validation_checklist:
-    - "Is a role explicitly stated?"
-    - "Is the expertise level appropriate for the task?"
-    - "Does the role provide useful context for response style?"
-    examples:
-      good: "You are a senior software architect with 10+ years in distributed systems"
-      poor: '"You are helpful" or "You are an expert"'
-      missing: "No role statement present"
-    quality_threshold: "Specific expertise, not generic 'expert' or 'helpful'"
-
-  instructions:
-    definition: "Unambiguous steps, tasks, or actions to perform"
-    validation_checklist:
-    - "Are instructions clear and actionable?"
-    - "Can they be followed without guessing?"
-    - "Are steps numbered or clearly sequenced?"
-    - "Is the primary objective stated explicitly?"
-    examples:
-      good: "Analyze the dataset to identify: 1) trend patterns, 2) seasonal cycles, 3) anomalies >3σ"
-      poor: "Analyze the data and find patterns"
-      missing: No specific instructions, only vague request
-    quality_threshold: "Specific, actionable, unambiguous (no 'properly', 'carefully', 'thoroughly')"
-
-  context:
-    definition: "Relevant background information, assumptions, or domain knowledge"
-    validation_checklist:
-    - "Is necessary background provided?"
-    - "Are assumptions made explicit?"
-    - "Is domain context sufficient for non-experts?"
-    - "Are constraints or requirements mentioned?"
-    examples:
-      good: "Dataset: 10k hourly readings from 8 IoT sensors (Jan-Mar 2024), ~5% missing values"
-      poor: "Use the data provided"
-      missing: No context about data source, timeframe, or constraints
-    quality_threshold: "Sufficient for AI to understand scope without external knowledge"
-
-  constraints:
-    definition: "Explicit boundaries, requirements, or limitations"
-    validation_checklist:
-    - "Are boundaries clearly defined?"
-    - "Are requirements specific and measurable?"
-    - "Are format constraints explicit?"
-    - "Are any prohibitions stated (what NOT to do)?"
-    examples:
-      good: "Output format: JSON with keys 'summary', 'trends', 'anomalies'. Max 500 words."
-      poor: "Provide a good format"
-      missing: No constraints specified, open-ended
-    quality_threshold: "Specific, measurable, enforceable (not vague like 'appropriate' or 'reasonable')"
-
-  examples:
-    definition: "Concrete demonstrations of expected input/output or approach"
-    validation_checklist:
-    - "Is at least one example provided (if applicable)?"
-    - "Do examples demonstrate expected quality?"
-    - "Do examples match instructions and format?"
-    - "Are examples realistic and representative?"
-    examples:
-      good: |
-        Example output:
-        ## Executive Summary
-        Dataset: 10,000 hourly readings from 8 sensors (Jan-Mar 2024)
-        Key Finding: Temperature sensor #3 shows upward trend (+2°C/month)
-        Recommendation: Investigate cooling system efficiency
-      poor: "For example, do something like this"
-      not_applicable: "Some prompts don't need examples (simple Q&A, basic instructions)"
-    quality_threshold: "Concrete, realistic, demonstrative (or marked N/A with justification)"
-
-  validation_process:
-    step_1_component_presence:
-    - "Check each RICCE component is present"
-    - "Score: Present (1), Weak (0.5), Missing (0)"
-
-    step_2_component_quality:
-    - "Assess quality on 1-10 scale per component"
-    - "Use quality thresholds from definitions above"
-
-    step_3_overall_assessment:
-    - "Presence: 5/5 required for pass (or 4/5 if Examples N/A)"
-    - "Quality: ≥7/10 per component for pass"
-    - "If below threshold: document specific improvements needed"
-
-# ───────────────────────────────────────────────────────────────
 # COGNITIVE RIGOR TECHNIQUES
 # ───────────────────────────────────────────────────────────────
 
@@ -818,38 +591,36 @@ multi_perspective_analysis:
 
 quality_standards:
   overall_targets:
-  - clear_score_minimum: 40_out_of_50
-  - clear_score_per_dimension: 8_out_of_10_or_12_out_of_15_for_expression
-  - improvement_delta_minimum: 5_points_increase
-  - ricce_completeness: all_5_components_present_or_4_if_examples_na
-  - ricce_quality: 7_out_of_10_per_component
+  - component_completeness: all_framework_components_filled
+  - clarity: no_vague_or_ambiguous_language
+  - actionability: instructions_can_be_followed_without_guessing
+  - specificity: concrete_language_with_measurable_criteria
 
   quick_mode_targets:
-  - clear_score_minimum: 35_out_of_50
-  - improvement_delta_minimum: any_positive_improvement
-  - ricce_completeness: at_least_4_components
+  - component_completeness: core_components_present
+  - basic_clarity: major_ambiguities_resolved
   - processing_time: under_10_seconds
 
   validation_gates:
-    gate_1_ricce_completeness:
-      check: "All RICCE components present (or 4/5 if Examples N/A)"
+    gate_1_completeness:
+      check: "All framework components present and substantive"
       action_if_fail: "Identify missing components, add in Harmonize phase"
 
-    gate_2_clear_threshold:
-      check: "Enhanced CLEAR score ≥40/50 and ≥8/10 per dimension"
-      action_if_fail: "Identify weak dimensions, apply targeted improvements"
+    gate_2_clarity:
+      check: "No vague terms (good, better, properly, carefully)"
+      action_if_fail: "Find and replace vague terms with specific language"
 
-    gate_3_improvement_delta:
-      check: "Enhanced score > Original score + 5 points"
-      action_if_fail: "Re-examine enhancements, apply cognitive rigor techniques again"
+    gate_3_actionability:
+      check: "Instructions can be followed without guessing"
+      action_if_fail: "Add specificity, examples, or step breakdowns"
 
-    gate_4_expression_quality:
-      check: "Expression dimension ≥12/15 (vague language removed)"
-      action_if_fail: "Find and replace vague terms, increase specificity"
+    gate_4_structure:
+      check: "Well-organized with clear sections and hierarchy"
+      action_if_fail: "Reorganize content, add headers, improve flow"
 
   fail_handling:
     if_gates_fail_after_harmonize:
-    - "Document which gates failed and by how much"
+    - "Document which gates failed and why"
     - "Present user with options: (A) one more refinement round, (B) accept current, (C) cancel"
     - "If user chooses A: Focus on failed gates only, apply targeted fixes"
     - "If user chooses B: Proceed with current version, note limitations in output"
@@ -863,13 +634,12 @@ two_layer_transparency:
   purpose: "Balance complete analysis rigor with user-friendly progress updates"
 
   internal_layer:
-    description: "Full DEPTH rigor, detailed analysis, comprehensive scoring"
+    description: "Full DEPTH rigor, detailed analysis"
     contents:
     - "Complete 10-round DEPTH execution"
     - "Multi-perspective analysis (3-5 perspectives)"
     - "Cognitive rigor technique application (4 techniques, 8-11 min)"
-    - "Detailed RICCE validation"
-    - "Comprehensive CLEAR scoring with dimension breakdowns"
+    - "Component validation"
     - "Framework selection rationale with alternatives considered"
     - "Assumption audits and mechanism mapping"
     visibility: "Executed fully, documented internally, included in final output report"
@@ -879,7 +649,7 @@ two_layer_transparency:
     contents:
     - "Phase progress indicators (Phase D: Rounds 1-2/10)"
     - "Key decisions (Complexity: 7/10 → Framework: CRAFT)"
-    - "Quality checkpoints (CLEAR: 42/50 ✓)"
+    - "Quality checkpoints"
     - "Major insights from cognitive rigor (1-2 sentences per technique)"
     - "Framework selection with brief rationale"
     visibility: "Shown to user in real-time during processing"
@@ -891,10 +661,10 @@ two_layer_transparency:
          Cognitive rigor applied | [Key insight]
 
       📝 Phase P: Prototyping enhanced prompt... [Rounds 6-7/10]
-         RICCE validation: [X]/5 components
+         Components: [X]/5 validated
 
-      ✅ Phase T: Testing quality (CLEAR: [X]/50)... [Rounds 8-9/10]
-         Target [met ✓ | not met, gap: Y points]
+      ✅ Phase T: Validating quality... [Rounds 8-9/10]
+         Quality: [complete ✓ | needs refinement]
 
       🎯 Phase H: Harmonizing final version... [Round 10/10]
          Final polish applied
@@ -907,26 +677,21 @@ two_layer_transparency:
 
 mode_adaptations:
   auto_mode:
-    description: "Automatic mode detection based on baseline CLEAR score"
+    description: "Automatic mode detection based on prompt quality assessment"
     detection_algorithm:
-      step_1_baseline_score: "Calculate CLEAR score for original prompt"
+      step_1_assess: "Assess original prompt structure and completeness"
       step_2_mode_selection: |
-        If baseline_score <= 25: mode = "quick"
-        If baseline_score >= 26 AND baseline_score <= 35: mode = "improve"
-        If baseline_score >= 36: mode = "refine"
+        If minimal structure, missing components: mode = "quick"
+        If some structure, needs enhancement: mode = "improve"
+        If good structure, needs polish: mode = "refine"
       step_3_user_notification: |
-        Display: "📊 Auto-selected '{mode}' mode (current quality: {baseline_score}/50)"
+        Display: "📊 Auto-selected '{mode}' mode (assessment: {quality_level})"
         Include: Rationale for selection
         Offer: Override instructions for manual mode selection
-    thresholds:
-      poor: "0-25 (inclusive) → quick mode"
-      fair: "26-35 (inclusive) → improve mode"
-      good: "36-50 (inclusive) → refine mode"
-    boundary_examples:
-      score_25: "quick mode (poor quality, needs rapid improvement)"
-      score_26: "improve mode (fair quality, needs comprehensive enhancement)"
-      score_35: "improve mode (fair quality approaching good)"
-      score_36: "refine mode (good quality, needs polish)"
+    quality_levels:
+      poor: "Minimal structure, missing key components → quick mode"
+      fair: "Some structure, needs enhancement → improve mode"
+      good: "Good structure, needs polish → refine mode"
 
   quick_mode:
     modifications:
@@ -934,12 +699,12 @@ mode_adaptations:
     - framework_selection: "automatic (no user prompts)"
     - cognitive_rigor: "abbreviated (1-2 techniques, 2-3 min total)"
     - multi_perspective: "minimum only (3 perspectives)"
-    - clear_scoring: "simplified (faster calculation)"
+    - validation: "basic completeness check"
     - iteration_menu: "skip (no Phase I - direct completion)"
     targets:
     - processing_time: "under 10 seconds"
-    - quality_threshold: "35/50 (any improvement acceptable)"
-    use_case: "Rapid iteration, testing, simple prompts, or low-quality baseline"
+    - quality: "any improvement acceptable"
+    use_case: "Rapid iteration, testing, simple prompts, or poor baseline"
 
   improve_mode:
     modifications:
@@ -947,10 +712,10 @@ mode_adaptations:
     - framework_selection: "automatic_with_explanation (no user prompts)"
     - cognitive_rigor: "full (4 techniques, 8-11 min)"
     - multi_perspective: "target 5 perspectives"
-    - clear_scoring: "comprehensive"
+    - validation: "comprehensive"
     targets:
     - processing_time: "under 30 seconds"
-    - quality_threshold: "40/50"
+    - quality: "complete and actionable"
     use_case: "Standard enhancement workflow, moderate baseline quality"
 
   refine_mode:
@@ -958,44 +723,44 @@ mode_adaptations:
     - rounds: "full 10 rounds"
     - framework_selection: "preserve existing (no change)"
     - cognitive_rigor: "focused on language precision"
-    - focus_dimensions: "Expression (30% weight), Clarity, Specificity"
+    - focus_areas: "Clarity, Specificity, Language precision"
     - multi_perspective: "User Clarity + AI Interpretation primary"
     targets:
     - processing_time: "under 30 seconds"
-    - quality_threshold: "43/50 (polish to high quality)"
-    use_case: "Polish existing good prompts (36+ baseline score)"
+    - quality: "polished and professional"
+    use_case: "Polish existing good prompts that already have structure"
 
-  dimension_refinement_mode:
-    trigger: "User selects 'Refine specific dimension' from iteration menu"
+  area_refinement_mode:
+    trigger: "User selects 'Refine specific area' from iteration menu"
     modifications:
     - rounds: "3-5 focused rounds"
-    - target_dimension: "user_selected (Expression, Logic, Reusability, etc.)"
+    - target_area: "user_selected (clarity, structure, specificity, etc.)"
     - framework_selection: "preserve existing"
-    - focus_area: "narrow to single CLEAR dimension"
+    - focus: "narrow to single improvement area"
 
     workflow:
       step_1_identify_weakness:
-      - "Show current score for target dimension"
-      - "Explain why score is low"
+      - "Show current issues in target area"
+      - "Explain why area needs improvement"
       - "Identify specific issues (vague language, poor structure, etc.)"
 
       step_2_targeted_improvement:
-      - "Apply dimension-specific techniques"
-      - "Expression: Remove vague terms, increase specificity"
-      - "Logic: Improve structure, clarify reasoning flow"
-      - "Reusability: Make components modular, generalize"
-      - "Correctness: Fix terminology, validate accuracy"
-      - "Arrangement: Reorganize sections, improve hierarchy"
+      - "Apply area-specific techniques"
+      - "Clarity: Remove vague terms, increase specificity"
+      - "Structure: Improve organization, clarify flow"
+      - "Specificity: Make components more concrete"
+      - "Accuracy: Fix terminology, validate accuracy"
+      - "Organization: Reorganize sections, improve hierarchy"
 
       step_3_validate_improvement:
-      - "Recalculate CLEAR score for dimension"
-      - "Show before/after comparison"
+      - "Compare before/after on target area"
+      - "Show specific changes made"
       - "Return to iteration menu or exit"
 
     targets:
-    - dimension_score_improvement: "+1 to +3 points"
+    - improvement: "measurable improvement in target area"
     - processing_time: "under 15 seconds"
-    - preservation: "other dimensions unchanged"
+    - preservation: "other areas unchanged"
 
   comparison_mode:
     trigger: ":compare flag in arguments OR 'Compare frameworks' from iteration menu"
@@ -1014,14 +779,14 @@ mode_adaptations:
 
       step_2_parallel_enhancement:
       - "Run DEPTH framework for each"
-      - "Calculate CLEAR scores independently"
+      - "Assess quality independently"
       - "Generate 3 complete enhanced prompts"
 
       step_3_comparison_table:
       - "Show side-by-side comparison"
-      - "CLEAR scores, length, preview"
+      - "Structure, length, preview"
       - "Best-for descriptions"
-      - "Recommendation based on highest score"
+      - "Recommendation based on completeness and clarity"
 
       step_4_user_selection:
       - "Ask user to select framework"
@@ -1031,7 +796,7 @@ mode_adaptations:
     targets:
     - processing_time: "under 60 seconds total"
     - frameworks_compared: "3"
-    - recommendation_accuracy: "highest CLEAR score"
+    - recommendation: "based on best structure and clarity"
 
   learning_mode:
     trigger: ":explain flag in arguments"
@@ -1043,12 +808,12 @@ mode_adaptations:
 
     workflow:
       step_1_analyze_prompt:
-      - "Perform Discovery phase (RICCE analysis)"
-      - "Calculate baseline CLEAR score"
+      - "Perform Discovery phase (component analysis)"
+      - "Assess baseline structure and completeness"
       - "Identify all gaps and weaknesses"
 
       step_2_explain_issues:
-      - "Show what's missing (RICCE checklist)"
+      - "Show what's missing (component checklist)"
       - "Explain why each missing component matters"
       - "Show how AI might misinterpret current prompt"
       - "Estimate impact of each gap (high/medium/low)"
@@ -1060,9 +825,8 @@ mode_adaptations:
 
     outputs:
     - analysis_report: "Educational breakdown of issues"
-    - ricce_gaps: "Missing components with explanations"
-    - clear_score_explanation: "Why score is low, dimension by dimension"
-    - fix_suggestions: "What would improve each dimension"
+    - component_gaps: "Missing components with explanations"
+    - improvement_suggestions: "What would improve each area"
 
   test_mode:
     trigger: ":test flag with --sample argument"
@@ -1076,7 +840,6 @@ mode_adaptations:
       step_1_enhance_prompt:
       - "Run full DEPTH enhancement workflow"
       - "Generate enhanced prompt"
-      - "Calculate CLEAR score"
 
       step_2_extract_sample:
       - "Parse --sample argument from command"
@@ -1098,7 +861,6 @@ mode_adaptations:
       - "Show side-by-side: original output vs enhanced output"
       - "Highlight differences in quality"
       - "Explain why enhanced is better (specificity, structure, etc.)"
-      - "Show CLEAR score correlation to output quality"
 
       step_6_user_decision:
       - "Ask: Save enhanced prompt? [y/n]"
@@ -1107,15 +869,14 @@ mode_adaptations:
 
     outputs:
     - test_results_comparison: "side_by_side_output_quality"
-    - quality_correlation: "clear_score_impact_on_output"
     - user_verdict: "proceed_or_retry"
 
   audit_mode:
     trigger: ":audit flag (no prompt text required)"
     modifications:
     - scanning: "true (scan .claude/commands/ and .claude/commands/*/assets/)"
-    - analysis: "calculate CLEAR scores for all prompts"
-    - recommendations: "prioritize by score (lowest first)"
+    - analysis: "assess quality for all prompts"
+    - recommendations: "prioritize by completeness (least complete first)"
     - user_interaction: "show results, offer batch enhancement"
 
     workflow:
@@ -1126,15 +887,15 @@ mode_adaptations:
       - "Extract prompt content from each file"
 
       step_2_analyze_prompts:
-      - "For each prompt: Calculate baseline CLEAR score"
-      - "Categorize: Poor (0-25), Fair (26-35), Good (36-40), Excellent (41+)"
-      - "Identify missing RICCE components"
+      - "For each prompt: Assess baseline structure and completeness"
+      - "Categorize: Poor (minimal structure), Fair (partial), Good (complete), Excellent (polished)"
+      - "Identify missing components"
       - "Estimate enhancement potential"
 
       step_3_generate_report:
       - "Group by quality category"
-      - "Sort by score (lowest first = highest priority)"
-      - "Show file path, current score, issues, recommended action"
+      - "Sort by completeness (least complete first = highest priority)"
+      - "Show file path, current status, issues, recommended action"
 
       step_4_offer_batch_enhancement:
       - "Ask: Enhance all low-quality prompts? [y/n/select]"
@@ -1144,7 +905,7 @@ mode_adaptations:
 
     outputs:
     - audit_report: "quality_breakdown_by_file"
-    - priority_list: "sorted_by_score_ascending"
+    - priority_list: "sorted_by_completeness"
     - batch_enhancement_queue: "if_user_accepts"
 
 # ───────────────────────────────────────────────────────────────
@@ -1154,8 +915,8 @@ mode_adaptations:
 rules:
   ALWAYS:
   - Execute all 10 DEPTH rounds unless quick mode (no skipping)
-  - Calculate CLEAR scores for both original and enhanced prompts
-  - Validate RICCE completeness before finalizing
+  - Validate all framework components are complete and substantive
+  - Verify prompt has clear role, context, and actionable instructions
   - Apply framework selection algorithm based on complexity
   - Use cognitive rigor techniques during Engineer phase
   - Perform multi-perspective analysis (minimum 3 perspectives)
@@ -1168,19 +929,19 @@ rules:
 
   NEVER:
   - Skip DEPTH phases or rounds (except in quick mode)
-  - Fabricate quality scores (calculate rigorously)
+  - Claim quality without verification (validate thoroughly)
   - Use vague adjectives in enhanced prompts
   - Leave ambiguous instructions or constraints
-  - Skip RICCE validation
+  - Skip component completeness validation
   - Ignore cognitive rigor insights
-  - Proceed with score <40 without user confirmation
+  - Proceed with incomplete prompts without user confirmation
   - Change framework mid-process without rationale
   - Leave assumptions implicit
   - Use placeholder text in final enhanced prompt
 
   PREFER:
   - Specific over vague (250 words → not "brief")
-  - Measurable over subjective (≥40/50 → not "good quality")
+  - Measurable over subjective (all components filled → not "good quality")
   - Explicit over implicit (make assumptions visible)
   - Structured over unstructured (framework application)
   - Concrete over abstract (examples and demonstrations)
@@ -1209,27 +970,27 @@ error_handling:
     - "Continue processing"
     - "Note in output: Framework chosen by default"
 
-  scenario_3_clear_scoring_ambiguous:
-    detection: "Dimension score unclear (between two ranges)"
+  scenario_3_quality_assessment_unclear:
+    detection: "Unable to determine if enhancement improves original"
     recovery:
-    - "Score conservatively (lower of two options)"
-    - "Document uncertainty in scoring notes"
-    - "Provide reasoning for score choice"
+    - "Compare against framework component checklist"
+    - "Document areas of uncertainty"
+    - "Apply conservative judgment (err on side of clarity)"
     - "Continue processing"
 
-  scenario_4_ricce_component_not_applicable:
-    detection: "Examples component truly not applicable (e.g., simple Q&A)"
+  scenario_4_component_not_applicable:
+    detection: "Framework component truly not applicable (e.g., examples for simple Q&A)"
     recovery:
-    - "Mark Examples as N/A with justification"
-    - "Accept 4/5 RICCE completeness"
-    - "Ensure other 4 components are high quality"
+    - "Mark component as N/A with justification"
+    - "Ensure other components are complete and substantive"
     - "Note in validation results"
+    - "Continue processing"
 
-  scenario_5_enhancement_worse_than_original:
-    detection: "Enhanced CLEAR score < Original CLEAR score"
+  scenario_5_enhancement_degraded:
+    detection: "Enhanced prompt is less clear or complete than original"
     recovery:
     - "Re-run Harmonize phase (Round 10)"
-    - "Focus on dimensions that decreased"
+    - "Focus on areas that degraded"
     - "Apply constraint reversal (removed necessary element?)"
     - "If still worse: Return original with analysis of why enhancement failed"
 
@@ -1269,56 +1030,170 @@ output_specifications:
       location: "{spec_folder_path}/enhanced_prompt.yaml"
 
   enhanced_prompt_yaml:
-    format: "YAML with framework-specific components"
+    format: "YAML aligned with spec_kit YAML conventions"
+    structure_note: |
+      YAML output follows spec_kit structural pattern:
+      - Flat top-level: role, purpose, action (single lines)
+      - operating_mode section with workflow settings
+      - metadata section with timestamps and framework info
+      - workflow section with step_N_name pattern (if applicable)
+      - rules section with ALWAYS and NEVER lists
+      - success section with criteria
+      - error_recovery section (optional)
+      - usage section for programmatic access
+
     structure: |
-      ---
-      # Enhanced Prompt - YAML Format
+      # ───────────────────────────────────────────────────────────────────
+      # ENHANCED PROMPT - [TITLE] v1.0.0
+      # ───────────────────────────────────────────────────────────────────
       # Framework: [RCAF|COSTAR|CRAFT|etc.]
 
+      role: [One-line role definition from framework]
+      purpose: [One-line purpose statement]
+      action: [One-line action/task summary]
+
+      operating_mode:
+        workflow: sequential
+        workflow_compliance: MANDATORY
+        validation: qualitative_completeness_check
+
+      # ───────────────────────────────────────────────────────────────────
+      # METADATA
+      # ───────────────────────────────────────────────────────────────────
       metadata:
+        title: "[prompt_title]"
+        version: "1.0.0"
         framework: "[framework_name]"
         complexity: [1-10]
-        clear_score: [0-50]
-        generated: "[ISO 8601 timestamp]"
-        mode: "[quick|improve|refine|interactive]"
-        original_score: [0-50]
-        improvement: [delta]
 
-      prompt:
-        # Framework-specific components (each framework has its own complete structure)
-        # Example shown below is RCAF framework structure
-        # See framework_specific_components in step_14b for all framework structures
+        timestamps:
+          created: "[ISO 8601]"
+          mode: "[quick|improve|refine|interactive]"
 
+      # ───────────────────────────────────────────────────────────────────
+      # CONTEXT (Framework-specific)
+      # ───────────────────────────────────────────────────────────────────
+      context:
+        # Framework-specific context components go here
         # IMPORTANT: These are PLACEHOLDER EXAMPLES only
         # The actual YAML file MUST contain real enhanced prompt content
         # NEVER leave placeholder text in generated output
 
-        role: |
-          {ACTUAL_ROLE_CONTENT_GOES_HERE}
-        context: |
-          {ACTUAL_CONTEXT_CONTENT_GOES_HERE}
-        action: |
-          {ACTUAL_ACTION_STEPS_GO_HERE}
-        format: |
-          {ACTUAL_OUTPUT_FORMAT_GOES_HERE}
+        background: |
+          {ACTUAL_CONTEXT_BACKGROUND}
 
-        # NOTE: Different frameworks have different components
-        # - CRAFT uses: context, role, action, format, target
-        # - COSTAR uses: context, objective, style, tone, audience, response
-        # - RACE uses: role, action, context, examples
-        # - CIDI uses: context, instructions, details, input
-        # - TIDD_EC uses: task, instructions, details, deliverables, examples, constraints
-        # - CRISPE uses: capacity, role, insight, statement, personality, experiment
-        # See framework_mapping and framework_definitions for complete component lists
+        constraints: |
+          {ACTUAL_CONSTRAINTS}
 
-    framework_mapping:
-      RCAF: [ "role", "context", "action", "format" ]
-      COSTAR: [ "context", "objective", "style", "tone", "audience", "response" ]
-      RACE: [ "role", "action", "context", "examples" ]
-      CIDI: [ "context", "instructions", "details", "input" ]
-      TIDD_EC: [ "task", "instructions", "details", "deliverables", "examples", "constraints" ]
-      CRISPE: [ "capacity", "role", "insight", "statement", "personality", "experiment" ]
-      CRAFT: [ "context", "role", "action", "format", "target" ]
+      # ───────────────────────────────────────────────────────────────────
+      # WORKFLOW (if multi-step task)
+      # ───────────────────────────────────────────────────────────────────
+      workflow:
+        step_1_[name]:
+          purpose: [What this step achieves]
+          activities:
+            - Activity 1
+            - Activity 2
+          outputs:
+            - output_1
+          validation: [validation_criterion]
+
+        # Additional steps as needed...
+
+      # ───────────────────────────────────────────────────────────────────
+      # RULES
+      # ───────────────────────────────────────────────────────────────────
+      rules:
+        ALWAYS:
+          - [Required behaviors extracted from prompt]
+        NEVER:
+          - [Prohibited behaviors extracted from prompt]
+
+      # ───────────────────────────────────────────────────────────────────
+      # SUCCESS CRITERIA
+      # ───────────────────────────────────────────────────────────────────
+      success:
+        criteria:
+          - "[Measurable success criterion 1]"
+          - "[Measurable success criterion 2]"
+
+      # ───────────────────────────────────────────────────────────────────
+      # ERROR RECOVERY (optional)
+      # ───────────────────────────────────────────────────────────────────
+      error_recovery:
+        [error_type]:
+          action: "[Recovery action]"
+
+      # ───────────────────────────────────────────────────────────────────
+      # USAGE
+      # ───────────────────────────────────────────────────────────────────
+      usage:
+        programmatic:
+          python: |
+            import yaml
+            with open('enhanced_prompt.yaml') as f:
+                data = yaml.safe_load(f)
+            role, purpose, action = data['role'], data['purpose'], data['action']
+            workflow = data.get('workflow', {})
+
+          nodejs: |
+            const yaml = require('js-yaml');
+            const fs = require('fs');
+            const data = yaml.load(fs.readFileSync('enhanced_prompt.yaml'));
+            const { role, purpose, action, workflow, rules } = data;
+
+    # NOTE: Framework-specific components are integrated into the spec_kit structure
+    # - RCAF: role (top-level), context (context section), action (top-level), format (in context)
+    # - COSTAR: context, objective (purpose), style, tone, audience, response (in context section)
+    # - CRAFT: context, role, action (top-level), format, target (in context section)
+    # - TIDD_EC: task (purpose), instructions (workflow), details (context), deliverables (success), examples, constraints
+    # - CIDI: context, instructions (workflow), details (context), input (user_inputs)
+    # - RACE: role, action, context, examples (all mapped to spec_kit sections)
+    # - CRISPE: capacity (role), role, insight (context), statement (purpose), personality, experiment (workflow)
+
+    framework_mapping_to_speckit:
+      RCAF:
+        role: "top-level role:"
+        context: "context: section"
+        action: "top-level action:"
+        format: "context.output_format:"
+      COSTAR:
+        context: "context: section"
+        objective: "top-level purpose:"
+        style: "context.style:"
+        tone: "context.tone:"
+        audience: "context.audience:"
+        response: "success.criteria:"
+      RACE:
+        role: "top-level role:"
+        action: "top-level action:"
+        context: "context: section"
+        examples: "context.examples: or worked_example:"
+      CIDI:
+        context: "context: section"
+        instructions: "workflow: steps"
+        details: "context.details:"
+        input: "user_inputs: section"
+      TIDD_EC:
+        task: "top-level purpose:"
+        instructions: "workflow: steps"
+        details: "context: section"
+        deliverables: "success.criteria:"
+        examples: "worked_example:"
+        constraints: "rules: section"
+      CRISPE:
+        capacity: "top-level role:"
+        role: "context.persona:"
+        insight: "context.background:"
+        statement: "top-level purpose:"
+        personality: "context.personality:"
+        experiment: "workflow: steps"
+      CRAFT:
+        context: "context: section"
+        role: "top-level role:"
+        action: "top-level action:"
+        format: "context.output_format:"
+        target: "success.criteria:"
 
   file_locations:
     spec_folder_from_phase_1:
@@ -1352,16 +1227,16 @@ output_specifications:
     - "Processing time (seconds)"
     - "Original prompt (for reference)"
     - "Character count (original vs enhanced)"
-    - "CLEAR scores (original, enhanced, delta)"
-    - "RICCE completeness (5/5 or 4/5 if N/A)"
+    - "Framework components completed"
+    - "Enhancement summary (key improvements)"
 
     contextual_interpretation_guidelines:
-    - "Map score to quality label using quality_label_mapping"
-    - "Calculate percentage improvement: ((enhanced - original) / original) * 100"
-    - "Identify top 2-3 highest-scoring dimensions as 'Strong areas'"
-    - "Identify dimensions below threshold (8/10 or 12/15) as 'Needs work'"
+    - "Verify all framework components are complete and substantive"
+    - "Document key improvements between original and enhanced"
+    - "Identify strong areas based on clarity and specificity"
+    - "Identify areas that may need further refinement"
     - "Write plain language explanation covering:"
-    - "  - What the score means in practical terms"
+    - "  - What improvements were made in practical terms"
     - "  - What changed between original and enhanced"
     - "  - Why those changes matter for AI interpretation"
     - "  - What the user can expect from the enhanced prompt"
@@ -1398,16 +1273,16 @@ execution_notes:
   - "Apply insights during Round 5 restructuring"
 
   quality_validation:
-  - "Calculate scores after Round 8 (Test phase)"
-  - "If below threshold: Prepare targeted improvements for Round 10"
-  - "If still below after Round 10: Prompt user for decision"
-  - "Never proceed to output with <40/50 without user confirmation"
+  - "Validate completeness after Round 8 (Test phase)"
+  - "If components incomplete: Prepare targeted improvements for Round 10"
+  - "If still incomplete after Round 10: Prompt user for decision"
+  - "Never proceed to output with incomplete prompts without user confirmation"
 
   transparency_delivery:
   - "Show external layer updates in real-time"
   - "Keep updates concise (1-2 lines per phase)"
-  - "Include key metrics (complexity, score, rounds)"
-  - "Internal calculations happen silently, only key results shown"
+  - "Include key metrics (complexity, framework, rounds)"
+  - "Internal analysis happens silently, only key results shown"
 
   framework_application:
   - "Apply framework structure explicitly (visible headers/sections)"
@@ -1475,8 +1350,6 @@ phase_6_output_generation:
         - "title: Enhanced Prompt"
         - "framework: {framework_name}"
         - "complexity: {complexity_score}"
-        - "clear_score: {enhanced_score}"
-        - "improvement: +{delta}"
         - "generated: {ISO_8601_timestamp}"
         - "---"
         - ""
@@ -1486,7 +1359,6 @@ phase_6_output_generation:
         - ""
         - "**Framework:** {framework_name}"
         - "**Complexity:** {complexity_score}/10"
-        - "**CLEAR Score:** {enhanced_score}/50 (Original: {original_score}/50, +{delta} improvement)"
         - "**Generated:** {ISO_8601_timestamp}"
         - ""
 
@@ -1496,7 +1368,7 @@ phase_6_output_generation:
         - "Original prompt required enhancement to improve:"
         - "- Clarity and specificity"
         - "- Structural organization ({framework_name} framework)"
-        - "- RICCE completeness (Role, Instructions, Context, Constraints, Examples)"
+        - "- Component completeness (Role, Instructions, Context, Constraints, Examples)"
         - ""
         - "### Original Prompt"
         - "```"
@@ -1510,8 +1382,8 @@ phase_6_output_generation:
         - "Enhanced prompt using DEPTH methodology:"
         - "- **D**iscover: Analyzed intent, assessed complexity ({complexity_score}/10)"
         - "- **E**ngineer: Applied {framework_name} framework with cognitive rigor"
-        - "- **P**rototype: Generated enhanced draft, validated RICCE"
-        - "- **T**est: Calculated CLEAR scores (Original: {original_score}/50 → Enhanced: {enhanced_score}/50)"
+        - "- **P**rototype: Generated enhanced draft, validated components"
+        - "- **T**est: Validated clarity, completeness, and actionability"
         - "- **H**armonize: Final polish and consistency check"
         - ""
 
@@ -1530,17 +1402,10 @@ phase_6_output_generation:
         section_5_success_criteria:
         - "## Success Criteria"
         - ""
-        - "✅ **CLEAR Score:** {enhanced_score}/50 (Target: ≥40/50)"
-        - "✅ **RICCE Completeness:** All 5 components present"
+        - "✅ **Component Completeness:** All framework components present and substantive"
         - "✅ **Framework Compliance:** {framework_name} structure applied"
-        - "✅ **Quality Improvement:** +{delta} points ({percentage}% better)"
-        - ""
-        - "### Dimensions"
-        - "- **Correctness:** {correctness_score}/10"
-        - "- **Logic:** {logic_score}/10"
-        - "- **Expression:** {expression_score}/15"
-        - "- **Arrangement:** {arrangement_score}/10"
-        - "- **Reusability:** {reusability_score}/5"
+        - "✅ **Clarity:** Role, context, and instructions are clear and specific"
+        - "✅ **Actionability:** Instructions can be followed without ambiguity"
         - ""
 
         section_6_usage:
@@ -1575,11 +1440,8 @@ phase_6_output_generation:
         - "metadata:"
         - "  framework: \"{framework_name}\""
         - "  complexity: {complexity_score}"
-        - "  clear_score: {enhanced_score}"
         - "  generated: \"{ISO_8601_timestamp}\""
         - "  mode: \"{mode}\""
-        - "  original_score: {original_score}"
-        - "  improvement: {delta}"
         - ""
 
         prompt_section:
@@ -1740,12 +1602,8 @@ phase_6_output_generation:
         - spec.md (SpecKit specification)
         - enhanced_prompt.yaml (machine-readable)
 
-        📊 **Quality:**
-        - Original CLEAR Score: {original_score}/50
-        - Enhanced CLEAR Score: {enhanced_score}/50
-        - Improvement: +{delta} points ({percentage}% better)
-
         🔧 **Framework:** {framework_name}
+        📐 **Complexity:** {complexity_score}/10
 
         💡 **Next steps:**
         - Review spec: `cat {spec_folder_path}/spec.md`
@@ -1756,8 +1614,6 @@ phase_6_output_generation:
       - "STATUS=OK"
       - "SPEC={spec_folder_path}"
       - "FILES=spec.md,enhanced_prompt.yaml"
-      - "SCORE={enhanced_score}/50"
-      - "IMPROVEMENT=+{delta}"
 
       optional_actions:
         if_not_quick_mode:

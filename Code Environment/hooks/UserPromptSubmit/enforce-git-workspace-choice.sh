@@ -48,8 +48,17 @@ LOG_FILE="$LOG_DIR/enforce-git-workspace-choice.log"
 # Ensure log directory exists
 mkdir -p "$LOG_DIR" 2>/dev/null
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N 2>/dev/null || date +%s)
+START_TIME=$(_get_nano_time)
 
 # Source required libraries (graceful degradation if missing)
 source "$HOOKS_DIR/lib/shared-state.sh" 2>/dev/null || {
@@ -349,11 +358,9 @@ emit_mandatory_question "GIT_WORKSPACE_CHOICE" \
 set_question_flow "$GIT_WORKSPACE_FLOW_STAGE" "" "" ""
 
 # Performance timing END
-END_TIME=$(date +%s%N 2>/dev/null || date +%s)
-if [[ "$START_TIME" =~ ^[0-9]+$ ]] && [[ "$END_TIME" =~ ^[0-9]+$ ]]; then
-  DURATION=$(((END_TIME - START_TIME) / 1000000))
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-git-workspace-choice.sh ${DURATION}ms" >> "$HOOKS_DIR/logs/performance.log"
-fi
+END_TIME=$(_get_nano_time)
+DURATION=$(((END_TIME - START_TIME) / 1000000))
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-git-workspace-choice.sh ${DURATION}ms" >> "$HOOKS_DIR/logs/performance.log"
 
 {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Mandatory question emitted"

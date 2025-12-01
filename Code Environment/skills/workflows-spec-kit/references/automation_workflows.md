@@ -425,6 +425,29 @@ Detail: Removed stale .spec-active marker (path: specs/999-deleted)
     - Get explicit "yes/go ahead/proceed"
     - Do not start file changes without explicit approval
 
+### Post-Implementation Workflow (Level 2+)
+
+**MANDATORY for Level 2+ - Before claiming completion:**
+
+11. **Load checklist.md for verification**
+    - Read the checklist.md file from spec folder
+    - Identify all P0, P1, and P2 items
+
+12. **Verify items systematically by priority**
+    - P0 items FIRST (blockers - must all pass)
+    - P1 items SECOND (required - must all pass)
+    - P2 items LAST (optional - verify or defer)
+
+13. **Mark verified items with evidence**
+    - Change [ ] to [x] for each verified item
+    - Add evidence (link, test output, screenshot reference)
+    - Add verification timestamp
+
+14. **Complete or block**
+    - ALL P0/P1 items verified → Can claim completion
+    - ANY P0/P1 item failed → BLOCKED - fix before claiming done
+    - P2 items can be deferred with documented reason
+
 ### Enforcement Checkpoints (HARD Enforcement)
 
 **Progressive Enhancement Required Files:**
@@ -475,8 +498,17 @@ Level 3 (Full):         Level 2 + decision-record.md
    - All required templates present for level
    - Ready to begin file changes
 
+8. **Checklist Verification (Level 2+ - MANDATORY before completion)**
+   - Loaded checklist.md from spec folder
+   - All P0 items verified with evidence
+   - All P1 items verified with evidence
+   - P2 items verified or deferred with documented reason
+   - Checklist.md updated with [x] marks and timestamps
+   - No unverified P0/P1 items remain
+
 **If ANY checkpoint fails → STOP and fix before proceeding.**
 **If required template missing → Hook blocks commit**
+**If checklist verification incomplete (Level 2+) → Cannot claim completion**
 
 ---
 

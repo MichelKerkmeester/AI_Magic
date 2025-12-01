@@ -29,8 +29,17 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 source "$SCRIPT_DIR/../lib/output-helpers.sh" || exit 0
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # Check dependencies (silent on success)
 check_dependency "jq" "brew install jq (macOS) or apt install jq (Linux)" || exit 0
@@ -220,7 +229,7 @@ if [ ${#TRIGGERED_REMINDERS[@]} -gt 0 ]; then
 fi
 
 # Performance timing END
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 HOOKS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Ensure log directory exists

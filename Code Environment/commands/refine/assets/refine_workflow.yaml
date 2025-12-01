@@ -1,0 +1,1043 @@
+# ───────────────────────────────────────────────────────────────────
+# SKILL & HOOK REFINEMENT WORKFLOW 
+# ───────────────────────────────────────────────────────────────────
+# 4-Phase audit workflow: Detect → Fix → Verify → Document
+# Uses parallel Sonnet agents for comprehensive analysis
+# ───────────────────────────────────────────────────────────────────
+
+role: Skills & Hooks Quality Engineer specializing in Bash 3.2+ scripting, Claude Code architecture, performance engineering, and quality assurance
+purpose: Comprehensive audit, bug fix, and improvement of skills and hooks systems
+action: Execute 4-phase workflow with parallel exploration agents and evidence-based fixes
+
+operating_mode:
+  workflow: sequential_phases
+  workflow_compliance: MANDATORY
+  execution_style: parallel_exploration_then_sequential_fixes
+  tracking: issue_inventory_with_priority
+  validation: quality_gates_per_phase
+  model_hierarchy:
+    orchestrator: opus
+    explorers: sonnet
+
+development_philosophy:
+  principle: "Evidence first, fixes second"
+  approach: "Parallel discovery with systematic remediation"
+  mandate: "Detect thoroughly, fix precisely, verify completely, document comprehensively"
+
+# ───────────────────────────────────────────────────────────────────
+# CONTEXT: SYSTEM STRUCTURES
+# ───────────────────────────────────────────────────────────────────
+context:
+  skills_structure:
+    base_path: ".claude/skills/"
+    folder_pattern: "{skill-name}/"
+    required_files:
+      - "SKILL.md"
+    optional_folders:
+      - "references/"
+      - "assets/"
+      - "scripts/"
+
+  skill_md_requirements:
+    frontmatter:
+      required:
+        - "name"
+        - "description"
+        - "allowed-tools"
+        - "version"
+      format: "YAML between --- delimiters"
+    sections:
+      required:
+        - "WHEN TO USE"
+        - "HOW IT WORKS"
+        - "RULES"
+        - "SUCCESS CRITERIA"
+      recommended:
+        - "SMART ROUTING"
+        - "REFERENCES"
+        - "INTEGRATION POINTS"
+        - "QUICK START"
+
+  hooks_structure:
+    base_path: ".claude/hooks/"
+    hook_types:
+      - name: "UserPromptSubmit"
+        description: "Before processing user input"
+        input_schema: '{"prompt": "...", "session_id": "..."}'
+        key_fields: [".prompt", ".session_id"]
+      - name: "PreToolUse"
+        description: "Before tool execution"
+        input_schema: '{"tool_name": "Write", "tool_input": {...}}'
+        key_fields: [".tool_name", ".tool_input.file_path", ".tool_input.command"]
+      - name: "PostToolUse"
+        description: "After tool completion"
+        input_schema: '{"tool_name": "...", "tool_input": {...}, "tool_output": {...}}'
+        key_fields: [".tool_name", ".tool_output"]
+      - name: "PreCompact"
+        description: "Before context compaction"
+        input_schema: '{"transcript_path": "..."}'
+        key_fields: [".transcript_path"]
+      - name: "PreSessionStart"
+        description: "Session initialization"
+        input_schema: '{}'
+        key_fields: []
+      - name: "PostSessionEnd"
+        description: "Session cleanup"
+        input_schema: '{}'
+        key_fields: []
+    shared_folders:
+      - "lib/"
+      - "scripts/"
+      - "logs/"
+
+  exit_codes:
+    EXIT_ALLOW:
+      value: 0
+      meaning: "Hook passed, continue execution"
+    EXIT_BLOCK:
+      value: 1
+      meaning: "Hook blocked, stop with warning"
+    EXIT_ERROR:
+      value: 2
+      meaning: "Internal hook error"
+    EXIT_WARNING:
+      value: 3
+      meaning: "Non-blocking warning"
+    EXIT_SKIP:
+      value: 4
+      meaning: "Skip hook silently"
+
+  shared_libraries:
+    source_order:
+      - path: "$HOOKS_DIR/lib/output-helpers.sh"
+        fallback: "exit 0"
+        required: true
+        description: "Output formatting helpers"
+      - path: "$HOOKS_DIR/lib/exit-codes.sh"
+        fallback: "exit 0"
+        required: true
+        description: "Exit code constants (EXIT_ALLOW, EXIT_BLOCK, etc.)"
+      - path: "$HOOKS_DIR/lib/tool-input-parser.sh"
+        fallback: "true"
+        required: false
+        description: "JSON input parsing utilities"
+      - path: "$HOOKS_DIR/lib/shared-state.sh"
+        fallback: "true"
+        required: false
+        description: "Inter-hook state management"
+      - path: "$HOOKS_DIR/lib/signal-output.sh"
+        fallback: "true"
+        required: false
+        description: "Mandatory question emission (emit_mandatory_question)"
+      - path: "$HOOKS_DIR/lib/perf-timing.sh"
+        fallback: "true"
+        required: false
+        description: "Performance timing helpers (_get_nano_time)"
+      - path: "$HOOKS_DIR/lib/platform-utils.sh"
+        fallback: "true"
+        required: false
+        description: "Platform detection utilities"
+    note: "context-pruner.js is JavaScript, not Bash - handle separately"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 1: DETECT (Parallel Exploration)
+# ───────────────────────────────────────────────────────────────────
+phase_1_detect:
+  phase_name: "Detect - Parallel Exploration"
+  emoji: "🔍"
+  purpose: "Spawn 4 Sonnet agents to comprehensively scan for issues"
+  model: "sonnet"
+  execution: "parallel"
+
+  steps:
+    step_1_spawn_explorers:
+      action: "Launch 4 exploration agents in parallel using Task tool"
+      tool: "Task"
+      parameters:
+        subagent_type: "Explore"
+        model: "sonnet"
+
+      agents:
+        code_smell_explorer:
+          name: "Code Smell Explorer"
+          focus: "Bug patterns, platform compatibility, performance issues"
+          model: "sonnet"
+          prompt_template: |
+            Analyze skills and hooks for code smells and bugs.
+
+            Scope: {scope_path}
+
+            Run these detection patterns (report line numbers for each match):
+
+            **CRITICAL (P0):**
+            - Security issues: `grep -rn "eval\|exec\|source.*\$" {scope_path}`
+            - Infinite loops: Check for missing loop bounds
+
+            **HIGH (P1) - Platform Compatibility:**
+            - `grep -rn "date +%s%N" {scope_path} | grep -v "_get_nano_time\|# .*date"` (fails on macOS, exclude function defs)
+            - `grep -rn "stat -c" {scope_path} | grep -v "stat -f"` (Linux only, exclude platform-safe)
+            - `grep -rn "sed -i [^']" {scope_path}` (macOS needs sed -i '')
+            - `grep -rn "readarray\|mapfile" {scope_path}` (Bash 4+ only)
+
+            **HIGH (P1) - Bug Patterns:**
+            - `grep -rn "jq -r" {scope_path} | grep -v "// empty\|// \"\"\|// null"` (missing null safety)
+            - `grep -rn "^\s*exit [1-9]" {scope_path} | grep -v "EXIT_\|# exit"` (magic non-zero exit codes)
+            - `grep -rn '"/Users/\|/home/' {scope_path}` (hardcoded paths)
+
+            **MEDIUM (P2) - Performance:**
+            - `grep -rn "while\|for\|do" {scope_path} | xargs -I{} sh -c 'grep -l "jq" {} 2>/dev/null'` (jq in loops - check files with both)
+            - `grep -L "START_TIME\|_get_nano_time" {scope_path}` (missing timing)
+
+            **LOW (P3) - Style:**
+            - Header block check: `for f in {scope_path}/*.sh; do head -5 "$f" | grep -q "PURPOSE\|DESCRIPTION" || echo "MISSING HEADER: $f"; done`
+
+            Return for each issue:
+            - File path with line number (path/to/file.sh:45)
+            - Issue category and ID
+            - Current problematic code
+            - Suggested fix
+
+        structure_explorer:
+          name: "Structure Explorer"
+          focus: "SKILL.md format, frontmatter, required sections"
+          model: "sonnet"
+          prompt_template: |
+            Analyze skill structure and documentation quality.
+
+            Scope: {scope_path}
+
+            Check each SKILL.md for:
+
+            **Frontmatter Validation:**
+            ```bash
+            for f in {scope_path}/*/SKILL.md; do
+              echo "=== $f ==="
+              head -20 "$f" | grep -E "^(name|version|allowed-tools|description):"
+            done
+            ```
+
+            **Required Sections:**
+            - "WHEN TO USE" or "When to Use"
+            - "HOW IT WORKS" or "How It Works"
+            - "RULES" or "Rules"
+            - "SUCCESS CRITERIA" or "Success Criteria"
+
+            **Version Consistency:**
+            - Check version follows SemVer (X.Y.Z)
+            - Flag 0.0.0 or placeholder versions
+
+            Return for each issue:
+            - File path
+            - What's missing or malformed
+            - Suggested fix
+
+        crossref_explorer:
+          name: "Cross-Reference Explorer"
+          focus: "Broken references, missing files, orphaned assets"
+          model: "sonnet"
+          prompt_template: |
+            Analyze cross-references and file dependencies.
+
+            Scope: {scope_path}
+
+            **For Skills:**
+            ```bash
+            # Find all referenced files
+            grep -roh "references/[a-z_-]*\.md\|assets/[a-z_-]*\." {scope_path}/*/SKILL.md | sort -u
+
+            # Check each reference exists
+            for ref in $(grep -roh "references/[a-z_-]*\.md" {scope_path}/*/SKILL.md | sort -u); do
+              find {scope_path} -name "$(basename "$ref")" -type f || echo "MISSING: $ref"
+            done
+            ```
+
+            **For Hooks:**
+            ```bash
+            # Find all source dependencies
+            grep -rn "source.*lib/" {scope_path}/*.sh
+
+            # Check library exists
+            for lib in output-helpers.sh exit-codes.sh tool-input-parser.sh shared-state.sh; do
+              [ -f "{scope_path}/lib/$lib" ] || echo "MISSING: lib/$lib"
+            done
+            ```
+
+            Return for each broken reference:
+            - Source file and line
+            - Referenced file that's missing
+            - Suggested fix (create file or remove reference)
+
+        performance_explorer:
+          name: "Performance Explorer"
+          focus: "Timing data, subprocess overhead, optimization opportunities"
+          model: "sonnet"
+          prompt_template: |
+            Analyze performance characteristics and optimization opportunities.
+
+            Scope: {scope_path}
+
+            **Check Performance Logs:**
+            ```bash
+            # Recent performance data
+            tail -100 .claude/hooks/logs/performance.log 2>/dev/null
+
+            # Hooks exceeding targets
+            grep -E "[0-9]{3,}ms" .claude/hooks/logs/performance.log | tail -20
+            ```
+
+            **Subprocess Analysis:**
+            ```bash
+            # Count external commands per hook
+            for f in {scope_path}/*.sh; do
+              echo "=== $f ==="
+              grep -c "jq\|sed\|awk\|grep\|curl\|date" "$f"
+            done
+            ```
+
+            **Caching Opportunities:**
+            - Look for repeated jq calls on same data
+            - Find file reads that could be cached
+            - Identify computed values used multiple times
+
+            Return for each performance issue:
+            - File and function/section
+            - Current execution time (if known)
+            - Optimization suggestion
+            - Expected improvement
+
+    step_2_aggregate_findings:
+      action: "Collect all findings from 4 agents"
+      outputs:
+        - code_smell_findings
+        - structure_findings
+        - crossref_findings
+        - performance_findings
+
+    step_3_classify_issues:
+      action: "Classify all issues by priority"
+      classification_matrix:
+        P0_critical:
+          category: "Security, crashes, data loss"
+          action: "Fix immediately - blocks workflow"
+          examples:
+            - "Command injection vulnerability"
+            - "Infinite loop causing hang"
+            - "Data corruption risk"
+        P1_high:
+          category: "Platform compatibility, major bugs, missing features"
+          action: "Fix this session"
+          examples:
+            - "date +%s%N fails on macOS"
+            - "Missing null safety crashes on empty input"
+            - "Magic exit codes cause confusion"
+        P2_medium:
+          category: "Minor bugs, outdated docs, performance issues"
+          action: "Fix if time permits"
+          examples:
+            - "Outdated version number"
+            - "Missing optional section"
+            - "Suboptimal but working code"
+        P3_low:
+          category: "Style issues, micro-optimizations"
+          action: "Document only"
+          examples:
+            - "Inconsistent spacing"
+            - "Could combine two greps"
+            - "Variable naming convention"
+
+    step_4_generate_inventory:
+      action: "Create structured issue inventory"
+      output_format: |
+        ## Issue Inventory
+
+        ### P0 - Critical (Fix Immediately)
+        | # | ID | File:Line | Description | Category |
+        |---|-----|-----------|-------------|----------|
+
+        ### P1 - High (Fix This Session)
+        | # | ID | File:Line | Description | Category |
+        |---|-----|-----------|-------------|----------|
+
+        ### P2 - Medium (Fix If Time)
+        | # | ID | File:Line | Description | Category |
+        |---|-----|-----------|-------------|----------|
+
+        ### P3 - Low (Document Only)
+        | # | ID | File:Line | Description | Category |
+        |---|-----|-----------|-------------|----------|
+
+  outputs:
+    - issues_inventory
+    - p0_count
+    - p1_count
+    - p2_count
+    - p3_count
+    - total_files_scanned
+
+  success_metrics:
+    - "All 4 agents complete successfully"
+    - "Issues classified by priority"
+    - "File:line references for each issue"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 2: FIX (Pattern Library Application)
+# ───────────────────────────────────────────────────────────────────
+phase_2_fix:
+  phase_name: "Fix - Apply Pattern Library"
+  emoji: "🔧"
+  purpose: "Apply fixes for P0/P1 issues using verified patterns"
+  model: "opus"
+  execution: "sequential"
+  condition: "Execute if mode is :fix or :full"
+
+  steps:
+    step_5_prioritize_fixes:
+      action: "Order fixes by priority and dependency"
+      order:
+        - "P0 issues first (critical)"
+        - "P1 issues second (high)"
+        - "Shared library fixes before dependent hooks"
+        - "Within same priority: alphabetical by file"
+
+    step_6_apply_fixes:
+      action: "Apply fixes from pattern library"
+      tool: "Edit"
+
+      pattern_library:
+        platform_compatibility:
+          timing_fix:
+            id: "FIX-TIMING"
+            before: |
+              START_TIME=$(date +%s%N)
+              # ... code ...
+              END_TIME=$(date +%s%N)
+            after: |
+              _get_nano_time() {
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                  echo $(($(date +%s) * 1000000000))
+                else
+                  date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+                fi
+              }
+              START_TIME=$(_get_nano_time)
+              # ... code ...
+              END_TIME=$(_get_nano_time)
+              DURATION_MS=$(( (END_TIME - START_TIME) / 1000000 ))
+
+          stat_fix:
+            id: "FIX-STAT"
+            before: |
+              MTIME=$(stat -c %Y "$file")
+            after: |
+              if [[ "$(uname)" == "Darwin" ]]; then
+                MTIME=$(stat -f %m "$file" 2>/dev/null || echo "0")
+              else
+                MTIME=$(stat -c %Y "$file" 2>/dev/null || echo "0")
+              fi
+
+          sed_fix:
+            id: "FIX-SED"
+            before: |
+              sed -i 's/old/new/' "$file"
+            after: |
+              if [[ "$(uname)" == "Darwin" ]]; then
+                sed -i '' 's/old/new/' "$file"
+              else
+                sed -i 's/old/new/' "$file"
+              fi
+
+        null_safety:
+          jq_fix:
+            id: "FIX-JQ-NULL"
+            before: |
+              VALUE=$(echo "$JSON" | jq -r '.field')
+            after: |
+              VALUE=$(echo "$JSON" | jq -r '.field // empty' 2>/dev/null)
+              if [ -z "$VALUE" ]; then
+                # Handle missing/null value
+                VALUE="default"
+              fi
+
+          nested_jq_fix:
+            id: "FIX-JQ-NESTED"
+            before: |
+              NESTED=$(echo "$JSON" | jq -r '.outer.inner.field')
+            after: |
+              NESTED=$(echo "$JSON" | jq -r '.outer.inner.field // empty' 2>/dev/null)
+
+        exit_codes:
+          standardize:
+            id: "FIX-EXIT"
+            before: |
+              exit 1  # Block
+              exit 0  # Allow
+            after: |
+              source "$HOOKS_DIR/lib/exit-codes.sh" || { echo "Missing exit-codes.sh"; exit 0; }
+              exit $EXIT_BLOCK  # Blocked
+              exit $EXIT_ALLOW  # Allowed
+
+        performance:
+          cache_jq:
+            id: "FIX-CACHE-JQ"
+            before: |
+              for item in $ITEMS; do
+                VALUE=$(echo "$JSON" | jq -r ".items[\"$item\"].value")
+                # use VALUE
+              done
+            after: |
+              # Pre-extract all values in single jq call
+              eval "$(echo "$JSON" | jq -r '
+                .items | to_entries[] |
+                "ITEM_\(.key | gsub("-";"_") | ascii_upcase)=\"\(.value.value)\""
+              ')"
+              for item in $ITEMS; do
+                var_name="ITEM_${item//-/_}"
+                var_name="${var_name^^}"
+                VALUE="${!var_name}"
+                # use VALUE
+              done
+
+          file_cache:
+            id: "FIX-FILE-CACHE"
+            pattern: |
+              CACHE_DIR="/tmp/claude_hooks_cache"
+              mkdir -p "$CACHE_DIR"
+              CACHE_KEY=$(echo "$CONFIG_PATH" | cksum | cut -d' ' -f1)
+              CACHE_FILE="$CACHE_DIR/data_$CACHE_KEY.sh"
+
+              if [[ ! -f "$CACHE_FILE" ]] || [[ "$CONFIG_PATH" -nt "$CACHE_FILE" ]]; then
+                # Regenerate cache
+                jq -r '...' "$CONFIG_PATH" > "$CACHE_FILE"
+              fi
+              source "$CACHE_FILE"
+
+    step_7_bump_versions:
+      action: "Update version numbers following SemVer"
+      rules:
+        patch:
+          trigger: "Bug fix, no behavior change"
+          example: "1.0.0 → 1.0.1"
+          applies_to: ["null safety", "platform fix", "exit code fix"]
+        minor:
+          trigger: "New feature, backward compatible"
+          example: "1.0.1 → 1.1.0"
+          applies_to: ["new function", "new section", "enhanced capability"]
+        major:
+          trigger: "Breaking change"
+          example: "1.1.0 → 2.0.0"
+          applies_to: ["API change", "removed feature", "incompatible update"]
+
+      version_update_command: |
+        # Platform-safe version update (macOS uses sed -i '', Linux uses sed -i)
+        _sed_inplace() {
+          if [[ "$(uname)" == "Darwin" ]]; then
+            sed -i '' "$@"
+          else
+            sed -i "$@"
+          fi
+        }
+
+        # In SKILL.md frontmatter
+        _sed_inplace 's/^version: [0-9]*\.[0-9]*\.[0-9]*/version: NEW_VERSION/' SKILL.md
+
+        # In hook header comment
+        _sed_inplace 's/# Version: [0-9]*\.[0-9]*\.[0-9]*/# Version: NEW_VERSION/' hook.sh
+
+    step_8_record_changes:
+      action: "Track all changes made"
+      output_format: |
+        ## Fixes Applied
+
+        | # | Issue ID | File | Fix Applied | Version Bump |
+        |---|----------|------|-------------|--------------|
+        | 1 | FIX-TIMING | hook.sh:45 | _get_nano_time() | 1.0.0 → 1.0.1 |
+
+  outputs:
+    - fixes_applied
+    - version_bumps
+    - files_modified
+
+  success_metrics:
+    - "All P0 issues fixed"
+    - "All P1 issues fixed"
+    - "Version bumps applied"
+    - "No regressions introduced"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 3: VERIFY (Quality Gates)
+# ───────────────────────────────────────────────────────────────────
+phase_3_verify:
+  phase_name: "Verify - Quality Gates"
+  emoji: "✅"
+  purpose: "Validate fixes with concrete tests and quality checks"
+  model: "opus"
+  execution: "sequential"
+  condition: "Execute if mode is :full"
+
+  steps:
+    step_9_syntax_check:
+      action: "Run bash syntax validation on all hooks"
+      command: |
+        for f in .claude/hooks/*/*.sh; do
+          bash -n "$f" 2>&1 || echo "SYNTAX ERROR: $f"
+        done
+      pass_criteria: "All hooks exit 0"
+
+    step_10_dry_run_tests:
+      action: "Execute dry-run tests for each hook type"
+      tests:
+        UserPromptSubmit:
+          command: |
+            echo '{"prompt": "test prompt", "session_id": "test123"}' | \
+              bash .claude/hooks/UserPromptSubmit/HOOK_NAME.sh
+            echo "Exit code: $?"
+          expected: "Exit 0 (allow) or 1 (block) without crash"
+
+        PreToolUse:
+          command: |
+            echo '{"tool_name": "Write", "tool_input": {"file_path": "/tmp/test.txt", "content": "test"}}' | \
+              bash .claude/hooks/PreToolUse/HOOK_NAME.sh
+            echo "Exit code: $?"
+          expected: "Exit 0 (allow) or 1 (block) without crash"
+
+        PostToolUse:
+          command: |
+            echo '{"tool_name": "Write", "tool_input": {}, "tool_output": {"success": true}}' | \
+              bash .claude/hooks/PostToolUse/HOOK_NAME.sh
+            echo "Exit code: $?"
+          expected: "Exit 0 without crash"
+
+    step_11_exit_code_validation:
+      action: "Verify exit codes use constants"
+      command: |
+        for f in .claude/hooks/*/*.sh; do
+          # Find raw exit codes
+          MAGIC=$(grep -n "exit [0-9]" "$f" | grep -v "EXIT_\|# exit")
+          if [ -n "$MAGIC" ]; then
+            echo "MAGIC EXIT CODES in $f:"
+            echo "$MAGIC"
+          fi
+        done
+      pass_criteria: "No magic exit codes found"
+
+    step_12_null_safety_validation:
+      action: "Verify jq calls have null safety"
+      command: |
+        for f in .claude/hooks/*/*.sh; do
+          # Find jq -r without // fallback
+          UNSAFE=$(grep -n "jq -r" "$f" | grep -v "// empty\|// \"\"\|// null")
+          if [ -n "$UNSAFE" ]; then
+            echo "UNSAFE JQ in $f:"
+            echo "$UNSAFE"
+          fi
+        done
+      pass_criteria: "All jq calls have fallback"
+
+    step_13_performance_check:
+      action: "Verify performance within targets"
+      command: |
+        # Check recent performance logs
+        echo "Recent hook performance:"
+        grep -E "^[0-9]{4}-" .claude/hooks/logs/performance.log | tail -20
+
+        # Flag slow hooks (>100ms)
+        echo "Slow hooks (>100ms):"
+        grep -E "[0-9]{3,}ms" .claude/hooks/logs/performance.log | \
+          grep -v "^#" | tail -10
+      targets:
+        typical: "<100ms"
+        acceptable: "<200ms"
+        needs_optimization: ">200ms"
+
+    step_14_skill_validation:
+      action: "Verify skill structure completeness"
+      command: |
+        for skill_dir in .claude/skills/*/; do
+          skill_file="$skill_dir/SKILL.md"
+          if [ -f "$skill_file" ]; then
+            echo "=== $skill_dir ==="
+
+            # Check frontmatter
+            if ! head -20 "$skill_file" | grep -q "^name:"; then
+              echo "  MISSING: frontmatter name"
+            fi
+            if ! head -20 "$skill_file" | grep -q "^version:"; then
+              echo "  MISSING: frontmatter version"
+            fi
+
+            # Check required sections
+            for section in "WHEN TO USE" "HOW IT WORKS" "RULES" "SUCCESS CRITERIA"; do
+              if ! grep -qi "$section" "$skill_file"; then
+                echo "  MISSING: $section section"
+              fi
+            done
+          fi
+        done
+      pass_criteria: "All skills have required frontmatter and sections"
+
+  quality_gates:
+    - gate: "Syntax"
+      check: "bash -n hook.sh"
+      pass: "Exit 0"
+    - gate: "Exit Codes"
+      check: "grep 'exit [0-9]'"
+      pass: "Uses EXIT_* constants"
+    - gate: "Null Safety"
+      check: "grep 'jq -r'"
+      pass: "Has // fallback"
+    - gate: "Performance"
+      check: "performance.log"
+      pass: "<100ms typical"
+    - gate: "Platform"
+      check: "date, stat, sed patterns"
+      pass: "Uses platform checks"
+
+  outputs:
+    - syntax_results
+    - dry_run_results
+    - exit_code_results
+    - null_safety_results
+    - performance_results
+    - skill_validation_results
+    - all_gates_passed
+
+  success_metrics:
+    - "100% syntax checks pass"
+    - "All dry-run tests complete without crash"
+    - "No magic exit codes"
+    - "All jq calls null-safe"
+    - "Performance within targets"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 4: DOCUMENT (Audit Report)
+# ───────────────────────────────────────────────────────────────────
+phase_4_document:
+  phase_name: "Document - Audit Report"
+  emoji: "📝"
+  purpose: "Generate comprehensive audit report and save context"
+  model: "opus"
+  execution: "sequential"
+  condition: "Execute if mode is :full"
+
+  steps:
+    step_15_create_spec_folder:
+      action: "Create or use spec folder for audit results"
+      command: |
+        # Find next spec number
+        NEXT_NUM=$(ls -d specs/[0-9]*/ 2>/dev/null | \
+          sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n | tail -1)
+        NEXT_NUM=$((NEXT_NUM + 1))
+        SPEC_NUM=$(printf "%03d" $NEXT_NUM)
+
+        # Create folder
+        SPEC_FOLDER="specs/${SPEC_NUM}-refine-audit"
+        mkdir -p "$SPEC_FOLDER"
+        echo "$SPEC_FOLDER"
+
+    step_16_generate_report:
+      action: "Generate comprehensive audit report"
+      tool: "Write"
+      path: "{spec_folder}/audit_report.md"
+      template: |
+        # Audit Report - {date}
+
+        ## Summary
+
+        | Metric | Value |
+        |--------|-------|
+        | **Scope** | {scope} |
+        | **Mode** | {mode} |
+        | **Files Scanned** | {files_scanned} |
+        | **Issues Found** | {total_issues} |
+        | **Issues Fixed** | {issues_fixed} |
+        | **Duration** | {duration} |
+
+        ## Issue Breakdown
+
+        | Priority | Count | Fixed | Deferred |
+        |----------|-------|-------|----------|
+        | P0 (Critical) | {p0_count} | {p0_fixed} | {p0_deferred} |
+        | P1 (High) | {p1_count} | {p1_fixed} | {p1_deferred} |
+        | P2 (Medium) | {p2_count} | {p2_fixed} | {p2_deferred} |
+        | P3 (Low) | {p3_count} | {p3_fixed} | {p3_deferred} |
+
+        ---
+
+        ## Issues Found
+
+        ### P0 - Critical
+        {p0_issues_table}
+
+        ### P1 - High
+        {p1_issues_table}
+
+        ### P2 - Medium
+        {p2_issues_table}
+
+        ### P3 - Low
+        {p3_issues_table}
+
+        ---
+
+        ## Fixes Applied
+
+        | # | Issue | File:Line | Fix | Before | After | Version |
+        |---|-------|-----------|-----|--------|-------|---------|
+        {fixes_table}
+
+        ---
+
+        ## Version Changes
+
+        | File | Old Version | New Version | Reason |
+        |------|-------------|-------------|--------|
+        {version_table}
+
+        ---
+
+        ## Verification Results
+
+        ### Quality Gates
+
+        | Gate | Status | Details |
+        |------|--------|---------|
+        | Syntax | {syntax_status} | {syntax_details} |
+        | Exit Codes | {exit_status} | {exit_details} |
+        | Null Safety | {null_status} | {null_details} |
+        | Performance | {perf_status} | {perf_details} |
+        | Platform | {platform_status} | {platform_details} |
+
+        ### Dry-Run Test Results
+
+        {dry_run_results}
+
+        ---
+
+        ## Deferred Items (P2/P3)
+
+        These items were identified but not fixed in this session:
+
+        {deferred_items}
+
+        ---
+
+        ## Recommendations
+
+        {recommendations}
+
+        ---
+
+        ## Next Steps
+
+        1. {next_step_1}
+        2. {next_step_2}
+        3. {next_step_3}
+
+        ---
+
+        *Generated by Skill & Hook Refinement Workflow v1.0.0*
+        *Date: {date}*
+
+    step_17_save_context:
+      description: "Invoke workflows-save-context skill for anchor-based memory"
+      action: "Use Skill tool to create memory file with anchor tags"
+
+      skill_invocation:
+        tool: "Skill"
+        syntax: 'Skill(skill: "workflows-save-context")'
+        note: |
+          The workflows-save-context skill will:
+          - Read context_template.md (includes anchor tag structure)
+          - Auto-generate anchor IDs from section titles
+          - Create task-forward structure (Implementation Guide first)
+          - Save to {spec_folder_path}/memory/DD-MM-YY_HH-MM__refine-audit.md
+          - Enable grep-based retrieval: grep -r "anchor:.*keyword" memory/
+
+      fallback:
+        condition: "Only execute if skill invocation fails"
+        action: "Create memory file using inline template (no anchors)"
+        commands: |
+          # If skill unavailable, create simple memory file
+          MEMORY_DIR="{spec_folder}/memory"
+          mkdir -p "$MEMORY_DIR"
+          TIMESTAMP=$(date +"%d-%m-%y_%H-%M")
+          MEMORY_FILE="$MEMORY_DIR/${TIMESTAMP}__refine-audit.md"
+
+          cat > "$MEMORY_FILE" << 'EOF'
+          # Refine Audit Session - {date}
+
+          WARNING: Created with legacy template (no anchor tags)
+
+          ## Summary
+          - Scope: {scope}
+          - Issues found: {total_issues}
+          - Issues fixed: {issues_fixed}
+
+          ## Key Findings
+        {key_findings}
+
+        ## Changes Made
+        {changes_summary}
+
+        ## Follow-up Items
+        {followup_items}
+        EOF
+
+    step_18_return_status:
+      action: "Return final status"
+      format: |
+        STATUS=OK ISSUES_FOUND={total_issues} ISSUES_FIXED={issues_fixed} PATH={spec_folder}/
+
+  outputs:
+    - audit_report_path
+    - memory_file_path
+    - final_status
+
+# ───────────────────────────────────────────────────────────────────
+# DECISION TREE
+# ───────────────────────────────────────────────────────────────────
+decision_tree:
+  title: "Fix vs Refactor vs Escalate"
+  diagram: |
+    Issue identified
+    │
+    ├─ Is it isolated to one function/file?
+    │   ├─ YES → Fix in place
+    │   │   └─ Apply pattern → Test → Document
+    │   │
+    │   └─ NO → Does it affect shared library (lib/)?
+    │       ├─ YES → How many hooks depend on it?
+    │       │   ├─ 1-3 hooks → Careful refactor
+    │       │   │   └─ Update lib → Test all dependents → Document
+    │       │   │
+    │       │   └─ 4+ hooks → ESCALATE
+    │       │       └─ Create dedicated spec folder for architectural change
+    │       │
+    │       └─ NO → Is it a pattern across multiple hooks?
+    │           ├─ YES → Create shared lib function
+    │           │   └─ Add to lib/ → Update all hooks → Test all
+    │           │
+    │           └─ NO → Fix in each file
+    │               └─ Apply fix to each → Test each → Document
+
+# ───────────────────────────────────────────────────────────────────
+# RULES
+# ───────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+    - "Follow 4-phase workflow sequence (Detect → Fix → Verify → Document)"
+    - "Run detection BEFORE applying any fixes"
+    - "Verify AFTER each fix"
+    - "Use EXIT_* constants from lib/exit-codes.sh"
+    - "Add null safety (// empty) to all jq calls"
+    - "Document ALL changes in audit report"
+    - "Bump version numbers on any code change"
+    - "Test on both macOS and Linux patterns"
+    - "Create spec folder for audit results"
+    - "Save context to memory for future sessions"
+
+  NEVER:
+    - "Skip verification phase"
+    - "Use magic numbers for exit codes (use EXIT_ALLOW, EXIT_BLOCK, etc.)"
+    - "Assume GNU tools available (macOS uses BSD)"
+    - "Fix without documenting the change"
+    - "Modify shared lib without testing ALL dependents"
+    - "Commit without syntax check (bash -n)"
+    - "Leave placeholder text in fixed files"
+    - "Apply fixes to P2/P3 issues unless P0/P1 are resolved"
+
+  ESCALATE:
+    - "4+ hooks depend on shared library change"
+    - "Breaking change to existing API"
+    - "Performance regression detected"
+    - "Security vulnerability found"
+    - "Architectural redesign needed"
+
+# ───────────────────────────────────────────────────────────────────
+# ERROR RECOVERY
+# ───────────────────────────────────────────────────────────────────
+error_recovery:
+  detection_fails:
+    symptom: "Grep patterns return no results or error"
+    action: "Check glob patterns, verify file exists, try broader search"
+
+  fix_breaks_tests:
+    symptom: "Dry-run test fails after fix"
+    action: "Revert fix immediately, analyze root cause, try alternative approach"
+
+  verification_timeout:
+    symptom: "Hook hangs during dry-run"
+    action: "Check for infinite loops, reduce test scope, add timeout"
+
+  cross_ref_missing:
+    symptom: "Referenced file doesn't exist"
+    action: "Create missing file OR remove broken reference"
+
+  platform_incompatibility:
+    symptom: "Works on Linux, fails on macOS (or vice versa)"
+    action: "Add platform detection, use portable alternatives"
+
+  permission_denied:
+    symptom: "Cannot write to file"
+    action: "Report file in audit, suggest manual fix, continue with others"
+
+# ───────────────────────────────────────────────────────────────────
+# SUCCESS CRITERIA
+# ───────────────────────────────────────────────────────────────────
+success:
+  criteria:
+    - "Zero P0/P1 issues remaining (if :fix or :full mode)"
+    - "All hooks pass: bash -n hook.sh"
+    - "All jq calls have null safety"
+    - "All exit codes use constants"
+    - "Performance within targets (<100ms typical)"
+    - "Cross-platform compatible (macOS + Linux)"
+    - "Version bumps applied to all modified files"
+    - "Audit report generated with all findings"
+    - "Context saved to memory for future sessions"
+
+  verification_command: |
+    # Quick verification after audit
+    echo "=== Syntax Check ==="
+    for f in .claude/hooks/*/*.sh; do
+      bash -n "$f" 2>&1 && echo "✓ $f" || echo "✗ $f"
+    done
+
+    echo "=== Exit Code Check ==="
+    grep -rn "exit [0-9]" .claude/hooks/*/*.sh | grep -v "EXIT_" | head -10
+
+    echo "=== Null Safety Check ==="
+    grep -rn "jq -r" .claude/hooks/*/*.sh | grep -v "// empty\|// \"\"" | head -10
+
+# ───────────────────────────────────────────────────────────────────
+# USAGE EXAMPLES
+# ───────────────────────────────────────────────────────────────────
+usage:
+  full_audit:
+    command: "/refine:skill_or_hook"
+    description: "Full 4-phase audit of both skills and hooks"
+    output: "Audit report + fixes + verification"
+
+  hooks_only:
+    command: "/refine:skill_or_hook hooks :full"
+    description: "Full audit of hooks system only"
+
+  skills_only:
+    command: "/refine:skill_or_hook skills :full"
+    description: "Full audit of skills system only"
+
+  audit_only:
+    command: "/refine:skill_or_hook :audit"
+    description: "Detection only - report issues without fixing"
+
+  single_hook:
+    command: "/refine:skill_or_hook .claude/hooks/PreToolUse/validate-bash.sh"
+    description: "Audit single hook file"
+
+  single_skill:
+    command: "/refine:skill_or_hook .claude/skills/workflows-code/"
+    description: "Audit single skill folder"
+
+  quick_fix:
+    command: "/refine:skill_or_hook hooks :fix"
+    description: "Detect and fix P0/P1 without full verification"

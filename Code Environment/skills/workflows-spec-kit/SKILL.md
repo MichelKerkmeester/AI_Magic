@@ -152,6 +152,15 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.m
 - **Enforcement**: Hard block if `checklist.md` missing
 - **Example**: Modal component, auth flow, library migration
 
+> **CRITICAL: Checklist as Active Verification Tool**
+>
+> The `checklist.md` is NOT just documentation - it is an **ACTIVE VERIFICATION TOOL** that the AI MUST use to verify its own work before claiming completion. The checklist serves as:
+> - A systematic verification protocol (not a passive record)
+> - An evidence-based completion gate (must mark items with proof)
+> - A priority-driven blocker (P0/P1 items MUST pass before done)
+>
+> See Section 5 (RULES) for mandatory checklist verification requirements.
+
 **Level 3: Full Documentation** (LOC guidance: ≥500)
 - **Required Files**: Level 2 + `decision-record.md`
 - **Optional Files**: `research-spike.md`, `research.md`
@@ -457,6 +466,21 @@ specs/122-skill-standardization/
    - 2-3 words, lowercase, hyphen-separated
    - Find next number with command
 
+8. **ALWAYS use checklist.md to verify work before completion (Level 2+)**
+   - Load checklist.md at completion phase
+   - Verify each item systematically (P0 first, then P1, then P2)
+   - Cannot claim "done" until checklist verification complete
+
+9. **ALWAYS mark checklist items [x] with evidence when verified**
+   - Include links to files, test outputs, or screenshots
+   - Document how each item was verified
+   - Update checklist.md with verification timestamps
+
+10. **ALWAYS complete all P0 and P1 items before claiming done**
+    - P0 = Blocker: MUST pass or work is incomplete
+    - P1 = Required: MUST pass for production readiness
+    - P2 = Optional: Can defer with documented reason
+
 ### ❌ NEVER 
 
 1. **NEVER create documentation files from scratch** - Always copy from `.opencode/speckit/templates/`
@@ -479,7 +503,12 @@ specs/122-skill-standardization/
    - Present status and let user choose
    - Respect user's explicit choice
 
-6. **NEVER proceed without hook confirmation response**
+6. **NEVER claim completion without verifying checklist.md items (Level 2+)**
+   - Must load and review checklist.md before stating work is done
+   - Must mark all P0/P1 items as verified with evidence
+   - Incomplete checklist = incomplete work
+
+7. **NEVER proceed without hook confirmation response**
    - If hook presents options → Ask user to choose
    - Wait for explicit A/B/C/D selection
    - Document choice in spec folder
@@ -552,6 +581,16 @@ specs/122-skill-standardization/
 - [ ] Manual saves triggered when appropriate ("save context")
 - [ ] Conversation history preserved for debugging
 - [ ] Implementation decisions documented
+
+### Checklist Verification (Level 2+)
+
+- [ ] Loaded `checklist.md` before claiming completion
+- [ ] Verified items in priority order (P0 → P1 → P2)
+- [ ] All P0 items marked [x] with evidence
+- [ ] All P1 items marked [x] with evidence
+- [ ] P2 items either verified or deferred with documented reason
+- [ ] Updated `checklist.md` with verification timestamps
+- [ ] No unchecked P0/P1 items remain
 
 ---
 

@@ -10,6 +10,22 @@ Save the current conversation context as structured markdown documentation in th
 
 ---
 
+```yaml
+role: Context Preservation Specialist with Documentation Expertise
+purpose: Preserve comprehensive conversation context for team sharing and future reference
+action: Extract, structure, and save session context to spec folder memory directory
+
+operating_mode:
+  workflow: sequential_context_extraction
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: spec_folder_selection_if_ambiguous
+  tracking: session_metadata_and_observations
+  validation: alignment_score_threshold_70_percent
+```
+
+---
+
 ## Purpose
 
 Preserve comprehensive conversation context including full dialogue, decisions, visual flowcharts, and file changes. Creates documentation in `specs/###-feature/memory/` for team sharing and future reference.
@@ -164,16 +180,39 @@ Optional argument to specify target spec folder (must be full folder name):
 
 ---
 
+## Failure Recovery
+
+| Failure Type | Recovery Action |
+|--------------|-----------------|
+| Spec folder not found | Prompt for folder selection (A/B/C/D) |
+| Memory directory inaccessible | Create memory/ subdirectory, retry |
+| JSON parse error | Log error, create minimal context file |
+| Script execution fails | Fall back to inline markdown generation |
+| Alignment score below threshold | Prompt user to select correct folder |
+
+---
+
+## Error Handling
+
+| Condition | Action |
+|-----------|--------|
+| Empty conversation | Return `STATUS=FAIL ERROR="No context to save"` |
+| Invalid spec folder path | Suggest existing folders, prompt selection |
+| Write permission denied | Report error, suggest alternative location |
+| Script not found | Fall back to inline generation |
+
+---
+
 ## When to Use
 
-✅ **Use when:**
+**Use when:**
 - Completing significant implementation or research session
 - Wrapping up complex feature with multiple decisions
 - Documenting architectural discussion
 - Creating reference for future conversations
 - Sharing conversation context with team
 
-❌ **Don't use for:**
+**Don't use for:**
 - Simple typo fixes or trivial changes
 - Context already well-documented in spec/plan files
 - Real-time progress tracking (use other methods)

@@ -53,8 +53,17 @@ LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 
 mkdir -p "$LOG_DIR"
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance tracking
-START_TIME=$(date +%s%N 2>/dev/null || date +%s)
+START_TIME=$(_get_nano_time)
 
 # Function to log blocks
 log_block() {
@@ -197,7 +206,7 @@ main() {
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
 
         # Record performance
-        END_TIME=$(date +%s%N 2>/dev/null || date +%s)
+        END_TIME=$(_get_nano_time)
         if [[ "$START_TIME" =~ ^[0-9]+$ ]] && [[ "$END_TIME" =~ ^[0-9]+$ ]]; then
             DURATION=$(((END_TIME - START_TIME) / 1000000))
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-markdown-pre.sh ${DURATION}ms (blocked: $filename)" >> "$HOOKS_DIR/logs/performance.log" 2>/dev/null
@@ -208,7 +217,7 @@ main() {
 
     # Filename is valid, allow operation
     # Record performance
-    END_TIME=$(date +%s%N 2>/dev/null || date +%s)
+    END_TIME=$(_get_nano_time)
     if [[ "$START_TIME" =~ ^[0-9]+$ ]] && [[ "$END_TIME" =~ ^[0-9]+$ ]]; then
         DURATION=$(((END_TIME - START_TIME) / 1000000))
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-markdown-pre.sh ${DURATION}ms (allowed: $filename)" >> "$HOOKS_DIR/logs/performance.log" 2>/dev/null

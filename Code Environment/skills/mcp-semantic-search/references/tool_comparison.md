@@ -66,9 +66,9 @@ Do you know the exact file path?
 │
 └─> NO: Do you know what the code does?
         ↓
-    ├─> YES: Use search_codebase("what it does")
+    ├─> YES: Use semantic_search("what it does")
     │         Intent-based discovery
-    │         Example: search_codebase("Find code that handles video playback")
+    │         Example: semantic_search("Find code that handles video playback")
     │
     └─> NO: Is it a literal text/symbol search?
             ↓
@@ -82,13 +82,13 @@ Do you know the exact file path?
             │         File pattern matching
             │         Example: glob("src/**/*.js")
             │
-            └─> Still unsure: Use search_codebase
+            └─> Still unsure: Use semantic_search
                               Let intent-based search help discover
 ```
 
 ---
 
-## 4. 🔍 TOOL 1: SEMANTIC SEARCH (search_codebase)
+## 4. 🔍 TOOL 1: SEMANTIC SEARCH (semantic_search)
 
 ### When to Use
 
@@ -120,28 +120,28 @@ Do you know the exact file path?
 
 1. **Known exact file path**
    ```
-   ❌ search_codebase("Find hero_video.js content")
+   ❌ semantic_search("Find hero_video.js content")
    ✅ Read("src/hero/hero_video.js")
    ```
    **Why:** Read is faster, no API latency
 
 2. **Looking for specific symbols**
    ```
-   ❌ search_codebase("Find all calls to initVideoPlayer")
+   ❌ semantic_search("Find all calls to initVideoPlayer")
    ✅ Grep("initVideoPlayer", output_mode="content")
    ```
    **Why:** Literal text matching is more precise
 
 3. **Simple keyword searches**
    ```
-   ❌ search_codebase("Find all TODO comments")
+   ❌ semantic_search("Find all TODO comments")
    ✅ Grep("TODO:", output_mode="content")
    ```
    **Why:** Keyword search is sufficient
 
 4. **File structure exploration**
    ```
-   ❌ search_codebase("Show me all JavaScript files")
+   ❌ semantic_search("Show me all JavaScript files")
    ✅ glob("**/*.js")
    ```
    **Why:** File navigation doesn't need semantic understanding
@@ -271,13 +271,13 @@ glob("src/**/*_video.js")
 | Scenario | Use This Tool | Example |
 |----------|--------------|---------|
 | **You know the file path** | `Read()` | `Read("src/hero/hero_video.js")` |
-| **Find by behavior/intent** | `search_codebase()` | `search_codebase("Find video playback code")` |
+| **Find by behavior/intent** | `semantic_search()` | `semantic_search("Find video playback code")` |
 | **Find specific function calls** | `Grep()` | `Grep("initVideoPlayer", output_mode="content")` |
 | **Find all files of type** | `glob()` | `glob("**/*.js")` |
-| **Understand how feature works** | `search_codebase()` | `search_codebase("How do we handle form validation?")` |
+| **Understand how feature works** | `semantic_search()` | `semantic_search("How do we handle form validation?")` |
 | **Find TODO comments** | `Grep()` | `Grep("TODO:", output_mode="content")` |
 | **Explore directory structure** | `glob()` | `glob("src/components/**/*")` |
-| **Find related components** | `search_codebase()` | `search_codebase("Find code related to navigation")` |
+| **Find related components** | `semantic_search()` | `semantic_search("Find code related to navigation")` |
 | **Locate exact error message** | `Grep()` | `Grep("Invalid email address", output_mode="content")` |
 
 ---
@@ -290,7 +290,7 @@ glob("src/**/*_video.js")
 
 ```javascript
 // Step 1: Discover with semantic search
-search_codebase("Find email validation logic")
+semantic_search("Find email validation logic")
 // Returns: src/form/form_validation.js
 
 // Step 2: Read full context
@@ -306,7 +306,7 @@ edit(...) or write(...)
 
 ```javascript
 // Step 1: Find general area
-search_codebase("Find modal components")
+semantic_search("Find modal components")
 // Returns: src/components/modal.js
 
 // Step 2: Find specific usage
@@ -323,7 +323,7 @@ Grep("modal.open", output_mode="content")
 glob("src/components/**/*.js")
 
 // Step 2: Understand specific component
-search_codebase("How does the video player component work?")
+semantic_search("How does the video player component work?")
 ```
 
 ---
@@ -361,7 +361,7 @@ search_codebase("How does the video player component work?")
 ### Mistake 1: Using Semantic Search for Known Paths
 
 ```
-❌ search_codebase("Find the content of hero_video.js")
+❌ semantic_search("Find the content of hero_video.js")
 ✅ Read("src/hero/hero_video.js")
 ```
 
@@ -371,7 +371,7 @@ search_codebase("How does the video player component work?")
 
 ```
 ❌ Grep("video", output_mode="content")  // Too broad, many false positives
-✅ search_codebase("Find code that handles video playback")
+✅ semantic_search("Find code that handles video playback")
 ```
 
 **Why:** Semantic search understands intent and context better than keyword matching.
@@ -380,7 +380,7 @@ search_codebase("How does the video player component work?")
 
 ```
 ❌ glob("**/*video*")  // Only matches filenames containing "video"
-✅ search_codebase("Find code related to video functionality")
+✅ semantic_search("Find code related to video functionality")
 ```
 
 **Why:** Glob only matches file names/paths, not content. Use semantic search for behavior-based discovery.
@@ -396,7 +396,7 @@ search_codebase("How does the video player component work?")
    - NO → Continue
 
 2. **Do I know what the code does (behavior/intent)?**
-   - YES → Use `search_codebase()`
+   - YES → Use `semantic_search()`
    - NO → Continue
 
 3. **Am I searching for exact text/symbols?**
@@ -405,7 +405,7 @@ search_codebase("How does the video player component work?")
 
 4. **Am I exploring file structure/patterns?**
    - YES → Use `glob()`
-   - NO → Default to `search_codebase()`
+   - NO → Default to `semantic_search()`
 
 ---
 
@@ -414,7 +414,7 @@ search_codebase("How does the video player component work?")
 **Core principle:** Choose tools based on what you know:
 
 - **Know the path** → `Read()`
-- **Know the intent** → `search_codebase()`
+- **Know the intent** → `semantic_search()`
 - **Know the text** → `Grep()`
 - **Know the pattern** → `glob()`
 

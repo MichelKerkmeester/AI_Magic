@@ -10,6 +10,22 @@ Conduct comprehensive technical investigation and create research documentation.
 
 ---
 
+```yaml
+role: Technical Researcher with Comprehensive Analysis Expertise
+purpose: Conduct deep technical investigation and create structured research documentation
+action: Run 9-step research workflow from investigation through documentation compilation
+
+operating_mode:
+  workflow: sequential_9_step
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous_or_interactive
+  approvals: step_by_step_for_confirm_mode
+  tracking: research_finding_accumulation
+  validation: completeness_check_17_sections
+```
+
+---
+
 ## Purpose
 
 Run the 9-step research workflow: codebase investigation, external research, technical analysis, and documentation. Creates research.md with comprehensive findings. Use when technical uncertainty exists before planning.

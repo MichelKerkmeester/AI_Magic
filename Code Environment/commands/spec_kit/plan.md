@@ -10,6 +10,22 @@ Execute the SpecKit planning lifecycle from specification through planning. Term
 
 ---
 
+```yaml
+role: Expert Developer using Smart SpecKit for Planning Phase
+purpose: Spec-driven planning with mandatory compliance and stakeholder review support
+action: Run 7-step planning workflow from specification through technical plan creation
+
+operating_mode:
+  workflow: sequential_7_step
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous_or_interactive
+  approvals: step_by_step_for_confirm_mode
+  tracking: progressive_artifact_creation
+  validation: consistency_check_before_handoff
+```
+
+---
+
 ## Purpose
 
 Run the 7-step planning workflow: specification, clarification, quality checklist, and technical planning. Creates spec.md, plan.md, and checklists without proceeding to implementation. Use when planning needs review before coding.
@@ -35,7 +51,7 @@ $ARGUMENTS
 | 2 | Pre-Work Review | Review AGENTS.md, standards | coding_standards_summary |
 | 3 | Specification | Create spec.md | spec.md, feature branch |
 | 4 | Clarification | Resolve ambiguities | updated spec.md |
-| 5 | Quality Checklist | Generate validation checklist | checklists/requirements.md |
+| 5 | Quality Checklist | Generate validation checklist (will be ACTIVELY USED for verification during implementation) | checklists/requirements.md |
 | 6 | Planning | Create technical plan | plan.md, planning-summary.md |
 | 7 | Save Context | Preserve conversation | memory/*.md |
 
@@ -143,6 +159,8 @@ See CLAUDE.md Section 2 for full memory file handling details.
 
 **Note:** LOC thresholds are soft guidance. Choose level based on complexity and risk.
 
+**Important:** For Level 2+, `checklist.md` will be created during planning and is MANDATORY for verification during the subsequent `/spec_kit:implement` phase. The AI must actively use it to verify all work before claiming completion.
+
 ## Templates Used
 
 - `.opencode/speckit/templates/spec.md` (Level 1+)
@@ -198,6 +216,23 @@ STATUS=OK PATH=specs/NNN-short-name/
 ---
 
 ## Notes
+
+### Checklist Creation for Implementation Verification (Level 2+)
+
+When creating `checklist.md` for Level 2+ projects, structure items for mandatory verification during implementation:
+
+1. **Priority Levels** - Assign P0/P1/P2 to each item:
+   - P0 (Critical): BLOCKERS - implementation cannot complete without these
+   - P1 (High): Required - must complete or get explicit user deferral approval
+   - P2 (Medium): Optional - can defer with documentation
+2. **Verification Format** - Use checkbox format with evidence fields:
+   ```
+   - [ ] CHK001 [P0] Description | Evidence: [to be filled during implementation]
+   ```
+3. **Implementation Contract** - The `/spec_kit:implement` workflow MUST:
+   - Load and verify each checklist item before claiming completion
+   - Mark items `[x]` with evidence (links, test output, file references)
+   - Block completion until all P0/P1 items are verified
 
 - **Mode Behaviors:**
   - **Autonomous (`:auto`)**: Executes all steps without user approval gates. Self-validates at each checkpoint. Makes informed decisions based on best judgment. Documents all significant decisions.

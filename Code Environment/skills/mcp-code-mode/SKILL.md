@@ -52,7 +52,8 @@ Execute TypeScript code with direct access to 200+ MCP tools through progressive
 - ❌ Text searching (use Grep tool)
 - ❌ File discovery (use Glob tool)
 - ❌ Bash commands (use Bash tool)
-- ❌ Intent-based code discovery (use mcp-semantic-search skill)
+- ❌ Intent-based code discovery (use mcp-semantic-search skill - **NATIVE MCP**, call `semantic_search()` directly)
+- ❌ Sequential Thinking (call `process_thought()` directly - **NATIVE MCP**)
 
 ### Common Use Cases
 
@@ -255,8 +256,8 @@ call_tool_chain({
 **2. Code Mode MCP** (`.utcp_config.json`) - External tools accessed through Code Mode:
 - **MCP Config**: `.utcp_config.json` (project root)
 - **Environment Variables**: `.env` (project root)
-- **Vector Database**: `.codebase/vectors.db` (for semantic search if configured)
-- **All external tools**: Webflow, Figma, Chrome DevTools, Semantic Search, etc.
+- **External tools**: Webflow, Figma, Chrome DevTools, ClickUp, Notion, etc.
+- **Note**: Semantic Search is **NOT** in Code Mode - it's a Native MCP tool (see `.mcp.json`)
 
 ### How to Discover Available Code Mode Tools
 
@@ -460,16 +461,16 @@ call_tool_chain({
 ### Cross-Skill Collaboration
 
 **Pairs with mcp-semantic-search**:
-- Use **mcp-semantic-search** for intent-based code discovery
-- Use **mcp-code-mode** for external tool integration
+- Use **mcp-semantic-search** for intent-based code discovery (NATIVE MCP - call directly)
+- Use **mcp-code-mode** for external tool integration (Webflow, Figma, ClickUp, etc.)
 - Example: Search codebase → Create ClickUp task → Update Notion docs
 
 **Workflow**:
 ```typescript
-// 1. Find relevant code using mcp-semantic-search
-search_codebase("authentication implementation");
+// 1. Find relevant code using mcp-semantic-search (NATIVE MCP - call directly)
+semantic_search("authentication implementation");  // Direct call, NOT through Code Mode
 
-// 2. Create task using Code Mode
+// 2. Create task using Code Mode (for external tools)
 call_tool_chain({
   code: `
     await clickup.clickup_create_task({
@@ -601,7 +602,7 @@ See [references/tool_catalog.md](references/tool_catalog.md) for complete list.
 
 ### Related Skills
 
-- **[mcp-semantic-search](../mcp-semantic-search/SKILL.md)** - Intent-based code discovery (use for finding code by what it does, not keyword matching)
+- **[mcp-semantic-search](../mcp-semantic-search/SKILL.md)** - Intent-based code discovery (**NATIVE MCP** - call `semantic_search()` directly, NOT through Code Mode)
 
 ---
 

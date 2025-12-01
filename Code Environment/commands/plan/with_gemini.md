@@ -106,13 +106,26 @@ If no mode override specified, analyze task complexity:
 
 ### Step 3: Load & Execute YAML Workflow
 
-6. **Read the appropriate YAML workflow prompt from OpenCode assets:**
+6. **Set model parameters and read the appropriate YAML workflow:**
+
+   **CRITICAL: Set parameters before loading simple_mode.yaml**
+
+   ```
+   ORCHESTRATOR_MODEL=gemini
+   AGENT_MODEL=sonnet
+   ```
+
+   This command uses Gemini as orchestrator with Sonnet exploration agents.
+   The simple_mode.yaml file is parameterized and will use whatever models are specified.
 
    Asset path: `.opencode/command/plan/assets/`
 
    Based on the mode selected in Step 2:
 
-   - **SIMPLE mode** (<500 LOC): Use the Read tool to load `.opencode/command/plan/assets/simple_mode.yaml` and execute all instructions in that file.
+   - **SIMPLE mode** (<500 LOC):
+     1. Set `ORCHESTRATOR_MODEL=gemini` and `AGENT_MODEL=sonnet`
+     2. Use the Read tool to load `.opencode/command/plan/assets/simple_mode.yaml`
+     3. Execute all instructions with gemini orchestrating and sonnet exploring
 
    - **COMPLEX mode** (≥500 LOC): Use the Read tool to load `.opencode/command/plan/assets/complex_mode.yaml`. Note: Complex mode is a stub as of Phase 1.5 and will notify user to fall back to simple mode.
 
@@ -125,19 +138,11 @@ If no mode override specified, analyze task complexity:
    - **Phase 6**: Document Creation (level-appropriate files) (Gemini synthesis + web insights)
    - **Phases 7-8**: User Review & Confirmation, Context Persistence
 
-   **CRITICAL OVERRIDE for Phase 4 (Parallel Exploration):**
+   **Parameterized Workflow:**
 
-   When spawning the 4 Explore agents, use **Sonnet agents** for fast parallel exploration:
-
-   ```yaml
-   # Primary strategy: Spawn 4 Sonnet agents
-   Task({
-     subagent_type: "Explore",
-     model: "sonnet",  # Claude Sonnet for fast exploration
-     description: "Architecture exploration",
-     prompt: "[exploration prompt from YAML]"
-   })
-   ```
+   The simple_mode.yaml workflow uses `ORCHESTRATOR_MODEL=gemini` and `AGENT_MODEL=sonnet` to:
+   - Spawn 4 Sonnet agents for fast parallel exploration
+   - Use Gemini for verification and synthesis (with potential web research)
 
    **Spawn all 4 agents in parallel** (single message with 4 Task calls):
    - Architecture Explorer (Sonnet)
@@ -149,29 +154,9 @@ If no mode override specified, analyze task complexity:
 
    If Sonnet agents are unavailable or spawn fails:
 
-   1. **Try alternative models** available via Copilot:
-      ```yaml
-      # Fallback Option 1: Try Gemini agents
-      Task({
-        subagent_type: "Explore",
-        model: "gemini-3.0-pro",  # Same as orchestrator
-        description: "Architecture exploration",
-        prompt: "[exploration prompt from YAML]"
-      })
-      ```
-
-   2. **Self-exploration with web research** (if no agents available):
-      - Gemini orchestrator performs exploration inline using Glob/Grep/Read tools
-      - Optionally augment with web research for current best practices
-      - Sequential but thorough codebase analysis with external knowledge
-      - Document that parallel agents were unavailable
-      - Slower but may include valuable web insights
-
-   **Model Priority:**
-   1. Sonnet (preferred - fast, cost-effective)
-   2. Gemini 3.0 pro (fallback - same as orchestrator, may include web research)
-   3. Other available models (Haiku, etc.)
-   4. Self-exploration (no agents - inline analysis + optional web research)
+   1. **Try Gemini agents** (same as orchestrator, may include web research)
+   2. **Self-exploration** - Gemini performs inline analysis + optional web research
+   3. Document that parallel agents were unavailable
 
    All phases execute sequentially: 0 → 1 → 2 → 3 → 4 (Sonnet/fallback) → 5 (Gemini verifies) → 6 → 7 → 8
 

@@ -4,7 +4,7 @@ A comprehensive guide to installing, configuring, and using browser-debugger-cli
 
 ---
 
-## 🤖 AI-First Install Guide
+## 🤖 AI-FIRST INSTALL GUIDE
 
 **Copy and paste this prompt to your AI assistant to get installation help:**
 
@@ -35,22 +35,22 @@ Guide me through each step with the exact commands I need to run.
 
 ---
 
-## Table of Contents
+#### 📋 TABLE OF CONTENTS
 
-1. [What is Chrome DevTools CLI (bdg)?](#1-what-is-chrome-devtools-cli-bdg)
-2. [Prerequisites](#2-prerequisites)
-3. [Installation](#3-installation)
-4. [Configuration](#4-configuration)
-5. [Verifying Installation](#5-verifying-installation)
-6. [Using Chrome DevTools CLI](#6-using-chrome-devtools-cli)
-7. [Available Features Overview](#7-available-features-overview)
-8. [Practical Examples](#8-practical-examples)
-9. [Troubleshooting](#9-troubleshooting)
-10. [Additional Resources](#10-additional-resources)
+1. [📖 OVERVIEW](#1--overview)
+2. [📋 PREREQUISITES](#2--prerequisites)
+3. [📥 INSTALLATION](#3--installation)
+4. [⚙️ CONFIGURATION](#4-️-configuration)
+5. [✅ VERIFICATION](#5--verification)
+6. [🚀 USAGE](#6--usage)
+7. [🎯 FEATURES](#7--features)
+8. [💡 EXAMPLES](#8--examples)
+9. [🔧 TROUBLESHOOTING](#9--troubleshooting)
+10. [📚 RESOURCES](#10--resources)
 
 ---
 
-## 1. What is Chrome DevTools CLI (bdg)?
+## 1. 📖 OVERVIEW
 
 Chrome DevTools CLI (`bdg`) is a lightweight terminal-based tool for direct Chrome DevTools Protocol (CDP) access. It provides 644 CDP methods via command-line interface, enabling browser automation, debugging, and testing without Puppeteer/Playwright overhead.
 
@@ -93,7 +93,7 @@ bdg provides session isolation:
 
 ---
 
-## 2. Prerequisites
+## 2. 📋 PREREQUISITES
 
 Before installing Chrome DevTools CLI, ensure you have:
 
@@ -142,7 +142,7 @@ Before installing Chrome DevTools CLI, ensure you have:
 
 ---
 
-## 3. Installation
+## 3. 📥 INSTALLATION
 
 ### Step 1: Install browser-debugger-cli via npm
 
@@ -195,7 +195,7 @@ bdg --help
 
 ---
 
-## 4. Configuration
+## 4. ⚙️ CONFIGURATION
 
 ### Option A: Shell Integration (Recommended)
 
@@ -310,7 +310,7 @@ Add to `.vscode/tasks.json`:
 
 ---
 
-## 5. Verifying Installation
+## 5. ✅ VERIFICATION
 
 ### Check 1: Version and Help
 
@@ -390,7 +390,7 @@ ls -lh test.png
 
 ---
 
-## 6. Using Chrome DevTools CLI
+## 6. 🚀 USAGE
 
 ### Basic Usage Pattern
 
@@ -466,9 +466,9 @@ bdg stop 2>&1
 
 ---
 
-## 7. Available Features Overview
+## 7. 🎯 FEATURES
 
-### 1. Self-Documenting Discovery
+### 7.1 Self-Documenting Discovery
 
 **Purpose**: Find CDP methods without external documentation
 
@@ -488,7 +488,7 @@ bdg --search screenshot
 # Emulation.setDeviceMetricsOverride (for viewport)
 ```
 
-### 2. Session Management
+### 7.2 Session Management
 
 **Purpose**: Persistent browser state across multiple commands
 
@@ -503,7 +503,7 @@ bdg --search screenshot
 - Network cache
 - DOM state
 
-### 3. Page Interaction
+### 7.3 Page Interaction
 
 **Key Methods**:
 - `Page.navigate` - Navigate to URL
@@ -521,7 +521,7 @@ bdg screenshot homepage.png 2>&1
 bdg stop 2>&1
 ```
 
-### 4. Console Monitoring
+### 7.4 Console Monitoring
 
 **Key Methods**:
 - `Runtime.enable` - Enable console tracking
@@ -535,7 +535,7 @@ bdg console logs 2>&1 | jq '.[] | {level, message}'
 bdg stop 2>&1
 ```
 
-### 5. Network Inspection
+### 7.5 Network Inspection
 
 **Key Methods**:
 - `Network.enable` - Enable network tracking
@@ -551,7 +551,7 @@ bdg har export failed-requests.har 2>&1
 bdg stop 2>&1
 ```
 
-### 6. DOM Querying
+### 7.6 DOM Querying
 
 **Key Methods**:
 - `DOM.getDocument` - Get DOM tree
@@ -565,7 +565,7 @@ bdg dom query "meta[property='og:title']" 2>&1 | jq '.[].content'
 bdg stop 2>&1
 ```
 
-### 7. Performance Measurement
+### 7.7 Performance Measurement
 
 **Key Methods**:
 - `Performance.enable` - Enable metrics
@@ -581,7 +581,7 @@ bdg stop 2>&1
 
 ---
 
-## 8. Practical Examples
+## 8. 💡 EXAMPLES
 
 ### Example 1: Visual Regression Testing
 
@@ -767,7 +767,7 @@ echo "  Slowest Request: $(jq '[.log.entries[] | {url: .request.url, time: .time
 
 ---
 
-## 9. Troubleshooting
+## 9. 🔧 TROUBLESHOOTING
 
 ### bdg Command Not Found
 
@@ -915,7 +915,7 @@ echo "  Slowest Request: $(jq '[.log.entries[] | {url: .request.url, time: .time
 
 ---
 
-## 10. Additional Resources
+## 10. 📚 RESOURCES
 
 ### Documentation
 
@@ -925,7 +925,7 @@ echo "  Slowest Request: $(jq '[.log.entries[] | {url: .request.url, time: .time
 
 ### CLI Skill Reference
 
-- **cli-chrome-devtools Skill**: `/Users/michelkerkmeester/MEGA/Development/Websites/anobel.com/.claude/skills/cli-chrome-devtools/SKILL.md`
+- **cli-chrome-devtools Skill**: `.claude/skills/cli-chrome-devtools/SKILL.md`
 - **CDP Patterns**: `.claude/skills/cli-chrome-devtools/references/cdp_patterns.md`
 - **Session Management**: `.claude/skills/cli-chrome-devtools/references/session_management.md`
 - **Troubleshooting**: `.claude/skills/cli-chrome-devtools/references/troubleshooting.md`
@@ -1088,7 +1088,7 @@ alias bdg-test='bdg "$BDG_DEFAULT_URL" && bdg screenshot test.png && bdg console
 
 ---
 
-**Installation Complete!** 🎉
+**Installation Complete!**
 
 You now have Chrome DevTools CLI (bdg) installed and configured. Use it for lightweight browser automation, terminal-based debugging, and token-efficient browser verification in your AI workflows.
 

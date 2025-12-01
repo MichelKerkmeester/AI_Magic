@@ -1,5 +1,5 @@
 ---
-description: Enhance prompts using DEPTH framework with AI-guided analysis and quality scoring
+description: Enhance prompts using DEPTH framework with AI-guided analysis
 argument-hint: "<prompt-text> [:quick|:improve|:refine]"
 allowed-tools: Read, Write, AskUserQuestion
 ---
@@ -8,7 +8,25 @@ allowed-tools: Read, Write, AskUserQuestion
 
 Transform raw prompts into optimized, framework-structured prompts using DEPTH methodology (Discover, Engineer, Prototype, Test, Harmonize).
 
-## Input
+---
+
+```yaml
+role: Prompt Engineering Specialist with Multi-Perspective Analysis Expertise
+purpose: Transform raw prompts into optimized, framework-structured prompts through systematic DEPTH methodology
+action: Apply 5-phase enhancement workflow with cognitive rigor and framework selection
+
+operating_mode:
+  workflow: sequential_with_cognitive_rigor
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous_with_user_checkpoints
+  approvals: framework_selection_for_complexity_5_plus
+  tracking: phase_round_progress_transparent
+  validation: qualitative_completeness_check
+```
+
+---
+
+## User Input
 
 ```text
 $ARGUMENTS
@@ -16,11 +34,34 @@ $ARGUMENTS
 
 ---
 
+## Workflow Overview (5 Phases)
+
+| Phase | Name | Purpose | Outputs |
+|-------|------|---------|---------|
+| 1 | Discover | Analyze intent, assess complexity | complexity_score, gap_analysis |
+| 2 | Engineer | Select framework, restructure | framework_selection, structure |
+| 3 | Prototype | Generate enhanced draft | enhanced_prompt_draft |
+| 4 | Test | Validate clarity and completeness | validation_report |
+| 5 | Harmonize | Final polish for consistency | spec.md, enhanced_prompt.yaml |
+
+---
+
+## Mode Detection & Routing
+
+| Pattern | Mode | Behavior |
+|---------|------|----------|
+| `/prompt_improver:workflow:quick` | QUICK | 1-5 rounds, auto-framework |
+| `/prompt_improver:workflow:improve` | FULL | 10 rounds, interactive framework selection |
+| `/prompt_improver:workflow:refine` | REFINE | Preserve framework, polish clarity |
+| `/prompt_improver:workflow` (no suffix) | INTERACTIVE | Full user participation |
+
+---
+
 ## Purpose
 
 Apply systematic prompt enhancement with:
 - **Framework selection** - Auto-select from 7 frameworks (RCAF, COSTAR, RACE, CIDI, TIDD-EC, CRISPE, CRAFT)
-- **Quality scoring** - CLEAR evaluation (50-point scale)
+- **Iterative refinement** - Multi-round improvement for clarity and structure
 - **Dual output** - SpecKit spec.md + YAML prompt for comprehensive documentation
 
 ---
@@ -85,11 +126,11 @@ Apply systematic prompt enhancement with:
    **Fallback logic:** If not found in `.claude/`, automatically search `.opencode/` folder.
 
 4. **DEPTH phases execute autonomously:**
-   - **D (Discover)**: Analyze intent, assess complexity (1-10), identify RICCE gaps
+   - **D (Discover)**: Analyze intent, assess complexity (1-10), identify gaps
    - **E (Engineer)**: Select framework, apply cognitive rigor, restructure
-   - **P (Prototype)**: Generate enhanced draft, validate RICCE (5/5)
-   - **T (Test)**: Calculate CLEAR scores (original vs enhanced)
-   - **H (Harmonize)**: Final polish, verify ≥40/50 target
+   - **P (Prototype)**: Generate enhanced draft with clear structure
+   - **T (Test)**: Validate clarity, completeness, and actionability
+   - **H (Harmonize)**: Final polish for consistency and flow
 
 5. **Framework selection logic** (auto or interactive based on complexity):
    - Complexity 1-4: Auto-select RCAF
@@ -98,14 +139,9 @@ Apply systematic prompt enhancement with:
    - Complexity 8-10: Auto-select CRAFT
 
 6. **Quality validation:**
-   ```
-   If enhanced_score >= 40 AND delta >= 5:
-     Proceed to Phase 6
-   Else if mode = "quick" AND enhanced_score > original_score:
-     Proceed to Phase 6
-   Else:
-     AskUserQuestion: Retry refinement / Accept current / Cancel
-   ```
+   - Verify prompt has clear role, context, and actionable instructions
+   - Check framework components are complete and substantive
+   - Ensure no placeholder text remains
 
 ---
 
@@ -131,13 +167,19 @@ Apply systematic prompt enhancement with:
      - Solution (DEPTH methodology summary)
      - Framework applied (description and rationale)
      - Enhanced Prompt (full formatted text)
-     - Success Criteria (CLEAR scores, RICCE validation)
+     - Success Criteria (qualitative validation)
      - Usage instructions
 
-   - **File 2 - enhanced_prompt.yaml** (machine-readable):
-     - Metadata section (framework, complexity, scores, timestamps)
-     - Framework-specific prompt components
-     - Usage examples for Python/Node.js
+   - **File 2 - enhanced_prompt.yaml** (spec_kit-aligned structure):
+     - Flat top-level: `role:`, `purpose:`, `action:` (single lines)
+     - `operating_mode:` section with workflow settings
+     - `metadata:` section with framework, complexity, timestamps
+     - `context:` section with framework-specific components
+     - `workflow:` section with `step_N_name:` pattern (if multi-step)
+     - `rules:` section with `ALWAYS:` and `NEVER:` lists
+     - `success:` section with criteria
+     - `error_recovery:` section (optional)
+     - `usage:` section for Python/Node.js programmatic access
 
 9. **Report success:**
    ```
@@ -148,40 +190,11 @@ Apply systematic prompt enhancement with:
    - spec.md (SpecKit specification)
    - enhanced_prompt.yaml (machine-readable)
 
-   📊 Quality:
-   - Original CLEAR Score: {original_score}/50
-   - Enhanced CLEAR Score: {enhanced_score}/50
-   - Improvement: +{delta} points
-
    🔧 Framework: {framework_name}
+   📐 Complexity: {complexity}/10
 
    STATUS=OK SPEC={spec_folder_path} FILES=spec.md,enhanced_prompt.yaml
    ```
-
----
-
-## CLEAR Scoring (50 points)
-
-| Dimension       | Weight | Max | Description                          |
-|-----------------|--------|-----|--------------------------------------|
-| Correctness (C) | 20%    | 10  | Accuracy, terminology                |
-| Logic (L)       | 20%    | 10  | Reasoning structure, coherence       |
-| Expression (E)  | 30%    | 15  | Clarity, precision, readability      |
-| Arrangement (A) | 20%    | 10  | Organization, hierarchy              |
-| Reusability (R) | 10%    | 5   | Adaptability, modularity             |
-
-**Target:** ≥40/50 overall, ≥8/10 per dimension (≥12/15 for Expression)
-
----
-
-## RICCE Validation
-
-Enhanced prompt must contain:
-- ✅ **Role** - Clearly defined persona/expertise
-- ✅ **Instructions** - Unambiguous tasks/steps
-- ✅ **Context** - Relevant background info
-- ✅ **Constraints** - Explicit boundaries/requirements
-- ✅ **Examples** - Concrete demonstrations (or N/A if not applicable)
 
 ---
 
@@ -199,15 +212,63 @@ Enhanced prompt must contain:
 
 ---
 
-## Error Recovery
+## Failure Recovery
+
+| Failure Type | Recovery Action |
+|--------------|-----------------|
+| Enhancement incomplete | Prompt: retry refinement / accept current / cancel |
+| Framework timeout | Default to RCAF → Notify → Continue |
+| YAML workflow missing | Search `.claude/` then `.opencode/` → Error if both fail |
+| Write permission denied | Output to chat → Suggest manual save |
+
+---
+
+## Error Handling
 
 | Condition | Action |
 |-----------|--------|
-| Empty prompt | AskUserQuestion with 4 options → Retry |
-| Score below target | Prompt: retry / accept / cancel |
-| Framework timeout | Default to RCAF → Notify → Continue |
-| YAML not found | Search `.claude/commands/` first, then `.opencode/command/` → Error if both fail |
-| Write permission denied | Output to chat → Suggest manual save |
+| Empty `$ARGUMENTS` | AskUserQuestion with 4 options (paste/describe/file/cancel) |
+| Invalid mode suffix | Default to INTERACTIVE mode |
+| Framework selection fails | Auto-select RCAF as fallback |
+| Spec folder conflict | Prompt for resolution (A/B/C/D options) |
+
+---
+
+## Context Loading
+
+When resuming in an existing spec folder with prior prompt work:
+- **A)** Load most recent enhanced_prompt.yaml (quick context)
+- **B)** Load all recent files (comprehensive)
+- **C)** List all files and select specific
+- **D)** Skip (start fresh)
+
+---
+
+## Templates Used
+
+- `.claude/commands/prompt_improver/assets/improve_prompt.yaml` - DEPTH workflow logic
+- `.opencode/speckit/templates/spec.md` - SpecKit specification output
+
+---
+
+## Completion Report
+
+After workflow completion, report:
+
+```
+Prompt Enhancement Complete
+
+Spec folder: {spec_folder_path}
+Framework: {framework_name}
+Complexity: {complexity}/10
+Rounds: {round_count}
+
+Files created:
+- spec.md (SpecKit specification)
+- enhanced_prompt.yaml (machine-readable)
+
+STATUS=OK SPEC={spec_folder_path} FILES=spec.md,enhanced_prompt.yaml
+```
 
 ---
 
@@ -236,22 +297,28 @@ Output: Preserves existing framework, polishes clarity, ~9 seconds
 ## Critical Rules
 
 - ✅ Execute full DEPTH (10 rounds) unless :quick mode
-- ✅ Calculate CLEAR scores rigorously (no fabrication)
-- ✅ Generate BOTH files (analysis.md + prompt.yaml)
+- ✅ Generate BOTH files (spec.md + enhanced_prompt.yaml)
 - ✅ Replace all placeholders in YAML (no `{ACTUAL_*}` text in output)
-- ✅ Validate RICCE completeness (5/5 or 4/5 with N/A)
+- ✅ Ensure framework components are complete and substantive
 - ❌ NEVER skip framework selection rationale
 - ❌ NEVER leave placeholder text in YAML output
-- ❌ NEVER proceed with <40/50 without user confirmation
+- ❌ NEVER proceed with incomplete prompts without user confirmation
 
 ---
 
 ## Notes
 
 **Dual-Output Architecture:**
-- `prompt_analysis.md` = Human review (quality assessment, RICCE, framework rationale)
-- `enhanced_prompt.yaml` = Machine import (direct use in workflows/tools)
+- `spec.md` = Human review (SpecKit specification with problem, solution, enhanced prompt, success criteria)
+- `enhanced_prompt.yaml` = Machine import (spec_kit-aligned YAML for direct workflow integration)
 - Both files reference each other for traceability
+
+**spec_kit YAML Alignment:**
+- YAML output follows spec_kit structural conventions (see `.claude/commands/spec_kit/assets/*.yaml`)
+- Flat top-level keys: `role`, `purpose`, `action` (single lines)
+- `workflow:` uses `step_N_name:` pattern with `purpose`, `activities`, `outputs`, `validation`
+- `rules:` has `ALWAYS:` and `NEVER:` subsections
+- Framework components mapped to spec_kit sections (see `framework_mapping_to_speckit` in improve_prompt.yaml)
 
 **Integration:**
 - Saves to active spec folder if available (`.claude/.spec-active.$$` or `.opencode/.spec-active.$$`)
@@ -261,4 +328,4 @@ Output: Preserves existing framework, polishes clarity, ~9 seconds
 **Workflow Details:**
 - Complete implementation: `improve_prompt.yaml` (in `.claude/commands/` or `.opencode/command/`)
 - Phase 6 (Dual Output): Steps 13-17 with atomic write guarantees
-- Framework templates: All 7 frameworks fully specified
+- Framework templates: All 7 frameworks mapped to spec_kit structure

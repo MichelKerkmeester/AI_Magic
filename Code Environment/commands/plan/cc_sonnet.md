@@ -1,17 +1,30 @@
 ---
-description: Create a detailed implementation plan with parallel exploration before any code changes (Claude Code)
+description: Create implementation plan with 4 parallel Sonnet exploration agents (fast, cost-effective)
 argument-hint: <task description> [mode:simple|mode:complex]
 allowed-tools: Read, Write, Edit, Glob, Grep, Task, AskUserQuestion
 agent: plan
 model: opus
 ---
 
-# Implementation Plan (Claude Code)
+# Implementation Plan (Claude Code + Sonnet Agents)
 
-Create comprehensive SpecKit documentation using parallel exploration agents to thoroughly analyze the codebase before any code changes.
+Create comprehensive SpecKit documentation using **4 parallel Sonnet agents** for fast, cost-effective codebase exploration before any code changes.
 
 **Platform**: Claude Code only (uses Task tool with Claude agents)
+**Agent Model**: Sonnet (claude-sonnet-4-5-20250929) - Fast parallel discovery
+**Orchestrator**: Opus (claude-opus-4-5-20251101) - Task understanding, verification, synthesis
 **SpecKit Aligned**: Creates Level 2+ documentation per AGENTS.md Section 2
+
+---
+
+## When to Use cc_sonnet vs cc_opus
+
+| Variant | Agent Model | Best For | Trade-off |
+|---------|-------------|----------|-----------|
+| **cc_sonnet** (this) | Sonnet | Most planning tasks, quick exploration | Fast & cheap, Opus verifies |
+| cc_opus | Opus 4.5 | Complex architecture, critical features | Thorough but slower & costlier |
+
+**Recommendation**: Start with `cc_sonnet` (this command). Use `cc_opus` only when you need deeper reasoning during exploration itself.
 
 ---
 
@@ -20,8 +33,8 @@ Create comprehensive SpecKit documentation using parallel exploration agents to 
 Enter PLANNING MODE to create detailed, verified SpecKit documentation. This command:
 1. Determines SpecKit documentation level (2 or 3) based on task complexity
 2. Creates spec.md (requirements and user stories) + plan.md (technical approach)
-3. Spawns multiple Explore agents in parallel to discover codebase patterns
-4. Synthesizes findings into structured SpecKit documents using YAML workflow
+3. Spawns **4 Sonnet agents in parallel** for fast codebase discovery
+4. Opus orchestrator synthesizes and verifies findings
 5. Optionally creates tasks.md for complex features (Level 3)
 6. Requires user approval before implementation begins
 
@@ -93,15 +106,23 @@ If no mode override specified, analyze task complexity:
 
 ### Step 3: Load & Execute YAML Workflow
 
-6. **Read the appropriate YAML workflow prompt from Claude Code assets:**
+6. **Set agent model and read the appropriate YAML workflow:**
+
+   **CRITICAL: Set AGENT_MODEL=sonnet before loading simple_mode.yaml**
+
+   This command uses Sonnet agents for fast, cost-effective exploration.
+   The simple_mode.yaml file is parameterized and will use whatever model is specified.
 
    Asset path: `.claude/commands/plan/assets/`
 
    Based on the mode selected in Step 2:
 
-   - **SIMPLE mode** (<500 LOC): Use the Read tool to load `.claude/commands/plan/assets/simple_mode.yaml` and execute all instructions in that file.
+   - **SIMPLE mode** (<500 LOC):
+     1. Set `AGENT_MODEL=sonnet`
+     2. Use the Read tool to load `.claude/commands/plan/assets/simple_mode.yaml`
+     3. Execute all instructions with model="sonnet" for exploration agents
 
-   - **COMPLEX mode** (≥500 LOC): Use the Read tool to load `.claude/commands/plan/assets/complex_mode.yaml`. Note: Complex mode is a stub as of Phase 1.5 and will notify user to fall back to simple mode.
+   - **COMPLEX mode** (≥500 LOC): Use the Read tool to load `.claude/commands/plan/assets/complex_mode.yaml`. Note: Complex mode is a stub as of Phase 1.5 and will notify user to fall back to simple mode (using AGENT_MODEL=sonnet).
 
 7. **YAML workflow executes automatically:**
 
@@ -123,11 +144,12 @@ If no mode override specified, analyze task complexity:
 
 8. **Display phase progress to user:**
    ```
-   Planning Mode Activated (Opus Orchestrator + SpecKit)
+   Planning Mode Activated (Opus Orchestrator + Sonnet Agents)
 
    Task: {task_description}
    Mode: {SIMPLE/COMPLEX} ({loc_estimate} LOC estimated)
    Documentation Level: {1, 2, or 3}
+   Agent Model: Sonnet (fast exploration)
 
    Phase 0: Documentation Level Detection...
    Phase 1: Task Understanding & Session Initialization...
@@ -171,20 +193,20 @@ If no mode override specified, analyze task complexity:
 
 ### Basic Planning (Auto-Detect Mode)
 ```bash
-/plan:with_claude_code Add user authentication with OAuth2
-# Auto-detects: ~300 LOC → SIMPLE mode → simple_mode.yaml
+/plan:cc_sonnet Add user authentication with OAuth2
+# Auto-detects: ~300 LOC → SIMPLE mode → 4 Sonnet agents explore → Opus verifies
 ```
 
 ### Explicit Simple Mode
 ```bash
-/plan:with_claude_code "Refactor authentication (800 LOC)" mode:simple
+/plan:cc_sonnet "Refactor authentication (800 LOC)" mode:simple
 # Forces SIMPLE mode despite LOC estimate
 ```
 
-### Future: Complex Mode
+### For Thorough Analysis (Use cc_opus Instead)
 ```bash
-/plan:with_claude_code Implement real-time collaboration with conflict resolution
-# Auto-detects: ~800 LOC → COMPLEX mode → Falls back to SIMPLE (stub)
+/plan:cc_opus Implement real-time collaboration with conflict resolution
+# Uses 4 Opus agents for deeper exploration (slower but more thorough)
 ```
 
 ---
@@ -192,10 +214,11 @@ If no mode override specified, analyze task complexity:
 ## Example Output
 
 ```
-Planning Mode Activated (Opus Orchestrator + SpecKit)
+Planning Mode Activated (Opus Orchestrator + Sonnet Agents)
 
 Task: Add user authentication with OAuth2
 Mode: SIMPLE (300 LOC estimated)
+Agent Model: Sonnet (fast exploration)
 
 Phase 0: Documentation Level Detection
   LOC estimate: 300 (suggests Level 2)
@@ -214,11 +237,11 @@ Phase 3: Context Loading
   No previous memory files found - starting fresh
 
 Phase 4: Parallel Exploration (4 Sonnet agents)
-  Architecture Explorer: analyzing project structure...
-  Feature Explorer: finding auth patterns...
-  Dependency Explorer: mapping imports...
-  Test Explorer: reviewing test infrastructure...
-  Exploration Complete (23 files identified)
+  Architecture Explorer (Sonnet): analyzing project structure...
+  Feature Explorer (Sonnet): finding auth patterns...
+  Dependency Explorer (Sonnet): mapping imports...
+  Test Explorer (Sonnet): reviewing test infrastructure...
+  Exploration Complete (23 files identified) [~15 seconds]
 
 Phase 5: Hypothesis Verification (Opus review)
   Verifying architecture hypotheses...
@@ -253,6 +276,13 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.
 
 ## Notes
 
+- **Model Hierarchy (Sonnet Variant):**
+  - **Orchestrator**: Opus (claude-opus-4-5-20251101) - Task understanding, verification, synthesis
+  - **Explore Agents**: Sonnet (claude-sonnet-4-5-20250929) - Fast parallel discovery
+  - Claude Code Task tool uses `model: "sonnet"` parameter for Opus+Sonnet hierarchy
+  - **Why Sonnet?** Fast (~10-15s/agent), cost-effective, good enough for most exploration
+  - **Opus still verifies** all findings in Phase 5 - Sonnet explores, Opus validates
+
 - **SpecKit Alignment:**
   - MANDATORY compliance with AGENTS.md Section 2 requirements
   - Creates Level 1+ documentation (spec.md + plan.md + tasks.md baseline)
@@ -266,11 +296,6 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.
   - Command file (~150 lines): Mode detection + prompt loading
   - YAML prompts (~1150 lines): All 9-phase logic + SpecKit integration
   - Modular, maintainable, version-friendly
-
-- **Model Hierarchy:**
-  - Orchestrator: `opus` (task understanding, verification, synthesis)
-  - Explore Agents: `sonnet` (fast parallel discovery)
-  - Claude Code Task tool supports `model: "sonnet"` parameter for Opus+Sonnet hierarchy
 
 - **Integration:**
   - Works with spec folder system (Phase 2)
@@ -286,7 +311,8 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.
   - Compatible with anchor-based context retrieval (spec 049)
   - Fallback to legacy template if skill unavailable
 
-- **Future Enhancements:**
-  - Complex mode with multi-file plan/ directory (Phase 5 upgrade)
-  - Mode selection refinement based on usage patterns
-  - Enhanced Level 3 support with guided research-spike creation
+- **Alternative: cc_opus**
+  - Use `/plan:cc_opus` when you need deeper exploration reasoning
+  - 4 Opus 4.5 agents instead of Sonnet
+  - Slower but more thorough analysis
+  - Recommended for: complex architecture, critical features, major refactors

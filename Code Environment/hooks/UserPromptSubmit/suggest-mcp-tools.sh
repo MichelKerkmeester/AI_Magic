@@ -34,8 +34,17 @@ LOG_DIR="$HOOKS_DIR/logs"
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 mkdir -p "$LOG_DIR" 2>/dev/null
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N 2>/dev/null || echo "0")
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -64,15 +73,15 @@ CLICKUP_COUNT=$(echo "$PROMPT_LOWER" | grep -o "clickup" | wc -l | tr -d ' ')
 CHROME_COUNT=$(echo "$PROMPT_LOWER" | grep -o -E "chrome|devtools|screenshot|browser automation" | wc -l | tr -d ' ')
 SEMANTIC_COUNT=$(echo "$PROMPT_LOWER" | grep -o -E "semantic search|code search|find.*implementation|search.*codebase" | wc -l | tr -d ' ')
 
-# Calculate total platforms
+# Calculate total platforms (Bash 3.2 compatible - avoid ((var++)) edge case)
 TOTAL_PLATFORMS=0
-[ "$WEBFLOW_COUNT" -gt 0 ] && ((TOTAL_PLATFORMS++))
-[ "$FIGMA_COUNT" -gt 0 ] && ((TOTAL_PLATFORMS++))
-[ "$NOTION_COUNT" -gt 0 ] && ((TOTAL_PLATFORMS++))
-[ "$GITHUB_COUNT" -gt 0 ] && ((TOTAL_PLATFORMS++))
-[ "$CLICKUP_COUNT" -gt 0 ] && ((TOTAL_PLATFORMS++))
-[ "$CHROME_COUNT" -gt 0 ] && ((TOTAL_PLATFORMS++))
-[ "$SEMANTIC_COUNT" -gt 0 ] && ((TOTAL_PLATFORMS++))
+[ "$WEBFLOW_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
+[ "$FIGMA_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
+[ "$NOTION_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
+[ "$GITHUB_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
+[ "$CLICKUP_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
+[ "$CHROME_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
+[ "$SEMANTIC_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
 
 # Build detected platforms list
 DETECTED_PLATFORMS=""
@@ -326,12 +335,8 @@ fi
 # PERFORMANCE LOGGING
 # ───────────────────────────────────────────────────────────────
 
-END_TIME=$(date +%s%N 2>/dev/null || echo "0")
-if [[ "$START_TIME" != "0" && "$END_TIME" != "0" ]]; then
-    DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
-else
-    DURATION=0
-fi
+END_TIME=$(_get_nano_time)
+DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 
 LOG_ENTRY="[$(date '+%Y-%m-%d %H:%M:%S')] suggest-mcp-tools.sh ${DURATION}ms"
 if [ "$SHOULD_SUGGEST" = true ]; then

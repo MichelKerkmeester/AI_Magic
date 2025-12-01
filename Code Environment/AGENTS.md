@@ -11,8 +11,8 @@
 - **Prefer simplicity**, reuse existing patterns, and cite evidence with sources
 - Solve only the stated problem; **avoid over-engineering** and premature optimization
 - **Verify with checks** (simplicity, performance, maintainability, scope) before making changes
-- **All MCP tool calls MUST go through code mode** - use `call_tool_chain` for efficient lazy-loaded MCP access (68% fewer tokens, 98.7% reduction in context overhead, 60% faster execution vs traditional tool calling) (if available)
-- **CLI AI agents MUST use semantic search MCP** for code exploration/discovery - it's intent-based, not keyword matching (use grep/read for literal text)
+- **All MCP tool calls MUST go through code mode** - use `call_tool_chain` for efficient lazy-loaded MCP access (68% fewer tokens, 98.7% reduction in context overhead, 60% faster execution vs traditional tool calling) (if available) **EXCEPT** for native MCP tools (Sequential Thinking, Semantic Search)
+- **CLI AI agents MUST use semantic search MCP** for code exploration/discovery - it's intent-based, not keyword matching (use grep/read for literal text). Call directly: `semantic_search()`, `search_commit_history()`, `visit_other_project()` - NOT through Code Mode
 - **Sequential Thinking MCP** - OPTIONAL: Claude Code users use native ultrathink instead; VSCode/Copilot/OpenCode users can use when configured in `.mcp.json`
 
 #### ⚡ Code Quality Standards Compliance
@@ -60,6 +60,23 @@ When continuing work in an existing spec folder with memory files, ask user:
 
 Use Read tool (parallel calls for option B) to load selected files.
 
+#### ⚡ Git Workspace Choice (MANDATORY)
+
+**NEVER autonomously decide between creating a branch or worktree.** Always ask user to choose:
+
+When git workspace triggers are detected (new feature, create branch, worktree, fix bug, implement, etc.):
+- **A)** Create a new branch - Standard branch on current repo
+- **B)** Create a git worktree - Isolated workspace in separate directory
+- **C)** Work on current branch - No new branch needed
+
+**Enforcement**: `enforce-git-workspace-choice.sh` hook emits mandatory question. All tools blocked until user responds.
+
+**Override phrases**: Users can bypass with "use branch", "use worktree", or "current branch"
+
+**Session persistence**: Choice remembered for 1 hour within session
+
+**Critical**: WAIT for explicit user choice before any git workspace operation. The workflows-git skill documents this requirement in detail.
+
 #### ⚡ Sequential Thinking (Complex Reasoning) - OPTIONAL
 
 **Environment-Specific Utility:**
@@ -95,7 +112,7 @@ Example: `I'M UNCERTAIN ABOUT THIS: The endpoint may require auth scope "read:fo
 
 #### ⚡ Common Failure Patterns & Detection
 
-**Quick Reference (12 Critical Patterns):**
+**Quick Reference (13 Critical Patterns):**
 
 **1. Task Misinterpretation**
 - **Prevention:** Parse request carefully, confirm scope
@@ -155,13 +172,19 @@ Example: `I'M UNCERTAIN ABOUT THIS: The endpoint may require auth scope "read:fo
 - **Prevention:** Browser test before completion claims (see workflows-code)
 - **Example:** Saying "works" without opening browser
 
+**13. Claiming Completion Without Checklist Verification (Level 2+)**
+- **Prevention:** Use checklist.md to verify ALL items before any completion claims
+- **Example:** Saying "done" or "complete" without loading and verifying checklist.md
+- **Detection Trigger:** "done", "complete", "finished" without checklist verification
+- **Action:** STOP → Load checklist.md → Verify each item → Mark [x] with evidence → Then claim done
+
 **Enforcement Protocol:** If you detect ANY pattern above:
 1. **STOP** - Do not proceed
 2. **Acknowledge** - "I was about to [pattern], which violates process discipline"
 3. **Correct** - Follow proper procedure
 4. **Verify** - Show evidence of correct process
 
-**Detection Triggers:** "straightforward", "obvious", "trivial edit", "I already know", "skip checklist", "just in case"
+**Detection Triggers:** "straightforward", "obvious", "trivial edit", "I already know", "skip checklist", "just in case", "done/complete/finished" (without checklist verification for Level 2+)
 
 ---
 
@@ -206,6 +229,38 @@ Level 1 (Baseline):     spec.md + plan.md + tasks.md
 Level 2 (Verification): Level 1 + checklist.md
                               ↓
 Level 3 (Full):         Level 2 + decision-record.md + optional research
+```
+
+#### Checklist Self-Verification (Level 2+ Mandatory)
+
+When `checklist.md` exists in a spec folder, the AI MUST use it as an active verification tool before claiming any work is complete.
+
+**Verification Protocol:**
+1. **Load checklist.md** - Read the file before any completion claims
+2. **Systematic verification** - Go through EACH item in order
+3. **Mark with evidence** - Change `[ ]` to `[x]` with brief evidence/links
+4. **Priority enforcement:**
+   - **P0 (Critical)** - HARD BLOCKERS - Cannot proceed or claim completion without these
+   - **P1 (High)** - Must be addressed OR explicitly deferred with user approval
+   - **P2 (Medium)** - Should be addressed but can be deferred without approval
+
+**Enforcement Rule:**
+```
+CHECKLIST VERIFICATION RULE (Level 2+):
+- NO completion claims without checklist verification
+- Load checklist.md → Verify each item → Mark [x] with evidence → Then claim done
+- P0 items are HARD BLOCKERS - cannot proceed without completing
+- P1 items need completion OR user-approved deferral
+- Detection trigger: "done", "complete", "finished" → STOP, verify checklist first
+```
+
+**Example verification format:**
+```markdown
+## Verification Complete
+- [x] P0: Unit tests pass - `npm test` shows 45/45 passing
+- [x] P0: No console errors - Verified in Chrome DevTools
+- [x] P1: Mobile responsive - Tested at 375px viewport
+- [ ] P2: Documentation updated - Deferred (user approved)
 ```
 
 #### Supporting Templates & Decision Rules
@@ -283,7 +338,8 @@ When continuing work in an existing spec folder (mid-conversation with substanti
 2. **Request Analysis** - Determine level
 3. **Pre-Code Checklist** - Verify exists (blocker)
 4. **Final Review** - Confirm created
-5. **Template Validation** (spec 122/014 improvements):
+5. **Checklist Verification** - Complete all P0/P1 items before claiming done (Level 2+ only)
+6. **Template Validation** (spec 122/014 improvements):
    - Placeholder removal (hard block: `[PLACEHOLDER]`, `[NEEDS CLARIFICATION: ...]`)
    - Template source validation (warn if missing template markers)
    - Metadata completeness (level-specific required fields)
@@ -520,6 +576,7 @@ Sense → Interpret → Verify → Reflect → Publish
 □ I ran a quick self-check for contradictions/inconsistencies
 □ I avoided fabrication; missing info is labeled "UNKNOWN"
 □ I have explained my approach and received explicit user approval
+□ If Level 2+: Verified all checklist.md items and marked complete with evidence
 ```
 
 **If ANY unchecked → STOP and analyze further**
@@ -553,11 +610,11 @@ Review response for:
 #### Tool Selection
 
 **Key Routing Rules:**
-- **Code Mode (mcp-code-mode):** MANDATORY for all MCP tools except Sequential Thinking (68% fewer tokens, 98.7% context reduction)
-- **Semantic Search (mcp-semantic-search):** MANDATORY for CLI AI agents doing code discovery ("Find code that...", "How does...")
-- **Sequential Thinking (OPTIONAL):** Claude Code: use ultrathink instead; VSCode/Copilot/OpenCode: useful when configured - call MCP directly, NOT through Code Mode
+- **Code Mode (mcp-code-mode):** MANDATORY for external MCP tools (Webflow, Figma, ClickUp, Chrome DevTools) - 68% fewer tokens, 98.7% context reduction
+- **Semantic Search (mcp-semantic-search):** MANDATORY for CLI AI agents doing code discovery ("Find code that...", "How does..."). **Native MCP** - call directly: `semantic_search()`, `search_commit_history()`, `visit_other_project()` - NOT through Code Mode
+- **Sequential Thinking (OPTIONAL):** Claude Code: use ultrathink instead; VSCode/Copilot/OpenCode: useful when configured - **Native MCP** - call directly, NOT through Code Mode
 - **Parallel Sub-Agents (create-parallel-sub-agents):** MANDATORY when complexity ≥20% + 2+ domains (auto-dispatch ≥50% + 3+ domains)
-- **Chrome DevTools (cli-chrome-devtools):** Browser debugging via terminal (bdg CLI tool)
+- **Chrome DevTools (cli-chrome-devtools):** Browser debugging via terminal (bdg CLI tool) - through Code Mode
 - **Native Tools:** Read/Grep/Glob/Bash for file operations and simple tasks
 
 See executable routing logic below and Quick Decision tree in Section 6.
@@ -573,6 +630,7 @@ TOOLS = {
     "bash": {"triggers": ["terminal_op"], "use": "System commands"},
 
     # SEMANTIC SEARCH - PRIORITY ROUTING (MANDATORY for code exploration)
+    # NOTE: Native MCP - call directly, NOT through Code Mode
     "semantic_search": {
         "triggers": [
             "find code that", "how does", "where do we", "where is",
@@ -582,6 +640,7 @@ TOOLS = {
         ],
         "mandatory_for": "cli_ai_agents",
         "priority": "FIRST for code exploration",
+        "native_mcp": True,  # Call directly: semantic_search(), NOT call_tool_chain()
         "use_cases": [
             "Exploring unfamiliar code",
             "Finding by behavior/intent (not symbol name)",
@@ -595,8 +654,8 @@ TOOLS = {
         ]
     },
 
-    "sequential_thinking": {"triggers": ["complex reasoning", "architecture_decision"], "exception": "call_directly_not_code_mode", "availability": "optional_mcp_server"},
-    "code_mode": {"triggers": ["ANY MCP except Sequential"], "mandatory": True, "benefits": "68% fewer tokens"},
+    "sequential_thinking": {"triggers": ["complex reasoning", "architecture_decision"], "native_mcp": True, "availability": "optional_mcp_server"},
+    "code_mode": {"triggers": ["External MCP tools: Webflow, Figma, ClickUp, Chrome DevTools"], "mandatory": True, "benefits": "68% fewer tokens"},
     "chrome_devtools": {"triggers": ["bdg", "browser debugging"], "tool": "browser-debugger-cli"},
     "parallel_agents": {"triggers": ["complexity >= 20%", "multi_domain"], "thresholds": {"auto": 50, "ask": 20, "direct": 0}}
 }
@@ -605,21 +664,22 @@ def route_tool(intent: str, file_known: bool = False, is_cli: bool = True, compl
     """Route to most appropriate tool with semantic search priority."""
 
     # PRIORITY 1: Check semantic search FIRST for code exploration (MANDATORY)
+    # NOTE: Semantic search is NATIVE MCP - call directly, NOT through Code Mode
     if is_cli and _is_code_exploration(intent):
         if _semantic_search_available():
-            return "semantic_search"  # MANDATORY when available
+            return "semantic_search"  # Native MCP: call semantic_search() directly
         else:
             # Fallback to grep with warning
             log_warning("Semantic search recommended but unavailable - using grep fallback")
             return "grep"
 
-    # PRIORITY 2: Mandatory routing (existing)
+    # PRIORITY 2: Mandatory routing
     if complexity >= 20 and _is_multi_domain(intent): return "parallel_agents"
-    if _is_external_mcp(intent) and "reasoning" not in intent: return "code_mode"
+    if _is_external_mcp(intent): return "code_mode"  # External tools through Code Mode
 
-    # PRIORITY 3: Intent-based (existing patterns)
-    if any(t in intent.lower() for t in ["analyze", "design decision"]): return "sequential_thinking"
-    if any(t in intent.lower() for t in ["bdg", "browser debug"]): return "chrome_devtools"
+    # PRIORITY 3: Intent-based (native MCP tools)
+    if any(t in intent.lower() for t in ["analyze", "design decision"]): return "sequential_thinking"  # Native MCP
+    if any(t in intent.lower() for t in ["bdg", "browser debug"]): return "chrome_devtools"  # Through Code Mode
 
     # PRIORITY 4: File operations (only if NOT code exploration)
     if file_known: return "read"
@@ -648,26 +708,33 @@ def _is_multi_domain(intent: str) -> bool:
     return sum(d in intent.lower() for d in ["code", "docs", "git", "testing", "devops"]) >= 2
 
 def _is_external_mcp(intent: str) -> bool:
-    return any(t in intent.lower() for t in ["figma", "webflow", "notion", "clickup"])
+    """Check if intent requires external MCP tools (through Code Mode).
+    Note: Sequential Thinking and Semantic Search are NATIVE MCP, not external."""
+    return any(t in intent.lower() for t in ["figma", "webflow", "notion", "clickup", "chrome devtools"])
 ```
 
 #### Project-Specific MCP Configuration
 
 **Two MCP Configuration Systems**:
 
-1. **Native MCP** (`.mcp.json`) - Direct tools, called natively
+1. **Native MCP** (`.mcp.json` / `opencode.json`) - Direct tools, called natively
    - **Sequential Thinking**:
      - Configured in `.mcp.json`, NOT in `.utcp_config.json`
      - ALWAYS called directly via `process_thought()`, `generate_summary()`
      - NEVER use Code Mode or `call_tool_chain()`
      - **Claude Code**: NOT recommended - use native ultrathink instead
      - **VSCode/Copilot/OpenCode**: Valuable - provides reasoning those environments lack
-   - **Code Mode server**: The Code Mode tool itself
+   - **Semantic Search**:
+     - Configured in `.mcp.json`, NOT in `.utcp_config.json`
+     - ALWAYS called directly via `semantic_search()`, `search_commit_history()`, `visit_other_project()`
+     - NEVER use Code Mode or `call_tool_chain()`
+     - **Why Native**: Reduces overhead, simpler invocation pattern
+   - **Code Mode server**: The Code Mode tool itself (for accessing external tools)
 
 2. **Code Mode MCP** (`.utcp_config.json`) - External tools accessed through Code Mode
    - **Config File**: `.utcp_config.json` (project root)
    - **Environment Variables**: `.env` (project root)
-   - **Vector Database**: `.codebase/vectors.db` (for semantic search if configured)
+   - **External Tools**: Webflow, Figma, ClickUp, Chrome DevTools, Notion, etc.
    - **Invocation**: Through `call_tool_chain()` wrapper
 
 **How to Check Available Code Mode Tools** (`.utcp_config.json`):
@@ -791,13 +858,20 @@ def dispatch_decision(complexity: int, domains: int) -> dict:
 #### Tool Routing (Quick Decision)
 ```
 Known file path? → Read()
-Know what code DOES? → search_codebase() [semantic search - CLI only]
+Know what code DOES? → semantic_search() [NATIVE MCP - call directly, NOT Code Mode]
 Exact symbol/keyword? → Grep()
 File structure? → Glob()
 Complex reasoning? → ultrathink (Claude Code) | process_thought() (VSCode/Copilot/OpenCode if configured)
-Browser debugging? → cli-chrome-devtools skill [bdg CLI tool]
-External MCP tools? → call_tool_chain() [Code Mode - MANDATORY except Sequential]
+Browser debugging? → cli-chrome-devtools skill [bdg CLI tool, through Code Mode]
+External MCP tools? → call_tool_chain() [Code Mode - Webflow, Figma, ClickUp, etc.]
 Complexity ≥20% + multi-domain? → See dispatch_decision() function in Section 6
+
+NATIVE MCP (call directly):
+  - semantic_search(), search_commit_history(), visit_other_project()
+  - process_thought(), generate_summary() (Sequential Thinking)
+
+CODE MODE (call_tool_chain):
+  - Webflow, Figma, ClickUp, Chrome DevTools, Notion, etc.
 ```
 
 **User Override Phrases:**

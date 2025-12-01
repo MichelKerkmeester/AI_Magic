@@ -327,9 +327,9 @@ workflow:
     - Find highest feature number across all sources
     - Run create-new-feature.sh script with calculated number
     - Estimate complexity and select documentation level using progressive enhancement:
-      - Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md
-      - Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md
-      - Level 3 (Full): >=500 LOC - Level 2 + decision-record.md
+      - "Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md"
+      - "Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md"
+      - "Level 3 (Full): >=500 LOC - Level 2 + decision-record.md"
     - Load spec.md and use as EXACT structure
     - Parse user description and extract key concepts
     - Identify actors, actions, data, constraints
@@ -406,21 +406,35 @@ workflow:
     validation: requirements_clear
 
   step_5_quality_checklist:
-    purpose: Generate validation checklist for quality assurance (Level 2+ requirement)
+    purpose: Generate validation checklist AND USE FOR ACTIVE VERIFICATION (Level 2+ requirement)
     level_requirement: "Level 2+ (Verification and Full)"
     activities:
-    - Check documentation level - skip for Level 1, required for Level 2+
+    - Check documentation level - skip for Level 1, MANDATORY for Level 2+
     - Load checklist.md template
-    - Generate domain-specific validation items
+    - Generate domain-specific validation items with priorities (P0/P1/P2)
     - Create checklist file at FEATURE_DIR/checklists/requirements.md
     - Include content quality checks
     - Include requirement completeness checks
     - Include feature readiness checks
-    - Run validation check against checklist
-    - Document specific issues found
+    - FOR EACH ITEM:
+      - Verify condition is met
+      - Mark as [x] with evidence link
+      - If not met: document blocker (P0/P1) or deferral reason (P2)
+    - Ensure ALL P0 items are complete (HARD BLOCKER)
+    - Ensure ALL P1 items are complete or user-approved deferral
+    - Document P2 deferrals with reasons
+    - Update checklist.md file with verification marks
+    verification_protocol:
+      p0_handling: "BLOCKER - Cannot proceed without completion"
+      p1_handling: "Required - Complete or get user approval to defer"
+      p2_handling: "Optional - Can defer with documented reason"
     outputs:
     - quality_checklist: generated
     - location: specs/[NNN-feature]/checklists/requirements.md
+    - checklist_status: pass_or_fail
+    - verified_items_count: "X/Y items verified"
+    - p0_status: "all_complete or blocked"
+    - deferred_items: list_of_deferred_p2_items
     template: .opencode/speckit/templates/checklist.md
     deep_analysis:
       focus: quality_validation_preparation
@@ -429,7 +443,7 @@ workflow:
       - validation_criteria
       - testing_requirements
       - quality_gates
-    validation: checklist_generated
+    validation: checklist_verified_and_marked
 
   step_6_planning:
     purpose: Create technical plan with implementation approach
@@ -758,11 +772,21 @@ workflow:
       - knowledge_base_updates
       - recommended_next_steps
       - browser_testing_results
+    verification_summary:
+      checklist_verification:
+        required: true  # for Level 2+
+        must_include:
+        - Total items verified count
+        - P0 items status (all must be complete)
+        - P1 items status (all complete or deferred with approval)
+        - Deferred P2 items with reasons
+        - Link to updated checklist.md
     final_checklist:
     - update_task_status: completed
     - validation_passed: confirmed
     - summary_created: true
     - staging_verified: true
+    - checklist_verification_complete: true  # Level 2+
     deep_analysis:
       focus: completion_documentation
       approach: comprehensive_summary
@@ -921,6 +945,10 @@ rules:
   - generate_comprehensive_documentation
   - verify_continuously
   - log_decisions_and_deviations
+  - use_checklist_for_verification_level_2_plus
+  - mark_checklist_items_with_evidence
+  - complete_all_p0_items_before_done
+  - get_user_approval_for_p1_deferrals
 
   NEVER:
   - skip_workflow_steps
@@ -931,6 +959,9 @@ rules:
   - break_existing_functionality
   - proceed_without_self_validation
   - invent_new_patterns_when_existing_work
+  - claim_completion_without_checklist_verification_level_2_plus
+  - skip_p0_checklist_items
+  - defer_p1_items_without_user_approval
 
   VALIDATION_REQUIRED:
   - Before moving to next step

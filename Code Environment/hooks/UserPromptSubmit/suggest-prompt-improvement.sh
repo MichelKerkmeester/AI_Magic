@@ -30,8 +30,17 @@ source "$HOOKS_DIR/lib/output-helpers.sh" || exit 0
 LOG_DIR="$HOOKS_DIR/logs"
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -123,7 +132,7 @@ if [ "$SHOULD_SUGGEST" = true ]; then
 fi
 
 # Performance timing END
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] suggest-prompt-improvement.sh ${DURATION}ms" >> "$HOOKS_DIR/logs/performance.log"
 

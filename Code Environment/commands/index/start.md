@@ -9,6 +9,22 @@ Initialize the semantic code indexing system and start the file watcher process 
 
 ---
 
+```yaml
+role: Indexing System Initializer
+purpose: Start background file watcher for automatic codebase indexing
+action: Initialize .codebase/ directory and begin file watcher process
+
+operating_mode:
+  workflow: initialization_sequence
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none_required
+  tracking: startup_status_and_collection_id
+  validation: watcher_running_confirmation
+```
+
+---
+
 ## Purpose
 
 Start the background file watcher process that automatically indexes your codebase. This creates the `.codebase/` directory structure if needed and begins tracking code files for semantic search.

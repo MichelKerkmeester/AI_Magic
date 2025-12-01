@@ -37,8 +37,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 HOOKS_DIR="$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd)"
 source "$HOOKS_DIR/lib/output-helpers.sh" || exit 0
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -80,6 +89,7 @@ REL_FILE_PATH=${FILE_PATH#$PROJECT_ROOT/}
 ENVIRONMENT_TIER="development"
 ENVIRONMENT_NAME="Development"
 REMINDER_PRIORITY="INFO"
+CURRENT_BRANCH=""  # Initialize to avoid undefined variable issues
 
 # ───────────────────────────────────────────────────────────────
 # TIER 1: PRODUCTION DETECTION
@@ -118,7 +128,7 @@ if [ "$ENVIRONMENT_TIER" = "development" ]; then
   fi
 fi
 
-# Check 4: Project-specific production paths (anobel.com structure)
+# Check 4: Project-specific production paths (example.com structure)
 if [ "$ENVIRONMENT_TIER" = "development" ]; then
   # src/2_javascript/ is production-ready code for this project
   if echo "$REL_FILE_PATH" | grep -qE '^src/2_javascript/'; then
@@ -276,8 +286,8 @@ case "$ENVIRONMENT_TIER" in
     ;;
 esac
 
-# Performance timing END
-END_TIME=$(date +%s%N)
+# Performance timing END (using helper defined at top)
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] remind-cdn-versioning.sh ${DURATION}ms (tier=$ENVIRONMENT_TIER)" >> "$SCRIPT_DIR/../logs/performance.log"
 

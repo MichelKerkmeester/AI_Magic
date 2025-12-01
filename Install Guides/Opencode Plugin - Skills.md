@@ -4,7 +4,7 @@ A comprehensive guide to installing, configuring, and using the OpenCode Skills 
 
 ---
 
-## 🤖 AI-First Install Guide
+## 🤖 AI-FIRST INSTALL GUIDE
 
 **Copy and paste this prompt to your AI assistant to get installation help:**
 
@@ -33,22 +33,22 @@ Guide me through each step and show me what commands to run.
 
 ---
 
-## Table of Contents
+#### 📋 TABLE OF CONTENTS
 
-1. [What Are OpenCode Skills?](#1-what-are-opencode-skills)
-2. [Prerequisites](#2-prerequisites)
-3. [Installation](#3-installation)
-4. [Configuration](#4-configuration)
-5. [Verifying Installation](#5-verifying-installation)
-6. [Using Skills](#6-using-skills)
-7. [Available Skills Overview](#7-available-skills-overview)
-8. [Creating Custom Skills](#8-creating-custom-skills)
-9. [Troubleshooting](#9-troubleshooting)
-10. [Additional Resources](#10-additional-resources)
+1. [📖 OVERVIEW](#1--overview)
+2. [📋 PREREQUISITES](#2--prerequisites)
+3. [📥 INSTALLATION](#3--installation)
+4. [⚙️ CONFIGURATION](#4-️-configuration)
+5. [✅ VERIFICATION](#5--verification)
+6. [🚀 USAGE](#6--usage)
+7. [🎯 FEATURES](#7--features)
+8. [💡 EXAMPLES](#8--examples)
+9. [🔧 TROUBLESHOOTING](#9--troubleshooting)
+10. [📚 RESOURCES](#10--resources)
 
 ---
 
-## 1. What Are OpenCode Skills?
+## 1. 📖 OVERVIEW
 
 OpenCode Skills are specialized AI workflows that extend Claude Code's capabilities for specific domains and tasks. Think of them as plugins that provide:
 
@@ -68,7 +68,7 @@ OpenCode Skills are specialized AI workflows that extend Claude Code's capabilit
 
 ---
 
-## 2. Prerequisites
+## 2. 📋 PREREQUISITES
 
 Before installing the Skills plugin system, ensure you have:
 
@@ -99,7 +99,7 @@ Before installing the Skills plugin system, ensure you have:
 
 ---
 
-## 3. Installation
+## 3. 📥 INSTALLATION
 
 ### Option A: Clone Example Skills Structure
 
@@ -153,7 +153,7 @@ your-project/
 
 ---
 
-## 4. Configuration
+## 4. ⚙️ CONFIGURATION
 
 ### Step 1: Configure opencode.json
 
@@ -224,7 +224,7 @@ Download skill templates from the OpenCode Skills repository or copy from a refe
 
 ---
 
-## 5. Verifying Installation
+## 5. ✅ VERIFICATION
 
 ### Check 1: Directory Structure
 
@@ -285,7 +285,7 @@ This file documents all installed skills and their capabilities.
 
 ---
 
-## 6. Using Skills
+## 6. 🚀 USAGE
 
 ### Explicit Skill Invocation
 
@@ -351,9 +351,9 @@ This activates git workflows with:
 
 ---
 
-## 7. Available Skills Overview
+## 7. 🎯 FEATURES
 
-### Workflow Orchestrators (4 skills)
+### 7.1 Workflow Orchestrators (4 skills)
 
 | Skill | Purpose | Use When |
 |-------|---------|----------|
@@ -362,40 +362,34 @@ This activates git workflows with:
 | **workflows-conversation** | Documentation | ANY file modifications (mandatory) |
 | **create-parallel-sub-agents** | Complex tasks | Multi-domain tasks requiring orchestration |
 
-### Documentation Specialists (2 skills)
+### 7.2 Documentation Specialists (2 skills)
 
 | Skill | Purpose | Use When |
 |-------|---------|----------|
 | **create-documentation** | Document creation | Writing/validating markdown, skills, guides |
 | **create-flowchart** | Visual workflows | Creating ASCII flowcharts for processes |
 
-### CLI Tool Wrappers (2 skills)
+### 7.3 CLI Tool Wrappers (2 skills)
 
 | Skill | Purpose | Use When |
 |-------|---------|----------|
 | **cli-codex** | OpenAI Codex integration | Alternative AI perspective, code review |
 | **cli-gemini** | Google Gemini integration | Web research, current information |
 
-### MCP Integration (2 skills)
+### 7.4 MCP Integration (2 skills)
 
 | Skill | Purpose | Use When |
 |-------|---------|----------|
 | **mcp-code-mode** | MCP tool orchestration | Calling ANY MCP tools (mandatory) |
 | **mcp-semantic-search** | Intent-based code search | Finding code by what it does |
 
-### Hook Creation (1 skill)
-
-| Skill | Purpose | Use When |
-|-------|---------|----------|
-| **create-hooks** | Hook development | Creating custom automation workflows |
-
-**Total**: 12 skills across 6 categories
+**Total**: 12 skills across 5 categories
 
 ---
 
-## 8. Creating Custom Skills
+## 8. 💡 EXAMPLES
 
-### Quick Start
+### Example 1: Creating Custom Skills
 
 ```bash
 # Option 1: Use create-documentation skill
@@ -407,7 +401,7 @@ mkdir -p .claude/skills/my-workflow
 cd .claude/skills/my-workflow
 ```
 
-### Create SKILL.md
+### Example 2: SKILL.md Template
 
 Every skill needs a `SKILL.md` file with proper frontmatter:
 
@@ -502,7 +496,7 @@ STEP 2: Action
 **other-skill**: How they integrate
 ```
 
-### Add to skill-rules.json
+### Example 3: Add to skill-rules.json
 
 Register your skill in `.claude/configs/skill-rules.json`:
 
@@ -523,7 +517,7 @@ Register your skill in `.claude/configs/skill-rules.json`:
 }
 ```
 
-### Test Your Skill
+### Example 4: Test Your Skill
 
 ```bash
 opencode
@@ -532,7 +526,7 @@ opencode
 
 ---
 
-## 9. Troubleshooting
+## 9. 🔧 TROUBLESHOOTING
 
 ### Skill Not Activating
 
@@ -591,7 +585,7 @@ chmod +x .claude/hooks/**/*.sh
 
 ---
 
-## 10. Additional Resources
+## 10. 📚 RESOURCES
 
 ### Documentation
 
@@ -692,7 +686,7 @@ Use create-documentation to create a new skill called "api-client"
 
 ---
 
-**Installation Complete!** 🎉
+**Installation Complete!**
 
 You now have the OpenCode Skills plugin system installed and configured. Start using skills by requesting them in your OpenCode sessions or letting them activate automatically based on your work patterns.
 

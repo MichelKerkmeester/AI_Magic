@@ -1,6 +1,7 @@
-{
+  },
   "enabledMcpjsonServers": [
-    "code_mode"
+    "code_mode",
+    "semantic-search"
   ],
   "hooks": {
     "PostSessionEnd": [

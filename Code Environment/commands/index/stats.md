@@ -9,6 +9,22 @@ Display current statistics for the semantic code indexing system.
 
 ---
 
+```yaml
+role: Indexing System Monitor
+purpose: Display real-time statistics about the semantic code indexing system
+action: Query and report tracked files, indexed commits, collection ID, and watcher status
+
+operating_mode:
+  workflow: single_query
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none_required
+  tracking: stats_output
+  validation: status_verification
+```
+
+---
+
 ## Purpose
 
 Show real-time statistics about the indexing system including tracked files, indexed commits, collection ID, and watcher status.

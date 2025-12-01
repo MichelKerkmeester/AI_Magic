@@ -688,7 +688,7 @@ awk '$3 > 100 {print}' .claude/hooks/logs/performance.log
 User Prompt
     ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ UserPromptSubmit Hooks (8)                                  │
+│ UserPromptSubmit Hooks (10)                                 │
 ├─────────────────────────────────────────────────────────────┤
 │ 1. workflows-save-context-trigger    → transform-transcript.js        │
 │                             → workflows-save-context skill            │
@@ -725,8 +725,14 @@ User Prompt
 │                             → BLOCKS if critical violations │
 │                             → Condensed blocking output     │
 │                             → Success indicators            │
+│                                                             │
+│ 9. suggest-prompt-improvement  → Prompt quality analysis    │
+│                                 → DEPTH framework hints     │
+│                                                             │
+│ 10. orchestrate-skill-validation → Complexity scoring       │
+│                                 → Parallel dispatch logic    │
 ├─────────────────────────────────────────────────────────────┤
-│ PreToolUse Hooks (4)                                        │
+│ PreToolUse Hooks (9)                                        │
 ├─────────────────────────────────────────────────────────────┤
 │ 1. check-pending-questions  → BLOCKS ALL tools if question  │
 │                               pending (except AskUserQuestion)│
@@ -744,14 +750,29 @@ User Prompt
 │                             → lib/template-validation.sh    │
 │                             → 5 validation functions        │
 │                             → BLOCKS on validation fails    │
+│                                                             │
+│ 5. validate-dispatch-requirement → Parallel dispatch gate   │
+│                             → Requires user dispatch choice │
+│                                                             │
+│ 6. announce-task-dispatch   → Agent lifecycle visibility    │
+│                             → Rich metadata tracking        │
+│                                                             │
+│ 7. warn-duplicate-reads     → Duplicate detection           │
+│                             → Token waste quantification    │
+│                                                             │
+│ 8. enforce-semantic-search  → Semantic search suggestions   │
+│                             → For Glob/Grep operations      │
+│                                                             │
+│ 9. enforce-markdown-pre     → Filename validation           │
+│                             → BLOCKS invalid markdown names │
 └─────────────────────────────────────────────────────────────┘
     ↓
 Tool Executes (Bash, Write, Edit, etc.)
     ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ PostToolUse Hooks (6)                                       │
+│ PostToolUse Hooks (9)                                       │
 ├─────────────────────────────────────────────────────────────┤
-│ 1. enforce-markdown-post    → Auto-renames .md files        │
+│ 1. enforce-markdown-naming  → Auto-renames .md files        │
 │                             → lowercase_snake_case.md       │
 │                             → Condensed output (1 line)     │
 │                             → Logs to quality-checks.log    │
@@ -780,16 +801,18 @@ Tool Executes (Bash, Write, Edit, etc.)
 │                             → Duration and tool usage       │
 │                             → Logs to task-dispatch.log     │
 │                                                             │
-│ 7. enforce-markdown-naming  → Unified markdown naming fix   │
-│                             → Scans for ALL CAPS violations │
-│                             → Auto-fixes sub-agent files    │
-│                             → (merged: enforce-markdown-    │
-│                             │  post + enforce-markdown-     │
-│                             │  post-task)                   │
+│ 7. track-file-modifications → File change tracking          │
+│                             → Scope creep detection input   │
+│                                                             │
+│ 8. verify-spec-compliance   → Spec folder compliance        │
+│                             → Warns on mismatch             │
+│                                                             │
+│ 9. detect-scope-growth      → Scope growth detection        │
+│                             → Advisory warnings             │
 └─────────────────────────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ PreCompact Hooks (1) 🆕                                     │
+│ PreCompact Hooks (2)                                        │
 ├─────────────────────────────────────────────────────────────┤
 │ 1. save-context-before-compact → Backs up transcript        │
 │                                → lib/transform-transcript.js│
@@ -797,6 +820,10 @@ Tool Executes (Bash, Write, Edit, etc.)
 │                                → specs/###/memory/ OR        │
 │                                   ###-name/###-sub/memory/  │
 │                                → Always exits 0 (non-block) │
+│                                                             │
+│ 2. prune-context            → Context pruning engine        │
+│                             → DCP-style deduplication       │
+│                             → Token savings calculation     │
 └─────────────────────────────────────────────────────────────┘
     ↓
 Result Returned to User
@@ -860,6 +887,8 @@ Most hooks write to `.claude/hooks/logs/`:
 | **hook-init.sh** | Common initialization boilerplate (v1.0.0) | Sources common libraries, sets up logging | All hooks | <5ms |
 | **domain-detection.sh** | Complexity domain detection (v1.0.0) | `detect_domains()`, `count_domains()`, `get_domain_keywords()` | suggest-mcp-tools.sh, orchestrate-skill-validation.sh | <10ms |
 | **markdown-naming.sh** | Markdown naming conventions (v1.0.0) | `to_snake_case()`, `is_naming_violation()`, `atomic_rename()` | enforce-markdown-naming.sh | <10ms |
+| **spec-memory.sh** | Spec memory file management (v1.0.0) | `get_memory_files()`, `get_latest_memory()`, `create_memory_file()` | workflows-save-context, enforce-spec-folder | <10ms |
+| **migrate-spec-folder.sh** | Spec folder versioning (v1.0.0) | `migrate_to_subfolder()`, `archive_root_content()` | enforce-spec-folder.sh | <100ms |
 
 ### 8.1 Core Libraries
 

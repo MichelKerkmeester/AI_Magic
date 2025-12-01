@@ -36,8 +36,17 @@ source "$HOOKS_DIR/lib/exit-codes.sh" || exit 0
 LOG_DIR="$HOOKS_DIR/logs"
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -98,18 +107,19 @@ FORBIDDEN_PATTERNS=(
   "password"
 
   # Dangerous commands (security)
+  # Note: | must be escaped as \\| in bash array for grep -E to see it as literal
   "rm -rf /"
   "rm -rf \*"
-  ":(){:\|:&};:"
+  ":(){:\\|:&};:"
   "chmod 777"
   "chmod -R 777"
   "sudo rm"
-  "curl.*\|.*sh"
-  "wget.*\|.*sh"
+  "curl.*\\|.*sh"
+  "wget.*\\|.*sh"
   "eval "
   "> /etc/"
   "dd if=/dev/zero"
-  "mkfs\."
+  "mkfs\\."
 )
 
 # ───────────────────────────────────────────────────────────────
@@ -128,11 +138,13 @@ FORBIDDEN_PATTERNS=(
 COMMAND_TO_CHECK="$COMMAND"
 if echo "$COMMAND" | grep -qE '<<'; then
   # Remove heredoc and all content after it
-  # Use awk to get everything before the heredoc marker
-  COMMAND_TO_CHECK=$(echo "$COMMAND" | awk '/<</{exit}1')
-  # If nothing before heredoc (heredoc on first line), get the command line only
+  # Extract just the command before << (handles multi-line commands properly)
+  # For "cat << 'EOF'\nstuff\nEOF", we want just "cat "
+  COMMAND_TO_CHECK=$(echo "$COMMAND" | sed -n '1{s/<<.*//p}')
+  # If the first line has content before <<, use it
+  # Otherwise, the << is the whole command which is safe
   if [ -z "$COMMAND_TO_CHECK" ]; then
-    COMMAND_TO_CHECK=$(echo "$COMMAND" | head -1 | sed 's/<<.*//')
+    COMMAND_TO_CHECK="heredoc_only"  # Safe placeholder
   fi
 fi
 
@@ -194,7 +206,7 @@ if echo "$COMMAND_TO_CHECK" | grep -qE "$COMBINED_PATTERN"; then
 fi
 
 # Performance timing END
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 HOOKS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Ensure log directory exists

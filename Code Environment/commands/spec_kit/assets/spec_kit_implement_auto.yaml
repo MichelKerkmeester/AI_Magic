@@ -242,17 +242,30 @@ workflow:
     validation: consistency_verified
 
   step_4_quality_checklist:
-    purpose: Validate checklists before implementation (Level 2+ requirement)
+    purpose: Validate checklists AND USE THEM FOR VERIFICATION (Level 2+ requirement)
     level_requirement: "Level 2+ (Verification and Full)"
     activities:
-    - Check documentation level - skip for Level 1, required for Level 2+
-    - Scan all checklist files
-    - Count total/completed/incomplete items
-    - Generate status table
-    - Determine if ready to proceed
+    - Check documentation level - skip for Level 1, MANDATORY for Level 2+
+    - Load checklist.md file
+    - Parse all checklist items with priorities (P0/P1/P2)
+    - FOR EACH ITEM:
+      - Verify condition is met
+      - Mark as [x] with evidence link
+      - If not met: document blocker (P0/P1) or deferral reason (P2)
+    - Ensure ALL P0 items are complete (HARD BLOCKER)
+    - Ensure ALL P1 items are complete or user-approved deferral
+    - Document P2 deferrals with reasons
+    - Update checklist.md file with verification marks
+    verification_protocol:
+      p0_handling: "BLOCKER - Cannot proceed without completion"
+      p1_handling: "Required - Complete or get user approval to defer"
+      p2_handling: "Optional - Can defer with documented reason"
     outputs:
     - checklist_status: pass_or_fail
-    validation: checklists_verified
+    - verified_items_count: "X/Y items verified"
+    - p0_status: "all_complete or blocked"
+    - deferred_items: list_of_deferred_p2_items
+    validation: checklist_verified_and_marked
 
   step_5_implementation_check:
     purpose: Verify all prerequisites for implementation
@@ -337,6 +350,15 @@ workflow:
       - verification_steps_taken
       - deviations_from_plan
       - recommended_next_steps
+    verification_summary:
+      checklist_verification:
+        required: true  # for Level 2+
+        must_include:
+        - Total items verified count
+        - P0 items status (all must be complete)
+        - P1 items status (all complete or deferred with approval)
+        - Deferred P2 items with reasons
+        - Link to updated checklist.md
     validation: implementation_complete
 
   step_8_save_context:
@@ -410,6 +432,10 @@ rules:
   - self_validate_and_proceed
   - do_not_prompt_for_user_approval
   - test_incrementally
+  - use_checklist_for_verification_level_2_plus
+  - mark_checklist_items_with_evidence
+  - complete_all_p0_items_before_done
+  - get_user_approval_for_p1_deferrals
 
   NEVER:
   - skip_workflow_steps
@@ -417,3 +443,6 @@ rules:
   - submit_without_validation
   - expand_scope_beyond_spec
   - proceed_without_self_validation
+  - claim_completion_without_checklist_verification_level_2_plus
+  - skip_p0_checklist_items
+  - defer_p1_items_without_user_approval

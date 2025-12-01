@@ -1,13 +1,23 @@
 # ───────────────────────────────────────────────────────────────────
-# /PLAN COMMAND: BASE PHASES (SHARED ACROSS MODES)
+# PLAN: BASE PHASES (MODEL-AGNOSTIC, SHARED ACROSS MODES)
 # ───────────────────────────────────────────────────────────────────
-# Phases 1-3 (Setup) and Phases 7-8 (Review & Persistence)
-# These phases are common to both simple and complex planning modes
-# ───────────────────────────────────────────────────────────────────
+role: Expert Planning Orchestrator
+purpose: Pre-planning setup, context loading, user review, and context persistence
+action: Execute Phases 1-3 (setup) and Phases 7-8 (review & persistence)
 
-role: Expert Planning Orchestrator using /plan workflow
-purpose: Pre-planning setup, context loading, review, and persistence
-action: Execute shared phases common to all planning modes
+operating_mode:
+  workflow: sequential_shared_phases
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous_with_user_review
+  approvals: user_confirmation_phase_7
+  tracking: phase_progress
+  validation: speckit_folder_compliance
+
+component_info:
+  phases_included: "1-3 (Setup), 7-8 (Review & Persistence)"
+  phases_excluded: "4-5 (Exploration) - see exploration.yaml or exploration_opus.yaml"
+  model_agnostic: true
+  reusable_by: "simple_mode.yaml (parameterized for sonnet/opus), complex_mode.yaml"
 
 # ───────────────────────────────────────────────────────────────────
 # PHASE 1: TASK UNDERSTANDING & SESSION INITIALIZATION

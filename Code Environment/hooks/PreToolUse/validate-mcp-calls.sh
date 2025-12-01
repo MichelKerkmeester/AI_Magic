@@ -76,9 +76,10 @@ if echo "$TOOL_NAME_LOWER" | grep -qE "^(call_tool_chain|search_tools|list_tools
   IS_CODE_MODE_TOOL=true
 fi
 
-# Check if this is a direct MCP tool call (anti-pattern)
-# Pattern: tool names starting with MCP server prefixes
-if echo "$TOOL_NAME_LOWER" | grep -qE "^(webflow_|figma_|chrome_devtools_|semantic_search_)"; then
+# Check if this is a direct MCP tool call (anti-pattern for external tools)
+# Pattern: tool names starting with external MCP server prefixes
+# NOTE: semantic_search_ is NOT included - it's a NATIVE MCP tool, call directly
+if echo "$TOOL_NAME_LOWER" | grep -qE "^(webflow_|figma_|chrome_devtools_)"; then
   IS_DIRECT_MCP_CALL=true
 
   # Determine which platform (use TOOL_NAME_LOWER consistently for suffix removal)
@@ -91,10 +92,8 @@ if echo "$TOOL_NAME_LOWER" | grep -qE "^(webflow_|figma_|chrome_devtools_|semant
   elif echo "$TOOL_NAME_LOWER" | grep -q "^chrome_devtools_"; then
     MCP_PLATFORM="Chrome DevTools"
     SUGGESTED_CODE_MODE_CALL="chrome_devtools_1.chrome_devtools_${TOOL_NAME_LOWER#chrome_devtools_}"
-  elif echo "$TOOL_NAME_LOWER" | grep -q "^semantic_search_"; then
-    MCP_PLATFORM="Semantic Search"
-    SUGGESTED_CODE_MODE_CALL="semantic_search.semantic_search_${TOOL_NAME_LOWER#semantic_search_}"
   fi
+  # NOTE: semantic_search_ removed - it's NATIVE MCP, not external
 fi
 
 # ───────────────────────────────────────────────────────────────

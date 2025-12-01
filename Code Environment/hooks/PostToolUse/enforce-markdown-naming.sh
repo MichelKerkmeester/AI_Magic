@@ -129,6 +129,13 @@ fi
 
 # Atomic rename (handles case-insensitive filesystems) - fallback
 if [[ "$USE_LIB" != "true" ]]; then
+    # Global for cleanup trap
+    _ATOMIC_RENAME_TEMP=""
+
+    _atomic_rename_cleanup() {
+        [[ -n "$_ATOMIC_RENAME_TEMP" && -f "$_ATOMIC_RENAME_TEMP" ]] && rm -f "$_ATOMIC_RENAME_TEMP" 2>/dev/null
+    }
+
     atomic_rename() {
         local source="$1"
         local target="$2"
@@ -142,12 +149,17 @@ if [[ "$USE_LIB" != "true" ]]; then
         local target_lower=$(echo "$target" | tr '[:upper:]' '[:lower:]')
 
         if [[ "$source_lower" == "$target_lower" ]] && [[ "$source" != "$target" ]]; then
-            local temp="${source}.tmp.$$"
-            if mv "$source" "$temp" 2>/dev/null && mv "$temp" "$target" 2>/dev/null; then
+            _ATOMIC_RENAME_TEMP="${source}.tmp.$$"
+            trap '_atomic_rename_cleanup' EXIT INT TERM
+            if mv "$source" "$_ATOMIC_RENAME_TEMP" 2>/dev/null && mv "$_ATOMIC_RENAME_TEMP" "$target" 2>/dev/null; then
+                _ATOMIC_RENAME_TEMP=""
+                trap - EXIT INT TERM
                 return 0
             else
                 # Rollback if possible
-                [[ -f "$temp" ]] && mv "$temp" "$source" 2>/dev/null
+                [[ -f "$_ATOMIC_RENAME_TEMP" ]] && mv "$_ATOMIC_RENAME_TEMP" "$source" 2>/dev/null
+                _ATOMIC_RENAME_TEMP=""
+                trap - EXIT INT TERM
                 return 1
             fi
         else
@@ -293,19 +305,24 @@ main() {
 # EXECUTION
 # ───────────────────────────────────────────────────────────────
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N 2>/dev/null || date +%s)
+START_TIME=$(_get_nano_time)
 
 # Execute main function
 main
 
 # Performance timing END
-END_TIME=$(date +%s%N 2>/dev/null || date +%s)
-if [[ "$START_TIME" =~ ^[0-9]+$ && "$END_TIME" =~ ^[0-9]+$ && ${#START_TIME} -gt 10 ]]; then
-    DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
-else
-    DURATION=0
-fi
+END_TIME=$(_get_nano_time)
+DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-markdown-naming.sh ${DURATION}ms" >> "$HOOKS_DIR/logs/performance.log" 2>/dev/null
 
 # Always exit 0 (never block)

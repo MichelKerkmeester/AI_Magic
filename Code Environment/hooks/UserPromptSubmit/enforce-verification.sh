@@ -29,8 +29,17 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 source "$SCRIPT_DIR/../lib/output-helpers.sh" || exit 0
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -184,27 +193,27 @@ check_verification_evidence() {
 
   # Browser testing mentioned
   if echo "$text" | grep -qiE "tested in (chrome|firefox|safari|browser)"; then
-    ((evidence_count++))
+    evidence_count=$((evidence_count + 1))
   fi
 
   # DevTools console mentioned
   if echo "$text" | grep -qiE "(devtools|console).*(clear|no errors)"; then
-    ((evidence_count++))
+    evidence_count=$((evidence_count + 1))
   fi
 
   # Viewport sizes mentioned
   if echo "$text" | grep -qiE "(1920px|375px|768px).*test"; then
-    ((evidence_count++))
+    evidence_count=$((evidence_count + 1))
   fi
 
   # Viewport types mentioned with testing
   if echo "$text" | grep -qiE "tested at (desktop|mobile|tablet|phone).*(and|,).*(desktop|mobile|tablet|viewport)"; then
-    ((evidence_count++))
+    evidence_count=$((evidence_count + 1))
   fi
 
   # Actual observation described
   if echo "$text" | grep -qiE "(saw|watched|observed|opened browser|refreshed page)"; then
-    ((evidence_count++))
+    evidence_count=$((evidence_count + 1))
   fi
 
   # Need at least 2 evidence patterns for valid verification
@@ -279,7 +288,7 @@ LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 } >> "$LOG_FILE"
 
 # Performance timing END
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-verification.sh ${DURATION}ms BLOCKED" >> "$SCRIPT_DIR/../logs/performance.log"
 

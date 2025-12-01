@@ -57,8 +57,17 @@ source "$HOOKS_DIR/lib/output-helpers.sh" 2>/dev/null || {
   }
 }
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance tracking
-START_TIME=$(date +%s%N 2>/dev/null || date +%s)
+START_TIME=$(_get_nano_time)
 
 # ───────────────────────────────────────────────────────────────
 # READ INPUT
@@ -180,7 +189,7 @@ echo "Please scroll up to see the question and options." >&2
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
 
 # Record performance
-END_TIME=$(date +%s%N 2>/dev/null || date +%s)
+END_TIME=$(_get_nano_time)
 if [[ "$START_TIME" =~ ^[0-9]+$ ]] && [[ "$END_TIME" =~ ^[0-9]+$ ]]; then
   DURATION=$(((END_TIME - START_TIME) / 1000000))
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] check-pending-questions.sh ${DURATION}ms (blocked: $TOOL_NAME, violation #$VIOLATION_COUNT)" >> "$HOOKS_DIR/logs/performance.log" 2>/dev/null

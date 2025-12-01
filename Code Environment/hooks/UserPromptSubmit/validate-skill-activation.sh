@@ -26,8 +26,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 source "$SCRIPT_DIR/../lib/output-helpers.sh" || exit 0
 source "$SCRIPT_DIR/../lib/signal-output.sh" 2>/dev/null || true
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
+# Standard separator for output formatting
+SEPARATOR="───────────────────────────────────────────────────────────────"
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # Check dependencies (silent on success)
 check_dependency "jq" "brew install jq (macOS) or apt install jq (Linux)" || exit 0
@@ -678,7 +690,7 @@ DETECTED_PHASE=$(detect_lifecycle_phase "$PROMPT_LOWER")
 if [ ${#MATCHED_SKILLS[@]} -eq 0 ]; then
   # No skills matched, exit silently
   # Performance timing END (silent path)
-  END_TIME=$(date +%s%N)
+  END_TIME=$(_get_nano_time)
   DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
   [ -d "$HOOKS_DIR/logs" ] || mkdir -p "$HOOKS_DIR/logs" 2>/dev/null
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] validate-skill-activation.sh ${DURATION}ms (no-match)" >> "$HOOKS_DIR/logs/performance.log"
@@ -840,7 +852,7 @@ TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 } >> "$LOG_FILE"
 
 # Performance timing END
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 # Ensure log directory exists
 [ -d "$HOOKS_DIR/logs" ] || mkdir -p "$HOOKS_DIR/logs" 2>/dev/null

@@ -38,8 +38,17 @@ source "$HOOKS_DIR/lib/output-helpers.sh" 2>/dev/null || exit 0
 source "$HOOKS_DIR/lib/exit-codes.sh" 2>/dev/null || exit 0
 source "$HOOKS_DIR/lib/shared-state.sh" 2>/dev/null || exit 0
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # ───────────────────────────────────────────────────────────────
 # DEPENDENCY CHECKS
@@ -111,13 +120,14 @@ calculate_time_elapsed_seconds() {
     now_epoch=$(date +%s)
   fi
 
-  # Parse previous time (ISO 8601 format)
+  # Parse previous time (ISO 8601 format with UTC timezone)
+  # CRITICAL: Timestamps are stored in UTC (Z suffix), must parse in UTC timezone
   local prev_epoch
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS: use -j for parsing
-    prev_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$prev_time" +%s 2>/dev/null || echo "$now_epoch")
+    # macOS: use -j for parsing, TZ=UTC ensures correct timezone interpretation
+    prev_epoch=$(TZ=UTC date -j -f "%Y-%m-%dT%H:%M:%SZ" "$prev_time" +%s 2>/dev/null || echo "$now_epoch")
   else
-    # Linux: use -d for parsing
+    # Linux: use -d for parsing (handles Z suffix correctly)
     prev_epoch=$(date -d "$prev_time" +%s 2>/dev/null || echo "$now_epoch")
   fi
 
@@ -157,11 +167,11 @@ if [ -z "$MODIFIED_FILES" ] || [ "$MODIFIED_FILES" = "null" ]; then
   MODIFIED_FILES='{"files":[]}'
 fi
 
-# Check if signature exists
-if echo "$HISTORY" | jq -e ".signatures.\"$SIGNATURE\"" >/dev/null 2>&1; then
+# Check if signature exists (use --arg for safe key lookup with special chars)
+if echo "$HISTORY" | jq -e --arg sig "$SIGNATURE" '.signatures[$sig]' >/dev/null 2>&1; then
   # Potential duplicate detected!
-  PREV_MSG=$(echo "$HISTORY" | jq -r ".signatures.\"$SIGNATURE\".message_number" 2>/dev/null)
-  PREV_TIME=$(echo "$HISTORY" | jq -r ".signatures.\"$SIGNATURE\".timestamp" 2>/dev/null)
+  PREV_MSG=$(echo "$HISTORY" | jq -r --arg sig "$SIGNATURE" '.signatures[$sig].message_number' 2>/dev/null)
+  PREV_TIME=$(echo "$HISTORY" | jq -r --arg sig "$SIGNATURE" '.signatures[$sig].timestamp' 2>/dev/null)
 
   # Calculate time elapsed since previous call
   TIME_ELAPSED=$(calculate_time_elapsed_seconds "$PREV_TIME")
@@ -241,7 +251,7 @@ if echo "$HISTORY" | jq -e ".signatures.\"$SIGNATURE\"" >/dev/null 2>&1; then
     NEW_SESSION_WASTE=$((SESSION_WASTE + TOKEN_WASTE_THIS_CALL))
 
     # Emit machine-readable JSON intelligence (using jq for safe JSON construction)
-    local sig_short
+    # Note: sig_short is not declared with 'local' as this code is not inside a function
     sig_short=$(echo "$SIGNATURE" | head -c 60)
 
     echo ""
@@ -348,7 +358,7 @@ fi
 LOG_DIR="$HOOKS_DIR/logs"
 mkdir -p "$LOG_DIR" 2>/dev/null
 
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] warn-duplicate-reads.sh ${DURATION}ms" >> "$LOG_DIR/performance.log" 2>/dev/null

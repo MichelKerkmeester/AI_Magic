@@ -62,25 +62,25 @@ Semantic code search for CLI AI agents that enables AI-powered codebase explorat
 
 1. **Known exact file paths** → Use `Read` tool
    ```
-   ❌ search_codebase("Find hero_video.js content")
+   ❌ semantic_search("Find hero_video.js content")
    ✅ Read("src/hero/hero_video.js")
    ```
 
 2. **Specific symbol searches** → Use `Grep` tool
    ```
-   ❌ search_codebase("Find all calls to initVideoPlayer")
+   ❌ semantic_search("Find all calls to initVideoPlayer")
    ✅ Grep("initVideoPlayer", output_mode="content")
    ```
 
 3. **Simple keyword searches** → Use `Grep` tool
    ```
-   ❌ search_codebase("Find all TODO comments")
+   ❌ semantic_search("Find all TODO comments")
    ✅ Grep("TODO:", output_mode="content")
    ```
 
 4. **File structure exploration** → Use `Glob` tool
    ```
-   ❌ search_codebase("Show me all JavaScript files")
+   ❌ semantic_search("Show me all JavaScript files")
    ✅ Glob("**/*.js")
    ```
 
@@ -132,7 +132,7 @@ def route_semantic_search_resources(task):
     # - know exact file path → use Read() tool directly
     # - know exact symbol name → use Grep() tool directly
     # - know file pattern → use Glob() tool directly
-    # - know what code DOES → use search_codebase() with natural language
+    # - know what code DOES → use semantic_search() with natural language
 ```
 
 ---
@@ -162,17 +162,17 @@ def route_semantic_search_resources(task):
 
 **Three semantic search MCP tools available:**
 
-1. **`search_codebase`** - Search current project semantically
+1. **`semantic_search`** - Search current project semantically
    - Primary tool for code discovery
    - Finds code by intent and behavior
    - Returns ranked code snippets with file paths
 
-2. **`search_commits`** - Search git commit history
+2. **`search_commit_history`** - Search git commit history
    - Understanding why code was changed
    - Finding when features were added
    - Locating bug fixes
 
-3. **`search_other_workspace`** - Search other indexed projects
+3. **`visit_other_project`** - Search other indexed projects
    - Finding similar patterns in other codebases
    - Reusing code from other projects
    - Cross-project comparisons
@@ -184,19 +184,19 @@ def route_semantic_search_resources(task):
 
 ```javascript
 // Good: Natural language, behavior-focused
-search_codebase("Find code that validates email addresses in contact forms")
+semantic_search("Find code that validates email addresses in contact forms")
 
 // Good: Question format
-search_codebase("How do we handle page transitions?")
+semantic_search("How do we handle page transitions?")
 
 // Good: Feature discovery
-search_codebase("Find cookie consent implementation")
+semantic_search("Find cookie consent implementation")
 
 // Bad: Grep syntax
-search_codebase("grep validateEmail")  // ❌ Use grep tool instead
+semantic_search("grep validateEmail")  // ❌ Use grep tool instead
 
 // Bad: Known file path
-search_codebase("Show me hero_video.js")  // ❌ Use Read tool instead
+semantic_search("Show me hero_video.js")  // ❌ Use Read tool instead
 ```
 
 ### Example 1: Feature Discovery
@@ -205,7 +205,7 @@ search_codebase("Show me hero_video.js")  // ❌ Use Read tool instead
 
 ```javascript
 // Step 1: Use semantic search
-search_codebase("Find code that validates email addresses in contact forms")
+semantic_search("Find code that validates email addresses in contact forms")
 
 // Expected results:
 // - src/form/form_validation.js (ranked #1)
@@ -228,7 +228,7 @@ Edit(...) or Write(...)
 
 ```javascript
 // Use relationship query
-search_codebase("What code depends on the video player?")
+semantic_search("What code depends on the video player?")
 
 // Expected results:
 // - src/components/hero_section.js (uses video player)
@@ -295,7 +295,7 @@ Read("src/components/hero_section.js")
 4. **ALWAYS combine with Read tool**
    - Semantic search discovers files
    - Read tool provides full context
-   - Workflow: search_codebase → Read → Edit
+   - Workflow: semantic_search → Read → Edit
 
 5. **ALWAYS check for MCP availability**
    - This skill requires MCP access
@@ -373,9 +373,9 @@ Read("src/components/hero_section.js")
 
 **Required MCP tools:**
 
-- `search_codebase` - Semantic code search
-- `search_commits` - Semantic commit history search
-- `search_other_workspace` - Cross-project search
+- `semantic_search` - Semantic code search
+- `search_commit_history` - Semantic commit history search
+- `visit_other_project` - Cross-project search
 
 **MCP server:** semantic-search (Python)
 
@@ -390,28 +390,29 @@ Read("src/components/hero_section.js")
 
 - Semantic search discovers files
 - Read provides full file context
-- Workflow: search_codebase → Read → Edit
+- Workflow: semantic_search → Read → Edit
 
 **Grep tool:**
 
 - Semantic search for discovery
 - Grep for specific symbol usage
-- Workflow: search_codebase → Grep("symbol")
+- Workflow: semantic_search → Grep("symbol")
 
 **Glob tool:**
 
 - Glob for file structure
 - Semantic search for understanding
-- Workflow: Glob("**/*.js") → search_codebase("How does [component] work?")
+- Workflow: Glob("**/*.js") → semantic_search("How does [component] work?")
 
 
 ### Related Skills
 
-**mcp-code-mode:**
+**Note on Code Mode:**
 
-- Use for calling semantic search MCP tools programmatically
-- Enables complex workflows combining semantic search with other MCP tools
-- See [.claude/skills/mcp-code-mode/SKILL.md](../mcp-code-mode/SKILL.md) for TypeScript execution patterns
+- Semantic search is a **NATIVE MCP tool** - call directly, NOT through Code Mode
+- Use `semantic_search()`, `search_commit_history()`, `visit_other_project()` directly
+- Code Mode is for external tools (Webflow, Figma, ClickUp, etc.)
+- See [.claude/skills/mcp-code-mode/SKILL.md](../mcp-code-mode/SKILL.md) for external tool patterns
 
 
 ### External Dependencies
@@ -441,7 +442,7 @@ Read("src/components/hero_section.js")
 - Run `codesql index` to create .codebase/vectors.db
 - Indexer watches files for automatic updates
 
-**Current anobel.com index (as of 2025-11-25):**
+**Current example.com index (as of 2025-11-25):**
 
 - 249 files indexed
 - 496 code blocks

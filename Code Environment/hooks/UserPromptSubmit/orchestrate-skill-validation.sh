@@ -29,8 +29,17 @@ DISPATCH_FLOW_STAGE="parallel_dispatch"
 DISPATCH_STATE_KEY="parallel_dispatch_completed"
 DISPATCH_STATE_EXPIRY=3600  # 1 hour session preference
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # Check dependencies (silent on success)
 check_dependency "jq" "brew install jq (macOS) or apt install jq (Linux)" || exit 0
@@ -45,7 +54,7 @@ fi
 calc_float() {
   local expr="$1"
   if [ "$PYTHON_AVAILABLE" = true ]; then
-    python3 -c "print($expr)"
+    python3 -c "import sys; print(eval(sys.argv[1]))" "$expr"
   else
     # awk fallback for systems without Python
     # Convert Python functions to awk-compatible operations:
@@ -266,37 +275,37 @@ calculate_complexity_score() {
 
   # Code domain indicators (REFINED - removed generic verbs and standalone 'api' that over-matches docs)
   if echo "$prompt_lower" | grep -qE "(implement|code|refactor|function|class|component|backend|frontend|fix|bug|debug|error|issue|problem|resolve|patch|hotfix|optimize|improve|enhance|script|module|service|handler|controller|model|util|helper|endpoint|route)"; then
-    ((domain_count++))
+    domain_count=$((domain_count + 1))
     detected_domains="${detected_domains}code "
   fi
 
   # Analysis domain indicators (REFINED - removed verbs that overlap with other domains)
   if echo "$prompt_lower" | grep -qE "(analyze|investigate|explore|examine|audit|inspect|trace|profile|benchmark|diagnose|troubleshoot|discover|locate|scan)"; then
-    ((domain_count++))
+    domain_count=$((domain_count + 1))
     detected_domains="${detected_domains}analysis "
   fi
 
   # Docs domain indicators (REFINED - removed changelog duplicate, kept in git domain)
   if echo "$prompt_lower" | grep -qE "(document|readme|guide|tutorial|api.*doc|comment|explain|release.*notes|specification|spec.*doc|jsdoc|typedoc|markdown|wiki)"; then
-    ((domain_count++))
+    domain_count=$((domain_count + 1))
     detected_domains="${detected_domains}docs "
   fi
 
   # Git domain indicators (EXPANDED)
   if echo "$prompt_lower" | grep -qE "(git|commit|branch|merge|pull.*request|migration|version|pr\b|tag|release|changelog|rebase|cherry.*pick)"; then
-    ((domain_count++))
+    domain_count=$((domain_count + 1))
     detected_domains="${detected_domains}git "
   fi
 
   # Testing domain indicators (EXPANDED)
   if echo "$prompt_lower" | grep -qE "(test|unittest|integration.*test|e2e|coverage|spec\b|assert|mock|stub|fixture|snapshot|playwright|jest|vitest|bats|pytest)"; then
-    ((domain_count++))
+    domain_count=$((domain_count + 1))
     detected_domains="${detected_domains}testing "
   fi
 
   # DevOps domain indicators (EXPANDED)
   if echo "$prompt_lower" | grep -qE "(deploy|ci|cd|docker|build|pipeline|infrastructure|kubernetes|k8s|helm|terraform|ansible|aws|gcp|azure|nginx|ssl|certificate|monitoring|logging|metrics)"; then
-    ((domain_count++))
+    domain_count=$((domain_count + 1))
     detected_domains="${detected_domains}devops "
   fi
 
@@ -739,7 +748,7 @@ else
       echo "─────────────────────────────────────────────────────────────"
     } >> "$ORCHESTRATOR_LOG"
 
-    END_TIME=$(date +%s%N)
+    END_TIME=$(_get_nano_time)
     DURATION_MS=$(( (END_TIME - START_TIME) / 1000000 ))
     echo "EXECUTION TIME: ${DURATION_MS}ms" >> "$ORCHESTRATOR_LOG"
 
@@ -835,7 +844,7 @@ EOF
   } >> "$ORCHESTRATOR_LOG"
 
   # Performance timing END
-  END_TIME=$(date +%s%N)
+  END_TIME=$(_get_nano_time)
   DURATION_MS=$(( (END_TIME - START_TIME) / 1000000 ))
 
   {
@@ -863,7 +872,7 @@ else
 fi
 
 # Performance timing END
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION_MS=$(( (END_TIME - START_TIME) / 1000000 ))
 
 {

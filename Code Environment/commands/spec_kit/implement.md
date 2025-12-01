@@ -13,6 +13,22 @@ Execute implementation of a pre-planned feature. Requires existing spec.md and p
 
 ---
 
+```yaml
+role: Expert Developer using Smart SpecKit for Implementation Phase
+purpose: Execute pre-planned feature implementation with mandatory checklist verification
+action: Run 8-step implementation workflow from plan review through completion summary
+
+operating_mode:
+  workflow: sequential_8_step
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous_or_interactive
+  approvals: step_by_step_for_confirm_mode
+  tracking: progressive_task_completion
+  validation: checklist_verification_with_evidence
+```
+
+---
+
 ## Purpose
 
 Run the 8-step implementation workflow: plan review, task breakdown, quality validation, development, and completion summary. Picks up where `/spec_kit:plan` left off to execute the actual code changes.
@@ -38,7 +54,7 @@ $ARGUMENTS
 - `tasks.md` - Task breakdown (will be created if missing)
 
 **REQUIRED for Level 2+:**
-- `checklist.md` - Validation checklist
+- `checklist.md` - Validation checklist (MANDATORY for verification before completion claims)
 
 **REQUIRED for Level 3:**
 - `decision-record.md` - Architecture Decision Records
@@ -52,7 +68,7 @@ If prerequisites are missing, guide user to run `/spec_kit:plan` first.
 | 1 | Review Plan & Spec | Understand requirements | requirements_summary |
 | 2 | Task Breakdown | Create/validate tasks.md | tasks.md |
 | 3 | Analysis | Verify consistency | consistency_report |
-| 4 | Quality Checklist | Validate checklists | checklist_status |
+| 4 | Quality Checklist | Validate checklists (ACTIVELY USED for verification at completion) | checklist_status |
 | 5 | Implementation Check | Verify prerequisites | greenlight |
 | 6 | Development | Execute implementation | code changes |
 | 7 | Completion | Generate summary | implementation-summary.md |
@@ -212,8 +228,17 @@ Implementation Summary:
 - Tests: [PASS/FAIL]
 - Browser validation: [COMPLETE/SKIPPED]
 
+Checklist Verification (Level 2+):
+- Status: [VERIFIED/PARTIAL/N/A]
+- Items verified: [X/Y] (e.g., "15/15 items verified")
+- P0 (Critical): [X/Y] - All must pass
+- P1 (High): [X/Y] - Required items
+- P2 (Medium): [X/Y] - Optional items
+- Deferred items: [list with reasons, if any]
+
 Artifacts Updated/Created:
 - tasks.md (all tasks marked complete)
+- checklist.md (all items verified with evidence)
 - implementation-summary.md (completion report)
 - memory/[timestamp]__implementation_session.md (context saved)
 
@@ -245,6 +270,26 @@ STATUS=OK PATH=specs/NNN-short-name/
 ---
 
 ## Notes
+
+### Checklist Verification Protocol (Level 2+ Mandatory)
+
+When `checklist.md` exists, the AI MUST complete verification before any completion claims:
+
+1. **Load** checklist.md at completion phase
+2. **Verify** each item systematically:
+   - P0 (Critical): BLOCKERS - must complete
+   - P1 (High): Required - complete or get user deferral approval
+   - P2 (Medium): Optional - can defer with documentation
+3. **Mark** items `[x]` with evidence (links, test output, etc.)
+4. **Block** completion until all P0/P1 items verified
+5. **Document** any deferred items in completion summary
+
+**Example Verification:**
+```
+- [x] CHK001 [P0] Requirements documented | Evidence: spec.md sections 1-3
+- [x] CHK006 [P0] Code passes lint | Evidence: `npm run lint` - 0 errors
+- [ ] CHK016 [P2] Performance targets | Deferred: Will benchmark post-MVP
+```
 
 - **Mode Behaviors:**
   - **Autonomous (`:auto`)**: Executes all steps without user approval gates. Self-validates at each checkpoint. Marks tasks complete as they're finished. Documents all implementation decisions.

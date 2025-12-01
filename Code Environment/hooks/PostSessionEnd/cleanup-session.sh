@@ -47,8 +47,17 @@ ARCHIVE_DIR="$LOG_DIR/archive"
 mkdir -p "$LOG_DIR" 2>/dev/null
 mkdir -p "$ARCHIVE_DIR" 2>/dev/null
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N 2>/dev/null) || START_TIME=0
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -122,11 +131,9 @@ fi
 } >> "$SESSION_LOG" 2>/dev/null
 
 # Performance timing END
-END_TIME=$(date +%s%N 2>/dev/null) || END_TIME=0
-if [ "$START_TIME" -gt 0 ] && [ "$END_TIME" -gt 0 ]; then
-  DURATION_MS=$(( (END_TIME - START_TIME) / 1000000 ))
-  echo "[$TIMESTAMP] cleanup-session.sh ${DURATION_MS}ms" >> "$PERF_LOG" 2>/dev/null
-fi
+END_TIME=$(_get_nano_time)
+DURATION_MS=$(( (END_TIME - START_TIME) / 1000000 ))
+echo "[$TIMESTAMP] cleanup-session.sh ${DURATION_MS}ms" >> "$PERF_LOG" 2>/dev/null
 
 # Always allow (non-blocking, cleanup)
 exit ${EXIT_ALLOW:-0}

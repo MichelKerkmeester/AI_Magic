@@ -66,7 +66,16 @@ else
   VALIDATION_LIB_LOADED=false
 fi
 
-START_TIME=$(date +%s%N)
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
+START_TIME=$(_get_nano_time)
 
 check_dependency "jq" "brew install jq (macOS) or apt install jq (Linux)" || exit 0
 
@@ -2607,7 +2616,7 @@ handle_warning() {
 
 if ! detect_modification_intent; then
   echo "✓ [enforce-spec-folder] No modification detected, skipping validation" >&2
-  END_TIME=$(date +%s%N)
+  END_TIME=$(_get_nano_time)
   DURATION=$(((END_TIME - START_TIME)/1000000))
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms" >> "$PERF_LOG"
   exit 0
@@ -2619,7 +2628,7 @@ load_enforcement_config
 
 if exception_matches_prompt; then
   log_event "ALLOWED" "Exception matched: $ALLOWED_EXCEPTION_REASON"
-  END_TIME=$(date +%s%N)
+  END_TIME=$(_get_nano_time)
   DURATION=$(((END_TIME - START_TIME)/1000000))
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms" >> "$PERF_LOG"
   exit 0
@@ -2634,7 +2643,7 @@ fi
 if has_skip_marker; then
   log_event "SKIPPED" "Skip marker detected - user previously selected skip option"
   echo "⚡ [enforce-spec-folder] Skip marker detected - proceeding without spec folder" >&2
-  END_TIME=$(date +%s%N)
+  END_TIME=$(_get_nano_time)
   DURATION=$(((END_TIME - START_TIME)/1000000))
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms (skipped)" >> "$PERF_LOG"
   exit 0
@@ -2796,7 +2805,7 @@ if [ "$CHECK_SPEC_FOLDER" != "false" ]; then
             # Set question flow state for handling response
             set_question_flow "task_change" "$SPEC_FOLDER" "[]" ""
 
-            END_TIME=$(date +%s%N)
+            END_TIME=$(_get_nano_time)
             DURATION=$(((END_TIME - START_TIME)/1000000))
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms (task change question)" >> "$PERF_LOG"
             exit 1  # BLOCK until user responds
@@ -2873,7 +2882,7 @@ if [ "$CHECK_SPEC_FOLDER" != "false" ]; then
     # Set flow state to spec_folder_confirm stage
     set_question_flow "spec_folder_confirm" "$SPEC_FOLDER" "$_memory_files_json" ""
 
-    END_TIME=$(date +%s%N)
+    END_TIME=$(_get_nano_time)
     DURATION=$(((END_TIME - START_TIME)/1000000))
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms (spec folder confirm question)" >> "$PERF_LOG"
     exit 1  # BLOCK until user confirms spec folder (then ask about memory if applicable)
@@ -2912,7 +2921,7 @@ fi
 # The PreToolUse/check-pending-questions.sh hook will also block tool usage
 # until the pending_question state is cleared by AskUserQuestion
 if [ "$NEEDS_CONFIRMATION" = true ]; then
-  END_TIME=$(date +%s%N)
+  END_TIME=$(_get_nano_time)
   DURATION=$(((END_TIME - START_TIME)/1000000))
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms (BLOCKING - confirmation needed)" >> "$PERF_LOG"
   log_event "BLOCKING" "Mandatory spec folder question pending - exit 1"
@@ -2921,7 +2930,7 @@ fi
 
 log_event "ALLOWED" "Spec folder validated: ${SPEC_FOLDER_NAME:-n/a}"
 echo "✅ [enforce-spec-folder] Spec folder validated: ${SPEC_FOLDER_NAME:-n/a}" >&2
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION=$(((END_TIME - START_TIME)/1000000))
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms (${SPEC_FOLDER_NAME:-no-spec})" >> "$PERF_LOG"
 exit 0

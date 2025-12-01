@@ -17,6 +17,27 @@
         "*"
       ] // Expose all available MCP tools (use array of tool names to restrict)
     },
+    // Semantic Search MCP Server - Intent-based code discovery
+    "semantic_search": {
+      "command": "/path/to/mcp-servers/semantic-search/venv/bin/python",
+      "args": [
+        "/path/to/mcp-servers/semantic-search/src/server_sqlite.py"
+      ],
+      "env": {
+        "MCP_CODEBASE_WORKSPACE": "/path/to/project",
+        "MCP_CODEBASE_DB_PATH": "/path/to/project/.codebase/vectors.db",
+        "MCP_CODEBASE_EMBEDDER_PROVIDER": "openai-compatible",
+        "MCP_CODEBASE_EMBEDDER_API_KEY": "YOUR_VOYAGE_API_KEY",
+        "MCP_CODEBASE_EMBEDDER_BASE_URL": "https://api.voyageai.com/v1",
+        "MCP_CODEBASE_EMBEDDER_MODEL_ID": "voyage-code-3",
+        "MCP_CODEBASE_JUDGE_PROVIDER": "openai-compatible",
+        "MCP_CODEBASE_JUDGE_API_KEY": "YOUR_VOYAGE_API_KEY",
+        "MCP_CODEBASE_JUDGE_BASE_URL": "https://api.voyageai.com/v1",
+        "MCP_CODEBASE_JUDGE_MODEL_ID": "voyage-3",
+        "MCP_CODEBASE_JUDGE_MAX_TOKENS": "1024",
+        "MCP_CODEBASE_JUDGE_TEMPERATURE": "0"
+      }
+    },
     // Advanced Reasoning for non Reasoning Copilot Models
     "sequential-thinking": {
       "command": "/path/to/mcp-sequential-thinking/.venv/bin/python3.12",

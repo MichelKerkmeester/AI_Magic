@@ -147,9 +147,9 @@ Categorized collection of example queries demonstrating effective semantic searc
 
 ---
 
-## 8. 🏗️ PROJECT-SPECIFIC (ANOBEL.COM)
+## 8. 🏗️ PROJECT-SPECIFIC (EXAMPLE.COM)
 
-**Queries specific to anobel.com project:**
+**Queries specific to example.com project:**
 
 ```
 "Find video player implementation in hero section"
@@ -162,7 +162,7 @@ Categorized collection of example queries demonstrating effective semantic searc
 "Where do we initialize Webflow interactions?"
 ```
 
-**When to use:** Navigating the anobel.com codebase.
+**When to use:** Navigating the example.com codebase.
 
 **Expected results:** Project-specific implementations.
 
@@ -182,7 +182,7 @@ Categorized collection of example queries demonstrating effective semantic searc
 "When did we add Motion.dev integration?"
 ```
 
-**Tool:** Use `search_commits()` instead of `search_codebase()`
+**Tool:** Use `search_commit_history()` instead of `semantic_search()`
 
 **When to use:** Understanding code evolution and change history.
 
@@ -266,7 +266,7 @@ Categorized collection of example queries demonstrating effective semantic searc
 
 ```javascript
 // Step 1: Discover with semantic search
-search_codebase("Find email validation logic in contact forms")
+semantic_search("Find email validation logic in contact forms")
 // Result: src/form/form_validation.js
 
 // Step 2: Read full context
@@ -282,11 +282,11 @@ Read("src/form/form_validation.js")
 
 ```javascript
 // Step 1: Find main implementation
-search_codebase("Find video player initialization code")
+semantic_search("Find video player initialization code")
 // Result: src/hero/hero_video.js
 
 // Step 2: Find dependencies
-search_codebase("What code depends on the video player?")
+semantic_search("What code depends on the video player?")
 // Result: src/components/hero_section.js, others
 
 // Step 3: Read integration points
@@ -299,14 +299,14 @@ Read("src/components/hero_section.js")
 
 ```javascript
 // Step 1: Problem-based query
-search_codebase("How do we prevent duplicate form submissions?")
+semantic_search("How do we prevent duplicate form submissions?")
 // Result: src/form/form_submission.js
 
 // Step 2: Read implementation
 Read("src/form/form_submission.js")
 
 // Step 3: Find similar patterns
-search_codebase("Find code that prevents duplicate actions")
+semantic_search("Find code that prevents duplicate actions")
 ```
 
 ---
@@ -408,7 +408,7 @@ Aspects:
 
 ## 14. 📊 PROJECT-SPECIFIC INDEX STATS
 
-**Current anobel.com index (as of 2025-11-25):**
+**Current example.com index (as of 2025-11-25):**
 
 - **Files:** 249 files indexed
 - **Code blocks:** 496 chunks
@@ -429,10 +429,10 @@ Aspects:
 
 ```javascript
 // Broad discovery
-search_codebase("Find video code")
+semantic_search("Find video code")
 
 // Review results, then narrow
-search_codebase("Find video player initialization in hero section")
+semantic_search("Find video player initialization in hero section")
 ```
 
 ### 2. Use Natural Language
@@ -492,7 +492,7 @@ search_codebase("Find video player initialization in hero section")
 | Your Knowledge State | Use This Tool | Example Query |
 |---------------------|---------------|---------------|
 | **Know exact path** | `Read(path)` | `Read("src/hero/hero_video.js")` |
-| **Know what it does** | `search_codebase()` | "Find video playback code" |
+| **Know what it does** | `semantic_search()` | "Find video playback code" |
 | **Know exact symbol** | `Grep()` | `Grep("initVideoPlayer", output_mode="content")` |
 | **Know file pattern** | `glob()` | `glob("**/*.js")` |
 

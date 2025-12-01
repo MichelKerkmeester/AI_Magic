@@ -559,9 +559,9 @@ Faster, no API call, no vector search needed.
 ### Template 5: Evolution/History
 
 ```
-"When was [FEATURE] added?" (use search_commits)
-"What changed in [AREA]?" (use search_commits)
-"Find commits related to [FEATURE]" (use search_commits)
+"When was [FEATURE] added?" (use search_commit_history)
+"What changed in [AREA]?" (use search_commit_history)
+"Find commits related to [FEATURE]" (use search_commit_history)
 ```
 
 **Examples:**
@@ -624,7 +624,7 @@ Faster, no API call, no vector search needed.
 
 ```javascript
 // Step 1: Discover with semantic search
-search_codebase("Find email validation logic")
+semantic_search("Find email validation logic")
 // Returns: src/form/form_validation.js
 
 // Step 2: Read full context
@@ -639,7 +639,7 @@ edit(...) or write(...)
 
 ```javascript
 // Step 1: Find general area
-search_codebase("Find modal components")
+semantic_search("Find modal components")
 // Returns: src/components/modal.js
 
 // Step 2: Find specific usage
@@ -652,11 +652,11 @@ Grep("modal.open", output_mode="content")
 
 ```javascript
 // Step 1: Find primary implementation
-search_codebase("Find video player initialization")
+semantic_search("Find video player initialization")
 // Returns: src/hero/hero_video.js
 
 // Step 2: Find related components
-search_codebase("What code depends on the video player?")
+semantic_search("What code depends on the video player?")
 // Returns: Components that use video player
 
 // Step 3: Understand integration
@@ -678,7 +678,7 @@ You should follow this process when results aren't relevant. Complete each phase
 **Actions**:
 1. Write query in natural language describing what code does
 2. Add context if known ("in forms", "for feature")
-3. Submit to search_codebase
+3. Submit to semantic_search
 4. Review top 3-5 results for relevance
 
 **Validation**: `initial_results_relevant`
@@ -826,7 +826,7 @@ Return to Phase 1 with new approach
 
 - **Know the path?** → Use `Read()`
 - **Know the symbol?** → Use `Grep()`
-- **Know what it does?** → Use `search_codebase()`
+- **Know what it does?** → Use `semantic_search()`
 - **Exploring structure?** → Use `glob()`
 
 **When in doubt, use semantic search.** It's designed to help you discover what you don't know exists.

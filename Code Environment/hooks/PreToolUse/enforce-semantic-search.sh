@@ -35,12 +35,17 @@ LOG_DIR="$HOOKS_DIR/logs"
 mkdir -p "$LOG_DIR" 2>/dev/null
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START (cross-platform)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  START_TIME=$(($(date +%s) * 1000000000))
-else
-  START_TIME=$(date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000)))
-fi
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -95,9 +100,9 @@ if echo "$PATTERN" | grep -qiE '\b(implement|handle|manage|process|validate|init
   echo "  ✅ Semantic: query='Find code that validates email addresses'"
   echo "             → finds isEmailValid(), checkEmail(), validateEmailFormat(), etc."
   echo ""
-  echo "How to Use Semantic Search:"
-  echo "  1. Load skill: Use Skill tool with 'mcp-semantic-search'"
-  echo "  2. Execute: Use mcp-code-mode with search_codebase(\"your natural language query\")"
+  echo "How to Use Semantic Search (NATIVE MCP):"
+  echo "  1. Call search_codebase(\"your natural language query\") DIRECTLY"
+  echo "  2. Semantic search is NATIVE MCP - do NOT use Code Mode"
   echo "  3. Follow-up: Read specific files for full context"
   echo ""
   echo "Example Query for Your Search:"
@@ -107,8 +112,7 @@ if echo "$PATTERN" | grep -qiE '\b(implement|handle|manage|process|validate|init
   echo ""
   echo "Documentation:"
   echo "  📖 .claude/skills/mcp-semantic-search/SKILL.md"
-  echo "  📖 .claude/skills/mcp-code-mode/SKILL.md"
-  echo "  📖 AGENTS.md (line 716 - Tool Routing)"
+  echo "  📖 AGENTS.md Section 5 - Tool Routing (Native MCP)"
   echo ""
   echo "═══════════════════════════════════════════════════════════════"
   echo ""
@@ -118,11 +122,7 @@ if echo "$PATTERN" | grep -qiE '\b(implement|handle|manage|process|validate|init
 fi
 
 # Performance timing END (cross-platform)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  END_TIME=$(($(date +%s) * 1000000000))
-else
-  END_TIME=$(date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000)))
-fi
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-semantic-search.sh ${DURATION}ms" >> "$HOOKS_DIR/logs/performance.log"
 

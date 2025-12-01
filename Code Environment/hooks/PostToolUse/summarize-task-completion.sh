@@ -28,8 +28,17 @@ source "$HOOKS_DIR/lib/agent-tracking.sh" 2>/dev/null || true
 # Logging
 LOG_FILE="$HOOKS_DIR/logs/task-dispatch.log"
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing
-START_TIME=$(date +%s%N 2>/dev/null || date +%s)
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -98,8 +107,11 @@ if [ -n "$AGENT_ID" ]; then
 
     # Validate START_MS is a number
     if [ -n "$START_MS" ] && [ "$START_MS" != "null" ] && [[ "$START_MS" =~ ^[0-9]+$ ]]; then
-      # Get current time in ms (cross-platform)
-      if date +%s%3N >/dev/null 2>&1; then
+      # Get current time in ms (cross-platform - macOS doesn't support %3N)
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS: use seconds * 1000
+        END_MS=$(($(date +%s) * 1000))
+      elif [[ $(date +%s%3N 2>/dev/null) =~ ^[0-9]+$ ]]; then
         END_MS=$(date +%s%3N)
       else
         END_MS=$(($(date +%s) * 1000))
@@ -327,12 +339,8 @@ fi
 # Log for debugging
 mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null
 {
-  END_TIME=$(date +%s%N 2>/dev/null || date +%s)
-  if [ ${#START_TIME} -gt 10 ]; then
-    HOOK_DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
-  else
-    HOOK_DURATION=0
-  fi
+  END_TIME=$(_get_nano_time)
+  HOOK_DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] COMPLETE agent=$AGENT_ID status=$STATUS duration=${DURATION_SEC}s hook=${HOOK_DURATION}ms"
 } >> "$LOG_FILE" 2>/dev/null
 

@@ -413,7 +413,7 @@ main() {
     # If no markdown files modified, exit silently
     if [[ -z "$all_files" ]]; then
         # Performance timing END
-        local end_time=$(date +%s%N)
+        local end_time=$(_get_nano_time)
         local duration=$(( (end_time - START_TIME) / 1000000 ))
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-markdown-strict.sh ${duration}ms" >> "$HOOKS_DIR/logs/performance.log"
         exit 0
@@ -442,7 +442,7 @@ main() {
         [[ "$doc_type" == "spec" ]] && continue
 
         # Count this file as checked
-        ((files_checked++))
+        files_checked=$((files_checked + 1))
 
         # Check for critical violations based on type
         local critical_violations=""
@@ -498,7 +498,7 @@ main() {
     if [[ "$has_critical" == "true" ]]; then
         log_action "EXECUTION BLOCKED - Critical violations must be fixed"
         # Performance timing END
-        local end_time=$(date +%s%N)
+        local end_time=$(_get_nano_time)
         local duration=$(( (end_time - START_TIME) / 1000000 ))
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-markdown-strict.sh ${duration}ms" >> "$HOOKS_DIR/logs/performance.log"
         exit 1
@@ -511,7 +511,7 @@ main() {
     fi
 
     # Performance timing END
-    local end_time=$(date +%s%N)
+    local end_time=$(_get_nano_time)
     local duration=$(( (end_time - START_TIME) / 1000000 ))
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-markdown-strict.sh ${duration}ms" >> "$HOOKS_DIR/logs/performance.log"
 
@@ -519,8 +519,17 @@ main() {
     exit 0
 }
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # Execute main function
 main

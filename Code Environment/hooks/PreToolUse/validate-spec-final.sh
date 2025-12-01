@@ -257,7 +257,7 @@ main() {
 
   echo "Checking template sources..."
   if ! validate_all_template_sources "$spec_folder"; then
-    ((warning_count++))
+    warning_count=$((warning_count + 1))
   fi
 
   # ========================================================================
@@ -266,7 +266,7 @@ main() {
 
   echo "Checking section completeness..."
   if ! validate_all_section_completeness "$spec_folder"; then
-    ((error_count++))
+    error_count=$((error_count + 1))
   fi
 
   # ========================================================================
@@ -275,7 +275,7 @@ main() {
 
   echo "Checking content adaptation..."
   if ! validate_all_content_adaptation "$spec_folder"; then
-    ((error_count++))
+    error_count=$((error_count + 1))
   fi
 
   # ========================================================================
@@ -284,7 +284,7 @@ main() {
 
   echo "Checking metadata..."
   if ! validate_all_metadata "$spec_folder"; then
-    ((warning_count++))
+    warning_count=$((warning_count + 1))
   fi
 
   # ========================================================================
@@ -293,7 +293,7 @@ main() {
 
   echo "Checking traceability..."
   if ! validate_traceability "$spec_folder"; then
-    ((warning_count++))
+    warning_count=$((warning_count + 1))
   fi
 
   # ========================================================================

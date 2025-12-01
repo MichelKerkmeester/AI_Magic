@@ -4,7 +4,7 @@ A comprehensive guide to installing, configuring, and using the Dynamic Context 
 
 ---
 
-## 🤖 AI-First Install Guide
+## 🤖 AI-FIRST INSTALL GUIDE
 
 **Copy and paste this prompt to your AI assistant to get installation help:**
 
@@ -36,22 +36,22 @@ Guide me through each step with the exact configuration I need.
 
 ---
 
-## Table of Contents
+#### 📋 TABLE OF CONTENTS
 
-1. [What is Dynamic Context Pruning?](#1-what-is-dynamic-context-pruning)
-2. [Prerequisites](#2-prerequisites)
-3. [Installation](#3-installation)
-4. [Configuration](#4-configuration)
-5. [Verifying Installation](#5-verifying-installation)
-6. [Using Context Pruning](#6-using-context-pruning)
-7. [Pruning Strategies Overview](#7-pruning-strategies-overview)
-8. [Practical Examples](#8-practical-examples)
-9. [Troubleshooting](#9-troubleshooting)
-10. [Additional Resources](#10-additional-resources)
+1. [📖 OVERVIEW](#1--overview)
+2. [📋 PREREQUISITES](#2--prerequisites)
+3. [📥 INSTALLATION](#3--installation)
+4. [⚙️ CONFIGURATION](#4-️-configuration)
+5. [✅ VERIFICATION](#5--verification)
+6. [🚀 USAGE](#6--usage)
+7. [🎯 FEATURES](#7--features)
+8. [💡 EXAMPLES](#8--examples)
+9. [🔧 TROUBLESHOOTING](#9--troubleshooting)
+10. [📚 RESOURCES](#10--resources)
 
 ---
 
-## 1. What is Dynamic Context Pruning?
+## 1. 📖 OVERVIEW
 
 Dynamic Context Pruning (DCP) is an OpenCode plugin that automatically optimizes token usage by intelligently removing obsolete tool outputs from conversation history. It keeps your sessions efficient by pruning irrelevant context while preserving important information.
 
@@ -90,7 +90,7 @@ Dynamic Context Pruning (DCP) is an OpenCode plugin that automatically optimizes
 
 ---
 
-## 2. Prerequisites
+## 2. 📋 PREREQUISITES
 
 Before installing Dynamic Context Pruning, ensure you have:
 
@@ -122,7 +122,7 @@ Before installing Dynamic Context Pruning, ensure you have:
 
 ---
 
-## 3. Installation
+## 3. 📥 INSTALLATION
 
 ### Step 1: Add Plugin to Configuration
 
@@ -184,7 +184,7 @@ The plugin will:
 
 ---
 
-## 4. Configuration
+## 4. ⚙️ CONFIGURATION
 
 ### Configuration Hierarchy
 
@@ -311,7 +311,7 @@ Add tools you never want pruned:
 
 ---
 
-## 5. Verifying Installation
+## 5. ✅ VERIFICATION
 
 ### Check 1: Plugin List
 
@@ -366,7 +366,7 @@ Restart OpenCode and look for DCP log messages:
 
 ---
 
-## 6. Using Context Pruning
+## 6. 🚀 USAGE
 
 ### Automatic Operation (Default)
 
@@ -415,9 +415,9 @@ Look for messages like:
 
 ---
 
-## 7. Pruning Strategies Overview
+## 7. 🎯 FEATURES
 
-### Strategy 1: Deduplication (Zero Cost)
+### 7.1 Deduplication (Zero Cost)
 
 **How it works**:
 - Identifies identical tool calls with same inputs
@@ -439,7 +439,7 @@ Savings: 1,000 tokens
 - Duplicate command outputs
 - Long conversation sessions
 
-### Strategy 2: AI Analysis (Uses Tokens)
+### 7.2 AI Analysis (Uses Tokens)
 
 **How it works**:
 - Uses LLM to semantically understand context
@@ -466,7 +466,7 @@ Search for "BUG" (still relevant)    ← Kept
 - Saves more tokens than it costs (typically 10:1 ratio)
 - Can be disabled if token budget is tight
 
-### Strategy Recommendations
+### 7.3 Strategy Recommendations
 
 | Use Case | Deduplication | AI Analysis |
 |----------|---------------|-------------|
@@ -478,7 +478,7 @@ Search for "BUG" (still relevant)    ← Kept
 
 ---
 
-## 8. Practical Examples
+## 8. 💡 EXAMPLES
 
 ### Example 1: Iterative File Editing
 
@@ -557,7 +557,7 @@ Savings: 9,000 tokens (60%)
 
 ---
 
-## 9. Troubleshooting
+## 9. 🔧 TROUBLESHOOTING
 
 ### Plugin Not Loading
 
@@ -729,7 +729,7 @@ Savings: 9,000 tokens (60%)
 
 ---
 
-## 10. Additional Resources
+## 10. 📚 RESOURCES
 
 ### Documentation
 
@@ -896,7 +896,7 @@ python3 -m json.tool < .opencode/dcp.jsonc
 
 ---
 
-**Installation Complete!** 🎉
+**Installation Complete!**
 
 You now have Dynamic Context Pruning installed and configured. The plugin will automatically optimize your OpenCode sessions, reducing token usage while preserving important context.
 

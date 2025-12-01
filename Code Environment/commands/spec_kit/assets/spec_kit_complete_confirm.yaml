@@ -293,9 +293,9 @@ workflow:
     - Check for existing branches
     - Run create-new-feature.sh script
     - Estimate complexity and select documentation level using progressive enhancement:
-      - Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md
-      - Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md
-      - Level 3 (Full): >=500 LOC - Level 2 + decision-record.md
+      - "Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md"
+      - "Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md"
+      - "Level 3 (Full): >=500 LOC - Level 2 + decision-record.md"
     - Load and fill spec.md
     - Generate functional requirements
     - Define success criteria
@@ -328,22 +328,43 @@ workflow:
       options: checkpoint_options.standard
 
   step_5_quality_checklist:
-    purpose: Generate validation checklist (Level 2+ requirement)
+    purpose: Generate validation checklist AND USE FOR ACTIVE VERIFICATION (Level 2+ requirement)
     level_requirement: "Level 2+ (Verification and Full)"
     activities:
-    - Check documentation level - skip for Level 1, required for Level 2+
+    - Check documentation level - skip for Level 1, MANDATORY for Level 2+
     - Load checklist.md template
-    - Generate domain-specific validation items
+    - Generate domain-specific validation items with priorities (P0/P1/P2)
     - Create checklist file
-    - Run validation check
+    - FOR EACH ITEM:
+      - Verify condition is met
+      - Mark as [x] with evidence link
+      - If not met: document blocker (P0/P1) or deferral reason (P2)
+    - Ensure ALL P0 items are complete (HARD BLOCKER)
+    - Ensure ALL P1 items are complete or user-approved deferral
+    - Document P2 deferrals with reasons
+    - Update checklist.md file with verification marks
+    verification_protocol:
+      p0_handling: "BLOCKER - Cannot proceed without completion"
+      p1_handling: "Required - Complete or get user approval to defer"
+      p2_handling: "Optional - Can defer with documented reason"
     outputs:
     - quality_checklist: generated
+    - checklist_status: pass_or_fail
+    - verified_items_count: "X/Y items verified"
+    - p0_status: "all_complete or blocked"
+    - deferred_items: list_of_deferred_p2_items
     template: .opencode/speckit/templates/checklist.md
-    validation: checklist_generated
+    validation: checklist_verified_and_marked
     checkpoint:
-      question: "Step 5 Complete: Quality checklist generated. How would you like to proceed?"
+      question: "Step 5 Complete: Checklist verified. How would you like to proceed?"
       use: AskUserQuestion
-      options: checkpoint_options.standard
+      options:
+      - label: "Proceed"
+        description: "Continue to planning phase"
+      - label: "Review Verification"
+        description: "Show checklist verification details"
+      - label: "Address Blockers"
+        description: "Fix P0/P1 blockers first"
 
   step_6_planning:
     purpose: Create technical plan with implementation approach
@@ -557,6 +578,15 @@ workflow:
       - verification_steps_taken
       - deviations_from_plan
       - recommended_next_steps
+    verification_summary:
+      checklist_verification:
+        required: true  # for Level 2+
+        must_include:
+        - Total items verified count
+        - P0 items status (all must be complete)
+        - P1 items status (all complete or deferred with approval)
+        - Deferred P2 items with reasons
+        - Link to updated checklist.md
     validation: implementation_complete
     checkpoint:
       question: "Step 11 Complete: Implementation summary generated. Review summary?"
@@ -640,6 +670,10 @@ rules:
   - pause_at_checkpoints_for_approval
   - respect_user_feedback
   - limit_context_to_active_scope
+  - use_checklist_for_verification_level_2_plus
+  - mark_checklist_items_with_evidence
+  - complete_all_p0_items_before_done
+  - get_user_approval_for_p1_deferrals
 
   NEVER:
   - skip_workflow_steps
@@ -648,3 +682,6 @@ rules:
   - skip_browser_testing
   - proceed_without_user_approval
   - ignore_user_modification_requests
+  - claim_completion_without_checklist_verification_level_2_plus
+  - skip_p0_checklist_items
+  - defer_p1_items_without_user_approval

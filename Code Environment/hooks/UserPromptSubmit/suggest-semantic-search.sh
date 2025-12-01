@@ -37,8 +37,17 @@ source "$HOOKS_DIR/lib/output-helpers.sh" || exit 0
 LOG_DIR="$HOOKS_DIR/logs"
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 
+# Cross-platform nanosecond timing helper
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo $(($(date +%s) * 1000000000))
+  else
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
 INPUT=$(cat)
@@ -141,7 +150,7 @@ if [ "$SHOULD_SUGGEST" = true ]; then
   # TERMINAL-VISIBLE NOTIFICATION (JSON systemMessage)
   # This appears in the user's terminal as a visible notification
   # ─────────────────────────────────────────────────────────────────
-  echo "{\"systemMessage\": \"Semantic search recommended for this query - use /index:search or mcp-semantic-search skill\"}"
+  echo "{\"systemMessage\": \"Semantic search recommended for this query - use search_codebase() directly (NATIVE MCP)\"}"
 
   # ─────────────────────────────────────────────────────────────────
   # CLAUDE CONTEXT (Plain text instructions for Claude)
@@ -154,27 +163,27 @@ if [ "$SHOULD_SUGGEST" = true ]; then
   case "$SUGGESTION_TYPE" in
     exploratory)
       echo "Context: User is exploring where/how functionality is implemented"
-      echo "Action: Use search_codebase() via mcp-code-mode for intent-based discovery"
+      echo "Action: Call search_codebase() DIRECTLY (NATIVE MCP - NOT through Code Mode)"
       ;;
     architecture)
       echo "Context: User is understanding how components work together"
-      echo "Action: Use search_codebase() to find related code and dependencies"
+      echo "Action: Call search_codebase() DIRECTLY to find related code and dependencies"
       ;;
     navigation)
       echo "Context: User is navigating usage patterns across the codebase"
-      echo "Action: Use search_codebase() for comprehensive pattern discovery"
+      echo "Action: Call search_codebase() DIRECTLY for comprehensive pattern discovery"
       ;;
     relationships)
       echo "Context: User is discovering code relationships and dependencies"
-      echo "Action: Use search_codebase() with relationship queries"
+      echo "Action: Call search_codebase() DIRECTLY with relationship queries"
       ;;
     feature_discovery)
       echo "Context: User is finding implementation patterns for features"
-      echo "Action: Use search_codebase() to discover feature implementations"
+      echo "Action: Call search_codebase() DIRECTLY to discover feature implementations"
       ;;
     refactoring)
       echo "Context: User is identifying similar code for refactoring"
-      echo "Action: Use search_codebase() to find similar patterns"
+      echo "Action: Call search_codebase() DIRECTLY to find similar patterns"
       ;;
   esac
 
@@ -182,13 +191,11 @@ if [ "$SHOULD_SUGGEST" = true ]; then
   echo "Suggested Query: \"$QUERY_TEMPLATE\""
   echo ""
   echo "Instructions for Claude:"
-  echo "  1. Activate mcp-semantic-search skill if not already loaded"
-  echo "  2. Use mcp-code-mode to execute search_codebase(\"$QUERY_TEMPLATE\")"
+  echo "  1. Call search_codebase(\"$QUERY_TEMPLATE\") DIRECTLY"
+  echo "  2. Semantic search is NATIVE MCP - do NOT use Code Mode or call_tool_chain()"
   echo "  3. Read specific files from results for full context"
   echo ""
-  echo "References:"
-  echo "  - Semantic Search: .claude/skills/mcp-semantic-search/SKILL.md"
-  echo "  - Code Mode: .claude/skills/mcp-code-mode/SKILL.md"
+  echo "Reference: .claude/skills/mcp-semantic-search/SKILL.md"
   echo "==============================="
   echo ""
 
@@ -204,7 +211,7 @@ if [ "$SHOULD_SUGGEST" = true ]; then
 fi
 
 # Performance timing END
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] suggest-semantic-search.sh ${DURATION}ms" >> "$HOOKS_DIR/logs/performance.log"
 

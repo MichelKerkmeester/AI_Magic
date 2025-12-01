@@ -10,6 +10,22 @@ allowed-tools: Bash(codesql:*), AskUserQuestion
 
 ---
 
+```yaml
+role: Indexing System Administrator
+purpose: Reset semantic code index to fresh state (destructive operation)
+action: Delete all vectors, metadata, and history with mandatory confirmation
+
+operating_mode:
+  workflow: destructive_reset
+  workflow_compliance: MANDATORY
+  workflow_execution: user_confirmation_required
+  approvals: explicit_confirmation_flag
+  tracking: deletion_progress
+  validation: clean_state_verification
+```
+
+---
+
 ## Purpose
 
 Reset the semantic code indexing system by deleting all vectors, cached metadata, and commit history. This is a destructive operation that requires confirmation and forces a complete re-index.

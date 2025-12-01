@@ -10,6 +10,22 @@ Execute the complete SpecKit lifecycle from specification through implementation
 
 ---
 
+```yaml
+role: Expert Developer using Smart SpecKit with Full Lifecycle Management
+purpose: Spec-driven development with mandatory compliance and comprehensive documentation
+action: Run full 12-step SpecKit from specification to implementation with context preservation
+
+operating_mode:
+  workflow: sequential_12_step
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous_or_interactive
+  approvals: step_by_step_for_confirm_mode
+  tracking: progressive_task_checklists
+  validation: checkpoint_based_with_checklist_verification
+```
+
+---
+
 ## Purpose
 
 Run the full 12-step SpecKit workflow: specification, clarification, planning, task breakdown, implementation, and context saving. This is the comprehensive workflow for feature development with full documentation trail.
@@ -35,7 +51,7 @@ $ARGUMENTS
 | 2 | Pre-Work Review | Review AGENTS.md, standards | coding_standards_summary |
 | 3 | Specification | Create spec.md | spec.md, feature branch |
 | 4 | Clarification | Resolve ambiguities | updated spec.md |
-| 5 | Quality Checklist | Generate validation checklist | checklists/requirements.md |
+| 5 | Quality Checklist | Generate validation checklist (ACTIVELY USED for verification at completion) | checklists/requirements.md |
 | 6 | Planning | Create technical plan | plan.md, research.md |
 | 7 | Task Breakdown | Break into tasks | tasks.md |
 | 8 | Analysis | Verify consistency | consistency_report |
@@ -171,6 +187,8 @@ See CLAUDE.md Section 2 for full memory file handling details.
 
 **Note:** LOC thresholds are soft guidance. Choose level based on complexity and risk.
 
+**Important:** For Level 2+, `checklist.md` is MANDATORY for verification before any completion claims. The AI must actively use it to verify work.
+
 ## Templates Used
 
 - `.opencode/speckit/templates/spec.md` (Level 1+)
@@ -195,7 +213,7 @@ Artifacts Created:
 - spec.md (specification with acceptance criteria)
 - plan.md (technical approach and architecture)
 - tasks.md (implementation breakdown)
-- checklists/requirements.md (validation checklist)
+- checklist.md (validation checklist - Level 2+)
 - implementation-summary.md (completion report)
 - memory/[timestamp]__session.md (context saved)
 
@@ -203,6 +221,14 @@ Implementation:
 - Files modified: [count]
 - Tests: [PASS/FAIL]
 - Browser validation: [COMPLETE/SKIPPED]
+
+Checklist Verification (Level 2+):
+- Status: [VERIFIED/PARTIAL/N/A]
+- Items verified: [X/Y] (e.g., "15/15 items verified")
+- P0 (Critical): [X/Y] - All must pass
+- P1 (High): [X/Y] - Required items
+- P2 (Medium): [X/Y] - Optional items
+- Deferred items: [list with reasons, if any]
 
 Next Steps:
 - Review implementation summary
@@ -231,6 +257,26 @@ STATUS=OK PATH=specs/NNN-short-name/
 ---
 
 ## Notes
+
+### Checklist Verification Protocol (Level 2+ Mandatory)
+
+When `checklist.md` exists, the AI MUST complete verification before any completion claims:
+
+1. **Load** checklist.md at completion phase
+2. **Verify** each item systematically:
+   - P0 (Critical): BLOCKERS - must complete
+   - P1 (High): Required - complete or get user deferral approval
+   - P2 (Medium): Optional - can defer with documentation
+3. **Mark** items `[x]` with evidence (links, test output, etc.)
+4. **Block** completion until all P0/P1 items verified
+5. **Document** any deferred items in completion summary
+
+**Example Verification:**
+```
+- [x] CHK001 [P0] Requirements documented | Evidence: spec.md sections 1-3
+- [x] CHK006 [P0] Code passes lint | Evidence: `npm run lint` - 0 errors
+- [ ] CHK016 [P2] Performance targets | Deferred: Will benchmark post-MVP
+```
 
 - **Mode Behaviors:**
   - **Autonomous (`:auto`)**: Executes all steps without user approval gates. Self-validates at each checkpoint. Makes informed decisions based on best judgment. Documents all significant decisions. Logs deviations from expected patterns.

@@ -10,6 +10,22 @@ Perform semantic code search using natural language queries to find relevant cod
 
 ---
 
+```yaml
+role: Semantic Code Search Specialist
+purpose: Search codebase using natural language queries for intent-based code discovery
+action: Execute semantic search via MCP server with optional LLM-based refinement
+
+operating_mode:
+  workflow: query_and_retrieve
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none_required
+  tracking: results_count_and_files
+  validation: relevance_scoring
+```
+
+---
+
 ## Purpose
 
 Search your codebase using natural language queries. This leverages the semantic-search MCP server to find relevant code chunks based on functionality and intent, not just literal text matching.
@@ -33,7 +49,7 @@ Execute the following steps:
    - If query is empty, return `STATUS=FAIL ERROR="Query is required"`
 
 2. **Determine workspace path:**
-   - Use current working directory: `/Users/michelkerkmeester/MEGA/Development/Websites/anobel.com`
+   - Use current working directory: `/path/to/your/project`
    - This should match the workspace configured in the MCP server
 
 3. **Execute semantic search:**

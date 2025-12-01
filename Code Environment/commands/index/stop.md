@@ -9,6 +9,22 @@ Cleanly stop the semantic code indexing watcher process while preserving all ind
 
 ---
 
+```yaml
+role: Indexing System Controller
+purpose: Gracefully terminate file watcher while preserving indexed data
+action: Stop background watcher process and confirm data preservation
+
+operating_mode:
+  workflow: graceful_shutdown
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none_required
+  tracking: shutdown_status
+  validation: watcher_stopped_confirmation
+```
+
+---
+
 ## Purpose
 
 Terminate the background file watcher process that monitors code changes. This stops automatic indexing while preserving all existing indexed data in the database.

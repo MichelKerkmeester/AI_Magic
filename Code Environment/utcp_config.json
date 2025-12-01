@@ -17,10 +17,13 @@
       "call_template_type": "mcp",
       "config": {
         "mcpServers": {
-          "chrome_devtools": {
+          "chrome_devtools_1": {
             "transport": "stdio",
             "command": "npx",
-            "args": ["-y", "chrome-devtools-mcp@latest", "--isolated=true"],
+            "args": [
+              "chrome-devtools-mcp@latest",
+              "--isolated=true"
+            ],
             "env": {}
           }
         }
@@ -31,38 +34,51 @@
       "call_template_type": "mcp",
       "config": {
         "mcpServers": {
-          "chrome_devtools": {
+          "chrome_devtools_2": {
             "transport": "stdio",
             "command": "npx",
-            "args": ["-y", "chrome-devtools-mcp@latest", "--isolated=true"],
+            "args": [
+              "chrome-devtools-mcp@latest",
+              "--isolated=true"
+            ],
             "env": {}
           }
         }
       }
     },
     {
-      "name": "semantic_search",
+      "name": "figma",
       "call_template_type": "mcp",
       "config": {
         "mcpServers": {
-          "semantic_search": {
+          "figma": {
             "transport": "stdio",
-            "command": "/path/to/mcp/venv/bin/python",
-            "args": ["/path/to/mcp/src/server_sqlite.py"],
+            "command": "npx",
+            "args": [
+              "-y",
+              "mcp-figma"
+            ],
             "env": {
-              "MCP_CODEBASE_WORKSPACE": "/path/to/project",
-              "MCP_CODEBASE_DB_PATH": "/path/to/project/.codebase/vectors.db",
-              "MCP_CODEBASE_EMBEDDER_PROVIDER": "openai-compatible",
-              "MCP_CODEBASE_EMBEDDER_API_KEY": "{{ VOYAGE_AI_API_KEY }}",
-              "MCP_CODEBASE_EMBEDDER_BASE_URL": "https://api.voyageai.com/v1",
-              "MCP_CODEBASE_EMBEDDER_MODEL_ID": "voyage-code-3",
-              "MCP_CODEBASE_JUDGE_PROVIDER": "openai-compatible",
-              "MCP_CODEBASE_JUDGE_API_KEY": "{{ VOYAGE_AI_API_KEY }}",
-              "MCP_CODEBASE_JUDGE_BASE_URL": "https://api.voyageai.com/v1",
-              "MCP_CODEBASE_JUDGE_MODEL_ID": "voyage-3",
-              "MCP_CODEBASE_JUDGE_MAX_TOKENS": "1024",
-              "MCP_CODEBASE_JUDGE_TEMPERATURE": "0"
+              "FIGMA_PERSONAL_ACCESS_TOKEN": "YOUR_FIGMA_TOKEN_HERE",
+              "NODE_ENV": "production"
             }
+          }
+        }
+      }
+    },
+    {
+      "name": "webflow",
+      "call_template_type": "mcp",
+      "config": {
+        "mcpServers": {
+          "webflow": {
+            "transport": "stdio",
+            "command": "npx",
+            "args": [
+              "mcp-remote",
+              "https://mcp.webflow.com/sse"
+            ],
+            "env": {}
           }
         }
       }

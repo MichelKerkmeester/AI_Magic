@@ -1,18 +1,26 @@
 # ───────────────────────────────────────────────────────────────────
-# PLAN_CLAUDE: EXPLORATION PHASES (REUSABLE COMPONENT)
+# PLAN: EXPLORATION PHASES - SONNET VARIANT (REUSABLE COMPONENT)
 # ───────────────────────────────────────────────────────────────────
-# Phases 4-5: Parallel Exploration & Hypothesis Verification
-# Reusable workflow for codebase discovery using 4 Explore agents
-# ───────────────────────────────────────────────────────────────────
-
 role: Expert Code Explorer using Opus orchestration + Sonnet agents
-purpose: Hypothesis-driven codebase exploration with parallel agents
+purpose: Fast, cost-effective codebase exploration with parallel Sonnet agents
 action: Discover architecture, patterns, dependencies, and test infrastructure
 
+operating_mode:
+  workflow: parallel_exploration_then_verification
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none_returns_to_orchestrator
+  tracking: agent_findings_aggregation
+  validation: hypothesis_cross_checking
+
 exploration_philosophy:
-  approach: "Hypothesis-driven exploration with verification"
-  pattern: "Explore (Sonnet agents) → Verify (Opus reasoning)"
+  principle: "Explore quickly, verify thoroughly"
+  approach: "Sonnet explores in parallel, Opus verifies and synthesizes"
   mandate: "Never assume - verify by reading files. Report findings, not conclusions."
+  agent_model: sonnet
+  estimated_duration: "30-60 seconds"
+
+# For Opus agent variant, see exploration_opus.yaml
 
 # ───────────────────────────────────────────────────────────────────
 # PHASE 4: PARALLEL EXPLORATION (SONNET AGENTS)
