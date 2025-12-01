@@ -324,7 +324,7 @@ $ARGUMENTS
 
 ## Templates Used
 
-- `.claude/commands/spec_kit/assets/templates/[template].md`
+- `.opencode/speckit/templates/[template].md`
 - [Other template references]
 
 ---

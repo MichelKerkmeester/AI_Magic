@@ -553,42 +553,52 @@ get_skills_for_domain() {
 # ───────────────────────────────────────────────────────────────
 # 4. PARALLEL AGENT DISPATCH
 # ───────────────────────────────────────────────────────────────
-# Detects domains from prompt and outputs structured dispatch instructions
-# that Claude can act upon using the Task tool.
+# Outputs structured dispatch instructions that Claude can act upon
+# using the Task tool. Reuses domain detection from calculate_complexity_score
+# to avoid duplicate grep patterns (performance optimization).
 
 dispatch_parallel_agents() {
   local prompt="$1"
-  local prompt_lower=$(echo "$prompt" | tr '[:upper:]' '[:lower:]')
+  local predetected_domains="${2:-}"  # PERFORMANCE: Reuse domains from calculate_complexity_score
   local detected_domains=""
 
-  # Detect which domains are present (SYNCED with calculate_complexity_score)
-  # Code domain (REFINED - removed generic verbs and standalone 'api' that over-matches docs)
-  if echo "$prompt_lower" | grep -qE "(implement|code|refactor|function|class|component|backend|frontend|fix|bug|debug|error|issue|problem|resolve|patch|hotfix|optimize|improve|enhance|script|module|service|handler|controller|model|util|helper|endpoint|route)"; then
-    detected_domains="${detected_domains}code,"
-  fi
-  # Analysis domain (REFINED - removed verbs that overlap with other domains)
-  if echo "$prompt_lower" | grep -qE "(analyze|investigate|explore|examine|audit|inspect|trace|profile|benchmark|diagnose|troubleshoot|discover|locate|scan)"; then
-    detected_domains="${detected_domains}analysis,"
-  fi
-  # Docs domain (REFINED - removed changelog duplicate, kept in git domain)
-  if echo "$prompt_lower" | grep -qE "(document|readme|guide|tutorial|api.*doc|comment|explain|release.*notes|specification|spec.*doc|jsdoc|typedoc|markdown|wiki)"; then
-    detected_domains="${detected_domains}docs,"
-  fi
-  # Git domain (keeps changelog as primary owner)
-  if echo "$prompt_lower" | grep -qE "(git|commit|branch|merge|pull.*request|migration|version|pr\b|tag|release|changelog|rebase|cherry.*pick)"; then
-    detected_domains="${detected_domains}git,"
-  fi
-  # Testing domain (EXPANDED)
-  if echo "$prompt_lower" | grep -qE "(test|unittest|integration.*test|e2e|coverage|spec\b|assert|mock|stub|fixture|snapshot|playwright|jest|vitest|bats|pytest)"; then
-    detected_domains="${detected_domains}testing,"
-  fi
-  # DevOps domain (EXPANDED)
-  if echo "$prompt_lower" | grep -qE "(deploy|ci|cd|docker|build|pipeline|infrastructure|kubernetes|k8s|helm|terraform|ansible|aws|gcp|azure|nginx|ssl|certificate|monitoring|logging|metrics)"; then
-    detected_domains="${detected_domains}devops,"
-  fi
+  # Use pre-detected domains if provided (avoids duplicate grep patterns)
+  if [[ -n "$predetected_domains" ]]; then
+    # Convert space-separated to comma-separated for consistent processing
+    detected_domains=$(echo "$predetected_domains" | tr ' ' ',')
+  else
+    # Fallback: detect domains (only if not pre-detected)
+    local prompt_lower=$(echo "$prompt" | tr '[:upper:]' '[:lower:]')
 
-  # Remove trailing comma
-  detected_domains="${detected_domains%,}"
+    # Detect which domains are present (SYNCED with calculate_complexity_score)
+    # Code domain (REFINED - removed generic verbs and standalone 'api' that over-matches docs)
+    if echo "$prompt_lower" | grep -qE "(implement|code|refactor|function|class|component|backend|frontend|fix|bug|debug|error|issue|problem|resolve|patch|hotfix|optimize|improve|enhance|script|module|service|handler|controller|model|util|helper|endpoint|route)"; then
+      detected_domains="${detected_domains}code,"
+    fi
+    # Analysis domain (REFINED - removed verbs that overlap with other domains)
+    if echo "$prompt_lower" | grep -qE "(analyze|investigate|explore|examine|audit|inspect|trace|profile|benchmark|diagnose|troubleshoot|discover|locate|scan)"; then
+      detected_domains="${detected_domains}analysis,"
+    fi
+    # Docs domain (REFINED - removed changelog duplicate, kept in git domain)
+    if echo "$prompt_lower" | grep -qE "(document|readme|guide|tutorial|api.*doc|comment|explain|release.*notes|specification|spec.*doc|jsdoc|typedoc|markdown|wiki)"; then
+      detected_domains="${detected_domains}docs,"
+    fi
+    # Git domain (keeps changelog as primary owner)
+    if echo "$prompt_lower" | grep -qE "(git|commit|branch|merge|pull.*request|migration|version|pr\b|tag|release|changelog|rebase|cherry.*pick)"; then
+      detected_domains="${detected_domains}git,"
+    fi
+    # Testing domain (EXPANDED)
+    if echo "$prompt_lower" | grep -qE "(test|unittest|integration.*test|e2e|coverage|spec\b|assert|mock|stub|fixture|snapshot|playwright|jest|vitest|bats|pytest)"; then
+      detected_domains="${detected_domains}testing,"
+    fi
+    # DevOps domain (EXPANDED)
+    if echo "$prompt_lower" | grep -qE "(deploy|ci|cd|docker|build|pipeline|infrastructure|kubernetes|k8s|helm|terraform|ansible|aws|gcp|azure|nginx|ssl|certificate|monitoring|logging|metrics)"; then
+      detected_domains="${detected_domains}devops,"
+    fi
+
+    # Remove trailing comma
+    detected_domains="${detected_domains%,}"
+  fi
 
   # If no domains detected, default to code
   if [[ -z "$detected_domains" ]]; then
@@ -775,8 +785,8 @@ fi
 
 # Execute based on decision
 if [[ "$DECISION" == "DISPATCH" ]]; then
-  # Get dispatch information
-  DISPATCH_RESULT=$(dispatch_parallel_agents "$PROMPT")
+  # Get dispatch information (pass pre-detected domains to avoid duplicate grep patterns)
+  DISPATCH_RESULT=$(dispatch_parallel_agents "$PROMPT" "$DETECTED_DOMAINS")
   AGENT_COUNT=$(echo "$DISPATCH_RESULT" | cut -d'|' -f1)
   DETECTED_DOMAINS=$(echo "$DISPATCH_RESULT" | cut -d'|' -f2)
   AGENT_LIST=$(echo "$DISPATCH_RESULT" | cut -d'|' -f3)

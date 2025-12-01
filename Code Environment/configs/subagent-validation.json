@@ -1,0 +1,210 @@
+{
+  "$schema": "./subagent-validation.schema.json",
+  "_comment": "Sub-agent output validation configuration for SubagentStop hook",
+  "_version": "1.0.0",
+  "_updated": "2025-12-01",
+
+  "thresholds": {
+    "block": 40,
+    "warn": 70,
+    "minOutputLength": 50,
+    "maxRetries": 2
+  },
+
+  "scoring": {
+    "weights": {
+      "failures": 60,
+      "completeness": 30,
+      "alignment": 25,
+      "security": 15
+    },
+    "penalties": {
+      "criticalFailure": 60,
+      "multipleErrors": 40,
+      "someErrors": 25,
+      "fewErrors": 10,
+      "manyIncomplete": 30,
+      "someIncomplete": 10,
+      "inability": 35,
+      "inabilityWithAlternative": 5,
+      "securityConcern": 15,
+      "poorAlignment": 25,
+      "marginalAlignment": 10,
+      "emptyOutput": 50,
+      "shortOutput": 15
+    }
+  },
+
+  "patterns": {
+    "criticalFailures": [
+      "fatal error",
+      "unhandled exception",
+      "stack trace",
+      "segmentation fault",
+      "out of memory",
+      "maximum recursion",
+      "infinite loop detected",
+      "process killed",
+      "SIGKILL",
+      "SIGSEGV"
+    ],
+    "errors": [
+      "error:",
+      "Error:",
+      "ERROR",
+      "exception:",
+      "Exception:",
+      "failed to",
+      "Failed to",
+      "could not",
+      "Could not",
+      "unable to",
+      "Unable to",
+      "cannot ",
+      "Cannot ",
+      "doesn't exist",
+      "does not exist",
+      "not found",
+      "Not found",
+      "permission denied",
+      "Permission denied",
+      "access denied",
+      "timed out",
+      "timeout"
+    ],
+    "incomplete": [
+      "TODO",
+      "FIXME",
+      "XXX",
+      "HACK",
+      "\\[placeholder\\]",
+      "\\[PLACEHOLDER\\]",
+      "implement this",
+      "not implemented",
+      "needs implementation",
+      "work in progress",
+      "WIP",
+      "coming soon",
+      "to be completed",
+      "finish this",
+      "add later"
+    ],
+    "inability": [
+      "I was unable to",
+      "I couldn't",
+      "I could not",
+      "I cannot",
+      "I can't",
+      "I don't have access",
+      "I don't have the ability",
+      "beyond my capabilities",
+      "outside my scope",
+      "I apologize, but",
+      "Unfortunately, I",
+      "I'm sorry, but I",
+      "not possible for me",
+      "I lack the"
+    ],
+    "security": [
+      "eval\\(",
+      "exec\\(",
+      "system\\(",
+      "innerHTML\\s*=",
+      "dangerouslySetInnerHTML",
+      "document\\.write",
+      "\\$\\{.*\\}.*SQL",
+      "password\\s*=\\s*[\"'][^\"']+[\"']",
+      "api_key\\s*=\\s*[\"'][^\"']+[\"']",
+      "secret\\s*=\\s*[\"'][^\"']+[\"']",
+      "private_key",
+      "BEGIN RSA PRIVATE",
+      "BEGIN OPENSSH PRIVATE"
+    ],
+    "inabilityMitigation": [
+      "however",
+      "but I was able",
+      "instead",
+      "alternative",
+      "workaround"
+    ]
+  },
+
+  "agentTypeRules": {
+    "Explore": {
+      "requiredPatterns": ["found", "located", "discovered", "identified", "file", "path", "directory", "function", "class", "component"],
+      "penalty": 15,
+      "issueMessage": "Explore agent didn't report findings"
+    },
+    "Plan": {
+      "requiredPatterns": ["step", "phase", "1.", "2.", "first", "then", "next", "finally", "plan", "approach", "strategy"],
+      "penalty": 20,
+      "issueMessage": "Plan agent didn't produce structured plan"
+    },
+    "code-reviewer": {
+      "requiredPatterns": ["suggest", "recommend", "issue", "concern", "improve", "consider", "good", "problem", "bug", "fix"],
+      "penalty": 15,
+      "issueMessage": "Code reviewer didn't provide substantive feedback"
+    },
+    "general-purpose": {
+      "requiredPatterns": [],
+      "penalty": 0,
+      "issueMessage": ""
+    }
+  },
+
+  "simpleTasks": {
+    "keywords": [
+      "check",
+      "verify",
+      "confirm",
+      "list",
+      "count",
+      "find",
+      "locate",
+      "search",
+      "quick",
+      "simple",
+      "basic"
+    ],
+    "minOutputLength": 20
+  },
+
+  "blockExceptions": {
+    "_comment": "Patterns that should NOT trigger blocking even if detected",
+    "allowedErrorContexts": [
+      "error handling",
+      "catch error",
+      "handle error",
+      "log error",
+      "error message",
+      "error code"
+    ],
+    "allowedIncompleteContexts": [
+      "remove TODO",
+      "fix TODO",
+      "address TODO",
+      "resolve FIXME"
+    ]
+  },
+
+  "logging": {
+    "enabled": true,
+    "logFile": "subagent-validation.log",
+    "logLevel": "info",
+    "includeOutputPreview": true,
+    "outputPreviewLength": 200
+  },
+
+  "retryGuidance": {
+    "enabled": true,
+    "messages": {
+      "criticalFailure": "Critical error detected. Check for runtime issues or invalid inputs.",
+      "incomplete": "Output contains unfinished work. Complete all TODOs before submitting.",
+      "errors": "Multiple errors detected. Debug and fix issues before resubmitting.",
+      "inability": "Agent reported inability to complete. Consider breaking into smaller tasks.",
+      "poorAlignment": "Output doesn't address the original task. Review task description.",
+      "shortOutput": "Output is too brief. Provide more detailed response.",
+      "security": "Security concerns detected. Review code for vulnerabilities."
+    }
+  }
+}

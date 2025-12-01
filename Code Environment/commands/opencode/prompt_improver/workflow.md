@@ -198,7 +198,7 @@ Apply systematic prompt enhancement with:
      - `## 4. FRAMEWORK COMPONENTS` - Breakdown of each component
      - `## 5. SUCCESS CRITERIA` - Measurable outcomes and validation status
      - `## 6. USAGE` - Direct use, YAML version, Integration code
-     - `## 7. APPENDIX` - Enhancement details, related files
+     - `## 7. APPENDIX` - Related files only
 
    - **File 2 - enhanced_prompt.yaml** (Pure YAML - NO metadata):
      - Header comment only (title + framework name)
@@ -350,7 +350,7 @@ Output: Preserves existing framework, polishes clarity, ~9 seconds
 **spec.md - SpecKit Compliance:**
 - Follows SpecKit spec.md template structure
 - Numbered sections: OBJECTIVE, SCOPE, ENHANCED PROMPT, FRAMEWORK COMPONENTS, SUCCESS CRITERIA, USAGE, APPENDIX
-- Metadata in APPENDIX only (not in YAML)
+- No internal metadata in output (complexity scores, DEPTH rounds, mode)
 
 **Integration:**
 - Saves to active spec folder if available

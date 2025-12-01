@@ -292,14 +292,11 @@ validate_regex_pattern() {
 
 # PERFORMANCE CRITICAL: Direct variable name construction
 # Avoids subprocess spawning in hot loops (called 100+ times)
-# Bash 3.2 compatible pure-bash solution
+# Bash 3.2 compatible - uses single tr call instead of awk | tr
 to_upper_underscore() {
-  # Pure bash solution - no subprocesses!
-  # Since skill names are predictable, we can use case statements
-  case "$1" in
-    *[a-z-]*) echo "$1" | awk '{print toupper($0)}' | tr '-' '_' ;;
-    *) echo "$1" ;;
-  esac
+  # Single subprocess: tr does BOTH uppercase AND hyphen replacement
+  # This is 2x faster than: echo | awk | tr (2 subprocesses)
+  echo "$1" | tr '[:lower:]-' '[:upper:]_'
 }
 
 check_keywords() {
@@ -623,7 +620,8 @@ print_skill_evaluation_requirement() {
   echo ""
   echo "Required format:"
   for skill_item in "${skills[@]}"; do
-    skill_name=$(echo "$skill_item" | cut -d'|' -f1)
+    # Pure Bash string manipulation (no subprocess)
+    skill_name="${skill_item%%|*}"
     echo "  [$skill_name]: YES/NO - [your reason]"
   done
   echo ""
@@ -651,8 +649,8 @@ for skill_name in "${SKILL_NAMES[@]}"; do
   fi
 
   # Get cached skill data using variable indirection
-  # Compute var_prefix ONCE per skill (avoid 4 subprocess calls per skill)
-  var_prefix=$(echo "$skill_name" | awk '{print toupper($0)}' | tr '-' '_')
+  # Compute var_prefix ONCE per skill using optimized tr (single subprocess)
+  var_prefix=$(echo "$skill_name" | tr '[:lower:]-' '[:upper:]_')
   var_prefix="SKILL_${var_prefix}"
   always_var="${var_prefix}_ALWAYS"
 
@@ -707,8 +705,8 @@ WORKFLOWS_CODE_MATCHED=false
 
 for skill in "${MATCHED_SKILLS[@]}"; do
   # Get priority and description from cached variables
-  # Compute var_prefix ONCE per matched skill
-  var_prefix=$(echo "$skill" | awk '{print toupper($0)}' | tr '-' '_')
+  # Compute var_prefix ONCE per matched skill using optimized tr (single subprocess)
+  var_prefix=$(echo "$skill" | tr '[:lower:]-' '[:upper:]_')
   var_prefix="SKILL_${var_prefix}"
   priority_var="${var_prefix}_PRIORITY"
   desc_var="${var_prefix}_DESC"
@@ -765,8 +763,9 @@ if [ ${#CRITICAL_SKILLS[@]} -gt 0 ]; then
   echo "⚠️  Proceeding without these skills will result in incomplete/incorrect implementation."
   echo ""
   for item in "${CRITICAL_SKILLS[@]}"; do
-    skill_name=$(echo "$item" | cut -d'|' -f1)
-    desc=$(echo "$item" | cut -d'|' -f2)
+    # Pure Bash string manipulation (no subprocess)
+    skill_name="${item%%|*}"   # Remove from first | to end
+    desc="${item#*|}"          # Remove from start to first |
 
     # Smart truncation at 100 chars with word boundary preservation
     if [ ${#desc} -gt 100 ]; then

@@ -7,7 +7,7 @@
 #   Final validation checkpoint before allowing spec folder commits.
 #   Runs comprehensive quality checks and blocks commits with critical issues.
 #
-# VERSION: 1.0.0
+# VERSION: 1.0.1
 # CREATED: 2025-11-24
 # SPEC: specs/003-speckit-rework/003-template-enforcement/
 #
@@ -50,6 +50,15 @@ fi
 # Load output helpers (optional)
 if [ -f "${HOOKS_DIR}/lib/output-helpers.sh" ]; then
   source "${HOOKS_DIR}/lib/output-helpers.sh"
+fi
+
+# Load exit codes for standardized exit handling
+if [ -f "${HOOKS_DIR}/lib/exit-codes.sh" ]; then
+  source "${HOOKS_DIR}/lib/exit-codes.sh"
+else
+  # Fallback: define constants if library missing
+  EXIT_ALLOW=0
+  EXIT_BLOCK=1
 fi
 
 # Configuration
@@ -329,11 +338,11 @@ main() {
       echo ""
       echo "To allow commit with warnings, set STRICT_MODE=false"
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-      exit 1
+      exit $EXIT_BLOCK
     else
       echo "Commit allowed (set STRICT_MODE=true to block on warnings)"
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-      exit 0
+      exit $EXIT_ALLOW
     fi
 
   else
@@ -351,7 +360,7 @@ main() {
     echo "  - Missing [NEEDS CLARIFICATION:...]: Resolve open questions"
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    exit 1
+    exit $EXIT_BLOCK
   fi
 }
 

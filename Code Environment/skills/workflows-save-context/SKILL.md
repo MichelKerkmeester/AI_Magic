@@ -56,6 +56,27 @@ Preserve comprehensive conversation context in human-readable markdown files. Cr
 - **Visual Docs**: Auto-generated flowcharts and decision trees
 - **Use Case**: Session documentation and team sharing
 
+### When to RETRIEVE Context (Equally Important)
+
+**MANDATORY: Before ANY implementation work in a spec folder with memory files**:
+- Search anchors for prior decisions and implementations
+- Load relevant sections using the Context Recovery Protocol
+- Acknowledge what you found (or note absence)
+
+**Why Retrieval Matters**:
+- **Prevents duplicate work** - Don't re-implement what's already done
+- **Ensures consistency** - Don't contradict prior approved decisions
+- **Reduces token waste** - Don't re-discover known information (93% savings)
+- **Maintains continuity** - Build on prior context, not from scratch
+
+**When to Search Anchors**:
+- Starting work in ANY spec folder with a `memory/` directory
+- Before making architectural decisions
+- Before implementing features that might have prior context
+- When user references "what we discussed" or "the previous approach"
+
+**See Section 4 for the full Context Recovery Protocol (MANDATORY).**
+
 
 ---
 
@@ -296,6 +317,64 @@ bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh --help
 - Example: `<!-- anchor: implementation-oauth-callback-049 -->`
 - Categories: implementation, decision, guide, architecture, files, discovery, integration
 
+---
+
+### Context Recovery Protocol (MANDATORY)
+
+**CRITICAL**: Before implementing ANY changes in a spec folder with memory files, you MUST search for relevant anchors. This is NOT optional.
+
+**Why This Is Mandatory**:
+- Prevents duplicating work that was already completed
+- Ensures consistency with prior decisions
+- Reduces token waste by not re-discovering known information
+- Maintains continuity across sessions (93-97% token savings)
+
+**Protocol Steps**:
+
+1. **Extract Keywords** from your current task:
+   - Identify 2-4 key terms (e.g., "auth", "oauth", "callback", "hook")
+   - Focus on domain terms, not common words
+
+2. **Search Anchors** using grep:
+   ```bash
+   # Search within current spec folder
+   grep -r "anchor:.*keyword" specs/###-current-spec/memory/*.md
+
+   # Cross-spec search if broader context needed
+   grep -r "anchor:.*keyword" specs/*/memory/*.md
+
+   # Find all decision anchors (high-value context)
+   grep -l "anchor: decision" specs/###-current-spec/memory/*.md
+   ```
+
+3. **Load Relevant Sections** if matches found:
+   ```bash
+   # Use load-related-context.sh for intelligent retrieval
+   .claude/hooks/lib/load-related-context.sh "###-spec" smart "your keywords"
+
+   # Or extract specific anchor directly
+   sed -n '/<!-- anchor: decision-auth-049 -->/,/<!-- \/anchor: decision-auth-049 -->/p' file.md
+   ```
+
+4. **Acknowledge Context** in your response:
+   - If found: "Based on prior decision in memory file [filename], I see that [summary]..."
+   - If not found: "No prior context found for [task keywords] - proceeding with fresh implementation"
+
+**Anti-Patterns (NEVER DO)**:
+- ❌ Assuming no prior work exists without searching anchors first
+- ❌ Saying "I don't see any X" without running grep commands
+- ❌ Ignoring loaded context and re-implementing from scratch
+- ❌ Making decisions that contradict documented prior decisions
+- ❌ Skipping anchor search because "this seems like a new task"
+
+**Enforcement**: If you skip this protocol, you risk:
+- Duplicating hours of prior work
+- Contradicting decisions the user already approved
+- Wasting tokens re-discovering information that's already documented
+- Breaking consistency across the codebase
+
+---
+
 **Quick Search - Find Memory Files**:
 ```bash
 # Find all memory files containing OAuth implementation
@@ -356,16 +435,25 @@ The `load-related-context.sh` script provides intelligent memory file access:
 | `smart <query>` | Relevance-ranked search | `load-related-context.sh "049-..." smart "auth bug"` | ~600 tokens |
 | `search_all <kw>` | Cross-spec search | `load-related-context.sh search_all "oauth"` | Varies |
 
-**Retrieval Decision Tree**:
+**Retrieval Decision Tree** (MANDATORY FIRST STEP):
 ```
-Need context? → How much?
-├─ Quick refresh         → summary (400 tokens, 97% reduction)
-├─ Specific decision     → extract <anchor-id> (600 tokens, 95% reduction)
-├─ Recent history        → recent 3 (900 tokens, 92% reduction)
-├─ Find something        → search <keyword> (then extract)
-├─ Smart search          → smart <query> (relevance-ranked results)
-├─ Cross-project search  → search_all <keyword>
-└─ Comprehensive         → Read full file (12,000 tokens, when needed)
+Starting work in spec folder?
+│
+└─► SEARCH ANCHORS FIRST (see Context Recovery Protocol above)
+    │
+    ├─ Found relevant anchors?
+    │   │
+    │   ├─ YES → Load sections, acknowledge context, then proceed
+    │   │        ├─ Quick refresh    → summary (400 tokens)
+    │   │        ├─ Specific section → extract <anchor-id> (600 tokens)
+    │   │        ├─ Multiple files   → recent 3 (900 tokens)
+    │   │        └─ Deep search      → smart <query> (relevance-ranked)
+    │   │
+    │   └─ NO  → Note "no prior context found for [keywords]"
+    │            Proceed with fresh implementation
+    │
+    └─ Need cross-project context?
+        └─ search_all <keyword> → spans all spec folders
 ```
 
 **Relevance Scoring** (Phase 4):

@@ -231,9 +231,9 @@ Starting new feature:
 ```
 
 
-#### `workflows-spec-kit` (v1.0.0)
+#### `workflows-spec-kit` (v1.0.1)
 
-**Purpose**: Mandatory spec folder workflow orchestrating documentation level selection (0-3) and folder creation for all file modifications
+**Purpose**: Mandatory spec folder workflow orchestrating documentation level selection (1-3) and folder creation for all file modifications
 
 **Maturity**: Medium-High (Mandatory) | **References**: 4 files | **Assets**: 2 files
 
@@ -294,9 +294,11 @@ Reusing existing spec folder:
 **Maturity**: High | **References**: 2 files | **Scripts**: 1 file (generate-context.js)
 
 **Key Features**:
+- **Context Recovery Protocol (MANDATORY)**: MUST search anchors before ANY implementation in spec folders with memory files
 - **Auto-Trigger System**: Activates on keywords ("save context", "save conversation") OR every 20 messages
 - **Anchor-Based Retrieval** (v9.0): HTML comment anchors enable section extraction with 93-97% token reduction
 - **7 Retrieval Commands**: list, summary, search, extract, recent, smart, search_all
+- **Retrieval = Saving**: Both directions equally important - search before implementing, save after completing
 - **Timestamped Memory Files**: `DD-MM-YY_HH-MM__topic.md` in `specs/###-feature/memory/` or sub-folder memory/
 - **Sub-Folder Awareness**: Routes to active sub-folder's memory/ using `.spec-active.{SESSION_ID}` marker (V9: session-isolated)
 - **Visual Documentation**: Auto-generated flowcharts and decision trees
@@ -316,11 +318,12 @@ Reusing existing spec folder:
 - `search_all <keyword>` - Cross-spec-folder anchor discovery
 
 **When to Use**:
-- Completing significant implementation sessions
-- Documenting architectural discussions
-- Preserving complex debugging sessions
-- Auto-triggered every 20 messages (context budget management)
-- Loading previous session context (Option D in enforce-spec-folder hook)
+- **RETRIEVE (MANDATORY)**: Before implementing in spec folders with memory files - search anchors first
+- **SAVE**: Completing significant implementation sessions
+- **SAVE**: Documenting architectural discussions
+- **SAVE**: Preserving complex debugging sessions
+- **AUTO**: Triggered every 20 messages (context budget management)
+- **LOAD**: Previous session context (Option A/B/C in enforce-spec-folder hook)
 
 **Example**:
 ```

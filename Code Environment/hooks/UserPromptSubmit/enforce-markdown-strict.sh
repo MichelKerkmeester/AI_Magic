@@ -501,7 +501,7 @@ main() {
         local end_time=$(_get_nano_time)
         local duration=$(( (end_time - START_TIME) / 1000000 ))
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-markdown-strict.sh ${duration}ms" >> "$HOOKS_DIR/logs/performance.log"
-        exit 1
+        exit ${EXIT_BLOCK:-1}
     fi
 
     # Show success indicator if files were checked

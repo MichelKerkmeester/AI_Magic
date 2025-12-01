@@ -7,6 +7,14 @@
 
 set -euo pipefail
 
+# Source exit codes for consistent exit code usage
+SCRIPT_DIR_ABS="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+source "$SCRIPT_DIR_ABS/../lib/exit-codes.sh" 2>/dev/null || {
+  EXIT_ALLOW=0
+  EXIT_BLOCK=1
+  EXIT_ERROR=2
+}
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -32,7 +40,7 @@ echo ""
 # Check if config file exists
 if [ ! -f "$CONFIG_FILE" ]; then
   echo -e "${RED}✗ ERROR: Config file not found: $CONFIG_FILE${NC}"
-  exit 1
+  exit ${EXIT_ERROR:-1}
 fi
 
 echo "Config file: $CONFIG_FILE"
@@ -50,7 +58,7 @@ if jq empty "$CONFIG_FILE" 2>/dev/null; then
 else
   echo -e "   ${RED}✗ Invalid JSON syntax${NC}"
   jq . "$CONFIG_FILE"
-  exit 1
+  exit ${EXIT_ERROR:-1}
 fi
 
 # ───────────────────────────────────────────────────────────────
@@ -85,7 +93,7 @@ echo ""
 echo "3. SKILL DEFINITIONS"
 echo "   ─────────────────"
 
-SKILL_COUNT=$(jq '.skills | length' "$CONFIG_FILE")
+SKILL_COUNT=$(jq '.skills // {} | length' "$CONFIG_FILE")
 echo "   Found $SKILL_COUNT skills"
 echo ""
 
@@ -152,7 +160,7 @@ echo ""
 echo "4. RISK PATTERNS"
 echo "   ─────────────"
 
-PATTERN_COUNT=$(jq '.riskPatterns | length' "$CONFIG_FILE")
+PATTERN_COUNT=$(jq '.riskPatterns // {} | length' "$CONFIG_FILE")
 echo "   Found $PATTERN_COUNT risk patterns"
 echo ""
 
@@ -211,11 +219,11 @@ echo ""
 
 if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
   echo -e "${GREEN}✓ Validation passed with no errors or warnings${NC}"
-  exit 0
+  exit ${EXIT_ALLOW:-0}
 elif [ $ERRORS -eq 0 ]; then
   echo -e "${YELLOW}⚠  Validation passed with $WARNINGS warning(s)${NC}"
-  exit 0
+  exit ${EXIT_ALLOW:-0}
 else
   echo -e "${RED}✗ Validation failed with $ERRORS error(s) and $WARNINGS warning(s)${NC}"
-  exit 1
+  exit ${EXIT_BLOCK:-1}
 fi

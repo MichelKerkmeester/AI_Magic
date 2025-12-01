@@ -6,7 +6,7 @@
 # PreCompact hook that automatically saves conversation context
 # before compaction operations (manual or automatic).
 #
-# Version: 1.0.0
+# Version: 1.0.1
 # Created: 2025-11-24
 #
 # PERFORMANCE TARGET: <5s (Node.js script execution)
@@ -30,8 +30,19 @@ HOOKS_DIR="$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd)"
 source "$HOOKS_DIR/lib/output-helpers.sh" || exit 0
 source "$HOOKS_DIR/lib/exit-codes.sh" || exit 0
 
+# Cross-platform nanosecond timing helper (Bash 3.2 compatible)
+_get_nano_time() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS: no nanoseconds, use seconds * 1 billion
+    echo $(($(date +%s) * 1000000000))
+  else
+    # Linux: use nanoseconds with fallback
+    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+  fi
+}
+
 # Performance timing START
-START_TIME=$(date +%s%N)
+START_TIME=$(_get_nano_time)
 
 # ───────────────────────────────────────────────────────────────
 # DEPENDENCY CHECKS
@@ -313,7 +324,7 @@ TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 } >> "$LOG_FILE"
 
 # Performance timing END
-END_TIME=$(date +%s%N)
+END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] save-context-before-compact.sh ${DURATION}ms" >> "$LOG_DIR/performance.log"
 

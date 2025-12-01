@@ -32,6 +32,9 @@ This directory contains hooks that automatically trigger during Claude Code oper
 - **PostToolUse**: Triggers after Write/Edit/NotebookEdit operations
 - **PreCompact**: Triggers before context compaction (manual or automatic)
 
+**Sub-Agent Lifecycle:**
+- **SubagentStop**: Triggers when a sub-agent (Task tool) completes - can BLOCK bad output
+
 **Session Lifecycle:**
 - **PreSessionStart**: Triggers when a new session begins (initialization)
 - **PostSessionEnd**: Triggers when a session ends (cleanup)
@@ -146,6 +149,19 @@ User Action
 │        🔀  = Merged (v2.0.0)            │
 └────────┬────────────────────────────────┘
          │
+         ▼ (if Task tool used)
+┌─────────────────────────────────────────┐
+│  SubagentStop Hooks 🛡️                  │
+│  - validate-subagent-output.sh (block)  │
+│  Note: (block) = CAN block bad output   │
+│        🛡️  = Quality gate for agents    │
+│  Validates: errors, completeness,       │
+│             alignment, security         │
+│  Score < 40: BLOCKS with reason         │
+│  Score 40-69: Warns but allows          │
+│  Score 70+: Allows (good output)        │
+└────────┬────────────────────────────────┘
+         │
          ▼
 ┌─────────────────────────────────────────┐
 │  Claude Generates Response              │
@@ -209,6 +225,7 @@ User Action
 | verify-spec-compliance | PostToolUse | Spec folder compliance check | Write/Edit | 0 | ~30ms |
 | detect-scope-growth | PostToolUse | Scope growth (v2.0.0 - NOW FUNCTIONAL) | Write/Edit .md | 0 | <50ms |
 | summarize-task-completion | PostToolUse | Task summaries (fixed: duration calculation) | Task tool | 0 | ~20ms |
+| validate-subagent-output | SubagentStop | Block bad sub-agent output (v1.0.0 - quality gate) | Task completion | 0/block | <50ms |
 | prune-context | PreCompact | Context pruning (v2.0.0 - DCP-style output) | Before compaction | 0 | <5s |
 | save-context-before-compact | PreCompact | Auto-save before compact | Before compaction | 0 | <10s |
 | initialize-session | PreSessionStart | Session initialization | Session start | 0 | <50ms |
@@ -561,7 +578,90 @@ json_escape() {
 **Integration**: Updated enforce-spec-folder.sh to initialize scope_definition state
 **Performance**: <50ms
 
-### 3.6 Session Lifecycle Hooks
+### 3.6 SubagentStop Hooks (Quality Gate)
+
+#### validate-subagent-output.sh (SubagentStop) - v1.0.0
+
+**Purpose**: Validate sub-agent (Task tool) output quality and BLOCK bad output before acceptance
+
+**Unique Capability**: SubagentStop is the ONLY hook type that can block a sub-agent's output after execution. Other hooks can only warn.
+
+**Validation Checks** (5 categories):
+1. **Failure Detection**: Errors, exceptions, crashes, timeouts
+2. **Completeness Check**: TODOs, placeholders, unfinished work markers
+3. **Quality Assessment**: Output length, depth, relevance to task
+4. **Security Scan**: Basic vulnerability patterns (eval, innerHTML, secrets)
+5. **Task Alignment**: Does output address the original task request?
+
+**Scoring System** (0-100):
+| Score Range | Action | Behavior |
+|-------------|--------|----------|
+| 0-39 | **BLOCK** | Returns `{"decision": "block", "reason": "..."}` |
+| 40-69 | Warn | Allows with `{"systemMessage": "⚠️ ..."}` |
+| 70-89 | Allow | Silent pass |
+| 90-100 | Excellent | Success message `{"systemMessage": "✅ ..."}` |
+
+**Retry Logic**:
+- Max 2 retries per agent before giving up
+- Retry count tracked in `/tmp/claude_hooks_state/subagent_retries.json`
+- Retries reset after 1 hour (cleanup on stale state)
+
+**Blocking Patterns** (will BLOCK output):
+- Critical failures: `fatal error`, `stack trace`, `segmentation fault`
+- Multiple errors: >5 error patterns detected
+- Incomplete work: >3 TODO/FIXME markers
+- Empty/very short output: <50 characters for complex tasks
+- Quality score below threshold: <40/100
+
+**Warning Patterns** (allow with warning):
+- Some errors: 1-5 error patterns
+- Few incomplete markers: 1-3 TODOs
+- Security concerns: `eval()`, `innerHTML`, exposed secrets
+- Poor task alignment: Output doesn't mention task keywords
+
+**Agent-Type Specific Rules**:
+- **Explore agents**: Must report findings (files, paths, components)
+- **Plan agents**: Must produce structured plan (steps, phases)
+- **Code reviewers**: Must provide feedback (suggestions, issues)
+- **General-purpose**: Minimal type-specific requirements
+
+**Configuration**: `.claude/configs/subagent-validation.json`
+- Customizable patterns and thresholds
+- Per-agent-type validation rules
+- Retry guidance messages
+
+**Library**: `.claude/hooks/lib/subagent-validation.sh`
+- Core validation functions
+- Pattern matching utilities
+- Retry state management
+- Transcript output extraction
+
+**Logs**: `.claude/hooks/logs/subagent-validation.log`
+- Validation results with scores
+- Block/allow decisions
+- Retry counts and reasons
+
+**Performance**: <50ms (reads transcript, applies validation, returns decision)
+
+**Example Output (Block)**:
+```json
+{
+  "decision": "block",
+  "reason": "Quality score: 25/100 (Poor) - Too many errors in output (8) | Issues: Multiple errors detected (8 occurrences)",
+  "systemMessage": "❌ Sub-agent output blocked: Quality score: 25/100 (Poor) - Too many errors in output (8)"
+}
+```
+
+**Example Output (Warn)**:
+```json
+{
+  "systemMessage": "⚠️ Sub-agent output quality: 55/100 (Marginal) - Contains TODO/FIXME markers (2)"
+}
+```
+
+---
+
+### 3.7 Session Lifecycle Hooks
 
 #### initialize-session.sh (PreSessionStart)
 **Purpose**: Session initialization
@@ -882,6 +982,7 @@ Most hooks write to `.claude/hooks/logs/`:
 | **file-scope-tracking.sh** | File modification tracking | `track_file()`, `get_modified_files()` | detect-scope-growth.sh, track-file-modifications.sh | <10ms |
 | **context-pruner.js** | Context pruning engine (v2.0.0 - DCP-style) | `extractToolCalls()`, `deduplicateToolCalls()`, `displaySummary()` | prune-context.sh | <5s |
 | **platform-utils.sh** | Cross-platform utilities (v1.0.0) | `get_file_size()`, `get_file_mtime()`, `sanitize_session_id()`, `relpath()` | Multiple hooks | <5ms |
+| **subagent-validation.sh** | Sub-agent output validation (v1.0.0) | `validate_subagent_output()`, `quick_validate()`, `extract_subagent_output_from_transcript()` | validate-subagent-output.sh | <50ms |
 | **tool-input-parser.sh** | JSON input parsing (v1.0.0) | `read_tool_input()`, `parse_file_path()`, `is_file_editing_tool()` | PreToolUse/PostToolUse hooks | <5ms |
 | **perf-timing.sh** | Performance timing (v1.0.0) | `start_timing()`, `end_timing()`, `log_performance()` | All hooks | <1ms |
 | **hook-init.sh** | Common initialization boilerplate (v1.0.0) | Sources common libraries, sets up logging | All hooks | <5ms |

@@ -400,7 +400,7 @@ Detail: Removed stale .spec-active marker (path: specs/999-deleted)
    mkdir -p specs/###-short-name/
    ```
 
-6. **Copy REQUIRED templates** from `.claude/commands/spec_kit/assets/templates/` (Progressive Enhancement)
+6. **Copy REQUIRED templates** from `.opencode/speckit/templates/` (Progressive Enhancement)
    - Level 1 (Baseline): `spec.md` + `plan.md` + `tasks.md`
    - Level 2 (Verification): Level 1 + `checklist.md`
    - Level 3 (Full): Level 2 + `decision-record.md`
@@ -470,7 +470,7 @@ Level 3 (Full):         Level 2 + decision-record.md
    - Choice honored (A/B/C/D)
 
 3. **Template Selection (HARD ENFORCEMENT)**
-   - Copied from `.claude/commands/spec_kit/assets/templates/` (not created from scratch)
+   - Copied from `.opencode/speckit/templates/` (not created from scratch)
    - ALL required templates for selected level present
    - Hooks will block commits if required templates missing:
      - Level 1: blocks if spec.md OR plan.md OR tasks.md missing
@@ -516,7 +516,7 @@ Level 3 (Full):         Level 2 + decision-record.md
 
 ### Absolutely Required
 
-- **NEVER create documentation files from scratch** - Always copy from `.claude/commands/spec_kit/assets/templates/`
+- **NEVER create documentation files from scratch** - Always copy from `.opencode/speckit/templates/`
 - **ALWAYS copy from templates directory** - Never freehand documentation
 - **ALWAYS rename copied files correctly** - Use proper target filenames
 - **ALWAYS fill in actual content** - Remove ALL placeholders and samples

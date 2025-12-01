@@ -1,4 +1,4 @@
-  },
+{
   "enabledMcpjsonServers": [
     "code_mode",
     "semantic-search"
@@ -250,6 +250,17 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreToolUse/validate-spec-final.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/SubagentStop/validate-subagent-output.sh",
+            "timeout": 5000
           }
         ]
       }

@@ -55,6 +55,16 @@ source "$SCRIPT_DIR/../lib/shared-state.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/../lib/signal-output.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/../lib/spec-context.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/../lib/file-scope-tracking.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/../lib/migrate-spec-folder.sh" 2>/dev/null || true
+
+# Load exit codes for standardized exit handling
+if [ -f "$SCRIPT_DIR/../lib/exit-codes.sh" ]; then
+  source "$SCRIPT_DIR/../lib/exit-codes.sh"
+else
+  # Fallback: define constants if library missing
+  EXIT_ALLOW=0
+  EXIT_BLOCK=1
+fi
 
 # Source template validation library (if available)
 # Note: template-validation.sh expects REPO_ROOT to be set
@@ -248,7 +258,7 @@ transition_to_memory_stage() {
   echo ""
 
   emit_memory_load_question "$MEMORY_FILES_JSON"
-  exit 1
+  exit $EXIT_BLOCK
 }
 
 # ───────────────────────────────────────────────────────────────
@@ -1426,33 +1436,9 @@ has_root_level_content() {
   return 1  # No root content
 }
 
-# Find next sub-folder number within spec folder
-# Returns next available number in format: 001, 002, 003, etc.
-get_next_subfolder_number() {
-  local spec_folder="$1"
-
-  if [ ! -d "$spec_folder" ]; then
-    echo "001"
-    return
-  fi
-
-  # Find all numbered sub-folders (###-*)
-  local max=0
-  while IFS= read -r dir; do
-    local base=$(basename "$dir")
-    local num=${base%%-*}
-    # Check if it's a number with exactly 3 digits
-    if [[ "$num" =~ ^[0-9]{3}$ ]]; then
-      # Force base 10 interpretation to avoid octal issues
-      if ((10#$num > max)); then
-        max=$((10#$num))
-      fi
-    fi
-  done < <(find "$spec_folder" -maxdepth 1 -mindepth 1 -type d -name "[0-9][0-9][0-9]-*" 2>/dev/null)
-
-  # Return next number with 3-digit padding
-  printf "%03d" $((max + 1))
-}
+# get_next_subfolder_number() - MOVED TO LIBRARY
+# Function is now sourced from: lib/migrate-spec-folder.sh
+# See comment at migrate_to_subfolders() location for details.
 
 # Get parent folder from a path (handles both ###-parent and ###-parent/###-child)
 # Returns parent folder path, or empty if path is not in numbered folder
@@ -1627,90 +1613,10 @@ get_active_child() {
   return 1
 }
 
-# Migrate spec folder to sub-folder structure
-# Creates numbered archive sub-folder for existing content and numbered sub-folder for new work
-migrate_to_subfolders() {
-  local spec_folder="$1"
-  local new_subfolder_name="$2"
-
-  # Input validation
-  if [ -z "$spec_folder" ] || [ -z "$new_subfolder_name" ]; then
-    echo "   ⚠️  Migration failed: Invalid parameters" >&2
-    return 1
-  fi
-
-  if [ ! -d "$spec_folder" ]; then
-    echo "   ⚠️  Migration failed: Spec folder not found" >&2
-    return 1
-  fi
-
-  # Validate sub-folder name format (lowercase, hyphens, alphanumeric)
-  if ! echo "$new_subfolder_name" | grep -qE '^[a-z][a-z0-9-]*$'; then
-    echo "   ⚠️  Invalid sub-folder name: Use lowercase letters, numbers, and hyphens only" >&2
-    echo "   Examples: spec-folder-versioning, api-refactor, bug-fixes" >&2
-    return 1
-  fi
-
-  # Get next sub-folder number for archive
-  local archive_num=$(get_next_subfolder_number "$spec_folder")
-
-  # Calculate new sub-folder number (archive + 1)
-  local new_num=$(printf "%03d" $((10#$archive_num + 1)))
-
-  # Create folder names with numbers
-  local spec_basename=$(basename "$spec_folder")
-  local archive_topic="${spec_basename#*-}"  # Remove ###- prefix
-  local archive_folder="${spec_folder}/${archive_num}-${archive_topic}"
-  local new_folder="${spec_folder}/${new_num}-${new_subfolder_name}"
-
-  # Check for conflicts
-  if [ -d "$archive_folder" ]; then
-    echo "   ⚠️  Archive folder already exists: $(basename "$archive_folder")" >&2
-    return 1
-  fi
-
-  if [ -d "$new_folder" ]; then
-    echo "   ⚠️  Sub-folder already exists: $(basename "$new_folder")" >&2
-    echo "   Choose a different name or work in existing folder" >&2
-    return 1
-  fi
-
-  # Create sub-folders
-  echo "   📦 Creating sub-folder structure..." >&2
-  mkdir -p "$archive_folder" || {
-    echo "   ⚠️  Failed to create archive folder" >&2
-    return 1
-  }
-
-  mkdir -p "$new_folder/memory" || {
-    echo "   ⚠️  Failed to create new sub-folder" >&2
-    rm -rf "$archive_folder"  # Cleanup partial creation
-    return 1
-  }
-
-  # Move existing root-level files to archive (exclude directories)
-  echo "   📦 Archiving existing files..." >&2
-  find "$spec_folder" -maxdepth 1 -type f \( -name "*.md" -o -name "*.json" -o -name "*.txt" \) \
-    -exec mv {} "$archive_folder/" \; 2>/dev/null
-
-  # Move existing memory/ to archive if exists
-  if [ -d "${spec_folder}/memory" ]; then
-    echo "   📦 Archiving existing memory/ folder..." >&2
-    mv "${spec_folder}/memory" "${archive_folder}/" 2>/dev/null || {
-      echo "   ⚠️  Warning: Could not move memory/ folder" >&2
-    }
-  fi
-
-  # Update .spec-active marker to point to new sub-folder
-  create_spec_marker "$new_folder"
-
-  echo "   ✅ Migration complete:" >&2
-  echo "      Archive: $(basename "$archive_folder")/" >&2
-  echo "      Active: $(basename "$new_folder")/" >&2
-  echo "      Marker: .claude/.spec-active updated" >&2
-
-  return 0
-}
+# migrate_to_subfolders() - MOVED TO LIBRARY
+# Function is now sourced from: lib/migrate-spec-folder.sh
+# This eliminates code duplication and centralizes maintenance.
+# The library provides: migrate_to_subfolders(), get_next_subfolder_number()
 
 # ───────────────────────────────────────────────────────────────
 # MEMORY FILE SELECTION FUNCTIONS
@@ -2808,7 +2714,7 @@ if [ "$CHECK_SPEC_FOLDER" != "false" ]; then
             END_TIME=$(_get_nano_time)
             DURATION=$(((END_TIME - START_TIME)/1000000))
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms (task change question)" >> "$PERF_LOG"
-            exit 1  # BLOCK until user responds
+            exit $EXIT_BLOCK  # BLOCK until user responds
           elif [ "$DIVERGENCE_SCORE" -gt 40 ] 2>/dev/null; then
             # Medium divergence - just log, don't block
             echo "💡 [enforce-spec-folder] Some topic drift detected (${DIVERGENCE_SCORE}%) - continuing in $SPEC_FOLDER_NAME" >&2
@@ -2885,7 +2791,7 @@ if [ "$CHECK_SPEC_FOLDER" != "false" ]; then
     END_TIME=$(_get_nano_time)
     DURATION=$(((END_TIME - START_TIME)/1000000))
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms (spec folder confirm question)" >> "$PERF_LOG"
-    exit 1  # BLOCK until user confirms spec folder (then ask about memory if applicable)
+    exit $EXIT_BLOCK  # BLOCK until user confirms spec folder (then ask about memory if applicable)
   fi
 
   # Empty or minimal content → Start of conversation, run validation
@@ -2924,8 +2830,8 @@ if [ "$NEEDS_CONFIRMATION" = true ]; then
   END_TIME=$(_get_nano_time)
   DURATION=$(((END_TIME - START_TIME)/1000000))
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-spec-folder.sh ${DURATION}ms (BLOCKING - confirmation needed)" >> "$PERF_LOG"
-  log_event "BLOCKING" "Mandatory spec folder question pending - exit 1"
-  exit 1  # CRITICAL: Block until user responds to mandatory question
+  log_event "BLOCKING" "Mandatory spec folder question pending - EXIT_BLOCK"
+  exit $EXIT_BLOCK  # CRITICAL: Block until user responds to mandatory question
 fi
 
 log_event "ALLOWED" "Spec folder validated: ${SPEC_FOLDER_NAME:-n/a}"

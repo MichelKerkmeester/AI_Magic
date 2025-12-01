@@ -1367,8 +1367,6 @@ phase_6_output_generation:
         - ""
         - "Complete specification for the enhanced prompt using {framework_name} framework."
         - ""
-        - "<!-- SPECKIT_TEMPLATE_SOURCE: spec | v1.0 -->"
-        - ""
         - "---"
         - ""
 
@@ -1471,12 +1469,6 @@ phase_6_output_generation:
 
         section_7_appendix:
         - "## 7. APPENDIX"
-        - ""
-        - "### Enhancement Details"
-        - "- **Framework**: {framework_name}"
-        - "- **Complexity**: {complexity_score}/10"
-        - "- **DEPTH Rounds**: {rounds_completed}"
-        - "- **Mode**: {mode}"
         - ""
         - "### Related Files"
         - "- `enhanced_prompt.yaml` - Pure YAML version (no metadata)"

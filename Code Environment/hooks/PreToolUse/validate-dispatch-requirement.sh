@@ -101,8 +101,8 @@ if [[ "$REQUIRED" == "true" ]]; then
     echo ""
   } >&2
 
-  exit 1
+  exit ${EXIT_BLOCK:-1}
 fi
 
 # Default: allow
-exit 0
+exit ${EXIT_ALLOW:-0}

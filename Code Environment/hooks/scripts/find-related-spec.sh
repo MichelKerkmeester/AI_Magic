@@ -21,6 +21,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || (cd "$SCRIPT_DIR/../.." && pwd))
 SPECS_DIR="$PROJECT_ROOT/specs"
 
+# Source exit codes for consistent exit code usage
+source "$SCRIPT_DIR/../lib/exit-codes.sh" 2>/dev/null || {
+  EXIT_ALLOW=0
+  EXIT_BLOCK=1
+  EXIT_ERROR=2
+}
+
 # ───────────────────────────────────────────────────────────────
 # USAGE & VALIDATION
 # ───────────────────────────────────────────────────────────────
@@ -35,12 +42,12 @@ if [ $# -eq 0 ]; then
   echo ""
   echo "Searches spec folder names and titles for keyword matches."
   echo "Returns top 5 results ranked by relevance."
-  exit 1
+  exit ${EXIT_BLOCK:-1}
 fi
 
 if [ ! -d "$SPECS_DIR" ]; then
   echo "Error: Specs directory not found: $SPECS_DIR"
-  exit 1
+  exit ${EXIT_ERROR:-1}
 fi
 
 QUERY="$*"
@@ -146,7 +153,7 @@ if [ ${#RESULTS[@]} -eq 0 ]; then
   echo "  • Try different keywords (e.g., \"auth\" instead of \"authentication\")"
   echo "  • Check folder names: ls specs/ | grep -i \"keyword\""
   echo "  • This may be a new feature - create a new spec folder"
-  exit 1
+  exit ${EXIT_BLOCK:-1}
 fi
 
 # Sort by score (descending), limit to 5
@@ -186,4 +193,4 @@ echo "Found $RESULT_COUNT related spec(s)"
 echo ""
 echo "Guidelines: .claude/knowledge/conversation_documentation.md Section 7"
 
-exit 0
+exit ${EXIT_ALLOW:-0}

@@ -293,4 +293,4 @@ DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] enforce-verification.sh ${DURATION}ms BLOCKED" >> "$SCRIPT_DIR/../logs/performance.log"
 
 # Block request - Iron Law enforcement
-exit 1
+exit ${EXIT_BLOCK:-1}

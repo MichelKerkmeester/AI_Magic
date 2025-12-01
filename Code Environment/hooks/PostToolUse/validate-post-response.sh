@@ -142,7 +142,7 @@ check_file_for_patterns() {
   fi
   
   # Check each risk pattern category
-  local risk_categories=$(jq -r '.riskPatterns | keys[]' "$SKILL_RULES" 2>/dev/null)
+  local risk_categories=$(jq -r '.riskPatterns // {} | keys[]' "$SKILL_RULES" 2>/dev/null)
   
   while IFS= read -r category; do
     if [ -z "$category" ]; then
@@ -150,7 +150,7 @@ check_file_for_patterns() {
     fi
     
     # Get patterns for this category
-    local patterns=$(jq -r ".riskPatterns[\"$category\"].patterns[]" "$SKILL_RULES" 2>/dev/null)
+    local patterns=$(jq -r ".riskPatterns[\"$category\"].patterns // [] | .[]" "$SKILL_RULES" 2>/dev/null)
     
     # Check if any pattern matches
     local matched=false
@@ -171,7 +171,7 @@ check_file_for_patterns() {
     
     # If matched, add reminder (avoid duplicates)
     if [ "$matched" = true ]; then
-      local reminder=$(jq -r ".riskPatterns[\"$category\"].reminder" "$SKILL_RULES" 2>/dev/null)
+      local reminder=$(jq -r ".riskPatterns[\"$category\"].reminder // empty" "$SKILL_RULES" 2>/dev/null)
       
       # Check if reminder already added
       local already_added=false

@@ -1,13 +1,13 @@
 ---
 name: workflows-spec-kit
-description: Mandatory spec folder workflow orchestrating documentation level selection (0-3), template selection, and folder creation for all file modifications through hook-assisted enforcement and context auto-save.
+description: Mandatory spec folder workflow orchestrating documentation level selection (1-3), template selection, and folder creation for all file modifications through hook-assisted enforcement and context auto-save.
 allowed-tools: ["*"]
-version: 1.0.0
+version: 1.0.1
 ---
 
 # 🗂️ Conversation Documentation Workflow - Mandatory Spec Folder System & Template Enforcement
 
-Orchestrates mandatory spec folder creation for all conversations involving file modifications. This skill ensures proper documentation level selection (0-3), template usage, and context preservation through automated workflows and hook-assisted enforcement.
+Orchestrates mandatory spec folder creation for all conversations involving file modifications. This skill ensures proper documentation level selection (1-3), template usage, and context preservation through automated workflows and hook-assisted enforcement.
 
 ---
 

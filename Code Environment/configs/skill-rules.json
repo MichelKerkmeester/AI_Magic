@@ -1110,34 +1110,6 @@
           "thinking section"
         ]
       }
-    },
-    "workflows-planning": {
-      "type": "workflow",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "4-agent parallel exploration for comprehensive planning. Spawns Architecture/Feature/Dependency/Test Sonnet explorers, synthesizes findings, and generates verified plan.md (.claude/skills/workflows-planning/)",
-      "promptTriggers": {
-        "keywords": [
-          "plan with exploration",
-          "parallel planning",
-          "explore and plan",
-          "comprehensive plan",
-          "deep analysis plan",
-          "verified planning",
-          "4-agent planning",
-          "exploration planning"
-        ],
-        "intentPatterns": [
-          "(plan|planning).*?(explore|exploration|parallel|comprehensive|verified)",
-          "(create|generate).*?(detailed|thorough|comprehensive).*?plan",
-          "(explore|analyze).*?(codebase|architecture).*?(before|then).*?plan",
-          "(comprehensive|deep|thorough).*?(analysis|exploration).*?plan"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [".claude/skills/workflows-planning/**"],
-        "contentPatterns": []
-      }
     }
   },
   "riskPatterns": {
