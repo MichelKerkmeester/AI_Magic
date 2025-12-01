@@ -1,12 +1,37 @@
 # ───────────────────────────────────────────────────────────────────
-# SKILL & HOOK REFINEMENT WORKFLOW 
+# SKILL & HOOK REFINEMENT WORKFLOW
 # ───────────────────────────────────────────────────────────────────
 # 4-Phase audit workflow: Detect → Fix → Verify → Document
 # Uses parallel Sonnet agents for comprehensive analysis
 # ───────────────────────────────────────────────────────────────────
+#
+# ENVIRONMENT COMPATIBILITY:
+# ─────────────────────────
+# This workflow supports BOTH Claude Code and opencode environments.
+# Path references below use `.claude/` as the canonical format.
+#
+# AUTOMATIC PATH SUBSTITUTION (applied by AI at runtime):
+#   Claude Code:
+#     - SKILLS_PATH = ".claude/skills/"
+#     - HOOKS_PATH = ".claude/hooks/"
+#     - HOOKS_AVAILABLE = true
+#
+#   opencode:
+#     - SKILLS_PATH = ".opencode/skills/"
+#     - HOOKS_PATH = (not available)
+#     - HOOKS_AVAILABLE = false
+#     - All hook-related phases/steps → SKIP
+#
+# When running in opencode:
+#   1. Substitute ".claude/skills/" → ".opencode/skills/"
+#   2. SKIP all hooks-related grep commands and phases
+#   3. SKIP Phase 3 verification for hooks
+#   4. Adjust scope "both" → "skills" automatically
+#
+# ───────────────────────────────────────────────────────────────────
 
 role: Skills & Hooks Quality Engineer specializing in Bash 3.2+ scripting, Claude Code architecture, performance engineering, and quality assurance
-purpose: Comprehensive audit, bug fix, and improvement of skills and hooks systems
+purpose: Comprehensive audit, bug fix, and improvement of skills and hooks systems (skills-only in opencode)
 action: Execute 4-phase workflow with parallel exploration agents and evidence-based fixes
 
 operating_mode:
@@ -28,8 +53,12 @@ development_philosophy:
 # CONTEXT: SYSTEM STRUCTURES
 # ───────────────────────────────────────────────────────────────────
 context:
+  # ENVIRONMENT-AWARE PATHS (substitute at runtime based on Step 0 detection)
+  # Claude Code: .claude/skills/ | opencode: .opencode/skills/
   skills_structure:
-    base_path: ".claude/skills/"
+    base_path: "{SKILLS_PATH}"  # Substitute with detected path
+    base_path_claude: ".claude/skills/"
+    base_path_opencode: ".opencode/skills/"
     folder_pattern: "{skill-name}/"
     required_files:
       - "SKILL.md"
@@ -58,8 +87,13 @@ context:
         - "INTEGRATION POINTS"
         - "QUICK START"
 
+  # HOOKS: Claude Code ONLY - Skip entirely in opencode
+  # opencode does not have a hooks directory
   hooks_structure:
-    base_path: ".claude/hooks/"
+    available_in: "claude-code-only"  # NOT available in opencode
+    base_path: "{HOOKS_PATH}"  # Empty string in opencode = skip
+    base_path_claude: ".claude/hooks/"
+    base_path_opencode: null  # Not supported
     hook_types:
       - name: "UserPromptSubmit"
         description: "Before processing user input"
@@ -148,6 +182,10 @@ phase_1_detect:
   purpose: "Spawn 4 Sonnet agents to comprehensively scan for issues"
   model: "sonnet"
   execution: "parallel"
+  # OPENCODE NOTE: When HOOKS_AVAILABLE=false, skip hook-related exploration
+  # - Code Smell Explorer: skip hook grep patterns
+  # - Cross-Reference Explorer: skip hook lib checks
+  # - Performance Explorer: skip performance.log checks
 
   steps:
     step_1_spawn_explorers:
@@ -271,19 +309,22 @@ phase_1_detect:
           name: "Performance Explorer"
           focus: "Timing data, subprocess overhead, optimization opportunities"
           model: "sonnet"
+          # NOTE: In opencode, skip hook performance checks (no performance.log)
           prompt_template: |
             Analyze performance characteristics and optimization opportunities.
 
             Scope: {scope_path}
 
-            **Check Performance Logs:**
+            **Check Performance Logs:** (Claude Code only - skip in opencode)
             ```bash
-            # Recent performance data
-            tail -100 .claude/hooks/logs/performance.log 2>/dev/null
+            # Recent performance data (substitute {HOOKS_PATH} or skip if opencode)
+            tail -100 {HOOKS_PATH}/logs/performance.log 2>/dev/null
 
             # Hooks exceeding targets
-            grep -E "[0-9]{3,}ms" .claude/hooks/logs/performance.log | tail -20
+            grep -E "[0-9]{3,}ms" {HOOKS_PATH}/logs/performance.log | tail -20
             ```
+
+            Note: In opencode, skip these commands - no hooks/logs exist.
 
             **Subprocess Analysis:**
             ```bash
@@ -573,37 +614,42 @@ phase_3_verify:
   model: "opus"
   execution: "sequential"
   condition: "Execute if mode is :full"
+  # OPENCODE NOTE: Skip all hook-related verification steps (9-13)
+  # Only execute step_14_skill_validation in opencode
 
   steps:
     step_9_syntax_check:
       action: "Run bash syntax validation on all hooks"
+      environment: "claude-code-only"  # SKIP in opencode
       command: |
-        for f in .claude/hooks/*/*.sh; do
+        # Substitute {HOOKS_PATH} or skip entirely in opencode
+        for f in {HOOKS_PATH}/*/*.sh; do
           bash -n "$f" 2>&1 || echo "SYNTAX ERROR: $f"
         done
       pass_criteria: "All hooks exit 0"
 
     step_10_dry_run_tests:
       action: "Execute dry-run tests for each hook type"
+      environment: "claude-code-only"  # SKIP in opencode
       tests:
         UserPromptSubmit:
           command: |
             echo '{"prompt": "test prompt", "session_id": "test123"}' | \
-              bash .claude/hooks/UserPromptSubmit/HOOK_NAME.sh
+              bash {HOOKS_PATH}/UserPromptSubmit/HOOK_NAME.sh
             echo "Exit code: $?"
           expected: "Exit 0 (allow) or 1 (block) without crash"
 
         PreToolUse:
           command: |
             echo '{"tool_name": "Write", "tool_input": {"file_path": "/tmp/test.txt", "content": "test"}}' | \
-              bash .claude/hooks/PreToolUse/HOOK_NAME.sh
+              bash {HOOKS_PATH}/PreToolUse/HOOK_NAME.sh
             echo "Exit code: $?"
           expected: "Exit 0 (allow) or 1 (block) without crash"
 
         PostToolUse:
           command: |
             echo '{"tool_name": "Write", "tool_input": {}, "tool_output": {"success": true}}' | \
-              bash .claude/hooks/PostToolUse/HOOK_NAME.sh
+              bash {HOOKS_PATH}/PostToolUse/HOOK_NAME.sh
             echo "Exit code: $?"
           expected: "Exit 0 without crash"
 

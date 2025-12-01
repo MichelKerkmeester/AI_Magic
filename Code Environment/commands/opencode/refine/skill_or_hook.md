@@ -75,10 +75,10 @@ Execute a 4-phase refinement workflow (Detect → Fix → Verify → Document) t
 ## Contract
 
 **Inputs:** `$ARGUMENTS` — Target scope + optional mode
-- `skills` - Audit all skills in `.claude/skills/`
-- `hooks` - Audit all hooks in `.claude/hooks/`
-- `both` - Audit both systems (DEFAULT if no target specified)
-- `{specific-path}` - Audit single skill/hook (e.g., `.claude/skills/workflows-code/` or `.claude/hooks/PreToolUse/validate-bash.sh`)
+- `skills` - Audit all skills in `{SKILLS_PATH}` (detected in Step 0)
+- `hooks` - Audit all hooks in `{HOOKS_PATH}` (Claude Code only - NOT available in opencode)
+- `both` - Audit both systems (DEFAULT if no target specified; auto-adjusts to `skills` in opencode)
+- `{specific-path}` - Audit single skill/hook (e.g., `{SKILLS_PATH}/workflows-code/`)
 
 **Outputs:**
 - SpecKit documentation at `specs/###-refine-audit/`:
@@ -98,6 +98,49 @@ Execute a 4-phase refinement workflow (Detect → Fix → Verify → Document) t
 ## Instructions
 
 Execute the following workflow:
+
+### Step 0: Environment Detection (MANDATORY FIRST STEP)
+
+Before proceeding, detect your runtime environment:
+
+1. **Detect environment and set paths:**
+   ```bash
+   # Check which environment exists
+   if [[ -d ".claude/commands" ]]; then
+     ENV="claude-code"
+     BASE_DIR=".claude"
+     CMD_PATH=".claude/commands"
+     SKILLS_PATH=".claude/skills"
+     HOOKS_PATH=".claude/hooks"
+     YAML_PATH=".claude/commands/refine/assets/refine_workflow.yaml"
+     HOOKS_AVAILABLE=true
+   elif [[ -d ".opencode/command" ]]; then
+     ENV="opencode"
+     BASE_DIR=".opencode"
+     CMD_PATH=".opencode/command"
+     SKILLS_PATH=".opencode/skills"
+     HOOKS_PATH=""  # NOT AVAILABLE
+     YAML_PATH=".opencode/command/refine/assets/refine_workflow.yaml"
+     HOOKS_AVAILABLE=false
+   fi
+   ```
+
+2. **Hooks availability check:**
+   - **Claude Code**: Hooks fully supported at `.claude/hooks/`
+   - **opencode**: Hooks are **NOT SUPPORTED** - there is no hooks directory
+
+   If user requests `hooks` or `both` in opencode:
+   ```
+   ⚠️ Hooks are not available in opencode. Only skills can be audited.
+   Automatically adjusting scope to: skills
+   ```
+
+3. **Path substitution rule:**
+   Throughout this workflow and the YAML file, substitute paths:
+   - `.claude/skills/` → `{SKILLS_PATH}` (use detected value)
+   - `.claude/hooks/` → `{HOOKS_PATH}` (skip if opencode)
+   - `.claude/commands/` → `{CMD_PATH}` (use detected value)
+   - All grep/scan commands targeting hooks → skip in opencode
 
 ### Step 1: Parse Input & Determine Scope
 
@@ -156,7 +199,9 @@ Execute the following workflow:
 
 7. **Read the workflow YAML:**
    ```
-   Asset path: .claude/commands/refine/assets/refine_workflow.yaml
+   Asset path: {YAML_PATH}  # Use path detected in Step 0
+   # Claude Code: .claude/commands/refine/assets/refine_workflow.yaml
+   # opencode:    .opencode/command/refine/assets/refine_workflow.yaml
    ```
 
 8. **Execute workflow phases based on mode:**
@@ -216,17 +261,18 @@ Execute the following workflow:
 
 ### Step 7: Verification (Phase 3)
 
-15. **Run verification commands:**
+15. **Run verification commands:** (Skip hook-related commands in opencode)
     ```bash
-    # Syntax check
+    # Syntax check (Claude Code only)
     bash -n hook.sh
 
-    # Dry run test
+    # Dry run test (Claude Code only)
     echo '{"prompt": "test"}' | bash hook.sh
 
-    # Performance check
-    grep "hook-name" .claude/hooks/logs/performance.log
+    # Performance check (Claude Code only)
+    grep "hook-name" {HOOKS_PATH}/logs/performance.log
     ```
+    Note: In opencode, skip all hook verification - only verify skill structure.
 
 16. **Quality gates:**
     - All hooks pass `bash -n` syntax check
@@ -319,15 +365,20 @@ Execute the following workflow:
 # Detect and fix P0/P1 issues, skip verification
 ```
 
-### Single Hook
+### Single Hook (Claude Code only)
 ```bash
 /refine:skill_or_hook .claude/hooks/PreToolUse/validate-bash.sh :full
 # Full audit of single hook file
+# Note: Hooks are NOT available in opencode
 ```
 
 ### Single Skill
 ```bash
+# Claude Code:
 /refine:skill_or_hook .claude/skills/workflows-code/ :full
+
+# opencode:
+/refine:skill_or_hook .opencode/skills/workflows-code/ :full
 # Full audit of single skill folder
 ```
 
@@ -423,7 +474,9 @@ STATUS=OK ISSUES_FOUND=23 ISSUES_FIXED=3 PATH=specs/060-refine-audit/
 
 ## Templates Used
 
-- `.claude/commands/refine/assets/refine_workflow.yaml` - 4-phase workflow with pattern library
+- `{YAML_PATH}` - 4-phase workflow with pattern library
+  - Claude Code: `.claude/commands/refine/assets/refine_workflow.yaml`
+  - opencode: `.opencode/command/refine/assets/refine_workflow.yaml`
 - `.opencode/speckit/templates/spec.md` - Audit specification template
 - `.opencode/speckit/templates/plan.md` - Fix implementation plan template
 - `.opencode/speckit/templates/tasks.md` - Task breakdown template
@@ -460,6 +513,12 @@ STATUS=OK ISSUES_FOUND={N} ISSUES_FIXED={N} PATH=specs/{spec_number}-refine-audi
 ---
 
 ## Notes
+
+- **Environment Compatibility:**
+  - **Claude Code**: Full functionality (skills + hooks)
+  - **opencode**: Skills only - hooks are NOT supported
+  - Path detection happens automatically in Step 0
+  - All `.claude/` references in YAML should be substituted with detected paths
 
 - **Platform Compatibility:**
   - All fixes use platform-aware patterns (macOS Bash 3.2 + Linux)

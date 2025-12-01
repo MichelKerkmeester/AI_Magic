@@ -8,7 +8,7 @@ model: gpt
 
 # Implementation Plan with GPT Orchestrator (OpenCode)
 
-Create comprehensive SpecKit documentation using **GPT as orchestrator** with Sonnet agents for parallel codebase exploration.
+**About this command:** This command creates SpecKit documentation using GPT as orchestrator with Sonnet agents for parallel codebase exploration. It requires a task description as input.
 
 **Platform**: OpenCode with Copilot integration
 **Orchestrator**: GPT via Copilot (task understanding, verification, synthesis)

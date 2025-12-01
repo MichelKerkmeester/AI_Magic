@@ -7,7 +7,7 @@ agent: plan
 
 # Implementation Plan (OpenCode + Claude Orchestrator)
 
-Create comprehensive SpecKit documentation using **Claude as orchestrator** with **4 parallel Sonnet agents** for fast, cost-effective codebase exploration.
+**About this command:** This command creates SpecKit documentation using Claude as orchestrator with 4 parallel Sonnet agents for fast, cost-effective codebase exploration. It requires a task description as input.
 
 **Platform**: OpenCode (uses Task tool with parallel agents)
 **Orchestrator**: Claude (task understanding, verification, synthesis)

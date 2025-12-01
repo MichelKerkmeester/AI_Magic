@@ -8,7 +8,7 @@ model: gemini-3.0-pro
 
 # Implementation Plan with Gemini Orchestrator (OpenCode)
 
-Create comprehensive SpecKit documentation using **Gemini as orchestrator** with Sonnet agents for parallel codebase exploration and potential web research.
+**About this command:** This command creates SpecKit documentation using Gemini as orchestrator with Sonnet agents for parallel codebase exploration and web research. It requires a task description as input.
 
 **Platform**: OpenCode with Copilot integration
 **Orchestrator**: Gemini 3.0 pro via Copilot (task understanding, verification, synthesis, web research)

@@ -8,7 +8,7 @@ model: opus
 
 # Implementation Plan (Claude Code + Sonnet Agents)
 
-Create comprehensive SpecKit documentation using **4 parallel Sonnet agents** for fast, cost-effective codebase exploration before any code changes.
+**About this command:** This command creates SpecKit documentation using 4 parallel Sonnet agents for fast, cost-effective codebase exploration before any code changes. It requires a task description as input.
 
 **Platform**: Claude Code only (uses Task tool with Claude agents)
 **Agent Model**: Sonnet (claude-sonnet-4-5-20250929) - Fast parallel discovery
