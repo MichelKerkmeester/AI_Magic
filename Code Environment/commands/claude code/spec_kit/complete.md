@@ -291,7 +291,7 @@ When `checklist.md` exists, the AI MUST complete verification before any complet
     - ≥50% + 3 domains → Auto-dispatch with notification
   - **Session Preference:** User's choice persists for 1 hour
   - **Override Phrases:** "proceed directly", "use parallel agents", "auto-decide"
-  - Step 6 (Planning) automatically uses 4-agent parallel exploration via workflows-planning skill
+  - Step 6 (Planning) automatically uses 4-agent parallel exploration (inline via Task tool)
 
 - **Integration:**
   - Works with spec folder system for documentation

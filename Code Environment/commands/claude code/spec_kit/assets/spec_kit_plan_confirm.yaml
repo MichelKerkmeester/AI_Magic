@@ -1,22 +1,22 @@
 # ───────────────────────────────────────────────────────────────────
-# SMART SPECKIT: PLAN WORKFLOW (AUTONOMOUS MODE)
+# SMART SPECKIT: PLAN WORKFLOW (INTERACTIVE MODE)
 # ───────────────────────────────────────────────────────────────────
-role: Expert Developer using Smart SpecKit for autonomous planning
-purpose: Spec-driven planning with autonomous execution through step 7
-action: Run SpecKit from spec to planning with continuous self-validation
+role: Expert Developer using Smart SpecKit for interactive planning
+purpose: Spec-driven planning with step-by-step user approval
+action: Run SpecKit from spec to planning with user checkpoints
 
 operating_mode:
   workflow: sequential
   workflow_compliance: MANDATORY
-  workflow_execution: autonomous
-  approvals: none
+  workflow_execution: interactive
+  approvals: step_by_step
   tracking: progressive_task_checklists
-  validation: continuous_self_validation
+  validation: checkpoint_based
 
 planning_philosophy:
   principle: "Clarity first, completeness second"
-  approach: "Thorough analysis with iterative refinement"
-  mandate: "Define requirements, validate assumptions, plan incrementally, execute autonomously"
+  approach: "Thorough analysis with user validation at each step"
+  mandate: "Define requirements, validate with user, plan incrementally"
 
 # ───────────────────────────────────────────────────────────────────
 # USER INPUTS (Transformed from raw text)
@@ -129,9 +129,6 @@ available_templates:
 # ─────────────────────────────────────────────────────────────────
 # PARALLEL DISPATCH CONFIGURATION
 # ─────────────────────────────────────────────────────────────────
-# Smart parallel sub-agent dispatch for eligible workflow phases.
-# Uses complexity scoring from create-parallel-sub-agents skill.
-# Thresholds: <20% = direct, 20-49% + 2 domains = ask, ≥50% + 3 domains = auto
 parallel_dispatch_config:
   enabled: true
   version: "1.0.0"
@@ -190,10 +187,24 @@ parallel_dispatch_config:
 
   eligible_phases:
     - step_3_specification
-    - step_6_planning  # Already has skill_invocation - uses workflows-planning
+    - step_6_planning  # Has inline_parallel_exploration - 4 agents dispatched directly
 
 # ─────────────────────────────────────────────────────────────────
-# WORKFLOW (7 STEPS)
+# CHECKPOINT OPTIONS
+# ─────────────────────────────────────────────────────────────────
+checkpoint_options:
+  standard:
+  - label: "Approve"
+    description: "Approve this step and proceed to next"
+  - label: "Review Details"
+    description: "Show more details about what was done"
+  - label: "Modify"
+    description: "Request changes before proceeding"
+  - label: "Skip"
+    description: "Skip this step (if optional)"
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW (7 STEPS WITH CHECKPOINTS)
 # ─────────────────────────────────────────────────────────────────
 workflow:
   step_1_request_analysis:
@@ -213,6 +224,10 @@ workflow:
       - key_objectives
       - success_criteria
     validation: understanding_confirmed
+    checkpoint:
+      question: "Step 1 Complete: Request analyzed. How would you like to proceed?"
+      use: AskUserQuestion
+      options: checkpoint_options.standard
 
   step_2_pre_work_review:
     purpose: Review knowledge base and project standards
@@ -227,6 +242,10 @@ workflow:
     - Knowledge base or skills folder (if available)
     verification: MUST_REVIEW
     validation: principles_established
+    checkpoint:
+      question: "Step 2 Complete: Knowledge base reviewed. How would you like to proceed?"
+      use: AskUserQuestion
+      options: checkpoint_options.standard
 
   step_3_specification:
     purpose: Create comprehensive feature specification
@@ -262,9 +281,9 @@ workflow:
     - Check for existing branches
     - Run create-new-feature.sh script
     - Estimate complexity and select documentation level using progressive enhancement:
-      - Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md
-      - Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md
-      - Level 3 (Full): >=500 LOC - Level 2 + decision-record.md
+      - "Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md"
+      - "Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md"
+      - "Level 3 (Full): >=500 LOC - Level 2 + decision-record.md"
     - Load and fill spec.md
     - Generate functional requirements
     - Define success criteria
@@ -273,6 +292,16 @@ workflow:
     - spec.md: acceptance_criteria
     template: .opencode/speckit/templates/spec.md
     validation: spec_complete
+    checkpoint:
+      question: "Step 3 Complete: Specification created. Review spec.md?"
+      use: AskUserQuestion
+      options:
+      - label: "Approve Spec"
+        description: "Specification looks good, proceed"
+      - label: "Review Spec"
+        description: "Show spec.md content for review"
+      - label: "Modify Spec"
+        description: "Request changes to specification"
 
   step_4_clarification:
     purpose: Resolve ambiguities and clarify requirements
@@ -287,6 +316,10 @@ workflow:
     - clarified_requirements
     - updated_spec
     validation: requirements_clear
+    checkpoint:
+      question: "Step 4 Complete: Requirements clarified. How would you like to proceed?"
+      use: AskUserQuestion
+      options: checkpoint_options.standard
 
   step_5_quality_checklist:
     purpose: Generate validation checklist (Level 2+ requirement)
@@ -301,36 +334,106 @@ workflow:
     - quality_checklist: generated
     template: .opencode/speckit/templates/checklist.md
     validation: checklist_generated
+    checkpoint:
+      question: "Step 5 Complete: Quality checklist generated. How would you like to proceed?"
+      use: AskUserQuestion
+      options: checkpoint_options.standard
 
   step_6_planning:
     purpose: Create technical plan with implementation approach
 
-    # PRE-PHASE: This step already uses parallel agents via workflows-planning skill
-    # No additional pre_phase_parallel_check needed - skill_invocation handles it
+    # INLINE 4-AGENT PARALLEL EXPLORATION
+    # Self-contained exploration - no external skill dependency
     parallel_dispatch_note: |
-      This phase already dispatches 4 parallel Sonnet agents via the workflows-planning skill.
-      The skill handles: Architecture Explorer, Feature Explorer, Dependency Explorer, Test Explorer.
+      This phase dispatches 4 parallel Sonnet agents directly via Task tool.
+      Agents: Architecture Explorer, Feature Explorer, Dependency Explorer, Test Explorer.
       No additional question is asked because parallel dispatch is integral to this phase.
 
-    # ENHANCED: Invoke parallel exploration skill for comprehensive planning
-    skill_invocation:
+    # 4-Agent Parallel Exploration Configuration
+    inline_parallel_exploration:
       description: "4-agent parallel exploration for verified planning"
-      condition: "Always invoke for enhanced planning quality"
-      tool: Skill
-      parameter: skill="workflows-planning"
-      inputs:
-        task_description: "$user_inputs.request"
-        spec_folder_path: "$spec_folder"
-      benefits:
-        - "4 Sonnet agents explore codebase in parallel"
-        - "Verified findings instead of assumptions"
-        - "Integration points documented"
-        - "Test patterns identified"
+      purpose: "Spawn 4 Explore agents to discover codebase patterns before planning"
+
+      execution:
+        tool: Task
+        subagent_type: Explore
+        model: sonnet  # Fast, cost-effective exploration (works in both Claude Code and OpenCode)
+        parallel: true  # All 4 agents spawn in single message
+
+      agents:
+        architecture_explorer:
+          focus: "Project structure, entry points, component connections"
+          purpose: "Understand system architecture"
+          prompt: |
+            Explore the codebase to find how the system architecture works for: {task_description}
+
+            Return:
+            1. Your hypothesis about the architecture
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Any patterns you noticed (component structure, module organization, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        feature_explorer:
+          focus: "Similar features, related patterns"
+          purpose: "Find reusable patterns"
+          prompt: |
+            Explore the codebase to find similar features or related patterns for: {task_description}
+
+            Return:
+            1. Your hypothesis about existing similar features
+            2. Full paths to all relevant files
+            3. Any patterns you noticed (naming conventions, implementation patterns, etc.)
+
+            Do NOT draw conclusions - just report findings.
+
+        dependency_explorer:
+          focus: "Imports, modules, affected areas"
+          purpose: "Identify integration points"
+          prompt: |
+            Explore the codebase to find dependencies and integration points for: {task_description}
+
+            Return:
+            1. Your hypothesis about which modules/files will be affected
+            2. Full paths to all relevant files
+            3. Any patterns you noticed (dependency chains, coupling points, etc.)
+
+            Do NOT draw conclusions - just report findings.
+
+        test_explorer:
+          focus: "Test patterns, testing infrastructure"
+          purpose: "Understand verification approach"
+          prompt: |
+            Explore the codebase to find test patterns and testing infrastructure.
+
+            Return:
+            1. Your hypothesis about how testing works in this project
+            2. Full paths to all relevant test files
+            3. Any patterns you noticed (test frameworks, mocking patterns, coverage expectations, etc.)
+
+            Do NOT draw conclusions - just report findings.
+
+      verification:
+        description: "After agents return, verify hypotheses by reading identified files"
+        approach:
+          - "Read each file identified by Explore agents"
+          - "Verify or refute each hypothesis"
+          - "Cross-reference findings across agents for consistency"
+          - "Build complete mental model of architecture, affected components, integration points, risks"
+          - "Resolve conflicting hypotheses by reading additional files"
+
+      outputs:
+        - architecture_findings
+        - feature_findings
+        - dependency_findings
+        - test_findings
+        - verified_mental_model
+
       fallback:
         on_failure: "Use inline planning activities below"
-        reason: "Graceful degradation if skill/agents unavailable"
+        reason: "Graceful degradation if agents unavailable"
 
-    # FALLBACK: Inline planning if skill invocation fails
+    # FALLBACK: Inline planning if exploration fails
     activities:
     - Run setup-plan.sh --json
     - Load plan.md
@@ -350,11 +453,21 @@ workflow:
     - research.md: resolved_unknowns
     template: .opencode/speckit/templates/plan.md
     validation: approach_defined
+    checkpoint:
+      question: "Step 6 Complete: Technical plan created. Review plan.md?"
+      use: AskUserQuestion
+      options:
+      - label: "Approve Plan"
+        description: "Plan looks good, proceed to save context"
+      - label: "Review Plan"
+        description: "Show plan.md content for detailed review"
+      - label: "Modify Plan"
+        description: "Request changes to technical plan"
 
   step_7_save_context:
     purpose: Save conversation context for planning documentation
     activities:
-    - Invoke workflows-save-context skill using Skill tool
+    - Invoke workflows-save-context skill
     - Preserve requirements analysis and clarifications
     - Preserve technical approach decisions
     - Preserve architecture discussions
@@ -365,6 +478,14 @@ workflow:
     outputs:
     - context_file: specs/[NNN-feature]/memory/[DD-MM-YY_HH-MM]__planning_session.md
     validation: context_saved_successfully
+    checkpoint:
+      question: "Step 7 Complete: Planning workflow finished!"
+      use: AskUserQuestion
+      options:
+      - label: "Done"
+        description: "Complete the planning workflow"
+      - label: "View Summary"
+        description: "Show planning summary"
 
 # ─────────────────────────────────────────────────────────────────
 # WORKFLOW TERMINATION
@@ -378,23 +499,24 @@ termination:
   - Use /spec_kit:implement:auto or /spec_kit:implement:confirm for implementation
 
 # ─────────────────────────────────────────────────────────────────
-# AUTONOMOUS EXECUTION GUIDANCE
+# INTERACTIVE EXECUTION GUIDANCE
 # ─────────────────────────────────────────────────────────────────
-autonomous_execution:
-  principle: "Execute planning workflow autonomously with self-validation at each step"
+interactive_execution:
+  principle: "Execute planning workflow with user approval at each checkpoint"
 
-  decision_making:
-  - Analyze requirements thoroughly from user inputs
-  - Explore codebase to understand context
-  - Make informed planning decisions
-  - Document reasoning and alternatives
-  - Proceed with best judgment
+  checkpoint_behavior:
+  - Complete step activities
+  - Present results summary
+  - Use AskUserQuestion for approval
+  - Wait for user response
+  - Process user feedback
+  - Proceed or modify as directed
 
-  validation_approach:
-  - Self-validate after each planning step
-  - Verify spec completeness and clarity
-  - Ensure technical approach is sound
-  - Validate against quality standards
+  user_feedback_handling:
+    approve: "Proceed to next step"
+    review: "Show detailed output of current step"
+    modify: "Accept changes and re-execute step"
+    skip: "Skip optional step and proceed"
 
 # ─────────────────────────────────────────────────────────────────
 # ERROR RECOVERY
@@ -402,12 +524,12 @@ autonomous_execution:
 error_recovery:
   step_validation_fails:
     action: "Review requirements, ask clarifying questions, retry step"
+  user_rejects_approach:
+    action: "Present alternatives, modify plan, document decision"
   spec_ambiguity_persists:
     action: "Document as assumption, add to risk matrix"
   environment_unavailable:
     action: "Skip browser testing, document limitation"
-  unexpected_error:
-    action: "Log error, document state, attempt graceful recovery"
 
 # ─────────────────────────────────────────────────────────────────
 # RULES
@@ -417,11 +539,12 @@ rules:
   - follow_workflow_sequence
   - document_all_decisions
   - validate_before_completion
-  - self_validate_and_proceed
-  - do_not_prompt_for_user_approval
+  - pause_at_checkpoints_for_approval
+  - respect_user_feedback
 
   NEVER:
   - skip_workflow_steps
   - proceed_beyond_planning
   - make_unsupported_assumptions
-  - proceed_without_self_validation
+  - proceed_without_user_approval
+  - ignore_user_modification_requests

@@ -1,22 +1,22 @@
 # ───────────────────────────────────────────────────────────────────
-# SMART SPECKIT: PLAN WORKFLOW (INTERACTIVE MODE)
+# SMART SPECKIT: RESEARCH WORKFLOW (INTERACTIVE MODE)
 # ───────────────────────────────────────────────────────────────────
-role: Expert Developer using Smart SpecKit for interactive planning
-purpose: Spec-driven planning with step-by-step user approval
-action: Run SpecKit from spec to planning with user checkpoints
+role: Expert Developer using Smart SpecKit for interactive research
+purpose: Spec-driven comprehensive technical investigation with user approval
+action: Run SpecKit research workflow with user checkpoints
 
 operating_mode:
   workflow: sequential
   workflow_compliance: MANDATORY
   workflow_execution: interactive
   approvals: step_by_step
-  tracking: progressive_task_checklists
+  tracking: progressive_research_documentation
   validation: checkpoint_based
 
-planning_philosophy:
-  principle: "Clarity first, completeness second"
-  approach: "Thorough analysis with user validation at each step"
-  mandate: "Define requirements, validate with user, plan incrementally"
+research_philosophy:
+  principle: "Thoroughness first, documentation second"
+  approach: "Systematic investigation with user validation at checkpoints"
+  mandate: "Research deeply, validate with user, document comprehensively"
 
 # ───────────────────────────────────────────────────────────────────
 # USER INPUTS (Transformed from raw text)
@@ -24,31 +24,31 @@ planning_philosophy:
 user_inputs:
   git_branch: |
     [GIT_BRANCH]
-    Git branch name for the work. Leave empty to auto-create as feature-{NNN}.
+    Git branch name. Leave empty to auto-create as feature-{NNN}.
 
   spec_folder: |
     [SPEC_FOLDER]
-    Spec folder path. Leave empty to auto-create next available spec number.
+    Spec folder path. Leave empty to auto-create next available.
 
   context: |
     [CONTEXT]
-    Background information, constraints, or existing documentation.
+    Background information, technical stack, or investigating context.
 
   issues: |
     [ISSUES]
-    Known issues, problems, or concerns to address.
+    Known issues, questions, problems, or unknowns to investigate.
 
   request: |
     [REQUEST]
-    Feature or improvement to plan. REQUIRED.
+    Research topic or technical question to investigate. REQUIRED.
 
   environment: |
     [STAGING LINK]
-    Staging or production URL for browser testing.
+    Staging URL for browser-based analysis.
 
   scope: |
     [FILES]
-    Files or folders to focus on.
+    Files or folders to focus investigation on.
 
 # ─────────────────────────────────────────────────────────────────
 # FIELD HANDLING
@@ -61,9 +61,9 @@ field_handling:
   defaults:
     git_branch_empty: "Auto-create feature-{NNN} from highest +001"
     spec_folder_empty: "Auto-create specs/{NNN} from highest +001"
-    context_empty: "Infer from [REQUEST], [STAGING LINK], and codebase exploration"
+    context_empty: "Infer from [REQUEST] and codebase exploration"
     issues_empty: "Investigate and discover during workflow"
-    environment_empty: "Skip browser testing steps"
+    environment_empty: "Skip browser analysis steps"
     scope_empty: "Use scope_policy.default"
 
   scope_policy:
@@ -108,23 +108,21 @@ documentation_levels:
 
   level_selection:
     note: "LOC thresholds are SOFT GUIDANCE - choose level based on complexity and risk"
-    default: "Level 1 for simple tasks, escalate based on analysis"
+    default: "Research workflow typically supports Level 2+ or Level 3 features"
 
 # ─────────────────────────────────────────────────────────────────
 # AVAILABLE TEMPLATES
 # ─────────────────────────────────────────────────────────────────
 available_templates:
-  # Level 1+ (Baseline - required at all levels)
-  spec: .opencode/speckit/templates/spec.md
-  plan: .opencode/speckit/templates/plan.md
-  tasks: .opencode/speckit/templates/tasks.md
-  # Level 2+ (Verification)
-  checklist: .opencode/speckit/templates/checklist.md
-  # Level 3 (Full)
-  decision_record: .opencode/speckit/templates/decision-record.md
-  # Optional (any level)
+  # Research workflow primary outputs
   research: .opencode/speckit/templates/research.md
   research_spike: .opencode/speckit/templates/research-spike.md
+  # Level 3 (Full)
+  decision_record: .opencode/speckit/templates/decision-record.md
+  # Level 2+ (Verification)
+  checklist: .opencode/speckit/templates/checklist.md
+  # Level 1+ (Baseline)
+  spec: .opencode/speckit/templates/spec.md
 
 # ─────────────────────────────────────────────────────────────────
 # PARALLEL DISPATCH CONFIGURATION
@@ -186,8 +184,9 @@ parallel_dispatch_config:
         description: "Let system decide based on complexity thresholds (1 hour)"
 
   eligible_phases:
-    - step_3_specification
-    - step_6_planning  # Already has skill_invocation
+    - step_3_codebase_investigation
+    - step_4_external_research
+    - step_5_technical_analysis
 
 # ─────────────────────────────────────────────────────────────────
 # CHECKPOINT OPTIONS
@@ -203,40 +202,58 @@ checkpoint_options:
   - label: "Skip"
     description: "Skip this step (if optional)"
 
+  research_direction:
+  - label: "Continue"
+    description: "Research direction is good, proceed"
+  - label: "Go Deeper"
+    description: "Investigate this area more thoroughly"
+  - label: "Redirect"
+    description: "Change research focus"
+  - label: "Skip Area"
+    description: "This area is not relevant"
+
 # ─────────────────────────────────────────────────────────────────
-# WORKFLOW (7 STEPS WITH CHECKPOINTS)
+# WORKFLOW (9 STEPS WITH CHECKPOINTS)
 # ─────────────────────────────────────────────────────────────────
 workflow:
   step_1_request_analysis:
-    purpose: Analyze inputs and define planning scope
+    purpose: Analyze research request and define investigation scope
     activities:
     - Analyze all user inputs thoroughly
-    - Define development scope for the spec folder
+    - Define research scope and objectives
     - Verify or create spec folder structure
-    - Check for existing artifacts
-    - Establish planning scope
+    - Check for existing research artifacts
+    - Establish investigation boundaries
+    - Identify key questions to answer
     deep_analysis:
-      focus: comprehensive_requirement_analysis
+      focus: comprehensive_research_scoping
       outputs:
-      - requirement_summary
-      - approach_overview
-      - complexity_assessment
-      - key_objectives
+      - feature_summary
+      - research_objectives
+      - investigation_priorities
+      - key_questions
       - success_criteria
     validation: understanding_confirmed
     checkpoint:
-      question: "Step 1 Complete: Request analyzed. How would you like to proceed?"
+      question: "Step 1 Complete: Research scope defined. How would you like to proceed?"
       use: AskUserQuestion
-      options: checkpoint_options.standard
+      options:
+      - label: "Approve Scope"
+        description: "Research scope is clear, proceed"
+      - label: "Narrow Focus"
+        description: "Make research scope more specific"
+      - label: "Expand Scope"
+        description: "Broaden research areas"
 
   step_2_pre_work_review:
     purpose: Review knowledge base and project standards
     activities:
     - Read and review AGENTS.md
     - Check knowledge base (/knowledge/) or skills folder (/skills/) for relevant coding standards
-    - Extract coding standards summary
+    - Extract relevant coding standards
     - Identify architectural patterns
     - Document project conventions
+    - Note constraints relevant to research
     required_documents:
     - AGENTS.md
     - Knowledge base or skills folder (if available)
@@ -247,14 +264,14 @@ workflow:
       use: AskUserQuestion
       options: checkpoint_options.standard
 
-  step_3_specification:
-    purpose: Create comprehensive feature specification
+  step_3_codebase_investigation:
+    purpose: Explore existing codebase for patterns and implementations
 
     # PRE-PHASE: Smart parallel dispatch check
     pre_phase_parallel_check:
       enabled: true
-      phase_domains: [code, docs]
-      complexity_boost: 0
+      phase_domains: [code, analysis]
+      complexity_boost: 10
       decision_logic: |
         BEFORE starting this phase, evaluate parallel dispatch:
         1. Check for override phrases in user request
@@ -267,182 +284,269 @@ workflow:
            - ≥20% + 2 domains → ask user via AskUserQuestion
       on_parallel_dispatch:
         agents:
-          - name: "spec_explorer"
-            focus: "Existing specifications and patterns in codebase"
+          - name: "pattern_explorer"
+            focus: "Search for related code patterns and implementations"
             model: "sonnet"
-          - name: "requirement_analyzer"
-            focus: "Similar features and their requirements"
+          - name: "architecture_analyzer"
+            focus: "Analyze current architecture and integration points"
             model: "sonnet"
         dispatch_note: "Spawn agents in SINGLE message for parallel execution"
       fallback: "Proceed with activities below if dispatch fails or user chooses direct"
 
     activities:
-    - Generate concise short name for branch
-    - Check for existing branches
-    - Run create-new-feature.sh script
-    - Estimate complexity and select documentation level using progressive enhancement:
-      - Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md
-      - Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md
-      - Level 3 (Full): >=500 LOC - Level 2 + decision-record.md
-    - Load and fill spec.md
-    - Generate functional requirements
-    - Define success criteria
+    - Search for related code patterns
+    - Analyze existing implementations
+    - Document current architecture
+    - Identify integration points
+    - Map dependencies
+    - Note technical debt or limitations
     outputs:
-    - feature_branch: created
-    - spec.md: acceptance_criteria
-    template: .opencode/speckit/templates/spec.md
-    validation: spec_complete
+    - current_state_analysis
+    - existing_patterns
+    - integration_points
+    - dependency_map
+    validation: codebase_understood
     checkpoint:
-      question: "Step 3 Complete: Specification created. Review spec.md?"
+      question: "Step 3 Complete: Codebase investigated. How would you like to proceed?"
+      use: AskUserQuestion
+      options: checkpoint_options.research_direction
+
+  step_4_external_research:
+    purpose: Research external documentation and best practices
+
+    # PRE-PHASE: Smart parallel dispatch check
+    pre_phase_parallel_check:
+      enabled: true
+      phase_domains: [docs, analysis]
+      complexity_boost: 5
+      decision_logic: |
+        BEFORE starting this phase, evaluate parallel dispatch:
+        1. Check for override phrases in user request
+        2. Check for session preference (from previous "Auto-decide" selection)
+        3. Check for sequential dependencies (skip if detected)
+        4. Calculate phase complexity using parallel_dispatch_config
+        5. Apply thresholds:
+           - <20% → proceed directly (silent)
+           - ≥50% + 3 domains → auto-dispatch with notification
+           - ≥20% + 2 domains → ask user via AskUserQuestion
+      on_parallel_dispatch:
+        agents:
+          - name: "documentation_researcher"
+            focus: "Search official documentation and API references"
+            model: "sonnet"
+          - name: "best_practices_explorer"
+            focus: "Analyze community best practices and alternatives"
+            model: "sonnet"
+        dispatch_note: "Spawn agents in SINGLE message for parallel execution"
+      fallback: "Proceed with activities below if dispatch fails or user chooses direct"
+
+    activities:
+    - Search official documentation
+    - Review API references
+    - Analyze community best practices
+    - Identify relevant libraries/tools
+    - Document limitations and constraints
+    - Compare alternative approaches
+    outputs:
+    - best_practices_summary
+    - api_documentation
+    - library_comparison
+    - constraint_documentation
+    validation: external_research_complete
+    checkpoint:
+      question: "Step 4 Complete: External research done. How would you like to proceed?"
+      use: AskUserQuestion
+      options: checkpoint_options.research_direction
+
+  step_5_technical_analysis:
+    purpose: Perform feasibility assessment and technical analysis
+
+    # PRE-PHASE: Smart parallel dispatch check
+    pre_phase_parallel_check:
+      enabled: true
+      phase_domains: [code, analysis, testing]
+      complexity_boost: 15
+      decision_logic: |
+        BEFORE starting this phase, evaluate parallel dispatch:
+        1. Check for override phrases in user request
+        2. Check for session preference (from previous "Auto-decide" selection)
+        3. Check for sequential dependencies (skip if detected)
+        4. Calculate phase complexity using parallel_dispatch_config
+        5. Apply thresholds:
+           - <20% → proceed directly (silent)
+           - ≥50% + 3 domains → auto-dispatch with notification
+           - ≥20% + 2 domains → ask user via AskUserQuestion
+      on_parallel_dispatch:
+        agents:
+          - name: "feasibility_analyzer"
+            focus: "Evaluate technical feasibility and performance"
+            model: "sonnet"
+          - name: "risk_assessor"
+            focus: "Analyze security, scalability, and risks"
+            model: "sonnet"
+        dispatch_note: "Spawn agents in SINGLE message for parallel execution"
+      fallback: "Proceed with activities below if dispatch fails or user chooses direct"
+
+    activities:
+    - Evaluate technical feasibility
+    - Assess performance implications
+    - Analyze security considerations
+    - Review scalability requirements
+    - Document trade-offs
+    - Identify risks and mitigations
+    outputs:
+    - technical_specifications
+    - feasibility_assessment
+    - performance_analysis
+    - security_review
+    - risk_assessment
+    validation: technical_analysis_complete
+    checkpoint:
+      question: "Step 5 Complete: Technical analysis done. Review findings?"
       use: AskUserQuestion
       options:
-      - label: "Approve Spec"
-        description: "Specification looks good, proceed"
-      - label: "Review Spec"
-        description: "Show spec.md content for review"
-      - label: "Modify Spec"
-        description: "Request changes to specification"
+      - label: "Approve Analysis"
+        description: "Analysis is comprehensive, proceed"
+      - label: "Review Findings"
+        description: "Show detailed technical findings"
+      - label: "Investigate More"
+        description: "Dig deeper into specific areas"
 
-  step_4_clarification:
-    purpose: Resolve ambiguities and clarify requirements
-    activities:
-    - Extract [NEEDS CLARIFICATION] markers (max 3)
-    - Research codebase for patterns
-    - Resolve ambiguities through investigation
-    - Update spec.md with clarifications
-    - Document assumptions
-    outputs:
-    - resolved_ambiguities
-    - clarified_requirements
-    - updated_spec
-    validation: requirements_clear
-    checkpoint:
-      question: "Step 4 Complete: Requirements clarified. How would you like to proceed?"
-      use: AskUserQuestion
-      options: checkpoint_options.standard
-
-  step_5_quality_checklist:
-    purpose: Generate validation checklist (Level 2+ requirement)
+  step_6_quality_checklist:
+    purpose: Generate validation checklist for research quality (Level 2+ requirement)
     level_requirement: "Level 2+ (Verification and Full)"
     activities:
     - Check documentation level - skip for Level 1, required for Level 2+
     - Load checklist.md template
-    - Generate domain-specific validation items
-    - Create checklist file
-    - Run validation check
+    - Generate research-specific validation items
+    - Include completeness checks
+    - Include accuracy verification items
+    - Include documentation quality checks
     outputs:
     - quality_checklist: generated
     template: .opencode/speckit/templates/checklist.md
     validation: checklist_generated
     checkpoint:
-      question: "Step 5 Complete: Quality checklist generated. How would you like to proceed?"
+      question: "Step 6 Complete: Quality checklist generated. How would you like to proceed?"
       use: AskUserQuestion
       options: checkpoint_options.standard
 
-  step_6_planning:
-    purpose: Create technical plan with implementation approach
-
-    # PRE-PHASE: This step already uses parallel agents via workflows-planning skill
-    parallel_dispatch_note: |
-      This phase already dispatches 4 parallel Sonnet agents via the workflows-planning skill.
-      No additional question is asked because parallel dispatch is integral to this phase.
-
-    # ENHANCED: Invoke parallel exploration skill for comprehensive planning
-    skill_invocation:
-      description: "4-agent parallel exploration for verified planning"
-      condition: "Always invoke for enhanced planning quality"
-      tool: Skill
-      parameter: skill="workflows-planning"
-      inputs:
-        task_description: "$user_inputs.request"
-        spec_folder_path: "$spec_folder"
-      benefits:
-        - "4 Sonnet agents explore codebase in parallel"
-        - "Verified findings instead of assumptions"
-        - "Integration points documented"
-        - "Test patterns identified"
-      fallback:
-        on_failure: "Use inline planning activities below"
-        reason: "Graceful degradation if skill/agents unavailable"
-
-    # FALLBACK: Inline planning if skill invocation fails
+  step_7_solution_design:
+    purpose: Design solution architecture based on research findings
     activities:
-    - Run setup-plan.sh --json
-    - Load plan.md
-    - Fill Technical Context
-    - Fill Constitution Check section
-    - Phase 0: Generate research.md to resolve unknowns
-    - Phase 1: Generate data-model.md, contracts/
-    - Generate Testing Strategy
-    - Generate Success Metrics
-    - Import Risk Matrix from spec
-    - Generate Dependencies Tables
-    - Generate Phase 2-4 outlines
-    - Create planning-summary.md
+    - Synthesize research findings
+    - Design recommended architecture
+    - Define implementation patterns
+    - Create integration approach
+    - Document decision rationale
+    - Outline implementation strategy
     outputs:
-    - plan.md: technical_approach
-    - planning-summary.md: overview
-    - research.md: resolved_unknowns
-    template: .opencode/speckit/templates/plan.md
-    validation: approach_defined
+    - solution_architecture
+    - implementation_patterns
+    - integration_approach
+    - decision_rationale
+    level_3_documents:
+    - decision-record-[name].md: "For significant architecture decisions (Level 3 requirement)"
+    template: .opencode/speckit/templates/decision-record.md
+    validation: solution_designed
     checkpoint:
-      question: "Step 6 Complete: Technical plan created. Review plan.md?"
+      question: "Step 7 Complete: Solution designed. Review architecture?"
       use: AskUserQuestion
       options:
-      - label: "Approve Plan"
-        description: "Plan looks good, proceed to save context"
-      - label: "Review Plan"
-        description: "Show plan.md content for detailed review"
-      - label: "Modify Plan"
-        description: "Request changes to technical plan"
+      - label: "Approve Design"
+        description: "Architecture looks good"
+      - label: "Review Architecture"
+        description: "Show detailed architecture design"
+      - label: "Alternative Approach"
+        description: "Explore different architecture"
 
-  step_7_save_context:
-    purpose: Save conversation context for planning documentation
+  step_8_research_compilation:
+    purpose: Compile all research into comprehensive documentation
+    activities:
+    - Load research.md
+    - Fill all 17 sections systematically
+    - Include executive overview
+    - Document core architecture
+    - Add technical specifications
+    - Include constraints and limitations
+    - Document integration patterns
+    - Provide implementation guide
+    - Add code examples
+    - Include testing strategies
+    - Document performance considerations
+    - Add security section
+    - Include troubleshooting guide
+    - Add API reference
+    - Include acknowledgements
+    - Add appendix and changelog
+    outputs:
+    - research.md: comprehensive_technical_documentation
+    template: .opencode/speckit/templates/research.md
+    validation: research_documented
+    checkpoint:
+      question: "Step 8 Complete: Research compiled. Review research.md?"
+      use: AskUserQuestion
+      options:
+      - label: "Approve Research"
+        description: "Research documentation is complete"
+      - label: "Review Document"
+        description: "Show research.md for detailed review"
+      - label: "Add Content"
+        description: "Add more to research documentation"
+
+  step_9_save_context:
+    purpose: Save conversation context for documentation
     activities:
     - Invoke workflows-save-context skill
-    - Preserve requirements analysis and clarifications
-    - Preserve technical approach decisions
-    - Preserve architecture discussions
+    - Preserve research decisions and rationale
+    - Preserve technical findings
+    - Preserve code analysis results
     tool_invocation:
       tool: Skill
       parameter: skill="workflows-save-context"
       note: "Use the Skill tool with skill parameter to activate context saving"
     outputs:
-    - context_file: specs/[NNN-feature]/memory/[DD-MM-YY_HH-MM]__planning_session.md
+    - context_file: "specs/[NNN-feature]/memory/[DD-MM-YY_HH-MM]__research_session.md"
     validation: context_saved_successfully
     checkpoint:
-      question: "Step 7 Complete: Planning workflow finished!"
+      question: "Step 9 Complete: Research workflow finished!"
       use: AskUserQuestion
       options:
       - label: "Done"
-        description: "Complete the planning workflow"
+        description: "Complete the research workflow"
       - label: "View Summary"
-        description: "Show planning summary"
+        description: "Show research summary"
 
 # ─────────────────────────────────────────────────────────────────
 # WORKFLOW TERMINATION
 # ─────────────────────────────────────────────────────────────────
 termination:
-  after_step: 7
-  message: "Planning phase completed successfully. Workflow terminated after step 7 (save context)."
+  after_step: 9
+  message: "Research phase completed successfully. Workflow terminated after step 9 (save context)."
   next_steps:
-  - Review planning documentation
-  - Validate technical approach
-  - Use /spec_kit:implement:auto or /spec_kit:implement:confirm for implementation
+  - Review research.md findings
+  - Validate technical recommendations
+  - Run /spec_kit:plan or /spec_kit:complete to proceed with development
 
 # ─────────────────────────────────────────────────────────────────
 # INTERACTIVE EXECUTION GUIDANCE
 # ─────────────────────────────────────────────────────────────────
 interactive_execution:
-  principle: "Execute planning workflow with user approval at each checkpoint"
+  principle: "Execute research workflow with user approval and direction at each checkpoint"
 
   checkpoint_behavior:
   - Complete step activities
-  - Present results summary
+  - Present findings summary
   - Use AskUserQuestion for approval
   - Wait for user response
   - Process user feedback
-  - Proceed or modify as directed
+  - Proceed, redirect, or go deeper as directed
+
+  research_direction_handling:
+    continue: "Proceed to next research step"
+    go_deeper: "Expand investigation in current area"
+    redirect: "Change research focus based on user guidance"
+    skip_area: "Skip this area and proceed"
 
   user_feedback_handling:
     approve: "Proceed to next step"
@@ -454,14 +558,16 @@ interactive_execution:
 # ERROR RECOVERY
 # ─────────────────────────────────────────────────────────────────
 error_recovery:
-  step_validation_fails:
-    action: "Review requirements, ask clarifying questions, retry step"
-  user_rejects_approach:
-    action: "Present alternatives, modify plan, document decision"
-  spec_ambiguity_persists:
-    action: "Document as assumption, add to risk matrix"
-  environment_unavailable:
-    action: "Skip browser testing, document limitation"
+  research_scope_unclear:
+    action: "Ask clarifying questions, narrow focus"
+  user_redirects_focus:
+    action: "Acknowledge redirection, adjust research scope, document change"
+  external_sources_unavailable:
+    action: "Document limitation, continue with available info"
+  conflicting_findings:
+    action: "Document both perspectives with analysis, present options to user"
+  technical_dead_end:
+    action: "Document findings, present alternatives, let user decide direction"
 
 # ─────────────────────────────────────────────────────────────────
 # RULES
@@ -469,14 +575,16 @@ error_recovery:
 rules:
   ALWAYS:
   - follow_workflow_sequence
-  - document_all_decisions
+  - document_all_findings
   - validate_before_completion
+  - cite_sources_and_references
   - pause_at_checkpoints_for_approval
-  - respect_user_feedback
+  - respect_user_direction
+  - allow_research_redirection
 
   NEVER:
   - skip_workflow_steps
-  - proceed_beyond_planning
-  - make_unsupported_assumptions
+  - make_unsupported_claims
   - proceed_without_user_approval
-  - ignore_user_modification_requests
+  - ignore_user_direction
+  - submit_incomplete_research

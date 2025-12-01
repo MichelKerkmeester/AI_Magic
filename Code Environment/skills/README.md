@@ -115,9 +115,9 @@ This directory contains skills that provide structured guidance for complex deve
 
 ## 3. 🎯 INSTALLED SKILLS
 
-**Total**: 14 skills across 6 categories | **Latest Update**: 2025-11-29
+**Total**: 13 skills across 6 categories | **Latest Update**: 2025-12-01
 
-### 3.1 Workflow Orchestrators (5 skills)
+### 3.1 Workflow Orchestrators (4 skills)
 
 #### `create-parallel-sub-agents` (v1.0.0)
 
@@ -336,46 +336,6 @@ Loading context later:
 → Smart search: "authentication bug" → relevance-ranked results
 ```
 
-
-#### `workflows-planning` (v1.0.0)
-
-**Purpose**: 4-agent parallel exploration for comprehensive planning - spawns Architecture/Feature/Dependency/Test Sonnet explorers, synthesizes findings, generates verified plan.md
-
-**Maturity**: Medium | **References**: 4 files | **Scripts**: 1 file (generate-plan.js)
-
-**Key Features**:
-- **Parallel Exploration**: Spawns 4 specialized Sonnet agents (Architecture, Feature, Dependencies, Testing)
-- **Auto-Trigger System**: Activates during spec_kit:plan workflows (step_6_planning)
-- **Manual Activation**: Keywords like "plan with exploration", "parallel planning", "comprehensive plan"
-- **Synthesis Engine**: Merges findings from all explorers into unified plan.md
-- **Verification**: Cross-checks dependencies, architecture alignment, test coverage
-
-**4 Explorer Agents**:
-- **Architecture Explorer**: System design, integration points, scalability concerns
-- **Feature Explorer**: User stories, acceptance criteria, edge cases
-- **Dependency Explorer**: Libraries, APIs, version compatibility, breaking changes
-- **Test Explorer**: Test strategies, coverage requirements, mocking needs
-
-**When to Use**:
-- Complex features requiring multi-domain analysis
-- Architecture decisions with broad impact
-- Features with significant external dependencies
-- Projects requiring comprehensive test planning
-
-**Example**:
-```
-Planning authentication system:
-→ Architecture Agent: Analyzes OAuth flow, session management, security patterns
-→ Feature Agent: Defines login/logout/register flows, error states, UX flows
-→ Dependency Agent: Evaluates passport.js vs auth0, version compatibility
-→ Test Agent: Plans unit/integration/E2E test coverage, mocking strategies
-→ Synthesis: Generates unified plan.md with cross-referenced findings
-```
-
-**Integration Points**:
-- Auto-triggered by: spec_kit:plan workflows (step_6_planning)
-- Outputs to: specs/###-feature/plan.md
-- Coordinates with: workflows-spec-kit (spec folder system)
 
 ---
 
@@ -651,7 +611,7 @@ Finding authentication logic:
 
 ### 3.5 Skill Maturity Matrix
 
-**Overview**: All 13 skills across 5 categories with version, maturity, and documentation metrics
+**Overview**: All 12 skills across 5 categories with version, maturity, and documentation metrics
 
 | Skill | Version | Maturity | Category | References | Assets | Scripts |
 |-------|---------|----------|----------|------------|--------|---------|
@@ -664,7 +624,6 @@ Finding authentication logic:
 | workflows-spec-kit | v1.0.0 | ★★★★ Medium-High | Orchestrator | 4 | 2 | 0 |
 | mcp-code-mode | v1.0.0 | ★★★★ Medium-High | MCP Integration | 5 | 2 | 1 |
 | workflows-git | v1.0.0 | ★★★ Medium | Orchestrator | 5 | 3 | 0 |
-| workflows-planning | v1.0.0 | ★★★ Medium | Orchestrator | 4 | 0 | 1 |
 | mcp-semantic-search | v1.0.0 | ★★★ Medium | MCP Integration | 3 | 1 | 0 |
 | create-parallel-sub-agents | v1.0.0 | ★★★ Medium | Orchestration | 5 | 2 | 0 |
 | cli-codex | v1.0.0 | ★★★ Medium | CLI Wrapper | 4 | 0 | 0 |
@@ -677,11 +636,11 @@ Finding authentication logic:
 - ★ **Experimental** (v0.1): Alpha stage, documentation in progress, not recommended for production
 
 **Version Distribution**:
-- v9.x: 1 skill (7%) - Anchor-based retrieval major version
-- v3.x: 1 skill (7%) - Most mature
-- v2.x: 1 skill (7%) - Major update
-- v1.1.x: 2 skills (14%) - Minor updates
-- v1.0.0: 8 skills (62%) - Stable releases
+- v9.x: 1 skill (8%) - Anchor-based retrieval major version
+- v3.x: 1 skill (8%) - Most mature
+- v2.x: 1 skill (8%) - Major update
+- v1.1.x: 2 skills (17%) - Minor updates
+- v1.0.0: 7 skills (58%) - Stable releases
 
 **Documentation Metrics**:
 - **Average References**: 5.1 files per skill

@@ -1,9 +1,9 @@
 # ───────────────────────────────────────────────────────────────────
-# SMART SPECKIT: COMPLETE WORKFLOW (INTERACTIVE MODE)
+# SMART SPECKIT: PLAN WORKFLOW (INTERACTIVE MODE)
 # ───────────────────────────────────────────────────────────────────
-role: Expert Developer using Smart SpecKit with user confirmation
-purpose: Spec-driven development with mandatory compliance and step-by-step approval
-action: Run full SpecKit from spec to implementation with user checkpoints
+role: Expert Developer using Smart SpecKit for interactive planning
+purpose: Spec-driven planning with step-by-step user approval
+action: Run SpecKit from spec to planning with user checkpoints
 
 operating_mode:
   workflow: sequential
@@ -13,10 +13,10 @@ operating_mode:
   tracking: progressive_task_checklists
   validation: checkpoint_based
 
-development_philosophy:
-  principle: "Quality first, velocity second"
-  approach: "Complete lifecycle with user-validated checkpoints"
-  mandate: "Plan thoroughly, review with user, implement carefully, verify continuously"
+planning_philosophy:
+  principle: "Clarity first, completeness second"
+  approach: "Thorough analysis with user validation at each step"
+  mandate: "Define requirements, validate with user, plan incrementally"
 
 # ───────────────────────────────────────────────────────────────────
 # USER INPUTS (Transformed from raw text)
@@ -24,12 +24,11 @@ development_philosophy:
 user_inputs:
   git_branch: |
     [GIT_BRANCH]
-    Git branch name for the work. Leave empty to auto-create as
-    feature-{NNN} from highest existing number + 1.
+    Git branch name for the work. Leave empty to auto-create as feature-{NNN}.
 
   spec_folder: |
     [SPEC_FOLDER]
-    Spec folder path. Leave empty to auto-create next available.
+    Spec folder path. Leave empty to auto-create next available spec number.
 
   context: |
     [CONTEXT]
@@ -41,7 +40,7 @@ user_inputs:
 
   request: |
     [REQUEST]
-    Complete work to be done. REQUIRED.
+    Feature or improvement to plan. REQUIRED.
 
   environment: |
     [STAGING LINK]
@@ -49,7 +48,7 @@ user_inputs:
 
   scope: |
     [FILES]
-    Files or folders to work with.
+    Files or folders to focus on.
 
 # ─────────────────────────────────────────────────────────────────
 # FIELD HANDLING
@@ -130,14 +129,10 @@ available_templates:
 # ─────────────────────────────────────────────────────────────────
 # PARALLEL DISPATCH CONFIGURATION
 # ─────────────────────────────────────────────────────────────────
-# Smart parallel sub-agent dispatch for eligible workflow phases.
-# Uses complexity scoring from create-parallel-sub-agents skill.
-# Thresholds: <20% = direct, 20-49% + 2 domains = ask, ≥50% + 3 domains = auto
 parallel_dispatch_config:
   enabled: true
   version: "1.0.0"
 
-  # Complexity scoring algorithm (5 dimensions, weighted)
   complexity_scoring:
     domain_count:
       weight: 0.35
@@ -156,7 +151,6 @@ parallel_dispatch_config:
       weight: 0.05
       scoring: "trivial=0.0, moderate=0.5, complex=1.0"
 
-  # Decision thresholds
   thresholds:
     direct_max: 20
     ask_min: 20
@@ -164,17 +158,14 @@ parallel_dispatch_config:
     min_domains_for_ask: 2
     min_domains_for_auto: 3
 
-  # Session preference (1 hour persistence)
   session_preference:
     persist_duration_seconds: 3600
 
-  # Override phrases for power users
   override_phrases:
     direct: ["proceed directly", "handle directly", "skip parallel", "skip agents"]
     parallel: ["use parallel", "dispatch agents", "parallelize", "use agents"]
     auto: ["auto-decide", "auto mode", "decide for me"]
 
-  # Question template for AskUserQuestion
   question_template:
     tool: AskUserQuestion
     header: "Parallel Dispatch"
@@ -194,15 +185,12 @@ parallel_dispatch_config:
         label: "Auto-decide for session"
         description: "Let system decide based on complexity thresholds (1 hour)"
 
-  # Eligible phases in this workflow
   eligible_phases:
     - step_3_specification
-    - step_6_planning  # Already has skill_invocation - uses workflows-planning
-    - step_8_analysis
-    - step_10_development
+    - step_6_planning  # Has inline_parallel_exploration - 4 agents dispatched directly
 
 # ─────────────────────────────────────────────────────────────────
-# CHECKPOINT OPTIONS (Used at each step)
+# CHECKPOINT OPTIONS
 # ─────────────────────────────────────────────────────────────────
 checkpoint_options:
   standard:
@@ -216,17 +204,17 @@ checkpoint_options:
     description: "Skip this step (if optional)"
 
 # ─────────────────────────────────────────────────────────────────
-# WORKFLOW (12 STEPS WITH CHECKPOINTS)
+# WORKFLOW (7 STEPS WITH CHECKPOINTS)
 # ─────────────────────────────────────────────────────────────────
 workflow:
   step_1_request_analysis:
-    purpose: Analyze inputs and define development scope
+    purpose: Analyze inputs and define planning scope
     activities:
     - Analyze all user inputs thoroughly
     - Define development scope for the spec folder
     - Verify or create spec folder structure
     - Check for existing artifacts
-    - Establish development scope
+    - Establish planning scope
     deep_analysis:
       focus: comprehensive_requirement_analysis
       outputs:
@@ -237,7 +225,7 @@ workflow:
       - success_criteria
     validation: understanding_confirmed
     checkpoint:
-      question: "Step 1 Complete: Request analysis finished. How would you like to proceed?"
+      question: "Step 1 Complete: Request analyzed. How would you like to proceed?"
       use: AskUserQuestion
       options: checkpoint_options.standard
 
@@ -307,7 +295,13 @@ workflow:
     checkpoint:
       question: "Step 3 Complete: Specification created. Review spec.md?"
       use: AskUserQuestion
-      options: checkpoint_options.standard
+      options:
+      - label: "Approve Spec"
+        description: "Specification looks good, proceed"
+      - label: "Review Spec"
+        description: "Show spec.md content for review"
+      - label: "Modify Spec"
+        description: "Request changes to specification"
 
   step_4_clarification:
     purpose: Resolve ambiguities and clarify requirements
@@ -328,73 +322,118 @@ workflow:
       options: checkpoint_options.standard
 
   step_5_quality_checklist:
-    purpose: Generate validation checklist AND USE FOR ACTIVE VERIFICATION (Level 2+ requirement)
+    purpose: Generate validation checklist (Level 2+ requirement)
     level_requirement: "Level 2+ (Verification and Full)"
     activities:
-    - Check documentation level - skip for Level 1, MANDATORY for Level 2+
+    - Check documentation level - skip for Level 1, required for Level 2+
     - Load checklist.md template
-    - Generate domain-specific validation items with priorities (P0/P1/P2)
+    - Generate domain-specific validation items
     - Create checklist file
-    - FOR EACH ITEM:
-      - Verify condition is met
-      - Mark as [x] with evidence link
-      - If not met: document blocker (P0/P1) or deferral reason (P2)
-    - Ensure ALL P0 items are complete (HARD BLOCKER)
-    - Ensure ALL P1 items are complete or user-approved deferral
-    - Document P2 deferrals with reasons
-    - Update checklist.md file with verification marks
-    verification_protocol:
-      p0_handling: "BLOCKER - Cannot proceed without completion"
-      p1_handling: "Required - Complete or get user approval to defer"
-      p2_handling: "Optional - Can defer with documented reason"
+    - Run validation check
     outputs:
     - quality_checklist: generated
-    - checklist_status: pass_or_fail
-    - verified_items_count: "X/Y items verified"
-    - p0_status: "all_complete or blocked"
-    - deferred_items: list_of_deferred_p2_items
     template: .opencode/speckit/templates/checklist.md
-    validation: checklist_verified_and_marked
+    validation: checklist_generated
     checkpoint:
-      question: "Step 5 Complete: Checklist verified. How would you like to proceed?"
+      question: "Step 5 Complete: Quality checklist generated. How would you like to proceed?"
       use: AskUserQuestion
-      options:
-      - label: "Proceed"
-        description: "Continue to planning phase"
-      - label: "Review Verification"
-        description: "Show checklist verification details"
-      - label: "Address Blockers"
-        description: "Fix P0/P1 blockers first"
+      options: checkpoint_options.standard
 
   step_6_planning:
     purpose: Create technical plan with implementation approach
 
-    # PRE-PHASE: This step already uses parallel agents via workflows-planning skill
-    # No additional pre_phase_parallel_check needed - skill_invocation handles it
+    # INLINE 4-AGENT PARALLEL EXPLORATION
+    # Self-contained exploration - no external skill dependency
     parallel_dispatch_note: |
-      This phase already dispatches 4 parallel Sonnet agents via the workflows-planning skill.
-      The skill handles: Architecture Explorer, Feature Explorer, Dependency Explorer, Test Explorer.
+      This phase dispatches 4 parallel Sonnet agents directly via Task tool.
+      Agents: Architecture Explorer, Feature Explorer, Dependency Explorer, Test Explorer.
       No additional question is asked because parallel dispatch is integral to this phase.
 
-    # ENHANCED: Invoke parallel exploration skill for comprehensive planning
-    skill_invocation:
+    # 4-Agent Parallel Exploration Configuration
+    inline_parallel_exploration:
       description: "4-agent parallel exploration for verified planning"
-      condition: "Always invoke for enhanced planning quality"
-      tool: Skill
-      parameter: skill="workflows-planning"
-      inputs:
-        task_description: "$user_inputs.request"
-        spec_folder_path: "$spec_folder"
-      benefits:
-        - "4 Sonnet agents explore codebase in parallel"
-        - "Verified findings instead of assumptions"
-        - "Integration points documented"
-        - "Test patterns identified"
+      purpose: "Spawn 4 Explore agents to discover codebase patterns before planning"
+
+      execution:
+        tool: Task
+        subagent_type: Explore
+        model: sonnet  # Fast, cost-effective exploration (works in both Claude Code and OpenCode)
+        parallel: true  # All 4 agents spawn in single message
+
+      agents:
+        architecture_explorer:
+          focus: "Project structure, entry points, component connections"
+          purpose: "Understand system architecture"
+          prompt: |
+            Explore the codebase to find how the system architecture works for: {task_description}
+
+            Return:
+            1. Your hypothesis about the architecture
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Any patterns you noticed (component structure, module organization, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        feature_explorer:
+          focus: "Similar features, related patterns"
+          purpose: "Find reusable patterns"
+          prompt: |
+            Explore the codebase to find similar features or related patterns for: {task_description}
+
+            Return:
+            1. Your hypothesis about existing similar features
+            2. Full paths to all relevant files
+            3. Any patterns you noticed (naming conventions, implementation patterns, etc.)
+
+            Do NOT draw conclusions - just report findings.
+
+        dependency_explorer:
+          focus: "Imports, modules, affected areas"
+          purpose: "Identify integration points"
+          prompt: |
+            Explore the codebase to find dependencies and integration points for: {task_description}
+
+            Return:
+            1. Your hypothesis about which modules/files will be affected
+            2. Full paths to all relevant files
+            3. Any patterns you noticed (dependency chains, coupling points, etc.)
+
+            Do NOT draw conclusions - just report findings.
+
+        test_explorer:
+          focus: "Test patterns, testing infrastructure"
+          purpose: "Understand verification approach"
+          prompt: |
+            Explore the codebase to find test patterns and testing infrastructure.
+
+            Return:
+            1. Your hypothesis about how testing works in this project
+            2. Full paths to all relevant test files
+            3. Any patterns you noticed (test frameworks, mocking patterns, coverage expectations, etc.)
+
+            Do NOT draw conclusions - just report findings.
+
+      verification:
+        description: "After agents return, verify hypotheses by reading identified files"
+        approach:
+          - "Read each file identified by Explore agents"
+          - "Verify or refute each hypothesis"
+          - "Cross-reference findings across agents for consistency"
+          - "Build complete mental model of architecture, affected components, integration points, risks"
+          - "Resolve conflicting hypotheses by reading additional files"
+
+      outputs:
+        - architecture_findings
+        - feature_findings
+        - dependency_findings
+        - test_findings
+        - verified_mental_model
+
       fallback:
         on_failure: "Use inline planning activities below"
-        reason: "Graceful degradation if skill/agents unavailable"
+        reason: "Graceful degradation if agents unavailable"
 
-    # FALLBACK: Inline planning if skill invocation fails
+    # FALLBACK: Inline planning if exploration fails
     activities:
     - Run setup-plan.sh --json
     - Load plan.md
@@ -407,227 +446,63 @@ workflow:
     - Import Risk Matrix from spec
     - Generate Dependencies Tables
     - Generate Phase 2-4 outlines
+    - Create planning-summary.md
     outputs:
     - plan.md: technical_approach
+    - planning-summary.md: overview
     - research.md: resolved_unknowns
     template: .opencode/speckit/templates/plan.md
     validation: approach_defined
     checkpoint:
       question: "Step 6 Complete: Technical plan created. Review plan.md?"
       use: AskUserQuestion
-      options: checkpoint_options.standard
-
-  step_7_task_breakdown:
-    purpose: Break plan into executable tasks (Level 1+ requirement)
-    level_requirement: "Level 1+ (Baseline - required at all levels)"
-    activities:
-    - Load plan.md for tech stack and architecture
-    - Load spec.md for user stories and priorities
-    - Generate tasks organized by user story
-    - Create dependency graph
-    - Mark parallel-executable tasks with [P]
-    - Define task phases
-    - Generate time estimates
-    - Create tasks.md (required at all levels)
-    outputs:
-    - tasks.md: implementation_breakdown
-    template: .opencode/speckit/templates/tasks.md
-    validation: tasks_documented
-    checkpoint:
-      question: "Step 7 Complete: Tasks broken down. Review tasks.md?"
-      use: AskUserQuestion
-      options: checkpoint_options.standard
-
-  step_8_analysis:
-    purpose: Verify consistency across all artifacts
-
-    # PRE-PHASE: Smart parallel dispatch check
-    pre_phase_parallel_check:
-      enabled: true
-      phase_domains: [code, docs, analysis]
-      complexity_boost: 10
-      decision_logic: |
-        BEFORE starting this phase, evaluate parallel dispatch:
-        1. Check for override phrases in user request
-        2. Check for session preference (from previous "Auto-decide" selection)
-        3. Check for sequential dependencies (skip if detected)
-        4. Calculate phase complexity using parallel_dispatch_config
-        5. Apply thresholds:
-           - <20% → proceed directly (silent)
-           - ≥50% + 3 domains → auto-dispatch with notification
-           - ≥20% + 2 domains → ask user via AskUserQuestion
-      on_parallel_dispatch:
-        agents:
-          - name: "consistency_analyzer"
-            focus: "Cross-artifact consistency and requirement coverage"
-            model: "sonnet"
-          - name: "gap_detector"
-            focus: "Missing requirements, underspecification, edge cases"
-            model: "sonnet"
-        dispatch_note: "Spawn agents in SINGLE message for parallel execution"
-      fallback: "Proceed with activities below if dispatch fails or user chooses direct"
-
-    activities:
-    - Build requirements inventory
-    - Build task coverage mapping
-    - Run consistency checks
-    - Generate gap analysis
-    outputs:
-    - consistency_report
-    - coverage_verification
-    validation: consistency_verified
-    checkpoint:
-      question: "Step 8 Complete: Consistency analysis done. How would you like to proceed?"
-      use: AskUserQuestion
-      options: checkpoint_options.standard
-
-  step_9_implementation_check:
-    purpose: Verify all prerequisites for implementation
-    activities:
-    - Run check-prerequisites.sh --json --require-tasks
-    - Verify environment ready
-    - Check API endpoints accessible
-    - Verify dependencies loaded
-    - Confirm no blockers
-    checks:
-      prerequisites: verified
-      blockers: none
-      environment: ready
-    validation: prerequisites_verified
-    checkpoint:
-      question: "Step 9 Complete: Ready to implement. Proceed with development?"
-      use: AskUserQuestion
       options:
-      - label: "Start Development"
-        description: "Begin implementation phase"
+      - label: "Approve Plan"
+        description: "Plan looks good, proceed to save context"
       - label: "Review Plan"
-        description: "Review technical plan before proceeding"
-      - label: "Hold"
-        description: "Pause before implementation"
+        description: "Show plan.md content for detailed review"
+      - label: "Modify Plan"
+        description: "Request changes to technical plan"
 
-  step_10_development:
-    purpose: Execute implementation following task plan
-
-    # PRE-PHASE: Smart parallel dispatch check
-    pre_phase_parallel_check:
-      enabled: true
-      phase_domains: [code, testing]
-      complexity_boost: 15
-      decision_logic: |
-        BEFORE starting this phase, evaluate parallel dispatch:
-        1. Check for override phrases in user request
-        2. Check for session preference (from previous "Auto-decide" selection)
-        3. Check for sequential dependencies (skip if detected)
-        4. Calculate phase complexity using parallel_dispatch_config
-        5. Apply thresholds:
-           - <20% → proceed directly (silent)
-           - ≥50% + 3 domains → auto-dispatch with notification
-           - ≥20% + 2 domains → ask user via AskUserQuestion
-      on_parallel_dispatch:
-        agents:
-          - name: "implementation_agent"
-            focus: "Core implementation tasks from tasks.md"
-            model: "sonnet"
-          - name: "test_agent"
-            focus: "Test implementation and validation"
-            model: "sonnet"
-        dispatch_note: "Spawn agents in SINGLE message for parallel execution"
-        warning: "Development tasks may have dependencies - verify task order"
-      fallback: "Proceed with activities below if dispatch fails or user chooses direct"
-
-    activities:
-    - Parse tasks.md structure
-    - Execute phase by phase
-    - Setup first (structure, dependencies, config)
-    - Follow TDD approach where applicable
-    - Core development (models, services, endpoints)
-    - Integration work (database, middleware, logging)
-    - Update task checklist progressively (mark [X])
-    - Log progress after each task
-    approach: incremental_implementation_with_reviews
-    requirements:
-    - follow: Check knowledge base or skills folder for coding standards
-    - update: task_checklist_progressively
-    - test: before_commit
-    - validate: continuously
-    validation: development_complete
-    checkpoint:
-      question: "Step 10 Complete: Development finished. Review implementation?"
-      use: AskUserQuestion
-      options:
-      - label: "Review Code"
-        description: "Show code changes for review"
-      - label: "Run Tests"
-        description: "Execute test suite"
-      - label: "Continue"
-        description: "Proceed to completion"
-
-  step_11_completion:
-    purpose: Generate implementation summary
-    activities:
-    - Verify all tasks completed
-    - Validate tests pass
-    - Confirm implementation follows plan
-    - Generate implementation-summary.md
-    - Update all task status
-    summary_document:
-      location: "[SPEC_FOLDER]/implementation-summary.md"
-      required_sections:
-      - feature_branch_name
-      - files_modified_created
-      - verification_steps_taken
-      - deviations_from_plan
-      - recommended_next_steps
-    verification_summary:
-      checklist_verification:
-        required: true  # for Level 2+
-        must_include:
-        - Total items verified count
-        - P0 items status (all must be complete)
-        - P1 items status (all complete or deferred with approval)
-        - Deferred P2 items with reasons
-        - Link to updated checklist.md
-    validation: implementation_complete
-    checkpoint:
-      question: "Step 11 Complete: Implementation summary generated. Review summary?"
-      use: AskUserQuestion
-      options: checkpoint_options.standard
-
-  step_12_save_context:
-    purpose: Save conversation context
+  step_7_save_context:
+    purpose: Save conversation context for planning documentation
     activities:
     - Invoke workflows-save-context skill
-    - Preserve development decisions
-    - Preserve debugging insights
-    - Preserve code changes
+    - Preserve requirements analysis and clarifications
+    - Preserve technical approach decisions
+    - Preserve architecture discussions
     tool_invocation:
       tool: Skill
       parameter: skill="workflows-save-context"
       note: "Use the Skill tool with skill parameter to activate context saving"
     outputs:
-    - context_file: "[SPEC_FOLDER]/memory/[DD-MM-YY_HH-MM]__session.md"
+    - context_file: specs/[NNN-feature]/memory/[DD-MM-YY_HH-MM]__planning_session.md
     validation: context_saved_successfully
     checkpoint:
-      question: "Step 12 Complete: Context saved. Workflow finished!"
+      question: "Step 7 Complete: Planning workflow finished!"
       use: AskUserQuestion
       options:
       - label: "Done"
-        description: "Complete the workflow"
+        description: "Complete the planning workflow"
       - label: "View Summary"
-        description: "Show final summary"
+        description: "Show planning summary"
 
 # ─────────────────────────────────────────────────────────────────
 # WORKFLOW TERMINATION
 # ─────────────────────────────────────────────────────────────────
 termination:
-  after_step: 12
-  message: "SpecKit workflow completed successfully. Workflow terminated after step 12 (save context)."
+  after_step: 7
+  message: "Planning phase completed successfully. Workflow terminated after step 7 (save context)."
+  next_steps:
+  - Review planning documentation
+  - Validate technical approach
+  - Use /spec_kit:implement:auto or /spec_kit:implement:confirm for implementation
 
 # ─────────────────────────────────────────────────────────────────
 # INTERACTIVE EXECUTION GUIDANCE
 # ─────────────────────────────────────────────────────────────────
 interactive_execution:
-  principle: "Execute workflow steps with user approval at each checkpoint"
+  principle: "Execute planning workflow with user approval at each checkpoint"
 
   checkpoint_behavior:
   - Complete step activities
@@ -651,10 +526,8 @@ error_recovery:
     action: "Review requirements, ask clarifying questions, retry step"
   user_rejects_approach:
     action: "Present alternatives, modify plan, document decision"
-  tests_fail:
-    action: "Debug, fix, re-run before marking complete"
-  prerequisites_insufficient:
-    action: "Return to prior workflow phase or ask user for guidance"
+  spec_ambiguity_persists:
+    action: "Document as assumption, add to risk matrix"
   environment_unavailable:
     action: "Skip browser testing, document limitation"
 
@@ -664,24 +537,14 @@ error_recovery:
 rules:
   ALWAYS:
   - follow_workflow_sequence
-  - document_all_changes
+  - document_all_decisions
   - validate_before_completion
-  - use_devtools_for_staging_analysis
   - pause_at_checkpoints_for_approval
   - respect_user_feedback
-  - limit_context_to_active_scope
-  - use_checklist_for_verification_level_2_plus
-  - mark_checklist_items_with_evidence
-  - complete_all_p0_items_before_done
-  - get_user_approval_for_p1_deferrals
 
   NEVER:
   - skip_workflow_steps
-  - ignore_blockers
-  - submit_without_validation
-  - skip_browser_testing
+  - proceed_beyond_planning
+  - make_unsupported_assumptions
   - proceed_without_user_approval
   - ignore_user_modification_requests
-  - claim_completion_without_checklist_verification_level_2_plus
-  - skip_p0_checklist_items
-  - defer_p1_items_without_user_approval

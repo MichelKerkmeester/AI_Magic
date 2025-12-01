@@ -1,0 +1,1065 @@
+# ───────────────────────────────────────────────────────────────────
+# SMART SPECKIT: COMPLETE WORKFLOW (AUTONOMOUS MODE)
+# ───────────────────────────────────────────────────────────────────
+role: Expert Developer using Smart SpecKit autonomously
+purpose: Spec-driven development with mandatory compliance and autonomous execution
+action: Run full SpecKit from spec to implementation with continuous validation
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none
+  tracking: progressive_task_checklists
+  validation: continuous_self_validation
+
+development_philosophy:
+  principle: "Quality first, velocity second"
+  approach: "Complete lifecycle with validated checkpoints"
+  mandate: "Plan thoroughly, implement carefully, verify continuously, execute autonomously"
+
+# ───────────────────────────────────────────────────────────────────
+# USER INPUTS (Transformed from raw text)
+# ───────────────────────────────────────────────────────────────────
+user_inputs:
+  git_branch: |
+    [GIT_BRANCH]
+
+    Git branch name for the work. Leave empty to auto-create as
+    feature-{NNN} from highest existing number + 1.
+
+  spec_folder: |
+    [SPEC_FOLDER]
+
+    Spec folder path (e.g., specs/001 or specs/001-feature-name).
+    Leave empty to auto-create next available spec number.
+
+  context: |
+    [CONTEXT]
+
+    Provide background information, constraints, or existing documentation
+    that should inform the development. Examples:
+    - Environment details (staging/production URLs)
+    - Current state of related features
+    - Technical stack and dependencies
+    - Known constraints or limitations
+    Leave empty to infer from REQUEST and environment exploration.
+
+  issues: |
+    [ISSUES]
+
+    List known issues, problems, or concerns that need to be addressed.
+    Examples:
+    - Bug reports or error messages
+    - Performance concerns
+    - User feedback or complaints
+    - Technical debt to address
+    Leave empty to discover during analysis.
+
+  request: |
+    [REQUEST]
+
+    Describe the complete work to be done. Be specific about:
+    - What needs to be built or changed
+    - The problem to solve
+    - Goals and objectives
+    - Success criteria
+    - Any specific requirements
+
+  environment: |
+    [STAGING LINK]
+
+    Staging or production URL for browser testing. Leave empty to skip
+    browser-based verification steps.
+
+  scope: |
+    [FILES]
+
+    Files or folders to work with. Can be:
+    - Single file path
+    - Multiple paths (one per line)
+    - Glob patterns (e.g., src/**/*.js)
+    - Leave empty to use default scope (specs/**)
+
+# ─────────────────────────────────────────────────────────────────
+# FIELD HANDLING
+# ─────────────────────────────────────────────────────────────────
+field_handling:
+  spec_id:
+    derive_from: "spec_folder path using pattern specs/{NNN} or specs/{NNN-name}"
+    fallback: "Extract numeric portion or use timestamp if extraction fails"
+
+  defaults:
+    git_branch_empty: "Auto-create feature-{NNN} from highest +001"
+    spec_folder_empty: "Auto-create specs/{NNN} from highest +001"
+    context_empty: "Infer from [REQUEST], [STAGING LINK], and codebase exploration"
+    issues_empty: "Investigate and discover during workflow"
+    environment_empty: "Skip browser testing steps"
+    scope_empty: "Use scope_policy.default"
+
+  scope_policy:
+    default: "specs/**"
+    rule: "Limit file operations to scope when provided"
+
+# ─────────────────────────────────────────────────────────────────
+# DOCUMENTATION LEVELS (Progressive Enhancement)
+# ─────────────────────────────────────────────────────────────────
+documentation_levels:
+  level_1_baseline:
+    name: "Level 1 (Baseline)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    loc_guidance: "<100 LOC"
+    use_case: "Simple changes, bug fixes, minor features"
+
+  level_2_verification:
+    name: "Level 2 (Verification)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    - checklist.md
+    loc_guidance: "100-499 LOC"
+    use_case: "Medium features, refactoring, multi-file changes"
+
+  level_3_full:
+    name: "Level 3 (Full)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    - checklist.md
+    - decision-record.md
+    optional_files:
+    - research-spike.md
+    loc_guidance: ">=500 LOC"
+    use_case: "Complex features, architecture changes, high-risk modifications"
+
+  level_selection:
+    note: "LOC thresholds are SOFT GUIDANCE - choose level based on complexity and risk"
+    default: "Level 1 for simple tasks, escalate based on analysis"
+
+# ─────────────────────────────────────────────────────────────────
+# AVAILABLE TEMPLATES
+# ─────────────────────────────────────────────────────────────────
+available_templates:
+  # Level 1+ (Baseline - required at all levels)
+  spec: .opencode/speckit/templates/spec.md
+  plan: .opencode/speckit/templates/plan.md
+  tasks: .opencode/speckit/templates/tasks.md
+  # Level 2+ (Verification)
+  checklist: .opencode/speckit/templates/checklist.md
+  # Level 3 (Full)
+  decision_record: .opencode/speckit/templates/decision-record.md
+  # Optional (any level)
+  research: .opencode/speckit/templates/research.md
+  research_spike: .opencode/speckit/templates/research-spike.md
+
+# ─────────────────────────────────────────────────────────────────
+# PARALLEL DISPATCH CONFIGURATION
+# ─────────────────────────────────────────────────────────────────
+# Smart parallel sub-agent dispatch for eligible workflow phases.
+# Uses complexity scoring from create-parallel-sub-agents skill.
+# Thresholds: <20% = direct, 20-49% + 2 domains = ask, ≥50% + 3 domains = auto
+parallel_dispatch_config:
+  enabled: true
+  version: "1.0.0"
+
+  # Complexity scoring algorithm (5 dimensions, weighted)
+  complexity_scoring:
+    domain_count:
+      weight: 0.35
+      domains: [code, analysis, docs, git, testing, devops]
+      scoring: "1=0.0, 2=0.5, 3+=1.0"
+    file_count:
+      weight: 0.25
+      scoring: "1-2=0.0, 3-5=0.5, 6+=1.0"
+    loc_estimate:
+      weight: 0.15
+      scoring: "<50=0.0, 50-200=0.5, >200=1.0"
+    parallel_opportunity:
+      weight: 0.20
+      scoring: "sequential=0.0, some=0.5, high=1.0"
+    task_type:
+      weight: 0.05
+      scoring: "trivial=0.0, moderate=0.5, complex=1.0"
+
+  # Decision thresholds
+  thresholds:
+    direct_max: 20
+    ask_min: 20
+    auto_dispatch_min: 50
+    min_domains_for_ask: 2
+    min_domains_for_auto: 3
+
+  # Session preference (1 hour persistence)
+  session_preference:
+    persist_duration_seconds: 3600
+
+  # Override phrases for power users
+  override_phrases:
+    direct: ["proceed directly", "handle directly", "skip parallel", "skip agents"]
+    parallel: ["use parallel", "dispatch agents", "parallelize", "use agents"]
+    auto: ["auto-decide", "auto mode", "decide for me"]
+
+  # Question template for AskUserQuestion
+  question_template:
+    tool: AskUserQuestion
+    header: "Parallel Dispatch"
+    format: |
+      **Phase: {phase_name}**
+      Complexity: {complexity_score}% | Domains: {domain_count} ({domains_list})
+
+      This phase may benefit from parallel sub-agents for faster execution.
+    options:
+      - id: A
+        label: "Handle directly"
+        description: "Execute phase sequentially without parallel agents"
+      - id: B
+        label: "Use parallel agents"
+        description: "Dispatch specialized agents for faster parallel execution"
+      - id: C
+        label: "Auto-decide for session"
+        description: "Let system decide based on complexity thresholds (1 hour)"
+
+  # Eligible phases in this workflow
+  eligible_phases:
+    - step_3_specification
+    - step_6_planning  # Has inline_parallel_exploration - 4 agents dispatched directly
+    - step_8_analysis
+    - step_10_development
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW (12 STEPS - ALL LOGIC ABSORBED)
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_1_request_analysis:
+    purpose: Analyze inputs and define development scope
+    input_source: USER_INPUTS_SECTION_ABOVE
+    git_branch: "[GIT_BRANCH] → auto-create if empty"
+    spec_folder: "[SPEC_FOLDER] → auto-create if empty"
+    context: "[CONTEXT] → infer if empty"
+    issues: "[ISSUES] → discover if empty"
+    request: "[REQUEST] → REQUIRED"
+    environment: "[STAGING LINK] → skip DevTools if empty"
+    scope: "[FILES] → default scope if empty"
+    activities:
+    - Analyze all user inputs thoroughly
+    - Define development scope for the spec folder
+    - Verify or create spec folder structure
+    - Check for existing artifacts
+    - Establish development scope
+    deep_analysis:
+      focus: comprehensive_requirement_analysis
+      approach: thorough_investigation
+      outputs:
+      - requirement_summary
+      - approach_overview
+      - complexity_assessment
+      - key_objectives
+      - success_criteria
+      - investigation_priorities
+      - technical_depth_required
+      - output_structure_planning
+    validation: understanding_confirmed
+
+  step_2_pre_work_review:
+    purpose: Review knowledge base and project standards
+    activities:
+    - Read and review AGENTS.md (project principles)
+    - Check knowledge base (/knowledge/) or skills folder (/skills/) for relevant coding standards
+    - Extract coding standards summary
+    - Identify architectural patterns
+    - Document project conventions
+    - Identify constraints
+    - Verify principle alignment
+    - Initialize or update project constitution if needed
+    required_documents:
+    - AGENTS.md
+    - Knowledge base or skills folder (if available)
+    verification: MUST_REVIEW
+    deep_analysis:
+      focus: knowledge_base_alignment
+      approach: systematic_review
+      outputs:
+      - coding_standards_summary
+      - architectural_patterns
+      - project_conventions
+      - constraint_identification
+      - principle_alignment
+    validation: principles_established
+
+  step_3_specification:
+    purpose: Create comprehensive feature specification
+
+    # PRE-PHASE: Smart parallel dispatch check
+    pre_phase_parallel_check:
+      enabled: true
+      phase_domains: [code, docs]
+      complexity_boost: 0
+      decision_logic: |
+        BEFORE starting this phase, evaluate parallel dispatch:
+        1. Check for override phrases in user request
+        2. Check for session preference (from previous "Auto-decide" selection)
+        3. Check for sequential dependencies (skip if detected)
+        4. Calculate phase complexity using parallel_dispatch_config
+        5. Apply thresholds:
+           - <20% → proceed directly (silent)
+           - ≥50% + 3 domains → auto-dispatch with notification
+           - ≥20% + 2 domains → ask user via AskUserQuestion
+      on_parallel_dispatch:
+        agents:
+          - name: "spec_explorer"
+            focus: "Existing specifications and patterns in codebase"
+            model: "sonnet"
+          - name: "requirement_analyzer"
+            focus: "Similar features and their requirements"
+            model: "sonnet"
+        dispatch_note: "Spawn agents in SINGLE message for parallel execution"
+      fallback: "Proceed with activities below if dispatch fails or user chooses direct"
+
+    activities:
+    - Generate concise short name (2-4 words) for branch
+    - Check for existing branches before creating new one
+    - Fetch all remote branches for latest information
+    - Find highest feature number across all sources
+    - Run create-new-feature.sh script with calculated number
+    - Estimate complexity and select documentation level using progressive enhancement:
+      - "Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md"
+      - "Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md"
+      - "Level 3 (Full): >=500 LOC - Level 2 + decision-record.md"
+    - Load spec.md and use as EXACT structure
+    - Parse user description and extract key concepts
+    - Identify actors, actions, data, constraints
+    - Make informed guesses based on context for unclear aspects
+    - Fill User Scenarios & Testing section
+    - Generate Functional Requirements (testable)
+    - Define Success Criteria (measurable, technology-agnostic)
+    - Identify Key Entities if data involved
+    - For Level 2+, include mandatory checklist.md with:
+      - Requirement completeness checks
+      - Feature readiness checks
+    - For Level 3, include decision-record.md with:
+      - Traceability Mapping (User Stories -> FRs)
+      - Risk Matrix (minimum 2 risks)
+      - Rollback Plan
+      - Constitution Check in Assumptions
+    outputs:
+    - feature_branch: created
+    - spec.md: acceptance_criteria
+    - location: specs/[NNN-feature]/spec.md
+    optional_documents:
+    - research-spike-[name].md: "Time-boxed research BEFORE implementation"
+    - decision-record-[name].md: "Architecture Decision Records"
+    template: .opencode/speckit/templates/spec.md
+    chrome_devtools:
+      when: analyzing_existing_features
+      approach: Navigate → Snapshot → Analyze → Document
+      autonomous: true
+    deep_analysis:
+      focus: comprehensive_specification
+      approach: rigorous_requirements_definition
+      outputs:
+      - feature_scope_definition
+      - acceptance_criteria
+      - technical_constraints
+      - dependency_identification
+      - edge_case_analysis
+      - success_metrics
+    validation: spec_complete
+
+  step_4_clarification:
+    purpose: Resolve ambiguities and clarify requirements
+    activities:
+    - Extract all [NEEDS CLARIFICATION] markers from spec
+    - Limit to maximum 3 clarifications (prioritize by impact)
+    - Make informed guesses for lower-priority items
+    - For each clarification, research codebase for patterns
+    - Use DevTools when staging URL provided for live analysis
+    - Resolve ambiguities through systematic investigation
+    - Update spec.md with resolved clarifications
+    - Document all assumptions made
+    - Identify any remaining risks
+    outputs:
+    - resolved_ambiguities
+    - clarified_requirements
+    - updated_spec
+    chrome_devtools:
+      when: staging_url_provided
+      approach: Navigate → Inspect → Analyze → Clarify
+      capture: current_behavior_screenshots
+      autonomous: true
+    spike_option:
+      when: technical_uncertainty_requires_investigation
+      template: .opencode/speckit/templates/research-spike.md
+      note: "Use for time-boxed research before committing to approach"
+    deep_analysis:
+      focus: ambiguity_resolution
+      approach: systematic_clarification
+      outputs:
+      - requirement_refinement
+      - constraint_validation
+      - assumption_documentation
+      - risk_identification
+    validation: requirements_clear
+
+  step_5_quality_checklist:
+    purpose: Generate validation checklist AND USE FOR ACTIVE VERIFICATION (Level 2+ requirement)
+    level_requirement: "Level 2+ (Verification and Full)"
+    activities:
+    - Check documentation level - skip for Level 1, MANDATORY for Level 2+
+    - Load checklist.md template
+    - Generate domain-specific validation items with priorities (P0/P1/P2)
+    - Create checklist file at FEATURE_DIR/checklists/requirements.md
+    - Include content quality checks
+    - Include requirement completeness checks
+    - Include feature readiness checks
+    - FOR EACH ITEM:
+      - Verify condition is met
+      - Mark as [x] with evidence link
+      - If not met: document blocker (P0/P1) or deferral reason (P2)
+    - Ensure ALL P0 items are complete (HARD BLOCKER)
+    - Ensure ALL P1 items are complete or user-approved deferral
+    - Document P2 deferrals with reasons
+    - Update checklist.md file with verification marks
+    verification_protocol:
+      p0_handling: "BLOCKER - Cannot proceed without completion"
+      p1_handling: "Required - Complete or get user approval to defer"
+      p2_handling: "Optional - Can defer with documented reason"
+    outputs:
+    - quality_checklist: generated
+    - location: specs/[NNN-feature]/checklists/requirements.md
+    - checklist_status: pass_or_fail
+    - verified_items_count: "X/Y items verified"
+    - p0_status: "all_complete or blocked"
+    - deferred_items: list_of_deferred_p2_items
+    template: .opencode/speckit/templates/checklist.md
+    deep_analysis:
+      focus: quality_validation_preparation
+      approach: comprehensive_checklist_design
+      outputs:
+      - validation_criteria
+      - testing_requirements
+      - quality_gates
+    validation: checklist_verified_and_marked
+
+  step_6_planning:
+    purpose: Create technical plan with implementation approach
+
+    # INLINE 4-AGENT PARALLEL EXPLORATION
+    # Self-contained exploration - no external skill dependency
+    parallel_dispatch_note: |
+      This phase dispatches 4 parallel Sonnet agents directly via Task tool.
+      Agents: Architecture Explorer, Feature Explorer, Dependency Explorer, Test Explorer.
+      No additional question is asked because parallel dispatch is integral to this phase.
+
+    # 4-Agent Parallel Exploration Configuration
+    inline_parallel_exploration:
+      description: "4-agent parallel exploration for verified planning"
+      purpose: "Spawn 4 Explore agents to discover codebase patterns before planning"
+
+      execution:
+        tool: Task
+        subagent_type: Explore
+        model: sonnet  # Fast, cost-effective exploration (works in both Claude Code and OpenCode)
+        parallel: true  # All 4 agents spawn in single message
+
+      agents:
+        architecture_explorer:
+          focus: "Project structure, entry points, component connections"
+          purpose: "Understand system architecture"
+          prompt: |
+            Explore the codebase to find how the system architecture works for: {task_description}
+
+            Return:
+            1. Your hypothesis about the architecture
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Any patterns you noticed (component structure, module organization, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        feature_explorer:
+          focus: "Similar features, related patterns"
+          purpose: "Find reusable patterns"
+          prompt: |
+            Explore the codebase to find similar features or related patterns for: {task_description}
+
+            Return:
+            1. Your hypothesis about existing similar features
+            2. Full paths to all relevant files
+            3. Any patterns you noticed (naming conventions, implementation patterns, etc.)
+
+            Do NOT draw conclusions - just report findings.
+
+        dependency_explorer:
+          focus: "Imports, modules, affected areas"
+          purpose: "Identify integration points"
+          prompt: |
+            Explore the codebase to find dependencies and integration points for: {task_description}
+
+            Return:
+            1. Your hypothesis about which modules/files will be affected
+            2. Full paths to all relevant files
+            3. Any patterns you noticed (dependency chains, coupling points, etc.)
+
+            Do NOT draw conclusions - just report findings.
+
+        test_explorer:
+          focus: "Test patterns, testing infrastructure"
+          purpose: "Understand verification approach"
+          prompt: |
+            Explore the codebase to find test patterns and testing infrastructure.
+
+            Return:
+            1. Your hypothesis about how testing works in this project
+            2. Full paths to all relevant test files
+            3. Any patterns you noticed (test frameworks, mocking patterns, coverage expectations, etc.)
+
+            Do NOT draw conclusions - just report findings.
+
+      verification:
+        description: "After agents return, verify hypotheses by reading identified files"
+        approach:
+          - "Read each file identified by Explore agents"
+          - "Verify or refute each hypothesis"
+          - "Cross-reference findings across agents for consistency"
+          - "Build complete mental model of architecture, affected components, integration points, risks"
+          - "Resolve conflicting hypotheses by reading additional files"
+
+      outputs:
+        - architecture_findings
+        - feature_findings
+        - dependency_findings
+        - test_findings
+        - verified_mental_model
+
+      fallback:
+        on_failure: "Use inline planning activities below"
+        reason: "Graceful degradation if agents unavailable"
+
+    # FALLBACK: Inline planning if exploration fails
+    activities:
+    - Run setup-plan.sh --json and parse FEATURE_SPEC, IMPL_PLAN, etc.
+    - Load FEATURE_SPEC and AGENTS.md
+    - Load plan.md and preserve exact structure
+    - Fill Technical Context (mark unknowns as NEEDS CLARIFICATION)
+    - Fill Constitution Check section
+    - Evaluate gates (ERROR if violations unjustified)
+    - Phase 0: Generate research.md to resolve all unknowns
+    - Phase 1: Generate data-model.md, contracts/, quickstart.md
+    - Generate Testing Strategy with test pyramid
+    - Generate Success Metrics from spec criteria
+    - Import Risk Matrix from spec
+    - Generate Dependencies Tables
+    - Generate Communication & Review sections
+    - Re-evaluate Constitution Check post-design
+    - Generate Phase 2-4 outlines (implementation phases)
+    outputs:
+    - plan.md: technical_approach
+    - research.md: resolved_unknowns
+    - data-model.md: entities
+    - contracts/: API_specifications
+    - dependencies: identified
+    - upstream_docs: reviewed
+    level_1_baseline:
+    - spec.md: "Feature specification"
+    - plan.md: "Technical approach"
+    - tasks.md: "Implementation task breakdown"
+    level_2_verification:
+    - checklist.md: "Validation checklists (required at Level 2+)"
+    level_3_full:
+    - decision-record.md: "Architecture Decision Records (required at Level 3)"
+    decision_records:
+      when: significant_technical_decision_needs_documentation
+      template: .opencode/speckit/templates/decision-record.md
+      note: "Document architecture decisions with full context"
+    template: .opencode/speckit/templates/plan.md
+    chrome_devtools:
+      when: analyzing_current_implementation
+      actions:
+      - inspect_network_requests
+      - analyze_dom_structure
+      - review_console_errors
+      - capture_performance_metrics
+      autonomous: true
+    deep_analysis:
+      focus: technical_architecture_design
+      approach: comprehensive_planning
+      outputs:
+      - implementation_strategy
+      - technical_approach
+      - dependency_analysis
+      - integration_patterns
+      - risk_mitigation
+      - rollback_strategy
+    validation: approach_defined
+
+  step_7_task_breakdown:
+    purpose: Break plan into executable implementation tasks (Level 1+ requirement)
+    level_requirement: "Level 1+ (Baseline - required at all levels)"
+    activities:
+    - Run check-prerequisites.sh --json to get FEATURE_DIR
+    - Load plan.md for tech stack and architecture
+    - Load spec.md for user stories and priorities
+    - Load optional artifacts (data-model, contracts, research)
+    - Extract user stories with priorities (P0, P1, P2, P3)
+    - Generate tasks organized by user story
+    - Create dependency graph for task ordering
+    - Mark parallel-executable tasks with [P]
+    - Define task phases (Setup, Tests, Core, Integration, Polish)
+    - Generate time estimates (15-60 min per task)
+    - Create tasks.md with proper structure (required at all levels)
+    - Validate task format and coverage
+    outputs:
+    - tasks.md: implementation_breakdown
+    - task_phases: defined
+    - dependencies: mapped
+    - parallel_markers: assigned
+    template: .opencode/speckit/templates/tasks.md
+    deep_analysis:
+      focus: implementation_task_design
+      approach: systematic_breakdown
+      outputs:
+      - task_prioritization
+      - dependency_ordering
+      - validation_checkpoints
+      - incremental_milestones
+    validation: tasks_documented
+
+  step_8_analysis:
+    purpose: Verify consistency across all artifacts
+
+    # PRE-PHASE: Smart parallel dispatch check
+    pre_phase_parallel_check:
+      enabled: true
+      phase_domains: [code, docs, analysis]
+      complexity_boost: 10  # Analysis benefits from parallel investigation
+      decision_logic: |
+        BEFORE starting this phase, evaluate parallel dispatch:
+        1. Check for override phrases in user request
+        2. Check for session preference (from previous "Auto-decide" selection)
+        3. Check for sequential dependencies (skip if detected)
+        4. Calculate phase complexity using parallel_dispatch_config
+        5. Apply thresholds:
+           - <20% → proceed directly (silent)
+           - ≥50% + 3 domains → auto-dispatch with notification
+           - ≥20% + 2 domains → ask user via AskUserQuestion
+      on_parallel_dispatch:
+        agents:
+          - name: "consistency_analyzer"
+            focus: "Cross-artifact consistency and requirement coverage"
+            model: "sonnet"
+          - name: "gap_detector"
+            focus: "Missing requirements, underspecification, edge cases"
+            model: "sonnet"
+        dispatch_note: "Spawn agents in SINGLE message for parallel execution"
+      fallback: "Proceed with activities below if dispatch fails or user chooses direct"
+
+    activities:
+    - Load all artifacts (spec.md, plan.md, tasks.md)
+    - Build requirements inventory from spec
+    - Build task coverage mapping from tasks
+    - Run detection passes for:
+      - Duplication detection
+      - Ambiguity detection
+      - Underspecification gaps
+      - Constitution alignment
+      - Coverage analysis
+      - Inconsistency checks
+    - Assign severity levels (CRITICAL, HIGH, MEDIUM, LOW)
+    - Generate consistency report
+    - Generate coverage verification
+    - Generate gap analysis
+    - Suggest remediations (non-destructive, user must approve)
+    outputs:
+    - consistency_report
+    - coverage_verification
+    - alignment_check
+    - gap_analysis
+    chrome_devtools:
+      when: comparing_staging_vs_spec
+      approach: Navigate → Snapshot → Compare → Report
+      focus:
+      - ui_consistency
+      - functionality_gaps
+      - performance_baseline
+      autonomous: true
+    deep_analysis:
+      focus: comprehensive_codebase_analysis
+      approach: systematic_investigation
+      outputs:
+      - current_state_assessment
+      - gap_identification
+      - consistency_verification
+      - integration_points
+      - existing_patterns
+    validation: consistency_verified
+
+  step_9_implementation_check:
+    purpose: Verify all prerequisites for implementation
+    activities:
+    - Run check-prerequisites.sh --json --require-tasks
+    - Verify plan.md and tasks.md exist
+    - Check all checklists status
+    - Count total, completed, incomplete items
+    - Verify no blockers exist
+    - Verify environment is ready
+    - Verify API endpoints accessible (if applicable)
+    - Verify authentication working (if applicable)
+    - Verify dependencies loaded
+    - Generate implementation greenlight report
+    checks:
+      prerequisites: verified
+      blockers: none
+      environment: ready
+    chrome_devtools:
+      when: validating_environment
+      verify:
+      - api_endpoints_accessible
+      - authentication_working
+      - dependencies_loaded
+      autonomous: true
+    deep_analysis:
+      focus: implementation_readiness
+      approach: comprehensive_validation
+      outputs:
+      - environment_verification
+      - dependency_confirmation
+      - blocker_resolution
+      - implementation_greenlight
+    validation: prerequisites_verified
+
+  step_10_development:
+    purpose: Execute implementation following task plan
+
+    # PRE-PHASE: Smart parallel dispatch check
+    pre_phase_parallel_check:
+      enabled: true
+      phase_domains: [code, testing]
+      complexity_boost: 15  # Development is inherently complex
+      decision_logic: |
+        BEFORE starting this phase, evaluate parallel dispatch:
+        1. Check for override phrases in user request
+        2. Check for session preference (from previous "Auto-decide" selection)
+        3. Check for sequential dependencies (skip if detected)
+        4. Calculate phase complexity using parallel_dispatch_config
+        5. Apply thresholds:
+           - <20% → proceed directly (silent)
+           - ≥50% + 3 domains → auto-dispatch with notification
+           - ≥20% + 2 domains → ask user via AskUserQuestion
+      on_parallel_dispatch:
+        agents:
+          - name: "implementation_agent"
+            focus: "Core implementation tasks from tasks.md"
+            model: "sonnet"
+          - name: "test_agent"
+            focus: "Test implementation and validation"
+            model: "sonnet"
+        dispatch_note: "Spawn agents in SINGLE message for parallel execution"
+        warning: "Development tasks may have dependencies - verify task order before parallel execution"
+      fallback: "Proceed with activities below if dispatch fails or user chooses direct"
+
+    activities:
+    - Load tasks.md and parse task structure
+    - Execute implementation phase by phase
+    - Setup first (project structure, dependencies, configuration)
+    - Follow TDD approach (tests before code where applicable)
+    - Core development (models, services, endpoints)
+    - Integration work (database, middleware, logging)
+    - Polish and validation (unit tests, optimization, docs)
+    - Respect task dependencies (sequential vs parallel)
+    - Update task checklist progressively (mark [X] when complete)
+    - Validate against acceptance criteria
+    - Log progress after each completed task
+    - Document any deviations from plan
+    approach: autonomous_implementation_with_checkpoints
+    requirements:
+    - follow: Check knowledge base or skills folder for coding standards
+    - update: task_checklist_progressively
+    - test: before_commit
+    - validate: continuously
+    checkpoints:
+      major_changes:
+        action: log_progress
+        validation: self_verify
+      issues_found:
+        action: document_resolution
+        validation: verify_fix
+      architecture_change:
+        action: note_deviation
+        validation: verify_alignment
+    chrome_devtools:
+      when: debugging_implementation
+      actions:
+      - test_in_browser
+      - verify_network_calls
+      - check_console_output
+      - validate_dom_changes
+      - measure_performance_impact
+      autonomous: true
+    deep_analysis:
+      focus: implementation_execution
+      approach: iterative_development_with_validation
+      outputs:
+      - code_implementation
+      - test_validation
+      - progressive_verification
+      - quality_assurance
+      - deviation_documentation
+    validation: development_complete
+
+  step_11_completion:
+    purpose: Generate implementation summary and verify completion
+    activities:
+    - Verify all tasks completed
+    - Check implemented features match specification
+    - Validate tests pass and coverage meets requirements
+    - Confirm implementation follows technical plan
+    - Generate implementation-summary.md with:
+      - feature_branch_name
+      - files_modified_created
+      - verification_steps_taken
+      - deviations_from_plan
+      - knowledge_base_updates
+      - recommended_next_steps
+      - browser_testing_results
+    - Update all task status to completed
+    - Mark validation passed
+    - Verify staging if environment provided
+    summary_document:
+      location: specs/[NNN-feature]/implementation-summary.md
+      required_sections:
+      - feature_branch_name
+      - files_modified_created
+      - verification_steps_taken
+      - deviations_from_plan
+      - knowledge_base_updates
+      - recommended_next_steps
+      - browser_testing_results
+    verification_summary:
+      checklist_verification:
+        required: true  # for Level 2+
+        must_include:
+        - Total items verified count
+        - P0 items status (all must be complete)
+        - P1 items status (all complete or deferred with approval)
+        - Deferred P2 items with reasons
+        - Link to updated checklist.md
+    final_checklist:
+    - update_task_status: completed
+    - validation_passed: confirmed
+    - summary_created: true
+    - staging_verified: true
+    - checklist_verification_complete: true  # Level 2+
+    deep_analysis:
+      focus: completion_documentation
+      approach: comprehensive_summary
+      outputs:
+      - implementation_summary
+      - change_documentation
+      - validation_results
+      - next_steps_recommendation
+    validation: implementation_complete
+
+  step_12_save_context:
+    purpose: Save conversation context for documentation and team sharing
+    activities:
+    - Invoke workflows-save-context skill using Skill tool
+    - Preserve session metadata and timeline
+    - Preserve full dialogue flow with decisions
+    - Auto-generate workflow flowcharts
+    - Preserve file changes and implementation details
+    tool_invocation:
+      tool: Skill
+      parameter: skill="workflows-save-context"
+      note: "Use the Skill tool with skill parameter to activate context saving"
+    description: |
+      Preserve comprehensive conversation context including:
+      - Session metadata and timeline
+      - Full dialogue flow with decisions
+      - Auto-generated workflow flowcharts
+      - File changes and implementation details
+    outputs:
+    - context_file: specs/[NNN-feature]/memory/[DD-MM-YY_HH-MM]__session.md
+    - workflow_flowchart: auto_generated
+    - decision_documentation: preserved
+    validation: context_saved_successfully
+    note: |
+      Context saved to memory/ subfolder within spec folder.
+      Auto-triggered by skill when conversation reaches threshold or keywords detected.
+
+termination:
+  after_step: 12
+  message: "SpecKit workflow completed successfully. Workflow terminated after step 12 (save context)."
+
+# ─────────────────────────────────────────────────────────────────
+# QUALITY STANDARDS
+# ─────────────────────────────────────────────────────────────────
+quality_standards:
+  documentation:
+  - production_ready_examples
+  - defensive_programming_patterns
+  - error_handling_strategies
+  - comprehensive_test_coverage
+  code_examples:
+  - working_snippets
+  - proper_error_handling
+  - performance_optimized
+  - accessibility_compliant
+  - browser_compatible
+  analysis_depth:
+  - edge_cases_covered
+  - failure_modes_documented
+  - recovery_strategies_defined
+  - monitoring_approaches_specified
+
+# ─────────────────────────────────────────────────────────────────
+# DEVTOOLS INTEGRATION
+# ─────────────────────────────────────────────────────────────────
+devtools:
+  feature_analysis:
+  - Navigate to staging environment
+  - Inspect current behavior
+  - Document UI structure
+  - Capture screenshots
+  - Analyze network requests
+
+  implementation_testing:
+  - Test in browser
+  - Verify network calls
+  - Check console output
+  - Validate DOM changes
+  - Measure performance
+
+  validation:
+  - Cross-browser testing
+  - Responsive design check
+  - Accessibility audit
+  - Performance metrics
+  - Error handling verification
+
+# ─────────────────────────────────────────────────────────────────
+# AUTONOMOUS EXECUTION GUIDANCE
+# ─────────────────────────────────────────────────────────────────
+autonomous_execution:
+  principle: "Execute workflow steps sequentially without user approval gates"
+
+  decision_making:
+  - Analyze requirements thoroughly
+  - Make informed technical decisions
+  - Document reasoning and alternatives
+  - Proceed with best judgment
+  - Log all significant decisions
+
+  validation_approach:
+  - Self-validate at each checkpoint
+  - Verify against quality standards
+  - Test implementation continuously
+  - Document validation results
+  - Ensure consistency with spec
+
+  uncertainty_handling:
+  - Research thoroughly before deciding
+  - Document assumptions clearly
+  - Choose conservative approach
+  - Note areas needing review
+  - Flag high-risk decisions
+
+  progress_tracking:
+  - Update task checklists progressively
+  - Log milestone completion
+  - Document deviations from plan
+  - Track validation results
+  - Maintain clear audit trail
+
+  completion_criteria:
+  - All workflow steps completed
+  - Implementation validated
+  - Documentation generated
+  - Quality standards met
+  - Context saved
+
+# ─────────────────────────────────────────────────────────────────
+# ERROR RECOVERY
+# ─────────────────────────────────────────────────────────────────
+error_recovery:
+  step_validation_fails:
+    action: "Review requirements, ask clarifying questions, retry step"
+  tests_fail:
+    action: "Debug, fix, re-run before marking complete"
+  prerequisites_insufficient:
+    action: "Return to prior workflow phase or ask user for guidance"
+  environment_unavailable:
+    action: "Skip browser testing, document limitation"
+  unexpected_error:
+    action: "Log error, document state, attempt graceful recovery"
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+  - follow_workflow_sequence
+  - document_all_changes
+  - validate_before_completion
+  - use_devtools_for_staging_analysis
+  - self_validate_and_proceed
+  - do_not_prompt_for_user_approval
+  - limit_context_to_active_scope
+  - generate_comprehensive_documentation
+  - verify_continuously
+  - log_decisions_and_deviations
+  - use_checklist_for_verification_level_2_plus
+  - mark_checklist_items_with_evidence
+  - complete_all_p0_items_before_done
+  - get_user_approval_for_p1_deferrals
+
+  NEVER:
+  - skip_workflow_steps
+  - ignore_blockers
+  - submit_without_validation
+  - skip_browser_testing
+  - over_engineer_or_expand_scope
+  - break_existing_functionality
+  - proceed_without_self_validation
+  - invent_new_patterns_when_existing_work
+  - claim_completion_without_checklist_verification_level_2_plus
+  - skip_p0_checklist_items
+  - defer_p1_items_without_user_approval
+
+  VALIDATION_REQUIRED:
+  - Before moving to next step
+  - After each code change
+  - Before committing changes
+  - After browser testing
+  - At completion summary
+
+# ─────────────────────────────────────────────────────────────────
+# SUCCESS CRITERIA
+# ─────────────────────────────────────────────────────────────────
+success:
+  specification:
+  - Requirements clearly defined
+  - Acceptance criteria documented
+  - Technical approach planned
+  - Dependencies identified
+
+  implementation:
+  - Code follows standards
+  - Tests pass
+  - Browser validation complete
+  - Performance acceptable
+
+  documentation:
+  - Spec folder complete
+  - Implementation summary created
+  - Deviations documented
+  - Context saved
+
+  quality:
+  - Checklist validated
+  - No regressions introduced
+  - Functionality preserved
+  - Standards maintained
