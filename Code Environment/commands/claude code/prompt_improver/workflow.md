@@ -101,7 +101,7 @@ Apply systematic prompt enhancement with:
 **Input:** `$ARGUMENTS` = prompt text + optional mode (`:quick`, `:improve`, `:refine`)
 
 **Output:** Always creates spec folder with both files:
-1. **spec.md** - SpecKit-compliant specification (OBJECTIVE, SCOPE, ENHANCED PROMPT, SUCCESS CRITERIA, APPENDIX)
+1. **spec.md** - Simplified specification (Purpose, Original Prompt, numbered framework sections)
 2. **enhanced_prompt.yaml** - Pure YAML prompt (NO metadata wrapper, just framework components at top-level)
 
 **Location:** User-selected spec folder (A/B/C/D choice following SpecKit workflow)
@@ -191,14 +191,14 @@ Apply systematic prompt enhancement with:
    ```
 
 8. **Write both output files to spec folder:**
-   - **File 1 - spec.md** (SpecKit-compliant specification):
-     - `## 1. OBJECTIVE` - Metadata, Purpose, Original Prompt
-     - `## 2. SCOPE` - In/Out of scope for the enhancement
-     - `## 3. ENHANCED PROMPT` - Framework description + formatted prompt content
-     - `## 4. FRAMEWORK COMPONENTS` - Breakdown of each component
-     - `## 5. SUCCESS CRITERIA` - Measurable outcomes and validation status
-     - `## 6. USAGE` - Direct use, YAML version, Integration code
-     - `## 7. APPENDIX` - Related files only
+   - **File 1 - spec.md** (Simplified specification):
+     - `# Feature Specification: Enhanced Prompt - {title}` - Title with framework
+     - `### Purpose` - What the enhanced prompt accomplishes
+     - `### Original Prompt` - The raw input prompt
+     - `## 1. {COMPONENT}` - First framework component (e.g., TASK, ROLE)
+     - `## 2. {COMPONENT}` - Second framework component
+     - ... numbered sections for each framework component
+     - **NO** metadata, scope, success criteria, usage, or appendix sections
 
    - **File 2 - enhanced_prompt.yaml** (Pure YAML - NO metadata):
      - Header comment only (title + framework name)
@@ -214,7 +214,7 @@ Apply systematic prompt enhancement with:
 
    📁 Spec folder: {spec_folder_path}
    📄 Files created:
-   - spec.md (SpecKit specification)
+   - spec.md (simplified specification)
    - enhanced_prompt.yaml (machine-readable)
 
    🔧 Framework: {framework_name}
@@ -336,7 +336,7 @@ Output: Preserves existing framework, polishes clarity, ~9 seconds
 ## Notes
 
 **Dual-Output Architecture:**
-- `spec.md` = Human review (SpecKit-compliant specification following template structure)
+- `spec.md` = Human review (simplified: Purpose, Original Prompt, numbered framework sections)
 - `enhanced_prompt.yaml` = Pure YAML prompt content (NO metadata, direct use)
 - Both files stored in same spec folder
 
@@ -347,10 +347,12 @@ Output: Preserves existing framework, polishes clarity, ~9 seconds
 - Direct import ready: `data = yaml.safe_load(open('enhanced_prompt.yaml'))` returns prompt components
 - Example: `data['role']`, `data['context']`, `data['action']`
 
-**spec.md - SpecKit Compliance:**
-- Follows SpecKit spec.md template structure
-- Numbered sections: OBJECTIVE, SCOPE, ENHANCED PROMPT, FRAMEWORK COMPONENTS, SUCCESS CRITERIA, USAGE, APPENDIX
-- No internal metadata in output (complexity scores, DEPTH rounds, mode)
+**spec.md - Simplified Structure:**
+- Title and brief framework description
+- Purpose section explaining what the enhanced prompt accomplishes
+- Original Prompt section with the raw input
+- Numbered sections for each framework component (## 1. TASK, ## 2. INSTRUCTIONS, etc.)
+- NO metadata, scope, success criteria, usage, or appendix sections
 
 **Integration:**
 - Saves to active spec folder if available

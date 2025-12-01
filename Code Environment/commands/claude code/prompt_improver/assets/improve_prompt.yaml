@@ -1357,9 +1357,9 @@ phase_6_output_generation:
         - "step_14b_assemble_yaml_content"
 
     step_14a_assemble_speckit_content:
-      action: "Assemble spec.md content following SpecKit spec template structure"
+      action: "Assemble spec.md content - simplified format with Purpose, Original Prompt, and numbered prompt sections"
       tool: "Construct in memory (Write tool in step 16)"
-      note: "MUST follow SpecKit spec.md template format - this is markdown version of the enhanced prompt"
+      note: "SIMPLIFIED spec.md - NO metadata, scope, framework components, success criteria, usage, or appendix sections"
 
       content_structure:
         header:
@@ -1367,23 +1367,13 @@ phase_6_output_generation:
         - ""
         - "Complete specification for the enhanced prompt using {framework_name} framework."
         - ""
-        - "---"
-        - ""
 
-        section_1_objective:
-        - "## 1. OBJECTIVE"
-        - ""
-        - "### Metadata"
-        - "- **Category**: Enhancement"
-        - "- **Tags**: prompt-engineering, {framework_name}"
-        - "- **Priority**: P1"
-        - "- **Created**: {ISO_8601_date}"
-        - "- **Status**: Complete"
-        - "- **Input**: Original prompt requiring enhancement"
-        - ""
+        purpose_section:
         - "### Purpose"
         - "{enhanced_prompt_purpose_statement}"
         - ""
+
+        original_prompt_section:
         - "### Original Prompt"
         - "```"
         - "{original_prompt_text}"
@@ -1392,93 +1382,122 @@ phase_6_output_generation:
         - "---"
         - ""
 
-        section_2_scope:
-        - "## 2. SCOPE"
+        enhanced_prompt_numbered_sections:
+        - "## 1. {FRAMEWORK_COMPONENT_1_HEADER}"
+        - "{framework_component_1_content}"
         - ""
-        - "### In Scope"
-        - "- Structured prompt following {framework_name} framework"
-        - "- Clear role definition and context"
-        - "- Actionable instructions with specific deliverables"
-        - "- Quality validation and completeness check"
+        - "## 2. {FRAMEWORK_COMPONENT_2_HEADER}"
+        - "{framework_component_2_content}"
         - ""
-        - "### Out of Scope"
-        - "- Runtime testing of prompt effectiveness"
-        - "- Integration with specific AI platforms"
-        - ""
-        - "---"
-        - ""
+        - "## ... continue for all framework components ..."
 
-        section_3_enhanced_prompt:
-        - "## 3. ENHANCED PROMPT"
-        - ""
-        - "### Framework: {framework_name}"
-        - "{framework_description}"
-        - ""
-        - "### Prompt Content"
-        - ""
-        - "{enhanced_prompt_formatted_markdown}"
-        - ""
-        - "---"
-        - ""
+      framework_section_mapping:
+        note: "Each framework generates numbered sections from its components"
+        RCAF:
+          sections:
+          - "## 1. ROLE"
+          - "## 2. CONTEXT"
+          - "## 3. ACTION"
+          - "## 4. FORMAT"
+        COSTAR:
+          sections:
+          - "## 1. CONTEXT"
+          - "## 2. OBJECTIVE"
+          - "## 3. STYLE"
+          - "## 4. TONE"
+          - "## 5. AUDIENCE"
+          - "## 6. RESPONSE"
+        RACE:
+          sections:
+          - "## 1. ROLE"
+          - "## 2. ACTION"
+          - "## 3. CONTEXT"
+          - "## 4. EXAMPLES"
+        CIDI:
+          sections:
+          - "## 1. CONTEXT"
+          - "## 2. INSTRUCTIONS"
+          - "## 3. DETAILS"
+          - "## 4. INPUT"
+        TIDD_EC:
+          sections:
+          - "## 1. TASK"
+          - "## 2. INSTRUCTIONS"
+          - "## 3. DETAILS"
+          - "## 4. DELIVERABLES"
+          - "## 5. EXAMPLES"
+          - "## 6. CONSTRAINTS"
+        CRISPE:
+          sections:
+          - "## 1. CAPACITY"
+          - "## 2. ROLE"
+          - "## 3. INSIGHT"
+          - "## 4. STATEMENT"
+          - "## 5. PERSONALITY"
+          - "## 6. EXPERIMENT"
+        CRAFT:
+          sections:
+          - "## 1. CONTEXT"
+          - "## 2. ROLE"
+          - "## 3. ACTION"
+          - "## 4. FORMAT"
+          - "## 5. TARGET"
 
-        section_4_framework_components:
-        - "## 4. FRAMEWORK COMPONENTS"
-        - ""
-        - "{framework_components_breakdown}"
-        - ""
-        - "---"
-        - ""
+      output_example: |
+        # Feature Specification: Enhanced Prompt - Hook Analysis and Bug Scan
 
-        section_5_success_criteria:
-        - "## 5. SUCCESS CRITERIA"
-        - ""
-        - "### Measurable Outcomes"
-        - "- **SC-001**: All {framework_name} components present and substantive"
-        - "- **SC-002**: No vague language (good, better, properly, etc.)"
-        - "- **SC-003**: Instructions can be followed without guessing"
-        - "- **SC-004**: Clear role, context, and action defined"
-        - ""
-        - "### Validation Status"
-        - "- Component Completeness: {validation_completeness}"
-        - "- Framework Compliance: {validation_framework}"
-        - "- Clarity: {validation_clarity}"
-        - "- Actionability: {validation_actionability}"
-        - ""
-        - "---"
-        - ""
+        Complete specification for the enhanced prompt using TIDD-EC framework.
 
-        section_6_usage:
-        - "## 6. USAGE"
-        - ""
-        - "### Direct Use"
-        - "Copy the enhanced prompt from Section 3 above."
-        - ""
-        - "### YAML Version"
-        - "See `enhanced_prompt.yaml` in this folder for machine-readable format."
-        - ""
-        - "### Integration"
-        - "```python"
-        - "import yaml"
-        - "with open('enhanced_prompt.yaml') as f:"
-        - "    prompt = yaml.safe_load(f)"
-        - "# Access: prompt['role'], prompt['context'], etc."
-        - "```"
-        - ""
-        - "---"
-        - ""
+        ### Purpose
+        Transform a vague hook analysis request into a structured, actionable prompt that guides systematic code review, bug detection, and testing of shell script hooks with clear deliverables and success criteria.
 
-        section_7_appendix:
-        - "## 7. APPENDIX"
-        - ""
-        - "### Related Files"
-        - "- `enhanced_prompt.yaml` - Pure YAML version (no metadata)"
-        - ""
+        ### Original Prompt
+        ```
+        Analyze all hooks and do a thorough bug scan and test every single hook
+        ```
+
+        ---
+
+        ## 1. TASK
+        Perform a comprehensive security and quality audit of all shell script hooks in the `.claude/hooks/` directory, identifying bugs, anti-patterns, and potential failures, then validate each hook's functionality through static analysis and execution testing.
+
+        ## 2. INSTRUCTIONS
+        1. **Discovery Phase**
+           - List all hook directories: `PreToolUse/`, `PostToolUse/`, `PreSessionStart/`, etc.
+           - Catalog every `.sh` file in each directory
+           ...
+
+        ## 3. DETAILS
+        - **Hook Location:** `.claude/hooks/` directory structure
+        - **File Types:** Shell scripts (`.sh` extension)
+        - **Severity Levels:**
+          - P0 (Critical): Security vulnerabilities, data loss risks
+          ...
+
+        ## 4. DELIVERABLES
+        1. **Hook Inventory Table**
+           | Hook Directory | Script Name | Purpose | Dependencies |
+           ...
+
+        ## 5. EXAMPLES
+        Example bug report entry:
+        ```
+        Hook: PreToolUse/validate-inputs.sh
+        Severity: P1 (High)
+        ...
+        ```
+
+        ## 6. CONSTRAINTS
+        - Do NOT modify any hook files during analysis
+        - Do NOT execute hooks that could have side effects
+        - Report ALL findings regardless of severity
+        ...
 
       validation:
       - "Verify all placeholders replaced with actual values"
       - "Ensure markdown formatting is correct"
-      - "Confirm enhanced prompt is formatted properly in Section 3"
-      - "Check SpecKit template structure is followed"
+      - "Confirm enhanced prompt sections are numbered (## 1., ## 2., etc.)"
+      - "NO metadata, scope, success criteria, usage, or appendix sections"
 
     step_14b_assemble_yaml_content:
       action: "Assemble enhanced_prompt.yaml - PURE prompt content, NO metadata"
