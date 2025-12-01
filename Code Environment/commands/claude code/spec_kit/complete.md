@@ -4,6 +4,34 @@ argument-hint: "[feature-description] [:auto|:confirm]"
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 ---
 
+# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+
+**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+
+```
+IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
+    → STOP IMMEDIATELY
+    → Use AskUserQuestion tool with this exact question:
+        question: "What feature would you like to build?"
+        options:
+          - label: "Describe my feature"
+            description: "I'll provide a feature description for the complete SpecKit workflow"
+    → WAIT for user response
+    → Use their response as the feature description
+    → Only THEN continue with this workflow
+
+IF $ARGUMENTS contains a feature description:
+    → Continue reading this file
+```
+
+**CRITICAL RULES:**
+- **DO NOT** infer features from context, screenshots, or existing spec folders
+- **DO NOT** assume what the user wants based on conversation history
+- **DO NOT** proceed past this point without an explicit feature description from the user
+- The feature MUST come from `$ARGUMENTS` or user's answer to the question above
+
+---
+
 # SpecKit Complete
 
 Execute the complete SpecKit lifecycle from specification through implementation with context preservation. Supports autonomous (`:auto`) and interactive (`:confirm`) execution modes.

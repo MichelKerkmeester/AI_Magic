@@ -1008,192 +1008,209 @@ error_handling:
 
 output_specifications:
   dual_output_system:
-    purpose: "Generate both SpecKit spec and machine-readable YAML for comprehensive documentation"
+    purpose: "Generate both SpecKit spec and pure YAML prompt for comprehensive documentation"
     rationale: |
-      - spec.md = Human-readable SpecKit specification for documentation and planning
-      - enhanced_prompt.yaml = Machine-readable for direct workflow integration
-      - Dual output provides both documentation and automation capability
+      - spec.md = SpecKit-compliant specification following standard template
+      - enhanced_prompt.yaml = Pure prompt YAML with NO metadata (direct use)
       - Both files stored in user-selected spec folder
 
     file_1_spec_md:
       filename: "spec.md"
-      purpose: "SpecKit specification with enhanced prompt structured as implementation guide"
-      format: "Markdown with SpecKit structure (Problem, Solution, Enhanced Prompt, Success Criteria)"
+      purpose: "SpecKit specification following standard spec template structure"
+      format: "Markdown following SpecKit spec.md template (OBJECTIVE, SCOPE, USERS & STORIES, etc.)"
       use_case: "Documentation, team collaboration, implementation planning"
       location: "{spec_folder_path}/spec.md"
 
     file_2_yaml:
       filename: "enhanced_prompt.yaml"
-      purpose: "Machine-readable enhanced prompt for direct use in AI workflows"
-      format: "YAML with framework-specific structure and metadata"
-      use_case: "Direct integration into automated workflows, tools, and systems"
+      purpose: "Pure enhanced prompt YAML - NO metadata, just the prompt content"
+      format: "YAML with framework components at top-level (NO metadata wrapper)"
+      use_case: "Direct use in AI workflows - copy/paste ready"
       location: "{spec_folder_path}/enhanced_prompt.yaml"
 
   enhanced_prompt_yaml:
-    format: "YAML aligned with spec_kit YAML conventions"
-    structure_note: |
-      YAML output follows spec_kit structural pattern:
-      - Flat top-level: role, purpose, action (single lines)
-      - operating_mode section with workflow settings
-      - metadata section with timestamps and framework info
-      - workflow section with step_N_name pattern (if applicable)
-      - rules section with ALWAYS and NEVER lists
-      - success section with criteria
-      - error_recovery section (optional)
-      - usage section for programmatic access
+    format: "Pure YAML - framework components only, NO metadata"
+    critical_rule: |
+      IMPORTANT: The enhanced_prompt.yaml file contains ONLY the enhanced prompt itself.
+      - NO metadata section
+      - NO timestamps
+      - NO complexity scores
+      - NO usage examples
+      - JUST the prompt content in YAML format
+
+      This allows direct copy/paste into AI workflows without stripping metadata.
 
     structure: |
       # ───────────────────────────────────────────────────────────────────
-      # ENHANCED PROMPT - [TITLE] v1.0.0
+      # [PROMPT_TITLE]
       # ───────────────────────────────────────────────────────────────────
       # Framework: [RCAF|COSTAR|CRAFT|etc.]
 
-      role: [One-line role definition from framework]
-      purpose: [One-line purpose statement]
-      action: [One-line action/task summary]
+      [FRAMEWORK_COMPONENT_1]: |
+        [Actual content for this component]
 
-      operating_mode:
-        workflow: sequential
-        workflow_compliance: MANDATORY
-        validation: qualitative_completeness_check
+      [FRAMEWORK_COMPONENT_2]: |
+        [Actual content for this component]
 
-      # ───────────────────────────────────────────────────────────────────
-      # METADATA
-      # ───────────────────────────────────────────────────────────────────
-      metadata:
-        title: "[prompt_title]"
-        version: "1.0.0"
-        framework: "[framework_name]"
-        complexity: [1-10]
+      [FRAMEWORK_COMPONENT_3]: |
+        [Actual content for this component]
 
-        timestamps:
-          created: "[ISO 8601]"
-          mode: "[quick|improve|refine|interactive]"
+      # ... remaining framework components ...
 
-      # ───────────────────────────────────────────────────────────────────
-      # CONTEXT (Framework-specific)
-      # ───────────────────────────────────────────────────────────────────
-      context:
-        # Framework-specific context components go here
-        # IMPORTANT: These are PLACEHOLDER EXAMPLES only
-        # The actual YAML file MUST contain real enhanced prompt content
-        # NEVER leave placeholder text in generated output
-
-        background: |
-          {ACTUAL_CONTEXT_BACKGROUND}
-
-        constraints: |
-          {ACTUAL_CONSTRAINTS}
-
-      # ───────────────────────────────────────────────────────────────────
-      # WORKFLOW (if multi-step task)
-      # ───────────────────────────────────────────────────────────────────
-      workflow:
-        step_1_[name]:
-          purpose: [What this step achieves]
-          activities:
-            - Activity 1
-            - Activity 2
-          outputs:
-            - output_1
-          validation: [validation_criterion]
-
-        # Additional steps as needed...
-
-      # ───────────────────────────────────────────────────────────────────
-      # RULES
-      # ───────────────────────────────────────────────────────────────────
-      rules:
-        ALWAYS:
-          - [Required behaviors extracted from prompt]
-        NEVER:
-          - [Prohibited behaviors extracted from prompt]
-
-      # ───────────────────────────────────────────────────────────────────
-      # SUCCESS CRITERIA
-      # ───────────────────────────────────────────────────────────────────
-      success:
-        criteria:
-          - "[Measurable success criterion 1]"
-          - "[Measurable success criterion 2]"
-
-      # ───────────────────────────────────────────────────────────────────
-      # ERROR RECOVERY (optional)
-      # ───────────────────────────────────────────────────────────────────
-      error_recovery:
-        [error_type]:
-          action: "[Recovery action]"
-
-      # ───────────────────────────────────────────────────────────────────
-      # USAGE
-      # ───────────────────────────────────────────────────────────────────
-      usage:
-        programmatic:
-          python: |
-            import yaml
-            with open('enhanced_prompt.yaml') as f:
-                data = yaml.safe_load(f)
-            role, purpose, action = data['role'], data['purpose'], data['action']
-            workflow = data.get('workflow', {})
-
-          nodejs: |
-            const yaml = require('js-yaml');
-            const fs = require('fs');
-            const data = yaml.load(fs.readFileSync('enhanced_prompt.yaml'));
-            const { role, purpose, action, workflow, rules } = data;
-
-    # NOTE: Framework-specific components are integrated into the spec_kit structure
-    # - RCAF: role (top-level), context (context section), action (top-level), format (in context)
-    # - COSTAR: context, objective (purpose), style, tone, audience, response (in context section)
-    # - CRAFT: context, role, action (top-level), format, target (in context section)
-    # - TIDD_EC: task (purpose), instructions (workflow), details (context), deliverables (success), examples, constraints
-    # - CIDI: context, instructions (workflow), details (context), input (user_inputs)
-    # - RACE: role, action, context, examples (all mapped to spec_kit sections)
-    # - CRISPE: capacity (role), role, insight (context), statement (purpose), personality, experiment (workflow)
-
-    framework_mapping_to_speckit:
+    framework_structures:
       RCAF:
-        role: "top-level role:"
-        context: "context: section"
-        action: "top-level action:"
-        format: "context.output_format:"
+        structure: |
+          # ───────────────────────────────────────────────────────────────────
+          # [PROMPT_TITLE]
+          # ───────────────────────────────────────────────────────────────────
+          # Framework: RCAF (Role-Context-Action-Format)
+
+          role: |
+            [Actual role definition - who the AI should be, expertise level]
+
+          context: |
+            [Actual context - background information, relevant details]
+
+          action: |
+            [Actual action - specific task to perform, clear instructions]
+
+          format: |
+            [Actual format - expected output structure, formatting requirements]
+
       COSTAR:
-        context: "context: section"
-        objective: "top-level purpose:"
-        style: "context.style:"
-        tone: "context.tone:"
-        audience: "context.audience:"
-        response: "success.criteria:"
+        structure: |
+          # ───────────────────────────────────────────────────────────────────
+          # [PROMPT_TITLE]
+          # ───────────────────────────────────────────────────────────────────
+          # Framework: COSTAR (Context-Objective-Style-Tone-Audience-Response)
+
+          context: |
+            [Actual context - background and setting]
+
+          objective: |
+            [Actual objective - what to achieve]
+
+          style: |
+            [Actual style - writing style, approach]
+
+          tone: |
+            [Actual tone - formal, casual, technical, etc.]
+
+          audience: |
+            [Actual audience - who is the output for]
+
+          response: |
+            [Actual response format - expected output format and length]
+
       RACE:
-        role: "top-level role:"
-        action: "top-level action:"
-        context: "context: section"
-        examples: "context.examples: or worked_example:"
+        structure: |
+          # ───────────────────────────────────────────────────────────────────
+          # [PROMPT_TITLE]
+          # ───────────────────────────────────────────────────────────────────
+          # Framework: RACE (Role-Action-Context-Examples)
+
+          role: |
+            [Actual role - AI persona]
+
+          action: |
+            [Actual action - task to perform]
+
+          context: |
+            [Actual context - necessary background]
+
+          examples: |
+            [Actual examples - concrete demonstrations]
+
       CIDI:
-        context: "context: section"
-        instructions: "workflow: steps"
-        details: "context.details:"
-        input: "user_inputs: section"
+        structure: |
+          # ───────────────────────────────────────────────────────────────────
+          # [PROMPT_TITLE]
+          # ───────────────────────────────────────────────────────────────────
+          # Framework: CIDI (Context-Instructions-Details-Input)
+
+          context: |
+            [Actual context - creative brief or background]
+
+          instructions: |
+            [Actual instructions - what to create or explore]
+
+          details: |
+            [Actual details - specific requirements or constraints]
+
+          input: |
+            [Actual input - starting point or stimulus]
+
       TIDD_EC:
-        task: "top-level purpose:"
-        instructions: "workflow: steps"
-        details: "context: section"
-        deliverables: "success.criteria:"
-        examples: "worked_example:"
-        constraints: "rules: section"
+        structure: |
+          # ───────────────────────────────────────────────────────────────────
+          # [PROMPT_TITLE]
+          # ───────────────────────────────────────────────────────────────────
+          # Framework: TIDD-EC (Task-Instructions-Details-Deliverables-Examples-Constraints)
+
+          task: |
+            [Actual task - high-level objective]
+
+          instructions: |
+            [Actual instructions - step-by-step guidance]
+
+          details: |
+            [Actual details - technical specifics]
+
+          deliverables: |
+            [Actual deliverables - expected outputs]
+
+          examples: |
+            [Actual examples - concrete demonstrations]
+
+          constraints: |
+            [Actual constraints - boundaries and requirements]
+
       CRISPE:
-        capacity: "top-level role:"
-        role: "context.persona:"
-        insight: "context.background:"
-        statement: "top-level purpose:"
-        personality: "context.personality:"
-        experiment: "workflow: steps"
+        structure: |
+          # ───────────────────────────────────────────────────────────────────
+          # [PROMPT_TITLE]
+          # ───────────────────────────────────────────────────────────────────
+          # Framework: CRISPE (Capacity-Role-Insight-Statement-Personality-Experiment)
+
+          capacity: |
+            [Actual capacity - AI's capabilities]
+
+          role: |
+            [Actual role - persona and expertise]
+
+          insight: |
+            [Actual insight - background context]
+
+          statement: |
+            [Actual statement - task or objective]
+
+          personality: |
+            [Actual personality - tone and style]
+
+          experiment: |
+            [Actual experiment - constraints or guidelines]
+
       CRAFT:
-        context: "context: section"
-        role: "top-level role:"
-        action: "top-level action:"
-        format: "context.output_format:"
-        target: "success.criteria:"
+        structure: |
+          # ───────────────────────────────────────────────────────────────────
+          # [PROMPT_TITLE]
+          # ───────────────────────────────────────────────────────────────────
+          # Framework: CRAFT (Context-Role-Action-Format-Target)
+
+          context: |
+            [Actual context - comprehensive background, business goals, constraints]
+
+          role: |
+            [Actual role - detailed persona with expertise areas]
+
+          action: |
+            [Actual action - multi-step task breakdown with clear objectives]
+
+          format: |
+            [Actual format - structured output with sections, examples, templates]
+
+          target: |
+            [Actual target - specific audiences, success criteria, measurable outcomes]
 
   file_locations:
     spec_folder_from_phase_1:
@@ -1340,219 +1357,338 @@ phase_6_output_generation:
         - "step_14b_assemble_yaml_content"
 
     step_14a_assemble_speckit_content:
-      action: "Assemble spec.md content (SpecKit specification format)"
+      action: "Assemble spec.md content following SpecKit spec template structure"
       tool: "Construct in memory (Write tool in step 16)"
-      note: "This is the SAME content structure from step_14b in previous version"
+      note: "MUST follow SpecKit spec.md template format - this is markdown version of the enhanced prompt"
 
       content_structure:
-        front_matter:
-        - "---"
-        - "title: Enhanced Prompt"
-        - "framework: {framework_name}"
-        - "complexity: {complexity_score}"
-        - "generated: {ISO_8601_timestamp}"
-        - "---"
-        - ""
-
         header:
-        - "# Enhanced Prompt Specification"
+        - "# Feature Specification: Enhanced Prompt - {prompt_title}"
         - ""
-        - "**Framework:** {framework_name}"
-        - "**Complexity:** {complexity_score}/10"
-        - "**Generated:** {ISO_8601_timestamp}"
+        - "Complete specification for the enhanced prompt using {framework_name} framework."
+        - ""
+        - "<!-- SPECKIT_TEMPLATE_SOURCE: spec | v1.0 -->"
+        - ""
+        - "---"
         - ""
 
-        section_1_problem:
-        - "## Problem"
+        section_1_objective:
+        - "## 1. OBJECTIVE"
         - ""
-        - "Original prompt required enhancement to improve:"
-        - "- Clarity and specificity"
-        - "- Structural organization ({framework_name} framework)"
-        - "- Component completeness (Role, Instructions, Context, Constraints, Examples)"
+        - "### Metadata"
+        - "- **Category**: Enhancement"
+        - "- **Tags**: prompt-engineering, {framework_name}"
+        - "- **Priority**: P1"
+        - "- **Created**: {ISO_8601_date}"
+        - "- **Status**: Complete"
+        - "- **Input**: Original prompt requiring enhancement"
+        - ""
+        - "### Purpose"
+        - "{enhanced_prompt_purpose_statement}"
         - ""
         - "### Original Prompt"
         - "```"
         - "{original_prompt_text}"
         - "```"
         - ""
-
-        section_2_solution:
-        - "## Solution"
-        - ""
-        - "Enhanced prompt using DEPTH methodology:"
-        - "- **D**iscover: Analyzed intent, assessed complexity ({complexity_score}/10)"
-        - "- **E**ngineer: Applied {framework_name} framework with cognitive rigor"
-        - "- **P**rototype: Generated enhanced draft, validated components"
-        - "- **T**est: Validated clarity, completeness, and actionability"
-        - "- **H**armonize: Final polish and consistency check"
+        - "---"
         - ""
 
-        section_3_framework:
-        - "## Framework Applied: {framework_name}"
+        section_2_scope:
+        - "## 2. SCOPE"
         - ""
-        - "{framework_description_from_framework_definitions}"
+        - "### In Scope"
+        - "- Structured prompt following {framework_name} framework"
+        - "- Clear role definition and context"
+        - "- Actionable instructions with specific deliverables"
+        - "- Quality validation and completeness check"
+        - ""
+        - "### Out of Scope"
+        - "- Runtime testing of prompt effectiveness"
+        - "- Integration with specific AI platforms"
+        - ""
+        - "---"
         - ""
 
-        section_4_enhanced_prompt:
-        - "## Enhanced Prompt"
+        section_3_enhanced_prompt:
+        - "## 3. ENHANCED PROMPT"
         - ""
-        - "{enhanced_prompt_full_text_formatted}"
+        - "### Framework: {framework_name}"
+        - "{framework_description}"
+        - ""
+        - "### Prompt Content"
+        - ""
+        - "{enhanced_prompt_formatted_markdown}"
+        - ""
+        - "---"
+        - ""
+
+        section_4_framework_components:
+        - "## 4. FRAMEWORK COMPONENTS"
+        - ""
+        - "{framework_components_breakdown}"
+        - ""
+        - "---"
         - ""
 
         section_5_success_criteria:
-        - "## Success Criteria"
+        - "## 5. SUCCESS CRITERIA"
         - ""
-        - "✅ **Component Completeness:** All framework components present and substantive"
-        - "✅ **Framework Compliance:** {framework_name} structure applied"
-        - "✅ **Clarity:** Role, context, and instructions are clear and specific"
-        - "✅ **Actionability:** Instructions can be followed without ambiguity"
+        - "### Measurable Outcomes"
+        - "- **SC-001**: All {framework_name} components present and substantive"
+        - "- **SC-002**: No vague language (good, better, properly, etc.)"
+        - "- **SC-003**: Instructions can be followed without guessing"
+        - "- **SC-004**: Clear role, context, and action defined"
+        - ""
+        - "### Validation Status"
+        - "- Component Completeness: {validation_completeness}"
+        - "- Framework Compliance: {validation_framework}"
+        - "- Clarity: {validation_clarity}"
+        - "- Actionability: {validation_actionability}"
+        - ""
+        - "---"
         - ""
 
         section_6_usage:
-        - "## Usage"
+        - "## 6. USAGE"
         - ""
-        - "Use this enhanced prompt in your AI workflows for improved results."
+        - "### Direct Use"
+        - "Copy the enhanced prompt from Section 3 above."
         - ""
-        - "**Copy prompt:** See 'Enhanced Prompt' section above"
-        - "**Framework:** {framework_name}"
-        - "**Complexity:** {complexity_score}/10"
-        - "**YAML version:** See enhanced_prompt.yaml in this folder"
+        - "### YAML Version"
+        - "See `enhanced_prompt.yaml` in this folder for machine-readable format."
+        - ""
+        - "### Integration"
+        - "```python"
+        - "import yaml"
+        - "with open('enhanced_prompt.yaml') as f:"
+        - "    prompt = yaml.safe_load(f)"
+        - "# Access: prompt['role'], prompt['context'], etc."
+        - "```"
+        - ""
+        - "---"
+        - ""
+
+        section_7_appendix:
+        - "## 7. APPENDIX"
+        - ""
+        - "### Enhancement Details"
+        - "- **Framework**: {framework_name}"
+        - "- **Complexity**: {complexity_score}/10"
+        - "- **DEPTH Rounds**: {rounds_completed}"
+        - "- **Mode**: {mode}"
+        - ""
+        - "### Related Files"
+        - "- `enhanced_prompt.yaml` - Pure YAML version (no metadata)"
         - ""
 
       validation:
       - "Verify all placeholders replaced with actual values"
       - "Ensure markdown formatting is correct"
-      - "Confirm enhanced prompt is formatted properly"
-      - "Check CLEAR scores match calculated values"
+      - "Confirm enhanced prompt is formatted properly in Section 3"
+      - "Check SpecKit template structure is followed"
 
     step_14b_assemble_yaml_content:
-      action: "Assemble enhanced_prompt.yaml content"
+      action: "Assemble enhanced_prompt.yaml - PURE prompt content, NO metadata"
       tool: "Construct in memory (Write tool in step 16)"
+      critical_note: |
+        YAML OUTPUT MUST BE PURE PROMPT CONTENT ONLY:
+        - NO metadata: section
+        - NO timestamps
+        - NO complexity scores
+        - NO usage examples
+        - NO prompt: wrapper
+        - JUST the framework components at top-level
 
       content_structure:
-        header:
-        - "---"
-        - "# Enhanced Prompt - YAML Format"
+        header_comment_only:
+        - "# ───────────────────────────────────────────────────────────────────"
+        - "# {prompt_title}"
+        - "# ───────────────────────────────────────────────────────────────────"
         - "# Framework: {framework_name}"
         - ""
 
-        metadata_section:
-        - "metadata:"
-        - "  framework: \"{framework_name}\""
-        - "  complexity: {complexity_score}"
-        - "  generated: \"{ISO_8601_timestamp}\""
-        - "  mode: \"{mode}\""
+        framework_components_at_top_level:
+        - "{framework_component_1}: |"
+        - "  {actual_content_for_component_1}"
         - ""
-
-        prompt_section:
-        - "prompt:"
-        - "{framework_specific_components}"
+        - "{framework_component_2}: |"
+        - "  {actual_content_for_component_2}"
         - ""
+        - "# ... remaining components ..."
 
-        usage_examples:
-        - "# Usage Examples:"
-        - "# Python: import yaml; prompt = yaml.safe_load(open('enhanced_prompt.yaml'))"
-        - "# Node.js: const prompt = require('js-yaml').load(fs.readFileSync('enhanced_prompt.yaml'))"
-        - "# Access: prompt['prompt']['role'] + prompt['prompt']['context'] + ..."
-
-      framework_specific_components:
+      framework_specific_output:
         RCAF:
-        - "  role: |"
-        - "    {ACTUAL_ROLE_CONTENT_HERE - DO NOT LEAVE PLACEHOLDER}"
-        - "  context: |"
-        - "    {ACTUAL_CONTEXT_CONTENT_HERE - DO NOT LEAVE PLACEHOLDER}"
-        - "  action: |"
-        - "    {ACTUAL_ACTION_CONTENT_HERE - DO NOT LEAVE PLACEHOLDER}"
-        - "  format: |"
-        - "    {ACTUAL_FORMAT_CONTENT_HERE - DO NOT LEAVE PLACEHOLDER}"
+          output: |
+            # ───────────────────────────────────────────────────────────────────
+            # {prompt_title}
+            # ───────────────────────────────────────────────────────────────────
+            # Framework: RCAF (Role-Context-Action-Format)
+
+            role: |
+              {ACTUAL_ROLE_CONTENT}
+
+            context: |
+              {ACTUAL_CONTEXT_CONTENT}
+
+            action: |
+              {ACTUAL_ACTION_CONTENT}
+
+            format: |
+              {ACTUAL_FORMAT_CONTENT}
 
         COSTAR:
-        - "  context: |"
-        - "    {ACTUAL_CONTEXT_CONTENT}"
-        - "  objective: |"
-        - "    {ACTUAL_OBJECTIVE_CONTENT}"
-        - "  style: |"
-        - "    {ACTUAL_STYLE_CONTENT}"
-        - "  tone: |"
-        - "    {ACTUAL_TONE_CONTENT}"
-        - "  audience: |"
-        - "    {ACTUAL_AUDIENCE_CONTENT}"
-        - "  response: |"
-        - "    {ACTUAL_RESPONSE_FORMAT_CONTENT}"
+          output: |
+            # ───────────────────────────────────────────────────────────────────
+            # {prompt_title}
+            # ───────────────────────────────────────────────────────────────────
+            # Framework: COSTAR (Context-Objective-Style-Tone-Audience-Response)
+
+            context: |
+              {ACTUAL_CONTEXT_CONTENT}
+
+            objective: |
+              {ACTUAL_OBJECTIVE_CONTENT}
+
+            style: |
+              {ACTUAL_STYLE_CONTENT}
+
+            tone: |
+              {ACTUAL_TONE_CONTENT}
+
+            audience: |
+              {ACTUAL_AUDIENCE_CONTENT}
+
+            response: |
+              {ACTUAL_RESPONSE_CONTENT}
 
         RACE:
-        - "  role: |"
-        - "    {ACTUAL_ROLE_CONTENT}"
-        - "  action: |"
-        - "    {ACTUAL_ACTION_CONTENT}"
-        - "  context: |"
-        - "    {ACTUAL_CONTEXT_CONTENT}"
-        - "  examples: |"
-        - "    {ACTUAL_EXAMPLES_CONTENT}"
+          output: |
+            # ───────────────────────────────────────────────────────────────────
+            # {prompt_title}
+            # ───────────────────────────────────────────────────────────────────
+            # Framework: RACE (Role-Action-Context-Examples)
+
+            role: |
+              {ACTUAL_ROLE_CONTENT}
+
+            action: |
+              {ACTUAL_ACTION_CONTENT}
+
+            context: |
+              {ACTUAL_CONTEXT_CONTENT}
+
+            examples: |
+              {ACTUAL_EXAMPLES_CONTENT}
 
         CIDI:
-        - "  context: |"
-        - "    {ACTUAL_CONTEXT_CONTENT}"
-        - "  instructions: |"
-        - "    {ACTUAL_INSTRUCTIONS_CONTENT}"
-        - "  details: |"
-        - "    {ACTUAL_DETAILS_CONTENT}"
-        - "  input: |"
-        - "    {ACTUAL_INPUT_CONTENT}"
+          output: |
+            # ───────────────────────────────────────────────────────────────────
+            # {prompt_title}
+            # ───────────────────────────────────────────────────────────────────
+            # Framework: CIDI (Context-Instructions-Details-Input)
+
+            context: |
+              {ACTUAL_CONTEXT_CONTENT}
+
+            instructions: |
+              {ACTUAL_INSTRUCTIONS_CONTENT}
+
+            details: |
+              {ACTUAL_DETAILS_CONTENT}
+
+            input: |
+              {ACTUAL_INPUT_CONTENT}
 
         TIDD_EC:
-        - "  task: |"
-        - "    {ACTUAL_TASK_CONTENT}"
-        - "  instructions: |"
-        - "    {ACTUAL_INSTRUCTIONS_CONTENT}"
-        - "  details: |"
-        - "    {ACTUAL_DETAILS_CONTENT}"
-        - "  deliverables: |"
-        - "    {ACTUAL_DELIVERABLES_CONTENT}"
-        - "  examples: |"
-        - "    {ACTUAL_EXAMPLES_CONTENT}"
-        - "  constraints: |"
-        - "    {ACTUAL_CONSTRAINTS_CONTENT}"
+          output: |
+            # ───────────────────────────────────────────────────────────────────
+            # {prompt_title}
+            # ───────────────────────────────────────────────────────────────────
+            # Framework: TIDD-EC (Task-Instructions-Details-Deliverables-Examples-Constraints)
+
+            task: |
+              {ACTUAL_TASK_CONTENT}
+
+            instructions: |
+              {ACTUAL_INSTRUCTIONS_CONTENT}
+
+            details: |
+              {ACTUAL_DETAILS_CONTENT}
+
+            deliverables: |
+              {ACTUAL_DELIVERABLES_CONTENT}
+
+            examples: |
+              {ACTUAL_EXAMPLES_CONTENT}
+
+            constraints: |
+              {ACTUAL_CONSTRAINTS_CONTENT}
 
         CRISPE:
-        - "  capacity: |"
-        - "    {ACTUAL_CAPACITY_CONTENT}"
-        - "  role: |"
-        - "    {ACTUAL_ROLE_CONTENT}"
-        - "  insight: |"
-        - "    {ACTUAL_INSIGHT_CONTENT}"
-        - "  statement: |"
-        - "    {ACTUAL_STATEMENT_CONTENT}"
-        - "  personality: |"
-        - "    {ACTUAL_PERSONALITY_CONTENT}"
-        - "  experiment: |"
-        - "    {ACTUAL_EXPERIMENT_CONTENT}"
+          output: |
+            # ───────────────────────────────────────────────────────────────────
+            # {prompt_title}
+            # ───────────────────────────────────────────────────────────────────
+            # Framework: CRISPE (Capacity-Role-Insight-Statement-Personality-Experiment)
+
+            capacity: |
+              {ACTUAL_CAPACITY_CONTENT}
+
+            role: |
+              {ACTUAL_ROLE_CONTENT}
+
+            insight: |
+              {ACTUAL_INSIGHT_CONTENT}
+
+            statement: |
+              {ACTUAL_STATEMENT_CONTENT}
+
+            personality: |
+              {ACTUAL_PERSONALITY_CONTENT}
+
+            experiment: |
+              {ACTUAL_EXPERIMENT_CONTENT}
 
         CRAFT:
-        - "  context: |"
-        - "    {ACTUAL_CONTEXT_CONTENT}"
-        - "  role: |"
-        - "    {ACTUAL_ROLE_CONTENT}"
-        - "  action: |"
-        - "    {ACTUAL_ACTION_CONTENT}"
-        - "  format: |"
-        - "    {ACTUAL_FORMAT_CONTENT}"
-        - "  target: |"
-        - "    {ACTUAL_TARGET_CONTENT}"
+          output: |
+            # ───────────────────────────────────────────────────────────────────
+            # {prompt_title}
+            # ───────────────────────────────────────────────────────────────────
+            # Framework: CRAFT (Context-Role-Action-Format-Target)
+
+            context: |
+              {ACTUAL_CONTEXT_CONTENT}
+
+            role: |
+              {ACTUAL_ROLE_CONTENT}
+
+            action: |
+              {ACTUAL_ACTION_CONTENT}
+
+            format: |
+              {ACTUAL_FORMAT_CONTENT}
+
+            target: |
+              {ACTUAL_TARGET_CONTENT}
 
       critical_instructions:
-      - "NEVER leave placeholder text in YAML output"
+      - "NEVER include metadata: section"
+      - "NEVER include timestamps or complexity scores"
+      - "NEVER include usage examples"
+      - "NEVER wrap components in prompt: section"
+      - "Framework components go directly at top-level"
+      - "Only header comment identifies the prompt and framework"
       - "Replace ALL {ACTUAL_*_CONTENT} with actual enhanced prompt content"
-      - "Ensure multi-line strings use | (pipe) operator for readability"
-      - "Validate YAML syntax before writing (no unclosed quotes, proper indentation)"
-      - "Each component must contain substantive content from enhanced prompt"
-      - "If a component is not applicable, still include with brief note (not empty)"
+      - "Ensure multi-line strings use | (pipe) operator"
+      - "Validate YAML syntax before writing"
 
       validation:
+      - "Verify NO metadata section exists"
+      - "Verify NO prompt wrapper exists"
       - "Verify all {ACTUAL_*_CONTENT} placeholders are replaced"
-      - "Confirm YAML is valid (proper indentation, quotes, structure)"
-      - "Ensure framework components match framework_mapping"
-      - "Test parsability: yaml.safe_load() should succeed"
+      - "Confirm YAML is valid (proper indentation)"
+      - "Test parsability: yaml.safe_load() should return framework components directly"
 
     step_16_write_both_files:
       action: "Write BOTH files to spec folder"

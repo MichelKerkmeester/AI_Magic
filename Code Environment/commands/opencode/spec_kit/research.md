@@ -4,6 +4,34 @@ argument-hint: "[research-topic] [:auto|:confirm]"
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion, WebFetch, WebSearch
 ---
 
+# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+
+**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+
+```
+IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
+    → STOP IMMEDIATELY
+    → Use AskUserQuestion tool with this exact question:
+        question: "What topic would you like to research?"
+        options:
+          - label: "Describe my research topic"
+            description: "I'll provide a topic for technical investigation"
+    → WAIT for user response
+    → Use their response as the research topic
+    → Only THEN continue with this workflow
+
+IF $ARGUMENTS contains a research topic:
+    → Continue reading this file
+```
+
+**CRITICAL RULES:**
+- **DO NOT** infer topics from context, screenshots, or existing spec folders
+- **DO NOT** assume what the user wants based on conversation history
+- **DO NOT** proceed past this point without an explicit research topic from the user
+- The topic MUST come from `$ARGUMENTS` or user's answer to the question above
+
+---
+
 # SpecKit Research
 
 Conduct comprehensive technical investigation and create research documentation. Use before specification when technical uncertainty exists or to document findings for future reference.

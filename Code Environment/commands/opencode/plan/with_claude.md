@@ -5,6 +5,34 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Task, AskUserQuestion
 agent: plan
 ---
 
+# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+
+**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+
+```
+IF $ARGUMENTS is empty, undefined, or contains only whitespace:
+    → STOP IMMEDIATELY
+    → Use AskUserQuestion tool with this exact question:
+        question: "What would you like to plan?"
+        options:
+          - label: "Describe my task"
+            description: "I'll provide a task description for planning"
+    → WAIT for user response
+    → Use their response as the task description
+    → Only THEN continue with this workflow
+
+IF $ARGUMENTS contains a task description:
+    → Continue reading this file
+```
+
+**CRITICAL RULES:**
+- **DO NOT** infer tasks from context, screenshots, or existing spec folders
+- **DO NOT** assume what the user wants based on conversation history
+- **DO NOT** proceed past this point without an explicit task from the user
+- The task MUST come from `$ARGUMENTS` or user's answer to the question above
+
+---
+
 # Implementation Plan (OpenCode + Claude Orchestrator)
 
 **About this command:** This command creates SpecKit documentation using Claude as orchestrator with 4 parallel Sonnet agents for fast, cost-effective codebase exploration. It requires a task description as input.
@@ -70,31 +98,38 @@ Enter PLANNING MODE to create detailed, verified SpecKit documentation. This com
 
 Execute the following workflow:
 
-### Step 1: Parse Input & Detect Mode Override
+### Step 1: Parse Input & Validate Arguments
 
-1. **Extract task description from $ARGUMENTS**
-2. **Check for explicit mode override:**
+1. **CRITICAL: Check if $ARGUMENTS is empty or missing**
+   - If `$ARGUMENTS` is empty, undefined, or contains only whitespace:
+     - **STOP immediately** - do NOT continue
+     - Use AskUserQuestion to prompt: "Please describe the task you want to plan"
+     - Wait for user response before continuing
+   - If `$ARGUMENTS` contains a task description: continue to item 2
+
+2. **Extract task description from $ARGUMENTS**
+3. **Check for explicit mode override:**
    - Pattern: `mode:simple` or `mode:complex` in arguments
    - If found: Use specified mode, skip auto-detection
-   - If not found: Proceed to Step 2 for auto-detection
+   - If not found: Continue to Step 2 for auto-detection
 
 ### Step 2: Auto-Detect Planning Mode
 
 If no mode override specified, analyze task complexity:
 
-3. **Estimate LOC from task description:**
+4. **Estimate LOC from task description:**
    - Keywords: "small" = 100, "feature" = 200, "refactor" = 300, "system" = 500, "redesign" = 800
    - File count indicators: "all", "multiple", "across" = +200 LOC
    - Default: 300 LOC if unclear
 
-4. **Calculate complexity score (0-100%):**
+5. **Calculate complexity score (0-100%):**
    - Domain count (35%): code, docs, git, testing, devops
    - File count (25%): estimated files modified
    - LOC estimate (15%): normalized 0-1
    - Parallel opportunity (20%): can tasks run in parallel?
    - Task type (5%): implementation complexity
 
-5. **Select mode:**
+6. **Select mode:**
    ```
    IF loc_estimate < 500:
      mode = "simple"
@@ -106,7 +141,7 @@ If no mode override specified, analyze task complexity:
 
 ### Step 3: Load & Execute YAML Workflow
 
-6. **Set model parameters and read the appropriate YAML workflow:**
+7. **Set model parameters and read the appropriate YAML workflow:**
 
    **CRITICAL: Set parameters before loading simple_mode.yaml**
 
@@ -129,7 +164,7 @@ If no mode override specified, analyze task complexity:
 
    - **COMPLEX mode** (≥500 LOC): Use the Read tool to load `.opencode/command/plan/assets/complex_mode.yaml`. Note: Complex mode is a stub as of Phase 1.5 and will notify user to fall back to simple mode.
 
-7. **YAML workflow executes automatically:**
+8. **YAML workflow executes automatically:**
 
    The loaded YAML prompt contains the complete 9-phase workflow (SpecKit aligned):
    - **Phase 0**: Documentation Level Detection (SpecKit Level 1, 2, or 3)
@@ -147,7 +182,7 @@ If no mode override specified, analyze task complexity:
 
 ### Step 4: Monitor Progress
 
-8. **Display phase progress to user:**
+9. **Display phase progress to user:**
    ```
    Planning Mode Activated (Claude Orchestrator + Sonnet Agents)
 

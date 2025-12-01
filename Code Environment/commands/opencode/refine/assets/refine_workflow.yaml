@@ -655,8 +655,9 @@ phase_3_verify:
 
     step_11_exit_code_validation:
       action: "Verify exit codes use constants"
+      environment: "claude-code-only"  # SKIP in opencode
       command: |
-        for f in .claude/hooks/*/*.sh; do
+        for f in {HOOKS_PATH}/*/*.sh; do
           # Find raw exit codes
           MAGIC=$(grep -n "exit [0-9]" "$f" | grep -v "EXIT_\|# exit")
           if [ -n "$MAGIC" ]; then
@@ -668,8 +669,9 @@ phase_3_verify:
 
     step_12_null_safety_validation:
       action: "Verify jq calls have null safety"
+      environment: "claude-code-only"  # SKIP in opencode
       command: |
-        for f in .claude/hooks/*/*.sh; do
+        for f in {HOOKS_PATH}/*/*.sh; do
           # Find jq -r without // fallback
           UNSAFE=$(grep -n "jq -r" "$f" | grep -v "// empty\|// \"\"\|// null")
           if [ -n "$UNSAFE" ]; then
@@ -681,14 +683,15 @@ phase_3_verify:
 
     step_13_performance_check:
       action: "Verify performance within targets"
+      environment: "claude-code-only"  # SKIP in opencode
       command: |
         # Check recent performance logs
         echo "Recent hook performance:"
-        grep -E "^[0-9]{4}-" .claude/hooks/logs/performance.log | tail -20
+        grep -E "^[0-9]{4}-" {HOOKS_PATH}/logs/performance.log | tail -20
 
         # Flag slow hooks (>100ms)
         echo "Slow hooks (>100ms):"
-        grep -E "[0-9]{3,}ms" .claude/hooks/logs/performance.log | \
+        grep -E "[0-9]{3,}ms" {HOOKS_PATH}/logs/performance.log | \
           grep -v "^#" | tail -10
       targets:
         typical: "<100ms"
@@ -697,8 +700,10 @@ phase_3_verify:
 
     step_14_skill_validation:
       action: "Verify skill structure completeness"
+      environment: "all"  # Works in both Claude Code and opencode
       command: |
-        for skill_dir in .claude/skills/*/; do
+        # Use {SKILLS_PATH} substituted at runtime
+        for skill_dir in {SKILLS_PATH}/*/; do
           skill_file="$skill_dir/SKILL.md"
           if [ -f "$skill_file" ]; then
             echo "=== $skill_dir ==="
@@ -1044,16 +1049,29 @@ success:
 
   verification_command: |
     # Quick verification after audit
-    echo "=== Syntax Check ==="
-    for f in .claude/hooks/*/*.sh; do
-      bash -n "$f" 2>&1 && echo "✓ $f" || echo "✗ $f"
+    # NOTE: In opencode, only skill validation runs (skip hook checks)
+
+    # HOOKS VERIFICATION (Claude Code only - skip in opencode)
+    if [ -n "{HOOKS_PATH}" ] && [ -d "{HOOKS_PATH}" ]; then
+      echo "=== Syntax Check ==="
+      for f in {HOOKS_PATH}/*/*.sh; do
+        bash -n "$f" 2>&1 && echo "✓ $f" || echo "✗ $f"
+      done
+
+      echo "=== Exit Code Check ==="
+      grep -rn "exit [0-9]" {HOOKS_PATH}/*/*.sh | grep -v "EXIT_" | head -10
+
+      echo "=== Null Safety Check ==="
+      grep -rn "jq -r" {HOOKS_PATH}/*/*.sh | grep -v "// empty\|// \"\"" | head -10
+    else
+      echo "=== Hooks Verification Skipped (opencode environment) ==="
+    fi
+
+    # SKILLS VERIFICATION (both environments)
+    echo "=== Skill Structure Check ==="
+    for skill_dir in {SKILLS_PATH}/*/; do
+      [ -f "$skill_dir/SKILL.md" ] && echo "✓ $skill_dir" || echo "✗ $skill_dir (missing SKILL.md)"
     done
-
-    echo "=== Exit Code Check ==="
-    grep -rn "exit [0-9]" .claude/hooks/*/*.sh | grep -v "EXIT_" | head -10
-
-    echo "=== Null Safety Check ==="
-    grep -rn "jq -r" .claude/hooks/*/*.sh | grep -v "// empty\|// \"\"" | head -10
 
 # ───────────────────────────────────────────────────────────────────
 # USAGE EXAMPLES
@@ -1078,12 +1096,22 @@ usage:
 
   single_hook:
     command: "/refine:skill_or_hook .claude/hooks/PreToolUse/validate-bash.sh"
-    description: "Audit single hook file"
+    description: "Audit single hook file (Claude Code only)"
+    environment: "claude-code-only"
 
   single_skill:
-    command: "/refine:skill_or_hook .claude/skills/workflows-code/"
+    command_claude: "/refine:skill_or_hook .claude/skills/workflows-code/"
+    command_opencode: "/refine:skill_or_hook .opencode/skills/workflows-code/"
     description: "Audit single skill folder"
+    environment: "all"
 
   quick_fix:
     command: "/refine:skill_or_hook hooks :fix"
-    description: "Detect and fix P0/P1 without full verification"
+    description: "Detect and fix P0/P1 without full verification (Claude Code only)"
+    environment: "claude-code-only"
+
+  # OPENCODE-SPECIFIC EXAMPLES
+  opencode_skills_only:
+    command: "/refine:skill_or_hook skills :full"
+    description: "Full audit of skills in opencode (hooks not available)"
+    environment: "opencode"

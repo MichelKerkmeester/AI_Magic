@@ -4,6 +4,34 @@ argument-hint: "<spec-folder> [:auto|:confirm]"
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 ---
 
+# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+
+**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+
+```
+IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
+    → STOP IMMEDIATELY
+    → Use AskUserQuestion tool with this exact question:
+        question: "Which spec folder would you like to implement?"
+        options:
+          - label: "Specify the folder"
+            description: "I'll provide the spec folder path (e.g., specs/042-feature-name/)"
+    → WAIT for user response
+    → Use their response as the spec folder path
+    → Only THEN continue with this workflow
+
+IF $ARGUMENTS contains a spec folder path:
+    → Continue reading this file
+```
+
+**CRITICAL RULES:**
+- **DO NOT** infer the spec folder from context, screenshots, or .spec-active markers
+- **DO NOT** assume which spec folder the user wants to implement
+- **DO NOT** proceed past this point without an explicit spec folder path from the user
+- The spec folder MUST come from `$ARGUMENTS` or user's answer to the question above
+
+---
+
 # SpecKit Implement
 
 Execute implementation of a pre-planned feature. Requires existing spec.md and plan.md from a prior `/spec_kit:plan` workflow.
