@@ -1,12 +1,12 @@
 ---
-description: Smart codebase indexing - search, manage, and control semantic code index
+description: Semantic code search - find code by intent, manage indexer
 argument-hint: "[action|query] [options]"
 allowed-tools: Bash(codesql:*), mcp__semantic-search__semantic_search, AskUserQuestion
 ---
 
-# Index
+# Semantic Search
 
-Unified command for semantic code indexing: search your codebase, manage the indexer, and control the watcher process.
+Unified command for semantic code search and index management: search your codebase by intent, manage the indexer, and control the watcher process.
 
 ---
 
@@ -111,7 +111,7 @@ options:
     description: "Stop the background watcher process"
 ```
 
-> **Note:** For destructive operations like reset, use `/index reset` directly.
+> **Note:** For destructive operations like reset, use `/semantic_search reset` directly.
 
 ### Step 3: Route to Selected Action
 
@@ -184,7 +184,7 @@ Then route to HISTORY ACTION with the selected count.
    Collection: codebase-xxxxx
    Status: watching
 
-Use `/index <your query>` to search, or `/index stats` to monitor progress.
+Use `/semantic_search <your query>` to search, or `/semantic_search stats` to monitor progress.
 
 STATUS=OK ACTION=start RESULT=started COLLECTION=codebase-xxxxx
 ```
@@ -226,7 +226,7 @@ STATUS=OK ACTION=start RESULT=started COLLECTION=codebase-xxxxx
 ✅ Indexer stopped successfully!
    Indexed data preserved (251 files tracked)
 
-Use `/index start` to resume indexing.
+Use `/semantic_search start` to resume indexing.
 
 STATUS=OK ACTION=stop RESULT=stopped
 ```
@@ -276,9 +276,9 @@ STATUS=OK ACTION=stats TRACKED_FILES=251 INDEXED_COMMITS=50 WATCHER=watching
 ### Extracting the Query
 
 - If triggered by keyword: query = remaining arguments after keyword
-  - `/index search authentication middleware` → query = "authentication middleware"
+  - `/semantic_search search authentication middleware` → query = "authentication middleware"
 - If triggered by natural language detection: query = full arguments
-  - `/index how is form validation handled` → query = "how is form validation handled"
+  - `/semantic_search how is form validation handled` → query = "how is form validation handled"
 - If triggered by menu: use `AskUserQuestion` to get query
 
 ### Check for --refined Flag
@@ -295,7 +295,7 @@ STATUS=OK ACTION=stats TRACKED_FILES=251 INDEXED_COMMITS=50 WATCHER=watching
    ```bash
    codesql -stats
    ```
-   - If no tracked files, warn user and suggest `/index start`
+   - If no tracked files, warn user and suggest `/semantic_search start`
 
 3. **Execute semantic search:**
    Call MCP tool: `mcp__semantic-search__semantic_search`
@@ -400,7 +400,7 @@ STATUS=OK ACTION=search RESULTS_COUNT=3 QUERY="authentication middleware"
 
 ✅ Index reset complete!
 
-Use `/index start` to rebuild the index.
+Use `/semantic_search start` to rebuild the index.
 
 STATUS=OK ACTION=reset RESULT=completed
 ```
@@ -415,7 +415,7 @@ STATUS=OK ACTION=reset RESULT=completed
 
 - Default: 10 commits
 - If number provided after keyword: use that count
-  - `/index history 50` → count = 50
+  - `/semantic_search history 50` → count = 50
 - If triggered by menu: optionally ask for count or use default
 
 ### Instructions
@@ -463,7 +463,7 @@ STATUS=OK ACTION=reset RESULT=completed
 ✅ Successfully indexed 50 commits!
 
 You can now search code history:
-  /index "when was the button component added"
+  /semantic_search "when was the button component added"
 
 STATUS=OK ACTION=history INDEXED_COMMITS=50
 ```
@@ -474,17 +474,17 @@ STATUS=OK ACTION=history INDEXED_COMMITS=50
 
 | Usage | Action |
 |-------|--------|
-| `/index` | Interactive menu based on current state |
-| `/index start` | Start the background file watcher |
-| `/index stop` | Stop the background file watcher |
-| `/index stats` | Show indexing statistics |
-| `/index <query>` | Semantic search (auto-detected) |
-| `/index search <query>` | Explicit semantic search |
-| `/index search <query> --refined` | Search with LLM analysis |
-| `/index history` | Index last 10 git commits |
-| `/index history 50` | Index last 50 git commits |
-| `/index reset` | Reset index (with confirmation) |
-| `/index reset --confirm` | Reset index (skip confirmation) |
+| `/semantic_search` | Interactive menu based on current state |
+| `/semantic_search start` | Start the background file watcher |
+| `/semantic_search stop` | Stop the background file watcher |
+| `/semantic_search stats` | Show indexing statistics |
+| `/semantic_search <query>` | Semantic search (auto-detected) |
+| `/semantic_search search <query>` | Explicit semantic search |
+| `/semantic_search search <query> --refined` | Search with LLM analysis |
+| `/semantic_search history` | Index last 10 git commits |
+| `/semantic_search history 50` | Index last 50 git commits |
+| `/semantic_search reset` | Reset index (with confirmation) |
+| `/semantic_search reset --confirm` | Reset index (skip confirmation) |
 
 ---
 
@@ -505,7 +505,7 @@ STATUS=OK ACTION=history INDEXED_COMMITS=50
 
 - **"Unable to infer embedder provider"**: Environment not loaded. The command sources `.codebase/.env` automatically.
 - **"Invalid API key" (401)**: Update `EMBED_API_KEY` in `.codebase/.env`
-- **Search returns no results**: Run `/index stats` to verify files are indexed
+- **Search returns no results**: Run `/semantic_search stats` to verify files are indexed
 - **Watcher won't stop**: Check for orphaned processes in `.codebase/watcher.pid`
 - **Reset fails**: Manually delete `.codebase/` directory as last resort
 

@@ -518,7 +518,7 @@ VOYAGE_API_KEY=your_api_key_here
 Error: .codebase/vectors.db not found
 ```
 
-**Solution:** Run indexer first: `codesql index`
+**Solution:** Run indexer first: `codesql -start` (CLI) or `/semantic_search start` (Claude Code)
 
 **2. Slow searches**
 

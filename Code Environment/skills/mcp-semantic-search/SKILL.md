@@ -339,7 +339,7 @@ Read("src/components/hero_section.js")
 2. **ESCALATE IF results consistently irrelevant**
    - After 2-3 query rephrases still not relevant
    - May indicate indexing issue
-   - Ask user to verify codebase is indexed
+   - Verify with `/semantic_search stats` or ask user to run `/semantic_search start`
 
 3. **ESCALATE IF uncertain about tool selection**
    - If confidence < 80% on semantic vs grep vs glob
@@ -439,7 +439,8 @@ Read("src/components/hero_section.js")
 
 **Must be indexed first:**
 
-- Run `codesql index` to create .codebase/vectors.db
+- Run `codesql -start` (CLI) or `/semantic_search start` (Claude Code) to create .codebase/vectors.db
+- Use `/semantic_search stats` to verify indexing status
 - Indexer watches files for automatic updates
 
 **Current anobel.com index (as of 2025-11-25):**
