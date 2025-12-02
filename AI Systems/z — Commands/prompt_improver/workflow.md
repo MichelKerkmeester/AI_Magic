@@ -4,6 +4,36 @@ argument-hint: "<prompt-text> [:quick|:improve|:refine]"
 allowed-tools: Read, Write, AskUserQuestion
 ---
 
+# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+
+**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+
+```
+IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
+    → STOP IMMEDIATELY
+    → Use AskUserQuestion tool with this exact question:
+        question: "What prompt would you like to improve?"
+        options:
+          - label: "Paste my prompt"
+            description: "I'll provide the prompt text to enhance"
+          - label: "Describe what I need"
+            description: "I'll describe what the prompt should accomplish"
+    → WAIT for user response
+    → Use their response as the prompt to improve
+    → Only THEN continue with this workflow
+
+IF $ARGUMENTS contains prompt text:
+    → Continue reading this file
+```
+
+**CRITICAL RULES:**
+- **DO NOT** infer prompts from context, screenshots, or conversation history
+- **DO NOT** assume what prompt the user wants to improve
+- **DO NOT** proceed past this point without explicit prompt text from the user
+- The prompt MUST come from `$ARGUMENTS` or user's answer to the question above
+
+---
+
 # Improve Prompt - DEPTH Framework
 
 Transform raw prompts into optimized, framework-structured prompts using DEPTH methodology (Discover, Engineer, Prototype, Test, Harmonize).
@@ -71,8 +101,8 @@ Apply systematic prompt enhancement with:
 **Input:** `$ARGUMENTS` = prompt text + optional mode (`:quick`, `:improve`, `:refine`)
 
 **Output:** Always creates spec folder with both files:
-1. **spec.md** - SpecKit specification with enhanced prompt (Problem, Solution, Enhanced Prompt, Success Criteria)
-2. **enhanced_prompt.yaml** - Machine-readable YAML for direct workflow integration
+1. **spec.md** - Simplified specification (Purpose, Original Prompt, numbered framework sections)
+2. **enhanced_prompt.yaml** - Pure YAML prompt (NO metadata wrapper, just framework components at top-level)
 
 **Location:** User-selected spec folder (A/B/C/D choice following SpecKit workflow)
 
@@ -161,25 +191,22 @@ Apply systematic prompt enhancement with:
    ```
 
 8. **Write both output files to spec folder:**
-   - **File 1 - spec.md** (SpecKit specification format):
-     - Front matter with metadata
-     - Problem statement (why enhancement needed)
-     - Solution (DEPTH methodology summary)
-     - Framework applied (description and rationale)
-     - Enhanced Prompt (full formatted text)
-     - Success Criteria (qualitative validation)
-     - Usage instructions
+   - **File 1 - spec.md** (Simplified specification):
+     - `# Feature Specification: Enhanced Prompt - {title}` - Title with framework
+     - `### Purpose` - What the enhanced prompt accomplishes
+     - `### Original Prompt` - The raw input prompt
+     - `## 1. {COMPONENT}` - First framework component (e.g., TASK, ROLE)
+     - `## 2. {COMPONENT}` - Second framework component
+     - ... numbered sections for each framework component
+     - **NO** metadata, scope, success criteria, usage, or appendix sections
 
-   - **File 2 - enhanced_prompt.yaml** (spec_kit-aligned structure):
-     - Flat top-level: `role:`, `purpose:`, `action:` (single lines)
-     - `operating_mode:` section with workflow settings
-     - `metadata:` section with framework, complexity, timestamps
-     - `context:` section with framework-specific components
-     - `workflow:` section with `step_N_name:` pattern (if multi-step)
-     - `rules:` section with `ALWAYS:` and `NEVER:` lists
-     - `success:` section with criteria
-     - `error_recovery:` section (optional)
-     - `usage:` section for Python/Node.js programmatic access
+   - **File 2 - enhanced_prompt.yaml** (Pure YAML - NO metadata):
+     - Header comment only (title + framework name)
+     - Framework components at top-level (e.g., `role:`, `context:`, `action:`, `format:`)
+     - **NO** `metadata:` section
+     - **NO** `prompt:` wrapper
+     - **NO** timestamps or complexity scores
+     - Direct import ready: `yaml.safe_load(open('enhanced_prompt.yaml'))` returns framework components
 
 9. **Report success:**
    ```
@@ -187,7 +214,7 @@ Apply systematic prompt enhancement with:
 
    📁 Spec folder: {spec_folder_path}
    📄 Files created:
-   - spec.md (SpecKit specification)
+   - spec.md (simplified specification)
    - enhanced_prompt.yaml (machine-readable)
 
    🔧 Framework: {framework_name}
@@ -309,23 +336,30 @@ Output: Preserves existing framework, polishes clarity, ~9 seconds
 ## Notes
 
 **Dual-Output Architecture:**
-- `spec.md` = Human review (SpecKit specification with problem, solution, enhanced prompt, success criteria)
-- `enhanced_prompt.yaml` = Machine import (spec_kit-aligned YAML for direct workflow integration)
-- Both files reference each other for traceability
+- `spec.md` = Human review (simplified: Purpose, Original Prompt, numbered framework sections)
+- `enhanced_prompt.yaml` = Pure YAML prompt content (NO metadata, direct use)
+- Both files stored in same spec folder
 
-**spec_kit YAML Alignment:**
-- YAML output follows spec_kit structural conventions (see `.claude/commands/spec_kit/assets/*.yaml`)
-- Flat top-level keys: `role`, `purpose`, `action` (single lines)
-- `workflow:` uses `step_N_name:` pattern with `purpose`, `activities`, `outputs`, `validation`
-- `rules:` has `ALWAYS:` and `NEVER:` subsections
-- Framework components mapped to spec_kit sections (see `framework_mapping_to_speckit` in improve_prompt.yaml)
+**YAML Output - Pure Prompt Content:**
+- YAML contains ONLY the enhanced prompt itself
+- NO metadata section, timestamps, or complexity scores
+- Framework components directly at top-level (e.g., `role:`, `context:`, `action:`, `format:`)
+- Direct import ready: `data = yaml.safe_load(open('enhanced_prompt.yaml'))` returns prompt components
+- Example: `data['role']`, `data['context']`, `data['action']`
+
+**spec.md - Simplified Structure:**
+- Title and brief framework description
+- Purpose section explaining what the enhanced prompt accomplishes
+- Original Prompt section with the raw input
+- Numbered sections for each framework component (## 1. TASK, ## 2. INSTRUCTIONS, etc.)
+- NO metadata, scope, success criteria, usage, or appendix sections
 
 **Integration:**
-- Saves to active spec folder if available (`.claude/.spec-active.$$` or `.opencode/.spec-active.$$`)
+- Saves to active spec folder if available
 - Falls back to `/export/` with sequential numbering
-- YAML format enables direct import: `yaml.safe_load(open('enhanced_prompt.yaml'))`
+- YAML ready for copy/paste into AI workflows
 
 **Workflow Details:**
 - Complete implementation: `improve_prompt.yaml` (in `.claude/commands/` or `.opencode/command/`)
 - Phase 6 (Dual Output): Steps 13-17 with atomic write guarantees
-- Framework templates: All 7 frameworks mapped to spec_kit structure
+- Framework templates: All 7 frameworks output as pure YAML
