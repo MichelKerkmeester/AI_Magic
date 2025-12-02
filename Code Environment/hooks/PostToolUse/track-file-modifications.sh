@@ -93,6 +93,10 @@ if should_emit_drift_question 2>/dev/null; then
   echo "  A) Creating a new spec folder for this work"
   echo "  B) Confirming with user this is expected"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  
+  # Emit systemMessage for Claude Code visibility
+  visible_msg=$(jq -n --arg msg "⚠️ TASK DRIFT (Score: $drift_score): Modifying files outside spec scope ($spec_folder). Create new spec or confirm intent." '{systemMessage: $msg}')
+  echo "$visible_msg"
 
   # Mark that we warned (prevent spam)
   mark_drift_question_asked 2>/dev/null || true

@@ -799,6 +799,11 @@ if [[ "$DECISION" == "DISPATCH" ]]; then
   # ─────────────────────────────────────────────────────────────────
   # ENHANCED VISIBLE OUTPUT - DISPATCH REQUIRED ANNOUNCEMENT
   # ─────────────────────────────────────────────────────────────────
+  # Output systemMessage JSON for Claude Code visibility
+  DISPATCH_MSG="🚀 PARALLEL DISPATCH: Complexity ${COMPLEXITY_SCORE}% | ${DOMAIN_COUNT} domains (${DETECTED_DOMAINS}) | ${AGENT_COUNT} agents recommended. Use Task tool or type 'proceed anyway' to override."
+  echo "{\"systemMessage\": \"${DISPATCH_MSG}\"}"
+  
+  # Also output detailed info to stderr for logging
   {
     echo ""
     echo "┌─────────────────────────────────────────────────────────────┐"

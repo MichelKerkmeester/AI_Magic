@@ -183,33 +183,28 @@ fi
 # ───────────────────────────────────────────────────────────────
 
 if [ "$SHOULD_SUGGEST" = true ]; then
-    echo ""
-
+    # Build systemMessage for visible output
+    MCP_MSG=""
+    
     # Header based on type
     if [ "$SUGGESTION_TYPE" = "multi_platform" ] || [ "$SUGGESTION_TYPE" = "sequential" ]; then
-        echo "MCP WORKFLOW DETECTED:"
+        MCP_MSG="🔧 MCP WORKFLOW DETECTED:\\n"
     else
-        echo "MCP TOOL USAGE DETECTED:"
+        MCP_MSG="🔧 MCP TOOL USAGE DETECTED:\\n"
     fi
-    echo ""
 
     # Show detected platforms
     if [ -n "$DETECTED_PLATFORMS" ]; then
-        echo "  Platforms: [$DETECTED_PLATFORMS]"
+        MCP_MSG="${MCP_MSG}  Platforms: [$DETECTED_PLATFORMS]\\n"
     fi
-    echo "  Category: $DETECTED_CATEGORY"
-    echo ""
-
-    # Benefits section
-    echo "  Code Mode Benefits:"
-    echo "  - 68% fewer tokens consumed"
-    echo "  - 98.7% reduction in context overhead"
-    echo "  - 60% faster execution"
-    if [ "$SUGGESTION_TYPE" = "multi_platform" ] || [ "$SUGGESTION_TYPE" = "sequential" ]; then
-        echo "  - State persistence across ALL operations"
-        echo "  - Single execution (no context switching)"
-        echo "  - Automatic error handling and rollback"
-    fi
+    MCP_MSG="${MCP_MSG}  Category: $DETECTED_CATEGORY\\n"
+    MCP_MSG="${MCP_MSG}  Use Code Mode for 68% fewer tokens, 60% faster execution.\\n"
+    MCP_MSG="${MCP_MSG}  Reference: .claude/skills/mcp-code-mode/SKILL.md"
+    
+    # Output as systemMessage JSON for Claude Code visibility
+    echo "{\"systemMessage\": \"${MCP_MSG}\"}"
+    
+    # Also output detailed info to stdout for context
     echo ""
 
     # Context-specific examples

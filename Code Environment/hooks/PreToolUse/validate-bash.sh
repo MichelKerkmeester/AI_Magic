@@ -168,6 +168,8 @@ if echo "$COMMAND_TO_CHECK" | grep -qE "$COMBINED_PATTERN"; then
   # Determine the category and provide helpful message
   case "$MATCHED_PATTERN" in
     "node_modules"|"build/"|"dist/"|"venv/"|"__pycache__"|"frontend/node_modules")
+      # Emit systemMessage for Claude Code visibility
+      echo "{\"systemMessage\": \"❌ BLOCKED: Command accesses large directory ($MATCHED_PATTERN) - use targeted file reads instead\"}"
       print_error_box "COMMAND BLOCKED - Performance" \
         "Pattern: $MATCHED_PATTERN" \
         "Reason: Large directory wastes tokens and slows execution" \
@@ -178,6 +180,8 @@ if echo "$COMMAND_TO_CHECK" | grep -qE "$COMBINED_PATTERN"; then
         "  • Search with code-specific tools"
       ;;
     "\.env"|"\.ssh/"|"\.aws/"|"\.pem$"|"\.key$"|"id_rsa"|"credentials\.json"|"secrets\."|"password"|"\.git/config"|"\.git/objects")
+      # Emit systemMessage for Claude Code visibility
+      echo "{\"systemMessage\": \"❌ BLOCKED: Command accesses sensitive file ($MATCHED_PATTERN) - security policy violation\"}"
       print_error_box "COMMAND BLOCKED - Security" \
         "Pattern: $MATCHED_PATTERN" \
         "Reason: Sensitive files may contain credentials" \
@@ -190,6 +194,8 @@ if echo "$COMMAND_TO_CHECK" | grep -qE "$COMBINED_PATTERN"; then
         "Do not access sensitive files in conversations."
       ;;
     *)
+      # Emit systemMessage for Claude Code visibility
+      echo "{\"systemMessage\": \"❌ BLOCKED: Dangerous command detected ($MATCHED_PATTERN) - security policy violation\"}"
       print_error_box "COMMAND BLOCKED - Security" \
         "Pattern: $MATCHED_PATTERN" \
         "Reason: Dangerous command blocked by security policy" \

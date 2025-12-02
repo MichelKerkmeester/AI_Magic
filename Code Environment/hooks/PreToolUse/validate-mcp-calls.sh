@@ -114,6 +114,8 @@ fi
 
 # Case 2: Direct MCP call detected (anti-pattern)
 if [ "$IS_DIRECT_MCP_CALL" = true ]; then
+  # Emit systemMessage for Claude Code visibility
+  echo "{\"systemMessage\": \"💡 Use Code Mode (call_tool_chain) for $MCP_PLATFORM - 98.7% overhead reduction, 60% faster\"}"
   echo ""
   echo "⚠️  DIRECT MCP CALL DETECTED - Use Code Mode instead"
   echo "   Tool: $TOOL_NAME → $SUGGESTED_CODE_MODE_CALL"

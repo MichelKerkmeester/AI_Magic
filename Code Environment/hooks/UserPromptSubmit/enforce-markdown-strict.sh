@@ -486,6 +486,9 @@ main() {
         if [[ -n "$critical_violations" ]]; then
             has_critical=true
 
+            # Terminal-visible notification via systemMessage
+            echo "{\"systemMessage\": \"📝 Markdown validation BLOCKED: $file has critical violations\"}"
+
             # Log the block
             log_action "BLOCKED: $file (type: $doc_type) - Critical violations found"
 
@@ -506,8 +509,7 @@ main() {
 
     # Show success indicator if files were checked
     if [[ $files_checked -gt 0 ]]; then
-        echo "" >&2
-        echo "✅ Markdown validation passed: $files_checked file(s) checked, 0 violations" >&2
+        echo "{\"systemMessage\": \"📝 Markdown validation passed: $files_checked file(s) checked\"}"
     fi
 
     # Performance timing END

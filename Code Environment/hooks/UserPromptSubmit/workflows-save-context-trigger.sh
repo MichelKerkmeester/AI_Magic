@@ -157,10 +157,11 @@ if [ "$TRIGGERED" = false ]; then
 fi
 
 # Display trigger notification immediately (before validation that might fail)
+# Output as systemMessage JSON for Claude Code visibility
 if [ "$TRIGGER_REASON" = "keyword" ]; then
-  echo "💾 Auto-saving context (keyword: '$MATCHED_KEYWORD' detected)..."
+  echo "{\"systemMessage\": \"💾 Auto-saving context (keyword: '$MATCHED_KEYWORD' detected)...\"}"
 else
-  echo "💾 Auto-saving context (message $MESSAGE_COUNT - saving every 20 messages)..."
+  echo "{\"systemMessage\": \"💾 Auto-saving context (message $MESSAGE_COUNT - saving every 20 messages)...\"}"
 fi
 
 # ───────────────────────────────────────────────────────────────

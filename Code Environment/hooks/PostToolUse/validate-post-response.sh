@@ -226,6 +226,11 @@ if [ ${#TRIGGERED_REMINDERS[@]} -gt 0 ]; then
 
   # Emit concise summary so reminders are visible without opening logs
   echo "QUALITY CHECK: Reminders logged for $FILE_PATH (see $LOG_FILE)"
+  
+  # Emit systemMessage for Claude Code visibility
+  REMINDER_COUNT=${#TRIGGERED_REMINDERS[@]}
+  visible_msg=$(jq -n --arg msg "⚠️ QUALITY CHECK: $REMINDER_COUNT reminder(s) triggered for $(basename "$FILE_PATH"). Review $LOG_FILE for details." '{systemMessage: $msg}')
+  echo "$visible_msg"
 fi
 
 # Performance timing END

@@ -758,10 +758,10 @@ done
 
 # Display MANDATORY priority skills to user (others logged only)
 if [ ${#CRITICAL_SKILLS[@]} -gt 0 ]; then
-  echo ""
-  echo "🔴 MANDATORY SKILLS - MUST BE APPLIED:"
-  echo "⚠️  Proceeding without these skills will result in incomplete/incorrect implementation."
-  echo ""
+  # Build systemMessage for visible output
+  SKILL_MSG="🔴 MANDATORY SKILLS - MUST BE APPLIED:\\n"
+  SKILL_MSG="${SKILL_MSG}⚠️  Proceeding without these skills will result in incomplete/incorrect implementation.\\n\\n"
+  
   for item in "${CRITICAL_SKILLS[@]}"; do
     # Pure Bash string manipulation (no subprocess)
     skill_name="${item%%|*}"   # Remove from first | to end
@@ -776,8 +776,11 @@ if [ ${#CRITICAL_SKILLS[@]} -gt 0 ]; then
       desc_short="$desc"
     fi
 
-    echo "   • $skill_name - $desc_short"
+    SKILL_MSG="${SKILL_MSG}   • $skill_name - $desc_short\\n"
   done
+  
+  # Output as systemMessage JSON for Claude Code visibility
+  echo "{\"systemMessage\": \"${SKILL_MSG}\"}"
 
   # NEW: Add evaluation requirement
   print_skill_evaluation_requirement "${CRITICAL_SKILLS[@]}"

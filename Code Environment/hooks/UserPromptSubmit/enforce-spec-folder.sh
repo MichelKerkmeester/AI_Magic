@@ -247,6 +247,9 @@ transition_to_memory_stage() {
 
   set_question_flow "memory_load" "$stored_folder" "$MEMORY_FILES_JSON" "$user_choice"
 
+  # Terminal-visible notification via systemMessage
+  echo "{\"systemMessage\": \"🧠 Memory files detected ($MEMORY_COUNT) - select A/B/C/D to load context\"}"
+
   echo ""
   echo "📁 $display_msg: $(basename "$stored_folder")"
   echo ""
@@ -2336,6 +2339,8 @@ EOF
 
   # EMIT THE MANDATORY QUESTION SIGNAL
   # This is the key integration point - uses signal-output.sh library
+  # Terminal-visible notification via systemMessage
+  echo "{\"systemMessage\": \"📁 Spec folder required - please select option A/B/C/D\"}"
   emit_mandatory_question "SPEC_FOLDER_CHOICE" \
     "Which spec folder should we use for this work?" \
     "$options" \
@@ -2706,6 +2711,7 @@ if [ "$CHECK_SPEC_FOLDER" != "false" ]; then
             echo "" >&2
 
             # Emit the mandatory task change question
+            echo "{\"systemMessage\": \"📁 Task change detected (${DIVERGENCE_SCORE}% divergence) - please confirm spec folder\"}"
             emit_task_change_question "$SPEC_FOLDER" "$DIVERGENCE_SCORE"
 
             # Set question flow state for handling response
@@ -2783,6 +2789,7 @@ if [ "$CHECK_SPEC_FOLDER" != "false" ]; then
     fi
 
     # Emit the SPEC FOLDER CONFIRM question (stage 1b)
+    echo "{\"systemMessage\": \"📁 Spec folder confirmation required - select A/B/D for: $SPEC_FOLDER_NAME\"}"
     emit_spec_folder_confirm_question "$SPEC_FOLDER" "$_next_spec_number" "$_has_memory_files"
 
     # Set flow state to spec_folder_confirm stage

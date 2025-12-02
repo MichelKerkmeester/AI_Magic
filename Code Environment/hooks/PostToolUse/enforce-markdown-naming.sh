@@ -202,10 +202,14 @@ process_file() {
         if [[ -f "$corrected_path" ]]; then
             local actual_filename=$(ls -1 "$dirname" 2>/dev/null | grep -x "$corrected_filename" 2>/dev/null)
 
-            if [[ "$actual_filename" == "$corrected_filename" ]]; then
+                if [[ "$actual_filename" == "$corrected_filename" ]]; then
                 log_correction "FILENAME AUTO-FIXED ($source_context): $file_path -> $corrected_path"
 
-                # Show condensed correction notice
+                # Output systemMessage for Claude Code visibility (FIRST)
+                local msg="Filename auto-corrected: $filename → $corrected_filename (snake_case enforced)"
+                jq -n --arg m "$msg" '{systemMessage: $m}'
+
+                # Show condensed correction notice (backward compatibility)
                 if declare -f print_correction_condensed >/dev/null 2>&1; then
                     print_correction_condensed "$file_path" "$corrected_filename" "$STYLE_GUIDE"
                 else

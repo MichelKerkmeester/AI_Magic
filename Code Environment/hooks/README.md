@@ -89,6 +89,7 @@ User Action
      ▼
 ┌─────────────────────────────────────────┐
 │  UserPromptSubmit Hooks                 │
+│  - inject-datetime.sh (0) 🕐            │
 │  - workflows-save-context-trigger.sh (0)│
 │  - validate-skill-activation.sh (0)     │
 │  - orchestrate-skill-validation.sh (0) 🆕│
@@ -101,6 +102,7 @@ User Action
 │  Note: (0*) = prompts but allows        │
 │        (1)  = blocking                  │
 │        (0)  = non-blocking              │
+│        🕐   = Datetime context injection │
 │        🆕   = Parallel agents / Code Mode │
 └────────┬────────────────────────────────┘
          │
@@ -198,6 +200,7 @@ User Action
 
 | Hook | Type | Purpose | Key Triggers | Exit | Perf |
 |------|------|---------|--------------|------|------|
+| inject-datetime | UserPromptSubmit | Inject current date/time into AI context | Every prompt | 0 | <5ms |
 | workflows-save-context-trigger | UserPromptSubmit | Auto-save conversation context | `save context`, Every 20 msgs | 0 | <100ms |
 | validate-skill-activation | UserPromptSubmit | Match prompts to skills (v2.0.0 - pre-compiled cache) | Every prompt | 0 | 97-1200ms |
 | orchestrate-skill-validation | UserPromptSubmit | Calculate complexity, emit mandatory dispatch questions | Complexity ≥20% + 2+ domains | 0 | <100ms |
@@ -308,7 +311,22 @@ json_escape() {
 
 ---
 
-### 3.1 Critical Hooks (Detailed)
+### 3.1 Context Injection Hooks
+
+#### inject-datetime.sh (UserPromptSubmit)
+**Purpose**: Injects current date and time into every AI message for temporal awareness
+**Output Format**: `Current date and time is Tuesday 2 December 09:07 2025`
+**Features**:
+  - Runs on EVERY user prompt (no filtering)
+  - Single `date` call for efficiency (optimized from 5 separate calls)
+  - Cross-platform: macOS and Linux compatible
+  - Fallback for systems without `%-d` support
+  - Performance logging to `performance.log`
+**Performance**: <5ms (minimal overhead)
+**Exit**: Always 0 (purely informational, never blocks)
+**Use Case**: Ensures AI always knows current date/time for scheduling, deadlines, time-sensitive tasks
+
+### 3.2 Critical Hooks (Detailed)
 
 #### validate-skill-activation.sh (UserPromptSubmit) - v2.0.0
 **Priority system**: 🔴 MANDATORY (shown), 🟡 HIGH (logged), 🔵 MEDIUM (logged)
@@ -390,7 +408,7 @@ json_escape() {
 **Purpose**: Enforce mandatory question responses
 **Performance**: <10ms
 
-### 3.2 Quality & Documentation Hooks
+### 3.3 Quality & Documentation Hooks
 
 #### enforce-markdown-naming.sh (PostToolUse) - v2.0.0 Merged
 **Purpose**: Unified markdown filename enforcement (merged from enforce-markdown-post.sh + enforce-markdown-post-task.sh)
@@ -431,7 +449,7 @@ json_escape() {
 **Purpose**: Remind about browser-based testing for visual changes
 **References**: `cli-chrome-devtools` skill
 
-### 3.3 Context & Performance Hooks
+### 3.4 Context & Performance Hooks
 
 #### workflows-save-context-trigger.sh (UserPromptSubmit)
 **Triggers**: Keywords (`save context`), Every 20 messages
@@ -487,7 +505,7 @@ json_escape() {
 **Performance**: 25-55ms (40% faster than v1.0.0, was 30-130ms)
 **ROI**: 2-3x token savings potential
 
-### 3.4 Agent & MCP Hooks
+### 3.5 Agent & MCP Hooks
 
 #### suggest-semantic-search.sh (UserPromptSubmit) - v2.0.0 Contextual Patterns
 **Triggers**: 6 contextual patterns with query templates (was 25+ generic patterns)
@@ -546,7 +564,7 @@ json_escape() {
   - Integration with lib/signal-output.sh for mandatory questions
 **Performance**: <100ms
 
-### 3.5 Verification & Compliance Hooks
+### 3.6 Verification & Compliance Hooks
 
 #### enforce-verification.sh (UserPromptSubmit) - v3.0.0 False Positive Elimination
 **Blocks**: Implementation without verification plan (with 0% false positives)
@@ -578,7 +596,7 @@ json_escape() {
 **Integration**: Updated enforce-spec-folder.sh to initialize scope_definition state
 **Performance**: <50ms
 
-### 3.6 SubagentStop Hooks (Quality Gate)
+### 3.7 SubagentStop Hooks (Quality Gate)
 
 #### validate-subagent-output.sh (SubagentStop) - v1.0.0
 
@@ -661,7 +679,7 @@ json_escape() {
 
 ---
 
-### 3.7 Session Lifecycle Hooks
+### 3.8 Session Lifecycle Hooks
 
 #### initialize-session.sh (PreSessionStart)
 **Purpose**: Session initialization
@@ -1195,6 +1213,7 @@ All hooks write to `.claude/hooks/logs/` for debugging and audit trail.
 - `validate-bash.log` - Bash command validation, security blocks
 
 **UserPromptSubmit Hooks**:
+- `inject-datetime.log` - (None - outputs only to performance.log)
 - `workflows-save-context-trigger.log` - Auto-save trigger events (keyword/threshold)
 - `validate-skill-activation.log` - Skill recommendations, matched patterns
 - `enforce-spec-folder.log` - Spec folder enforcement, block/allow outcomes
@@ -1277,10 +1296,10 @@ ls -lh .claude/hooks/logs/*.log
 - `validate-skill-activation.sh` → Reads `skills{}` for prompt matching
 - `validate-post-response.sh` → Reads `riskPatterns{}` for code pattern detection
 
-**Current Skills** (13 total):
+**Current Skills** (10 total):
 
 **Skills with directories** (6):
-- cli-gemini, cli-codex, create-documentation, create-flowchart, workflows-save-context, workflows-code, workflows-git
+- cli-gemini, cli-codex, create-documentation, workflows-save-context, workflows-code, workflows-git
 
 **Knowledge-based skills** (7):
 - animation-strategy, code-standards ⭐ (alwaysActive), conversation-documentation ⭐ (alwaysActive)
@@ -1627,8 +1646,7 @@ The `validate-skill-activation.sh` hook suggests relevant skills based on prompt
 - `workflows-code` - Development workflow orchestration (implementation, debugging, verification)
 - `workflows-git` - Git workflow orchestration (worktrees, commits, PRs)
 - `workflows-save-context` - Conversation context preservation
-- `create-documentation` - Markdown optimization and validation
-- `create-flowchart` - ASCII flowchart generation
+- `create-documentation` - Markdown optimization, validation, and ASCII flowchart creation
 - `cli-codex` - OpenAI Codex CLI integration
 - `cli-gemini` - Google Gemini CLI integration
 

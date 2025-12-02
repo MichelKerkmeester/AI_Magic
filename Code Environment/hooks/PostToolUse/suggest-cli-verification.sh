@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Configuration
 LOG_FILE="$SCRIPT_DIR/../logs/quality-checks.log"
 START_TIME=$(date +%s)
-SITE_URL="${SITE_URL:-https://example.com}"
+SITE_URL="${SITE_URL:-https://anobel.com}"
 
 # Parse tool input from stdin
 TOOL_INPUT=$(cat)
@@ -67,6 +67,10 @@ if [[ "$FILE_PATH" =~ src/.*\.(js|css)$ ]]; then
   echo "   - Performance: .claude/skills/workflows-code/references/performance_patterns.md (Section 3)"
   echo "───────────────────────────────────────────────────────────────"
   echo ""
+  
+  # Emit systemMessage for Claude Code visibility
+  visible_msg=$(jq -n --arg msg "💡 Frontend modified: $(basename "$FILE_PATH"). Consider CLI verification with bdg commands." '{systemMessage: $msg}')
+  echo "$visible_msg"
 fi
 
 # Performance tracking (log only, no threshold check)

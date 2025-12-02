@@ -128,7 +128,7 @@ if [ "$ENVIRONMENT_TIER" = "development" ]; then
   fi
 fi
 
-# Check 4: Project-specific production paths (example.com structure)
+# Check 4: Project-specific production paths (anobel.com structure)
 if [ "$ENVIRONMENT_TIER" = "development" ]; then
   # src/2_javascript/ is production-ready code for this project
   if echo "$REL_FILE_PATH" | grep -qE '^src/2_javascript/'; then
@@ -239,6 +239,10 @@ case "$ENVIRONMENT_TIER" in
     echo "Reference: .claude/skills/workflows-code/references/implementation_workflows.md"
     echo "───────────────────────────────────────────────────────────────"
     echo ""
+    
+    # Emit systemMessage for Claude Code visibility
+    visible_msg=$(jq -n --arg msg "🔴 CRITICAL: Production JS modified ($REL_FILE_PATH). Run: python3 .claude/hooks/scripts/update_html_versions.py" '{systemMessage: $msg}')
+    echo "$visible_msg"
 
     {
       echo "[$(date '+%Y-%m-%d %H:%M:%S')] PRODUCTION CDN VERSION REMINDER"
@@ -272,6 +276,10 @@ case "$ENVIRONMENT_TIER" in
     echo "Reference: .claude/skills/workflows-code/references/implementation_workflows.md"
     echo "───────────────────────────────────────────────────────────────"
     echo ""
+    
+    # Emit systemMessage for Claude Code visibility
+    visible_msg=$(jq -n --arg msg "🟡 RECOMMENDED: Staging JS modified ($REL_FILE_PATH). Consider: python3 .claude/hooks/scripts/update_html_versions.py" '{systemMessage: $msg}')
+    echo "$visible_msg"
 
     {
       echo "[$(date '+%Y-%m-%d %H:%M:%S')] STAGING CDN VERSION REMINDER"

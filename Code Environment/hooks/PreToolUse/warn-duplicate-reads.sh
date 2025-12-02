@@ -250,6 +250,11 @@ if echo "$HISTORY" | jq -e --arg sig "$SIGNATURE" '.signatures[$sig]' >/dev/null
     SESSION_WASTE=$(echo "$HISTORY" | jq -r '.session_token_waste // 0' 2>/dev/null)
     NEW_SESSION_WASTE=$((SESSION_WASTE + TOKEN_WASTE_THIS_CALL))
 
+    # Emit systemMessage for Claude Code visibility (use short description)
+    # Construct message with variables safely
+    local display_path="${FILE_PATH:-$PATTERN}"
+    echo "{\"systemMessage\": \"⚠️ Duplicate $TOOL_NAME detected: ${display_path} (~${TOKEN_WASTE_THIS_CALL} tokens wasted) - reuse previous output from message #$PREV_MSG\"}"
+
     # Emit machine-readable JSON intelligence (using jq for safe JSON construction)
     # Note: sig_short is not declared with 'local' as this code is not inside a function
     sig_short=$(echo "$SIGNATURE" | head -c 60)

@@ -80,6 +80,8 @@ if echo "$PATTERN" | grep -qiE '\b(implement|handle|manage|process|validate|init
   } >> "$LOG_FILE"
 
   # Educational output to AI
+  # Emit systemMessage for Claude Code visibility
+  echo "{\"systemMessage\": \"💡 Behavioral search detected ('$PATTERN') - consider semantic_search() for intent-based code discovery\"}"
   echo ""
   echo "💡 Educational Guidance - Semantic Search Recommended"
   echo "═══════════════════════════════════════════════════════════════"

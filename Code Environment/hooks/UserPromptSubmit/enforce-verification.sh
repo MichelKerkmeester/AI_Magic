@@ -248,6 +248,9 @@ if check_verification_evidence "$PROMPT_LOWER"; then
 fi
 
 # VIOLATION: Completion claim WITHOUT verification evidence
+# Terminal-visible notification via systemMessage
+echo "{\"systemMessage\": \"⚠️ BLOCKED: Verification required before claiming completion (The Iron Law)\"}"
+
 echo ""
 echo "🔴 BLOCKED - VERIFICATION REQUIRED (The Iron Law)"
 echo "───────────────────────────────────────────────────────────────"

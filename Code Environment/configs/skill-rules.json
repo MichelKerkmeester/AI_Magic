@@ -1,45 +1,5 @@
 {
   "skills": {
-    "create-parallel-sub-agents": {
-      "type": "workflow",
-      "enforcement": "strict",
-      "priority": "critical",
-      "description": "Dynamic agent orchestration system that autonomously creates and dispatches specialized sub-agents for complex multi-step tasks (.claude/skills/create-parallel-sub-agents/)",
-      "enforcementConfig": {
-        "mode": "hard-block",
-        "thresholds": {
-          "complexity_min": 35,
-          "domain_min": 2
-        },
-        "overridePhrases": ["proceed anyway", "skip dispatch", "handle directly", "override dispatch"]
-      },
-      "promptTriggers": {
-        "keywords": [
-          "orchestrate",
-          "multi-domain",
-          "complex task",
-          "parallel execution",
-          "sub-agents",
-          "dispatch agents",
-          "refactor and document",
-          "implement and test",
-          "multiple modules",
-          "coordinate tasks"
-        ],
-        "intentPatterns": [
-          "(refactor|implement|update).*?and.*?(document|test|commit)",
-          "(multiple|several|various).*?(domains?|modules?|components?)",
-          "(complex|large|multi-step).*?(task|feature|implementation)",
-          "(parallel|concurrent).*?(execution|processing|work)",
-          "(fix|debug|investigate).*?(multiple|several|3\\+).*?(issues?|bugs?|failures?)",
-          "(coordinate|orchestrate|manage).*?(tasks?|agents?|work)"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [".claude/skills/create-parallel-sub-agents/**"],
-        "contentPatterns": []
-      }
-    },
     "agent-parallel-dispatching": {
       "type": "workflow",
       "enforcement": "suggest",
@@ -489,58 +449,11 @@
         ]
       }
     },
-    "create-flowchart": {
-      "type": "workflow",
-      "enforcement": "suggest",
-      "priority": "medium",
-      "description": "Create comprehensive ASCII flowcharts in markdown for visualizing workflows, user journeys, system architectures, and decision trees",
-      "promptTriggers": {
-        "keywords": [
-          "flowchart",
-          "flow chart",
-          "workflow diagram",
-          "process diagram",
-          "process map",
-          "decision tree",
-          "user journey",
-          "system flow",
-          "process visualization",
-          "ascii diagram",
-          "workflow visualization",
-          "process flow",
-          "data flow"
-        ],
-        "intentPatterns": [
-          "(create|make|generate|draw).*?(flowchart|flow chart|diagram|process map)",
-          "(visualize|map|show|diagram).*?(workflow|process|flow|journey)",
-          "(document|explain).*?(process|workflow|flow).*?(visual|diagram)",
-          "(need|want).*?(flowchart|diagram|visualization)",
-          "how.*?(visualize|show|map).*?(process|workflow)"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [
-          "**/*.md",
-          "specs/**",
-          ".claude/knowledge/**",
-          "docs/**",
-          "README.md"
-        ],
-        "contentPatterns": [
-          "┌─────",
-          "╭─────",
-          "╱───",
-          "───────────────",
-          "PARALLEL EXECUTION",
-          "APPROVAL GATE"
-        ]
-      }
-    },
     "create-documentation": {
       "type": "workflow",
       "enforcement": "strict",
       "priority": "critical",
-      "description": "Unified markdown and skill management specialist providing document quality enforcement, content optimization (c7score), style guide compliance, and complete skill creation workflow (.claude/skills/create-documentation/)",
+      "description": "Unified markdown and skill management specialist providing document quality enforcement, content optimization (c7score), style guide compliance, complete skill creation workflow, and ASCII flowchart creation (.claude/skills/create-documentation/)",
       "promptTriggers": {
         "keywords": [
           "validate document",
@@ -588,7 +501,20 @@
           "validate skill",
           "quality report",
           "doc quality",
-          "content quality"
+          "content quality",
+          "flowchart",
+          "flow chart",
+          "workflow diagram",
+          "process diagram",
+          "process map",
+          "decision tree",
+          "user journey",
+          "system flow",
+          "process visualization",
+          "ascii diagram",
+          "workflow visualization",
+          "process flow",
+          "data flow"
         ],
         "intentPatterns": [
           "(validate|check|verify).*?(document|style|structure|format|filename)",
@@ -608,7 +534,12 @@
           "(document|write).*?SKILL\\.md",
           "(init|initialize|scaffold).*?skill",
           "(package|distribute|zip).*?skill",
-          "(validate|check).*?skill.*?(structure|format|frontmatter)"
+          "(validate|check).*?skill.*?(structure|format|frontmatter)",
+          "(create|make|generate|draw).*?(flowchart|flow chart|diagram|process map)",
+          "(visualize|map|show|diagram).*?(workflow|process|flow|journey)",
+          "(document|explain).*?(process|workflow|flow).*?(visual|diagram)",
+          "(need|want).*?(flowchart|diagram|visualization)",
+          "how.*?(visualize|show|map).*?(process|workflow)"
         ]
       },
       "fileTriggers": {
@@ -618,9 +549,17 @@
           ".claude/commands/**/*.md",
           ".claude/knowledge/**/*.md",
           "specs/**/*.md",
-          ".claude/skills/create-documentation/**"
+          ".claude/skills/create-documentation/**",
+          "docs/**"
         ],
-        "contentPatterns": []
+        "contentPatterns": [
+          "┌─────",
+          "╭─────",
+          "╱───",
+          "───────────────",
+          "PARALLEL EXECUTION",
+          "APPROVAL GATE"
+        ]
       }
     },
     "workflows-save-context": {

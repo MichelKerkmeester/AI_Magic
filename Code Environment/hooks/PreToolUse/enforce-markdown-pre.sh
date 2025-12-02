@@ -182,6 +182,9 @@ main() {
         # Log the block
         log_block "$filename → suggested: $suggested (path: $file_path)"
 
+        # Emit systemMessage for Claude Code visibility
+        echo "{\"systemMessage\": \"❌ BLOCKED: Invalid markdown filename '$filename' - use lowercase snake_case: '$suggested'\"}"
+
         # Display blocking error message
         echo "" >&2
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2

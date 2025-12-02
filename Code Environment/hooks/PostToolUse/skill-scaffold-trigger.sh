@@ -220,6 +220,11 @@ EOF
 
 EOF
 
+  # Emit systemMessage for Claude Code visibility
+  created_list=$(IFS=', '; echo "${CREATED_ITEMS[*]}")
+  visible_msg=$(jq -n --arg msg "✅ SKILL SCAFFOLDED: Created $created_list for $SKILL_NAME. Complete SKILL.md frontmatter next." '{systemMessage: $msg}')
+  echo "$visible_msg"
+
 fi
 
 exit 0

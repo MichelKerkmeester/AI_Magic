@@ -127,8 +127,9 @@ done
 # ───────────────────────────────────────────────────────────────
 
 if [ "$SHOULD_SUGGEST" = true ]; then
-  echo "💡 Tip: This looks like a complex prompt. Use /prompt_improver:workflow to enhance it with proven frameworks (RCAF, COSTAR, etc.) and get quality scoring (target: ≥40/50)."
-  echo "   📖 Quick modes: /prompt_improver:workflow:quick (fast), /prompt_improver:workflow:refine (polish existing)"
+  # Output as systemMessage JSON for Claude Code visibility
+  PROMPT_MSG="💡 Complex prompt detected. Use /prompt_improver:workflow for enhancement with proven frameworks (RCAF, COSTAR). Quick: :quick, Polish: :refine"
+  echo "{\"systemMessage\": \"${PROMPT_MSG}\"}"
 fi
 
 # Performance timing END

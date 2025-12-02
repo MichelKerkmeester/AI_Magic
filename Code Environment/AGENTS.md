@@ -23,7 +23,7 @@
 - Before **initialization code**: Follow initialization patterns from code quality standards (if available)
 - Before **animation implementation**: See animation workflow references (if available)
 - Before **searching codebase**: Use mcp-semantic-search skill for intent-based code discovery (if available)
-- Before **complex multi-domain tasks**: Consider create-parallel-sub-agents skill for orchestration (≥20% complexity + ≥2 domains triggers mandatory question; ≥50% + ≥3 domains auto-dispatch)
+- Before **complex multi-domain tasks**: ALWAYS ask user before parallel sub-agent dispatch (2+ domains triggers mandatory question)
 - Before **spec folder creation**: Use workflows-spec-kit skill for template structure and sub-folder organization (if available)
 - Before **conversation milestones**: workflows-save-context auto-triggers every 20 messages for context preservation (if available)
 - **If conflict exists**: Code quality standards override general practices
@@ -52,7 +52,18 @@ Before ANY code/file changes or terminal commands:
 **Critical**: No implementation without user approval AND spec folder creation
 
 #### ⚡ Memory File Loading (After Spec Folder Selection)
-When user selects Option A (Use existing spec folder) or Option C (Update related spec), and memory files exist, ask user to choose A/B/C/D. See Section 2 "Memory File Selection" for options.
+When user selects Option A (Use existing spec folder) or Option C (Update related spec), and memory files exist:
+
+1. **Ask user for memory file selection** (MANDATORY)
+   - Show up to 3 recent memory files with timestamps
+   - Offer options (A/B/C/D):
+     - **A)** Load most recent file (quick context refresh)
+     - **B)** Load all recent files (comprehensive context)
+     - **C)** List all files and select specific (historical search)
+     - **D)** Skip (start fresh, no context)
+   - You MUST ask user to explicitly select option
+   - NEVER load memory files autonomously
+2. Use Read tool to load selected files (parallel calls for option B)
 
 #### ⚡ Git Workspace Choice (MANDATORY)
 
@@ -70,6 +81,28 @@ When git workspace triggers are detected (new feature, create branch, worktree, 
 **Session persistence**: Choice remembered for 1 hour within session
 
 **Critical**: WAIT for explicit user choice before any git workspace operation. The workflows-git skill documents this requirement in detail.
+
+#### ⚡ Parallel Sub-Agent Dispatch (MANDATORY QUESTION)
+
+**ALWAYS ask users before dispatching parallel sub-agents.** Never dispatch autonomously.
+
+**When to ask**: Task involves 2+ domains (code, docs, git, testing, devops, analysis)
+
+**Use AskUserQuestion tool with these options:**
+- **A)** Handle directly - Sequential execution, no parallel agents
+- **B)** Use parallel agents - Dispatch specialized agents via Task tool for faster execution
+- **C)** Auto-decide for session - Let system decide based on complexity (1 hour)
+
+**Domain detection examples:**
+- "implement feature and write tests" → 2 domains (code + testing) → ASK
+- "refactor, update docs, and commit" → 3 domains (code + docs + git) → ASK
+- "fix this bug" → 1 domain (code) → No question needed
+
+**Override phrases**: Users can bypass with "proceed directly", "use parallel agents", or "auto-decide"
+
+**Session persistence**: If user chose C, remember preference for 1 hour
+
+**Critical**: WAIT for explicit user choice before dispatching parallel agents. Do NOT proceed with Task tool dispatch until user responds.
 
 #### ⚡ Sequential Thinking (Complex Reasoning) - OPTIONAL
 
@@ -141,11 +174,11 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
 - **Detection Trigger:** "just in case", "don't change too much"
 - **Action:** Remove unused code, ask if unsure
 
-**11. Skipping Complexity Check**
-- **Prevention:** Calculate score before dispatch (see create-parallel-sub-agents)
-- **Example:** Dispatching sub-agents for single-file changes
-- **Detection Trigger:** Multi-domain task (≥2 domains) + complexity ≥35%
-- **Action:** Use Task tool with sub-agents
+**11. Skipping Parallel Dispatch Question**
+- **Prevention:** ALWAYS ask user before dispatching parallel sub-agents
+- **Example:** Dispatching sub-agents without asking user first
+- **Detection Trigger:** Task involves 2+ domains (code, docs, git, testing, devops, analysis)
+- **Action:** Use AskUserQuestion tool with A/B/C options before any Task tool dispatch
 
 **12. Claiming Without Browser Verification**
 - **Prevention:** Browser test before completion claims (see workflows-code)
@@ -281,17 +314,6 @@ CHECKLIST VERIFICATION RULE (Level 2+):
       ├── plan.md
       └── memory/
   ```
-
-**Memory File Selection & Context Loading:**
-
-When user selects Option A (Use existing spec folder) or Option C (Update related spec), previous session memory files may be available for loading. This question is asked IMMEDIATELY after spec folder selection, not mid-conversation. The system shows up to 3 recent memory files with relative timestamps and offers 4 options:
-
-- **A)** Load most recent file (quick context refresh)
-- **B)** Load all recent files (comprehensive context)
-- **C)** List all files and select specific (historical search)
-- **D)** Skip (start fresh, no context)
-
-**AI must ask user to choose A/B/C/D explicitly, then use Read tool** to load selected memory files. This seamless context restoration prevents re-asking questions and maintains conversation continuity across sessions. Memory directory is determined by `.spec-active.{SESSION_ID}` marker (V9: session-isolated, sub-folder aware).
 
 ### Enforcement Checkpoints
 1. **Collaboration First Rule** - Create before presenting
@@ -565,7 +587,7 @@ Review response for:
 - **Code Mode (mcp-code-mode):** MANDATORY for external MCP tools (Webflow, Figma, ClickUp, Chrome DevTools) - 68% fewer tokens, 98.7% context reduction
 - **Semantic Search (mcp-semantic-search):** MANDATORY for CLI AI agents doing code discovery ("Find code that...", "How does..."). **Native MCP** - call directly: `semantic_search()`, `search_commit_history()`, `visit_other_project()` - NOT through Code Mode
 - **Sequential Thinking (OPTIONAL):** Claude Code: use ultrathink instead; VSCode/Copilot/OpenCode: useful when configured - **Native MCP** - call directly, NOT through Code Mode
-- **Parallel Sub-Agents (create-parallel-sub-agents):** MANDATORY when complexity ≥20% + 2+ domains (auto-dispatch ≥50% + 3+ domains)
+- **Parallel Sub-Agents (Task tool):** ALWAYS ask user when 2+ domains detected (mandatory question before dispatch)
 - **Chrome DevTools (cli-chrome-devtools):** Browser debugging via terminal (bdg CLI tool) - through Code Mode
 - **Native Tools:** Read/Grep/Glob/Bash for file operations and simple tasks
 
@@ -665,10 +687,6 @@ All Code Mode tool calls follow the pattern: `{manual_name}.{manual_name}_{tool_
 - **Trigger:** "bdg", "browser debugging", Chrome DevTools CLI
 - **Reference:** Section 5, Tool #5 (if available)
 
-**create-parallel-sub-agents**
-- **Trigger:** Complexity ≥20% + 2+ domains (mandatory question)
-- **Reference:** Available as skill in some environments
-
 **create-documentation**
 - **Trigger:** Creating/editing docs or skills
 - **Reference:** Available as skill in some environments
@@ -700,13 +718,12 @@ def _norm(val: int, cat: str, max: int) -> float:
     """Normalize value to 0.0-1.0."""
     return min(val / max, 1.0)
 
-def dispatch_decision(complexity: int, domains: int) -> dict:
-    if complexity >= 50 and domains >= 3:
-        return {"action": "auto_dispatch", "reason": "≥50% + 3+ domains"}
-    elif complexity >= 20 and domains >= 2:
-        return {"action": "ask_user", "reason": "20-49% + 2+ domains"}
+def dispatch_decision(domains: int) -> dict:
+    """ALWAYS ask user when 2+ domains detected. Never dispatch autonomously."""
+    if domains >= 2:
+        return {"action": "ask_user", "reason": "2+ domains - MANDATORY question"}
     else:
-        return {"action": "handle_direct", "reason": "<20%"}
+        return {"action": "handle_direct", "reason": "single domain"}
 ```
 
 #### Tool Routing (Quick Decision)
@@ -715,10 +732,10 @@ Known file path? → Read()
 Know what code DOES? → semantic_search() [NATIVE MCP - call directly, NOT Code Mode]
 Exact symbol/keyword? → Grep()
 File structure? → Glob()
-Complex reasoning? → ultrathink (Claude Code) | process_thought() (VSCode/Copilot/OpenCode if configured)
+Complex reasoning? → ultrathink (Claude Code) | process_thought() (Sequential Thinking MCP) (VSCode/OpenCode)
 Browser debugging? → cli-chrome-devtools skill [bdg CLI tool, through Code Mode]
 External MCP tools? → call_tool_chain() [Code Mode - Webflow, Figma, ClickUp, etc.]
-Complexity ≥20% + multi-domain? → See dispatch_decision() function in Section 6
+2+ domains detected? → Ask user: parallel sub-agents or direct handling? (MANDATORY question)
 
 NATIVE MCP (call directly):
   - semantic_search(), search_commit_history(), visit_other_project()
@@ -733,4 +750,4 @@ CODE MODE (call_tool_chain):
 - `"use parallel agents"` - Force parallel dispatch
 - `"auto-decide"` - Enable session auto-mode
 
-**Example:** Auth + tests + docs = 3 domains (35%) + 8 files (25%) + 300 LOC (15%) + high parallel (20%) + complex (5%) = **100%** → AUTO-DISPATCH (≥50% + 3 domains threshold met, notification only, no question asked)
+**Example:** Auth + tests + docs = 3 domains (code + testing + docs) → ASK user before dispatch (mandatory question A/B/C)

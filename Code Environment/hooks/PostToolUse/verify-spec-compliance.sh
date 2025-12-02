@@ -79,7 +79,10 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.filePath
 # VIOLATION: File modification without spec folder
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] COMPLIANCE: $TOOL_NAME on $FILE_PATH without spec folder" >> "$LOG_FILE" 2>/dev/null
 
-# Output warning (advisory, not blocking)
+# Output systemMessage for Claude Code visibility (FIRST)
+jq -n --arg f "$FILE_PATH" '{systemMessage: ("⚠️ COMPLIANCE: File modified without spec folder: " + $f + " - Create specs/###-name/ first")}'
+
+# Output warning (advisory, not blocking - backward compatibility)
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "⚠️  COMPLIANCE WARNING: File Modified Without Spec Folder"

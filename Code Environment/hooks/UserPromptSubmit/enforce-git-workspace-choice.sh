@@ -121,9 +121,7 @@ if echo "$PROMPT_LOWER" | grep -qE "(use branch|use a branch|create.*branch|on a
     echo "  Prompt: ${PROMPT:0:100}..."
   } >> "$LOG_FILE"
 
-  echo ""
-  echo "Git workspace: Branch (selected via override phrase)"
-  echo ""
+  echo "{\"systemMessage\": \"🔀 Git workspace: Branch (selected via override phrase)\"}"
   exit 0
 fi
 
@@ -137,9 +135,7 @@ if echo "$PROMPT_LOWER" | grep -qE "(use worktree|use a worktree|in a worktree|i
     echo "  Prompt: ${PROMPT:0:100}..."
   } >> "$LOG_FILE"
 
-  echo ""
-  echo "Git workspace: Worktree (selected via override phrase)"
-  echo ""
+  echo "{\"systemMessage\": \"🔀 Git workspace: Worktree (selected via override phrase)\"}"
   exit 0
 fi
 
@@ -153,9 +149,7 @@ if echo "$PROMPT_LOWER" | grep -qE "(current branch|on this branch|stay on.*bran
     echo "  Prompt: ${PROMPT:0:100}..."
   } >> "$LOG_FILE"
 
-  echo ""
-  echo "Git workspace: Current branch (selected via override phrase)"
-  echo ""
+  echo "{\"systemMessage\": \"🔀 Git workspace: Current branch (selected via override phrase)\"}"
   exit 0
 fi
 
@@ -220,10 +214,7 @@ handle_git_workspace_flow() {
   # Process the choice
   case "$user_choice" in
     A)
-      echo ""
-      echo "Git workspace: Branch selected"
-      echo "   Creating a new branch for this work"
-      echo ""
+      echo "{\"systemMessage\": \"🔀 Git workspace: Branch selected - creating new branch for this work\"}"
 
       write_hook_state "$GIT_WORKSPACE_STATE_KEY" \
         '{"choice":"branch","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","source":"question"}'
@@ -232,10 +223,7 @@ handle_git_workspace_flow() {
       exit 0
       ;;
     B)
-      echo ""
-      echo "Git workspace: Worktree selected"
-      echo "   Creating an isolated worktree for this work"
-      echo ""
+      echo "{\"systemMessage\": \"🔀 Git workspace: Worktree selected - creating isolated worktree\"}"
 
       write_hook_state "$GIT_WORKSPACE_STATE_KEY" \
         '{"choice":"worktree","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","source":"question"}'
@@ -244,10 +232,7 @@ handle_git_workspace_flow() {
       exit 0
       ;;
     C)
-      echo ""
-      echo "Git workspace: Current branch selected"
-      echo "   Working on the current branch without creating a new one"
-      echo ""
+      echo "{\"systemMessage\": \"🔀 Git workspace: Current branch selected - no new branch needed\"}"
 
       write_hook_state "$GIT_WORKSPACE_STATE_KEY" \
         '{"choice":"current","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","source":"question"}'

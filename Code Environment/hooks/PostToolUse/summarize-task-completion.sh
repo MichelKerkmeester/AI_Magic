@@ -218,6 +218,10 @@ fi
 
 # Error always gets verbose treatment
 if [ "$STATUS" = "error" ] || [ "$STATUS" = "timeout" ]; then
+  # Output systemMessage for Claude Code visibility (FIRST)
+  jq -n --arg s "$STATUS" --arg d "$DESC_SHORT" --arg t "$DURATION_SEC" \
+    '{systemMessage: ("❌ Sub-agent " + $s + ": " + $d + " (" + $t + "s)")}'
+
   # ─────────────────────────────────────────────────────────────
   # ERROR FORMAT (always verbose)
   # ─────────────────────────────────────────────────────────────
@@ -242,6 +246,10 @@ if [ "$STATUS" = "error" ] || [ "$STATUS" = "timeout" ]; then
   } >&2
 
 elif [ "$AGENT_COUNT" -lt 3 ]; then
+  # Output systemMessage for Claude Code visibility (FIRST)
+  jq -n --arg type "$SUBAGENT_TYPE" --arg d "$DESC_SHORT" --arg t "$DURATION_SEC" \
+    '{systemMessage: ("✅ " + $type + " completed (" + $t + "s): " + $d)}'
+
   # ─────────────────────────────────────────────────────────────
   # COMPACT FORMAT (1-2 agents, success)
   # ─────────────────────────────────────────────────────────────
@@ -296,6 +304,10 @@ else
       MAX_SEC="?"
       TOTAL_SEC="?"
     fi
+
+    # Output systemMessage for Claude Code visibility (FIRST)
+    jq -n --argjson c "$COMPLETED_COUNT" --argjson e "$EXPECTED_COUNT" --arg sp "$SPEEDUP" \
+      '{systemMessage: ("✅ Parallel dispatch complete: " + ($c|tostring) + "/" + ($e|tostring) + " agents (" + $sp + "x speedup)")}'
 
     {
       echo ""

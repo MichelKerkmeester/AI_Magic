@@ -1,13 +1,13 @@
 ---
 name: create-documentation
-description: Unified markdown and skill management specialist providing document quality enforcement (structure, c7score, style), content optimization for AI assistants, and complete skill creation workflow (scaffolding, validation, packaging).
+description: Unified markdown and skill management specialist providing document quality enforcement (structure, c7score, style), content optimization for AI assistants, complete skill creation workflow (scaffolding, validation, packaging), and ASCII flowchart creation for visualizing complex workflows, user journeys, and decision trees.
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion]
-version: 3.2.0
+version: 4.0.0
 ---
 
 # Documentation Creation Specialist - Unified Markdown & Skill Management
 
-Unified specialist providing: (1) Complete document quality pipeline with structure enforcement, content optimization (c7score), and style guide compliance, and (2) Complete skill creation workflow with scaffolding, validation, and packaging.
+Unified specialist providing: (1) Complete document quality pipeline with structure enforcement, content optimization (c7score), and style guide compliance, (2) Complete skill creation workflow with scaffolding, validation, and packaging, and (3) ASCII flowchart creation for visualizing complex workflows, user journeys, system architectures, and decision trees.
 
 **Core principle**: Structure first, then content, then quality = documentation that is valid, AI-friendly, and maintainable.
 
@@ -15,7 +15,7 @@ Unified specialist providing: (1) Complete document quality pipeline with struct
 
 ## 1. 🎯 CAPABILITIES OVERVIEW
 
-This skill operates in two primary modes:
+This skill operates in three primary modes:
 
 ### Mode 1: Document Quality Management
 
@@ -42,6 +42,20 @@ Guide the creation of effective Claude skills through a structured 6-step workfl
 
 **See**: Sections 2-6 below and [skill_creation.md](./references/skill_creation.md)
 
+### Mode 3: Flowchart Creation
+
+Create comprehensive ASCII flowcharts in markdown for visualizing complex workflows, user journeys, system architectures, and decision trees with clear visual hierarchy.
+
+**Use when**:
+- Documenting complex multi-step workflows
+- User journey mapping with step-by-step flows
+- System architecture and data flow diagrams
+- Decision trees with multiple branches
+- Showing parallel execution paths and dependencies
+- Creating quick reference guides for processes
+
+**See**: Sections 2-6 below and [assets/flowcharts/](./assets/flowcharts/)
+
 ---
 
 ## 2. 🧭 SMART ROUTING
@@ -58,29 +72,58 @@ def route_documentation_resources(task):
             return load("references/validation.md")  # scoring, gates, recommendations
         if task.needs_workflow_guidance:
             return load("references/workflows.md")  # 4 execution modes
-    
+
     # MODE 2: Skill Creation
     if task.mode == "skill_creation":
         if task.creating_skill:
             load("references/skill_creation.md")  # 6-step workflow
             return execute("scripts/init_skill.py")  # scaffolding
         if task.needs_skill_template:
-            return load("assets/skill_md_template.md")  # SKILL.md template
+            return load("assets/skills/skill_md_template.md")  # SKILL.md template
+        if task.needs_asset_template:
+            return load("assets/skills/skill_asset_template.md")  # asset file template
+        if task.needs_reference_template:
+            return load("assets/skills/skill_reference_template.md")  # reference file template
         if task.creating_command:
             return load("assets/command_template.md")  # slash command templates
         if task.packaging_skill:
             return execute("scripts/package_skill.py")  # validation + packaging
         if task.quick_validation:
             return execute("scripts/quick_validate.py")  # fast validation
-    
+
+    # MODE 3: Flowchart Creation
+    if task.mode == "flowchart":
+        if task.is_linear_sequence:
+            return load("assets/flowcharts/simple_workflow.md")
+        if task.has_decision_branches:
+            return load("assets/flowcharts/decision_tree_flow.md")
+        if task.has_parallel_tasks:
+            return load("assets/flowcharts/parallel_execution.md")
+        if task.has_nested_process:
+            return load("assets/flowcharts/user_onboarding.md")
+        if task.has_approval_gate or task.has_loop_iteration:
+            return load("assets/flowcharts/approval_workflow_loops.md")
+        if task.has_multi_stage or task.needs_swimlanes:
+            return load("assets/flowcharts/system_architecture_swimlane.md")
+        if task.validating_flowchart:
+            return execute("scripts/validate_flowchart.sh")
+
     # frontmatter help
     if task.needs_frontmatter:
         return load("assets/frontmatter_templates.md")  # YAML by doc type
-    
+
+    # llms.txt generation
+    if task.generating_llmstxt:
+        return load("assets/llmstxt_templates.md")  # llms.txt examples
+
+    # knowledge file creation
+    if task.creating_knowledge_file:
+        return load("assets/knowledge_base_template.md")  # knowledge file guide
+
     # batch analysis
     if task.analyzing_docs:
         return execute("scripts/analyze_docs.py")  # quality automation
-    
+
     # quick lookup
     if task.needs_quick_reference:
         return load("references/quick_reference.md")  # one-page cheat sheet
@@ -109,9 +152,22 @@ def route_documentation_resources(task):
 | Document | Purpose | Key Insight |
 |----------|---------|-------------|
 | **assets/frontmatter_templates.md** | YAML frontmatter templates by document type | Load when creating/validating frontmatter |
-| **assets/skill_md_template.md** | Complete SKILL.md file templates | Load for MODE 2 skill initialization |
+| **assets/skills/skill_md_template.md** | Complete SKILL.md file templates | Load for MODE 2 skill initialization |
+| **assets/skills/skill_asset_template.md** | Asset file creation templates | Load for MODE 2 bundled asset files |
+| **assets/skills/skill_reference_template.md** | Reference doc templates | Load for MODE 2 bundled reference files |
 | **assets/command_template.md** | Claude Code slash command templates (simple, workflow, mode-based, destructive) | Load for command creation/alignment |
 | **assets/llmstxt_templates.md** | Example llms.txt files | Load when generating llms.txt |
+| **assets/knowledge_base_template.md** | Knowledge file creation guide | Load when creating .claude/knowledge files |
+
+### Flowchart Assets (Mode 3)
+| Document | Purpose | Key Insight |
+|----------|---------|-------------|
+| **assets/flowcharts/simple_workflow.md** | Linear sequential flow example | Load for basic top-to-bottom flows |
+| **assets/flowcharts/decision_tree_flow.md** | Multi-branch decision example | Load for complex decision trees |
+| **assets/flowcharts/parallel_execution.md** | Concurrent tasks example | Load for sync points and parallel blocks |
+| **assets/flowcharts/user_onboarding.md** | Nested sub-process example | Load for hierarchical workflows |
+| **assets/flowcharts/approval_workflow_loops.md** | Revision cycles example | Load for approval gates and loops |
+| **assets/flowcharts/system_architecture_swimlane.md** | Swimlane pattern example | Load for layer separation diagrams |
 
 ### Scripts
 | Document | Purpose | Key Insight |
@@ -120,6 +176,7 @@ def route_documentation_resources(task):
 | **scripts/init_skill.py** | Skill scaffolding and template generation | Execute for MODE 2 Step 3 initialization |
 | **scripts/package_skill.py** | Skill validation and packaging | Execute for MODE 2 Step 5 packaging |
 | **scripts/quick_validate.py** | Minimal skill validation | Execute for fast validation checks |
+| **scripts/validate_flowchart.sh** | Flowchart validation automation | Execute for size, depth, and alignment checks |
 
 ---
 
@@ -140,7 +197,9 @@ def route_documentation_resources(task):
 **Assets** (templates and output resources):
 - [frontmatter_templates.md](./assets/frontmatter_templates.md) - YAML frontmatter templates
 - [knowledge_base_template.md](./assets/knowledge_base_template.md) - Knowledge file creation guide
-- [skill_md_template.md](./assets/skill_md_template.md) - Complete SKILL.md file templates
+- [skill_md_template.md](./assets/skills/skill_md_template.md) - Complete SKILL.md file templates
+- [skill_asset_template.md](./assets/skills/skill_asset_template.md) - Asset file creation templates
+- [skill_reference_template.md](./assets/skills/skill_reference_template.md) - Reference doc templates
 - [command_template.md](./assets/command_template.md) - Claude Code slash command templates
 - [llmstxt_templates.md](./assets/llmstxt_templates.md) - Example llms.txt files
 
@@ -149,6 +208,15 @@ def route_documentation_resources(task):
 - [init_skill.py](./scripts/init_skill.py) - Skill scaffolding and template generation
 - [package_skill.py](./scripts/package_skill.py) - Skill validation and packaging
 - [quick_validate.py](./scripts/quick_validate.py) - Minimal skill validation
+- [validate_flowchart.sh](./scripts/validate_flowchart.sh) - Flowchart validation
+
+**Flowchart Assets** (Mode 3 patterns):
+- [assets/flowcharts/simple_workflow.md](./assets/flowcharts/simple_workflow.md) - Linear sequential flows
+- [assets/flowcharts/decision_tree_flow.md](./assets/flowcharts/decision_tree_flow.md) - Multi-branch decisions
+- [assets/flowcharts/parallel_execution.md](./assets/flowcharts/parallel_execution.md) - Concurrent tasks
+- [assets/flowcharts/user_onboarding.md](./assets/flowcharts/user_onboarding.md) - Nested sub-processes
+- [assets/flowcharts/approval_workflow_loops.md](./assets/flowcharts/approval_workflow_loops.md) - Approval gates and loops
+- [assets/flowcharts/system_architecture_swimlane.md](./assets/flowcharts/system_architecture_swimlane.md) - Swimlane diagrams
 
 
 ### Mode 1: Document Quality Management
@@ -230,6 +298,45 @@ See [workflows.md](./references/workflows.md) for workflow examples.
 - Optimizing existing SKILL.md files without user request (use Document Quality mode)
 - General markdown editing unrelated to skills
 
+
+### Mode 3: Flowchart Creation
+
+#### Flowchart Mode Triggers
+
+**Use when**:
+- User requests workflow visualization ("create a flowchart", "diagram this process")
+- Documenting multi-step processes with branching logic
+- Showing parallel execution with synchronization points
+- Creating decision trees with multiple outcomes
+- Visualizing approval gates and revision cycles
+- Mapping user journeys or system architectures
+
+**Automatic Triggers**:
+- User mentions "flowchart", "workflow diagram", "process visualization"
+- User asks about visualizing decisions, branches, or parallel tasks
+- User needs ASCII diagrams for documentation
+
+#### 7 Core Patterns
+
+| Pattern | Use Case | Example |
+|---------|----------|---------|
+| 1: Linear Sequential | Step-by-step without branching | User registration flow |
+| 2: Decision Branch | Binary or multi-way decisions | Validation with success/failure |
+| 3: Parallel Execution | Multiple tasks run together | CI/CD test runners |
+| 4: Nested Sub-Process | Embedded workflows | Onboarding with sub-steps |
+| 5: Approval Gate | Review/approval required | PR review workflow |
+| 6: Loop/Iteration | Until condition met | Retry with backoff |
+| 7: Pipeline | Sequential stages with gates | Deploy pipeline |
+
+#### When NOT to Use
+
+**Do not use for**:
+- Simple linear lists (use bullet points instead)
+- Code architecture (use mermaid diagrams instead)
+- Data models (use ER diagrams instead)
+- Interactive/exportable diagrams required
+- Very simple 2-3 step processes
+
 ---
 
 ## 5. ⚙️ HOW TO USE
@@ -272,7 +379,42 @@ See [core_standards.md](./references/core_standards.md) for complete type system
 
 **Integration with Document Quality**: After packaging, validate SKILL.md with full pipeline (target: 90+ overall score).
 
-See [skill_creation.md](./references/skill_creation.md) for detailed workflow and [skill_md_template.md](./assets/skill_md_template.md) for templates.
+See [skill_creation.md](./references/skill_creation.md) for detailed workflow and [skill_md_template.md](./assets/skills/skill_md_template.md) for templates.
+
+
+### Mode 3: Flowchart Creation
+
+**Workflow**: Select pattern → Build with components → Validate → Document
+
+**Building Blocks**:
+```
+Process Box:        Decision Diamond:     Terminal:
+┌─────────────┐         ╱──────╲           ╭─────────╮
+│   Action    │        ╱ Test?  ╲          │  Start  │
+└─────────────┘        ╲        ╱          ╰─────────╯
+                        ╲──────╱
+```
+
+**Flow Control**:
+```
+Standard Flow:      Branch:           Parallel:
+     │              │   │   │         ┌────┬────┐
+     ▼              ▼   ▼   ▼         │    │    │
+```
+
+**Pattern Selection**:
+
+| Need | Pattern | Reference |
+|------|---------|-----------|
+| Simple sequence | 1: Linear | simple_workflow.md |
+| Yes/No choice | 2: Decision | decision_tree_flow.md |
+| Simultaneous work | 3: Parallel | parallel_execution.md |
+| Complex subprocess | 4: Nested | user_onboarding.md |
+| Manual checkpoint | 5: Approval | approval_workflow_loops.md |
+| Repeated action | 6: Loop | approval_workflow_loops.md |
+| Multi-phase project | 7: Pipeline | system_architecture_swimlane.md |
+
+**Validation**: Run `scripts/validate_flowchart.sh` for size, depth, and alignment checks.
 
 ---
 
@@ -343,6 +485,33 @@ See [skill_creation.md](./references/skill_creation.md) for workflow details and
 3. **Validation fails repeatedly** (architectural issues)
 4. **Unsupported features** (discuss workarounds/alternatives)
 5. **User input required** (brand assets, API docs, schemas)
+
+
+### Mode 3: Flowchart Creation
+
+#### ✅ ALWAYS
+
+1. **ALWAYS use consistent box styles** (single-line for process, rounded for terminals, diamond for decisions)
+2. **ALWAYS label all decision branches** (Yes/No, Approve/Reject, or specific outcomes)
+3. **ALWAYS align elements vertically or horizontally** (no diagonal lines, consistent spacing)
+4. **ALWAYS show complete paths** (every box has entry/exit, all parallel blocks converge)
+5. **ALWAYS validate readability** (verify arrows connect correctly, paths are traceable)
+
+#### ❌ NEVER
+
+1. **NEVER create ambiguous arrow connections** (show explicit merge points)
+2. **NEVER leave decision outcomes unlabeled** (all branches must show outcomes)
+3. **NEVER exceed 40 boxes in single diagram** (break into sub-workflows)
+4. **NEVER mix box styles inconsistently** (use standard boxes for processes throughout)
+5. **NEVER skip spacing and alignment** (use single blank line between steps)
+
+#### ⚠️ ESCALATE IF
+
+1. **Process exceeds ~30-40 boxes** (diagram too complex for single view)
+2. **Interactive/exportable format needed** (suggest mermaid or design tools)
+3. **Collaborative editing required** (ASCII limitations for team edits)
+4. **Pattern unclear** (ask user about workflow type to select pattern)
+
 
 ### Emoji Usage Rules
 
@@ -513,6 +682,36 @@ When validating SKILL.md with Document Quality mode:
 - ✅ High c7score (AI-friendly)
 - ✅ Style guide compliance
 
+
+### Mode 3: Flowchart Creation
+
+#### Flowchart Complete When
+
+**Quality checklist**:
+- ✅ All paths from start to end are clear
+- ✅ Decisions have labeled outcomes
+- ✅ Parallel processes clearly marked with sync points
+- ✅ Approval gates visually distinct
+- ✅ Spacing and alignment consistent throughout
+- ✅ Can be understood without verbal explanation
+- ✅ Matches actual process accurately
+- ✅ Visual hierarchy supports comprehension
+
+#### Validation Questions
+
+**Can answer YES to all?**
+- Can a new person follow any path?
+- Are all decision points exhaustive?
+- Do parallel blocks resolve properly?
+- Is timing/context provided where needed?
+- Does visual hierarchy aid understanding?
+
+#### Size Limits
+
+- **Max boxes**: 40 per diagram (break into sub-workflows if larger)
+- **Max depth**: 8 levels (use swimlanes for deeper hierarchies)
+- **Max lines**: 200 (split into multiple diagrams for readability)
+
 ---
 
 ## 8. 🔌 INTEGRATION POINTS
@@ -627,6 +826,35 @@ markdown-document-specialist --full-pipeline .claude/skills/my-skill/SKILL.md
 - Optional optimization for clarity and future reference
 - No blocking violations on memory files
 
+
+### Mode 3: Flowchart Creation
+
+#### Flowchart Validation Script
+
+**validate_flowchart.sh**:
+- Purpose: Check flowchart for common issues
+- Usage: `scripts/validate_flowchart.sh <flowchart.md>`
+- Checks: Box alignment, arrow connections, decision labels, nesting depth, file size
+
+#### Tool Usage
+
+**Read**: Load reference examples for pattern guidance
+
+**Write**: Create new flowchart markdown files
+
+**Edit**: Modify existing flowcharts
+
+#### Reference Examples
+
+| File | Pattern | Complexity |
+|------|---------|------------|
+| simple_workflow.md | Linear | Low |
+| decision_tree_flow.md | Decision Branch | High |
+| parallel_execution.md | Parallel | Medium-High |
+| user_onboarding.md | Nested | High |
+| approval_workflow_loops.md | Loop + Approval | High |
+| system_architecture_swimlane.md | Swimlane | High |
+
 ---
 
 ## 9. 📚 ADDITIONAL RESOURCES
@@ -644,7 +872,9 @@ markdown-document-specialist --full-pipeline .claude/skills/my-skill/SKILL.md
 **Assets** (templates and examples):
 - `assets/frontmatter_templates.md` - YAML frontmatter by document type
 - `assets/knowledge_base_template.md` - Knowledge file creation guide
-- `assets/skill_md_template.md` - Complete SKILL.md file templates
+- `assets/skills/skill_md_template.md` - Complete SKILL.md file templates
+- `assets/skills/skill_asset_template.md` - Asset file creation templates
+- `assets/skills/skill_reference_template.md` - Reference doc templates
 - `assets/command_template.md` - Claude Code slash command templates (simple, workflow, mode-based, destructive)
 - `assets/llmstxt_templates.md` - Example llms.txt files
 
@@ -653,6 +883,15 @@ markdown-document-specialist --full-pipeline .claude/skills/my-skill/SKILL.md
 - `scripts/init_skill.py` - Skill scaffolding and template generation
 - `scripts/package_skill.py` - Skill validation and packaging
 - `scripts/quick_validate.py` - Minimal skill validation
+- `scripts/validate_flowchart.sh` - Flowchart validation (size, depth, alignment)
+
+**Flowchart Assets** (Mode 3 patterns):
+- `assets/flowcharts/simple_workflow.md` - Linear sequential flows
+- `assets/flowcharts/decision_tree_flow.md` - Multi-branch decisions
+- `assets/flowcharts/parallel_execution.md` - Concurrent tasks with sync points
+- `assets/flowcharts/user_onboarding.md` - Nested sub-processes
+- `assets/flowcharts/approval_workflow_loops.md` - Approval gates and revision cycles
+- `assets/flowcharts/system_architecture_swimlane.md` - Swimlane layer separation
 
 ### External Documentation
 
@@ -668,7 +907,7 @@ markdown-document-specialist --full-pipeline .claude/skills/my-skill/SKILL.md
 - **Quality validation**: [validation.md](./references/validation.md)
 - **Skill creation workflow**: [skill_creation.md](./references/skill_creation.md)
 - **Knowledge file guide**: [knowledge_base_template.md](./assets/knowledge_base_template.md)
-- **SKILL.md templates**: [skill_md_template.md](./assets/skill_md_template.md)
+- **SKILL.md templates**: [skill_md_template.md](./assets/skills/skill_md_template.md)
 - **Frontmatter formats**: [frontmatter_templates.md](./assets/frontmatter_templates.md)
 
 ### Quick Navigation
