@@ -17,6 +17,7 @@ Automated workflows and quality checks for Claude Code interactions. Hooks trigg
 11. [🛠️ HELPER SCRIPTS](#11-️-helper-scripts)
 12. [💡 KEY BEHAVIORAL FEATURES](#12--key-behavioral-features)
 13. [📖 ADDITIONAL RESOURCES](#13--additional-resources)
+14. [🧪 TESTING](#14--testing)
 
 ---
 
@@ -228,6 +229,7 @@ User Action
 | verify-spec-compliance | PostToolUse | Spec folder compliance check | Write/Edit | 0 | ~30ms |
 | detect-scope-growth | PostToolUse | Scope growth (v2.0.0 - NOW FUNCTIONAL) | Write/Edit .md | 0 | <50ms |
 | summarize-task-completion | PostToolUse | Task summaries (fixed: duration calculation) | Task tool | 0 | ~20ms |
+| validate-output-quality | PostToolUse | Fluff/ambiguity detection (v1.0.0) | Task tool | 0 | <100ms |
 | validate-subagent-output | SubagentStop | Block bad sub-agent output (v1.0.0 - quality gate) | Task completion | 0/block | <50ms |
 | prune-context | PreCompact | Context pruning (v2.0.0 - DCP-style output) | Before compaction | 0 | <5s |
 | save-context-before-compact | PreCompact | Auto-save before compact | Before compaction | 0 | <10s |
@@ -1008,6 +1010,8 @@ Most hooks write to `.claude/hooks/logs/`:
 | **markdown-naming.sh** | Markdown naming conventions (v1.0.0) | `to_snake_case()`, `is_naming_violation()`, `atomic_rename()` | enforce-markdown-naming.sh | <10ms |
 | **spec-memory.sh** | Spec memory file management (v1.0.0) | `get_memory_files()`, `get_latest_memory()`, `create_memory_file()` | workflows-save-context, enforce-spec-folder | <10ms |
 | **migrate-spec-folder.sh** | Spec folder versioning (v1.0.0) | `migrate_to_subfolder()`, `archive_root_content()` | enforce-spec-folder.sh | <100ms |
+| **mcp-auth-cache.sh** | MCP auth token caching (v1.0.0) | `mcp_auth_cached()`, `mcp_auth_store()`, `mcp_auth_clear()`, `mcp_auth_get()` | MCP tool integrations | <5ms |
+| **agent-state-handoff.sh** | Parallel agent state management (v1.0.0) | `agent_state_init()`, `agent_state_update()`, `agent_state_wait()`, `agent_state_read()` | Parallel dispatch orchestration | <10ms |
 
 ### 8.1 Core Libraries
 
@@ -1729,3 +1733,118 @@ The `validate-skill-activation.sh` hook suggests relevant skills based on prompt
 - Use conversation_documentation.md spec folder system
 - Test hooks with sample inputs before committing
 - Update README when adding new hooks or features
+
+---
+
+## 14. 🧪 TESTING
+
+### Overview
+
+The hooks system includes a comprehensive BATS (Bash Automated Testing System) test suite for validating hook behavior, library functions, and integration points.
+
+**Test Statistics**: 54 tests across 2 test files
+- `lib/shared-state.bats` - 20 tests
+- `UserPromptSubmit/enforce-spec-folder.bats` - 34 tests
+
+### Quick Start
+
+```bash
+# Run all tests
+./tests/run-tests.sh
+
+# Run specific test directory
+./tests/run-tests.sh lib/
+
+# Run with verbose output and timing
+./tests/run-tests.sh -v --timing
+
+# Run in parallel (faster)
+./tests/run-tests.sh --jobs 4
+```
+
+### Test Structure
+
+```
+.claude/hooks/tests/
+├── run-tests.sh           # Test runner with BATS detection
+├── test_helper.bash       # Shared utilities, mocks, assertions
+├── lib/
+│   └── shared-state.bats  # Tests for lib/shared-state.sh
+└── UserPromptSubmit/
+    └── enforce-spec-folder.bats  # Intent detection tests
+```
+
+### Key Features
+
+**Test Isolation**:
+- Each test runs in an isolated temp directory
+- Mock project structures created automatically
+- State files cleaned up after each test
+
+**Assertion Helpers** (from `test_helper.bash`):
+| Function | Purpose |
+|----------|---------|
+| `assert_output_contains "str"` | Check output contains substring |
+| `assert_output_not_contains "str"` | Check output does NOT contain |
+| `assert_status 0` | Verify exit code |
+| `assert_file_exists "/path"` | Verify file exists |
+| `assert_equals "expected" "$actual"` | Compare values |
+| `assert_matches "pattern" "$value"` | Regex pattern matching |
+
+**Mock Functions**:
+- `create_output_helpers_mock` - Mock output formatting
+- `create_shared_state_mock` - Mock state management
+- `create_signal_output_mock` - Mock question signals
+- `create_spec_context_mock` - Mock spec folder utilities
+
+**Utility Functions**:
+- `create_spec_folder "001-feature"` - Create test spec folder
+- `create_memory_file "001-feature" "filename.md"` - Create memory file
+- `make_prompt_input "prompt text"` - Generate JSON hook input
+- `run_hook_with_input "/path/hook.sh" '{"json":"input"}'` - Execute hook
+
+### Dependencies
+
+**Required**:
+- BATS Core 1.0+ (`brew install bats-core` or `apt install bats`)
+- jq (`brew install jq` or `apt install jq`)
+
+**Optional** (for extended assertions):
+- bats-support (`brew install bats-support`)
+- bats-assert (`brew install bats-assert`)
+
+### Writing New Tests
+
+1. Create `.bats` file in appropriate directory
+2. Load test helper: `load ../test_helper` (adjust path)
+3. Write tests using BATS syntax:
+
+```bash
+#!/usr/bin/env bats
+
+load ../test_helper
+
+@test "description of what is being tested" {
+  # Setup
+  local input='{"prompt": "test input"}'
+
+  # Execute
+  run echo "$input" | bash "$HOOKS_DIR/lib/some-lib.sh"
+
+  # Assert
+  assert_status 0
+  assert_output_contains "expected"
+}
+```
+
+### CI Integration
+
+For CI/CD pipelines, use TAP output format:
+
+```bash
+./tests/run-tests.sh --tap > test-results.tap
+```
+
+### Documentation
+
+Full testing documentation: `.claude/hooks/tests/README.md`

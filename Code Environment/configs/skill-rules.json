@@ -256,7 +256,10 @@
           "(make|perform|do).*?(code change|file change|implementation)",
           "(need|require|must).*?(spec|documentation|spec folder)",
           "(what|which).*?(level|documentation level)",
-          "(before|need to).*?(implement|code|write)"
+          "(before|need to).*?(implement|code|write)",
+          "analyze.*?(issue|bug|problem|error|broken|not working|failing)",
+          "(investigate|diagnose|troubleshoot|debug).*?(issue|bug|problem|error)",
+          "(issue|bug|problem)\\s*:"
         ]
       },
       "fileTriggers": {

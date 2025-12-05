@@ -203,10 +203,10 @@ No performance regression:
 
 ## References
 
-- Implementation: `/Users/michelkerkmeester/MEGA/Development/Websites/anobel.com/.claude/hooks/UserPromptSubmit/enforce-verification.sh`
-- Tests: `/Users/michelkerkmeester/MEGA/Development/Websites/anobel.com/.claude/hooks/UserPromptSubmit/test-*.sh`
-- Logs: `/Users/michelkerkmeester/MEGA/Development/Websites/anobel.com/.claude/hooks/logs/enforce-verification.log`
-- Documentation: `/Users/michelkerkmeester/MEGA/Development/Websites/anobel.com/.claude/hooks/UserPromptSubmit/VERIFICATION_ENFORCEMENT_SOLUTION.md`
+- Implementation: `.claude/hooks/UserPromptSubmit/enforce-verification.sh`
+- Tests: `.claude/hooks/UserPromptSubmit/test-*.sh`
+- Logs: `.claude/hooks/logs/enforce-verification.log`
+- Documentation: `.claude/hooks/UserPromptSubmit/VERIFICATION_ENFORCEMENT_SOLUTION.md`
 
 ## Conclusion
 

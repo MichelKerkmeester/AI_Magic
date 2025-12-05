@@ -624,6 +624,25 @@ detect_modification_intent() {
     return 0
   fi
 
+  # Detect analysis with issue/bug intent (analysis that likely leads to fixes)
+  # These patterns indicate investigation of problems, which typically result in code changes
+  if echo "$PROMPT_LOWER" | grep -qiE "analyze.*(issue|bug|problem|error|broken|not working|failing|wrong|incorrect)"; then
+    DETECTED_INTENT="analysis-with-fix-intent"
+    return 0
+  fi
+
+  # Detect investigation patterns that imply upcoming fixes
+  if echo "$PROMPT_LOWER" | grep -qiE "(investigate|diagnose|troubleshoot|debug).*(issue|bug|problem|error|why.*(not|broken|failing))"; then
+    DETECTED_INTENT="investigation-with-fix-intent"
+    return 0
+  fi
+
+  # Detect "Issue:" or "Bug:" or "Problem:" headers in prompt (common reporting pattern)
+  if echo "$PROMPT_LOWER" | grep -qiE "(^|[|:])\\s*(issue|bug|problem)\\s*:"; then
+    DETECTED_INTENT="issue-report"
+    return 0
+  fi
+
   for keyword in "${MODIFICATION_KEYWORDS[@]}"; do
     if [[ "$PROMPT_LOWER" == *"$keyword"* ]] || [[ "$PROMPT_LOWER" == *"$keyword "* ]]; then
       DETECTED_INTENT="$keyword"

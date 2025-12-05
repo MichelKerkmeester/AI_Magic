@@ -128,7 +128,7 @@ if [ "$ENVIRONMENT_TIER" = "development" ]; then
   fi
 fi
 
-# Check 4: Project-specific production paths (anobel.com structure)
+# Check 4: Project-specific production paths
 if [ "$ENVIRONMENT_TIER" = "development" ]; then
   # src/2_javascript/ is production-ready code for this project
   if echo "$REL_FILE_PATH" | grep -qE '^src/2_javascript/'; then

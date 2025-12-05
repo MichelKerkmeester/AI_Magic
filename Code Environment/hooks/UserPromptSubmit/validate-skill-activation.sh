@@ -217,6 +217,22 @@ is_question_prompt() {
     return 0  # Is a question (explanation request)
   fi
 
+  # Priority 0.5: Check for analysis+issue patterns (likely leads to fixes)
+  # These are NOT questions - they indicate upcoming code changes
+  if echo "$text" | grep -qiE "analyze.*(issue|bug|problem|error|broken|not working|failing)"; then
+    return 1  # Not a question (analysis with fix intent)
+  fi
+
+  # Priority 0.6: Check for investigation patterns with issues
+  if echo "$text" | grep -qiE "(investigate|diagnose|troubleshoot|debug).*(issue|bug|problem|error)"; then
+    return 1  # Not a question (investigation with fix intent)
+  fi
+
+  # Priority 0.7: Check for "Issue:" or "Bug:" headers in prompt
+  if echo "$text" | grep -qiE "(^|[|:])\\s*(issue|bug|problem)\\s*:"; then
+    return 1  # Not a question (issue report)
+  fi
+
   # Priority 1: Check for implementation keywords
   # If found, this is an implementation request, NOT a question
   if echo "$text" | grep -qiE "(implement|create|add|build|fix|refactor|write|update|change|modify|remove|delete)"; then
