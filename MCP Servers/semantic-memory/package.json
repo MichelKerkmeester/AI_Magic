@@ -1,0 +1,31 @@
+{
+  "name": "semantic-memory-mcp",
+  "version": "10.0.0",
+  "description": "Semantic Memory MCP Server for Claude Code - provides memory_search and memory_load tools",
+  "main": "memory-server.js",
+  "bin": {
+    "semantic-memory": "./memory-server.js"
+  },
+  "scripts": {
+    "start": "node memory-server.js",
+    "test": "node -e \"require('./memory-server.js')\""
+  },
+  "keywords": [
+    "mcp",
+    "claude",
+    "semantic-memory",
+    "vector-search"
+  ],
+  "author": "Michel Kerkmeester",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.0.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "better-sqlite3": "^11.0.0",
+    "sqlite-vec": "^0.1.0"
+  },
+  "note": "Dependencies are symlinked from workflows-save-context skill. Run 'npm install' only if symlink is broken."
+}

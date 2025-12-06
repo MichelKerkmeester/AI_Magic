@@ -18,6 +18,7 @@ lib/
 
 # Exception: Allow lib folder in semantic-memory MCP Server
 !MCP Servers/semantic-memory/lib/
+!MCP Servers/semantic-memory/package.json
 
 # IDE and AI folders (ignored at all levels)
 .vscode/
