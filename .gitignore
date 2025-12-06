@@ -16,10 +16,14 @@ tsconfig.json
 node_modules/
 lib/
 
+# Exception: Allow lib folder in semantic-memory MCP Server
+!MCP Servers/semantic-memory/lib/
+
 # IDE and AI folders (ignored at all levels)
 .vscode/
 .claude/
 .opencode/
+.opencode
 
 # Configuration files (ignored at all levels)
 mcp_servers.json
