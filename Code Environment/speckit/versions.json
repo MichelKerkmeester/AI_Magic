@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2025-12-06T00:00:00Z",
+  "templates": {
+    "spec.md": {
+      "current_version": "2.0.0",
+      "min_supported": "1.0.0",
+      "changelog": [
+        {
+          "version": "2.0.0",
+          "date": "2025-12-06",
+          "changes": "Added metadata section, enhanced user stories with independence markers, progressive enhancement support"
+        },
+        {
+          "version": "1.0.0",
+          "date": "2025-01-01",
+          "changes": "Initial version with core sections: Objective, Scope, Users & Stories, Success Criteria"
+        }
+      ]
+    },
+    "plan.md": {
+      "current_version": "2.0.0",
+      "min_supported": "1.0.0",
+      "changelog": [
+        {
+          "version": "2.0.0",
+          "date": "2025-12-06",
+          "changes": "Added quality gates section, enhanced implementation phases structure, spec traceability"
+        },
+        {
+          "version": "1.0.0",
+          "date": "2025-01-01",
+          "changes": "Initial version with core sections: Objective, Technical Approach, Implementation Phases"
+        }
+      ]
+    },
+    "tasks.md": {
+      "current_version": "2.0.0",
+      "min_supported": "1.0.0",
+      "changelog": [
+        {
+          "version": "2.0.0",
+          "date": "2025-12-06",
+          "changes": "Added user story alignment, task breakdown by phase, dependency tracking"
+        },
+        {
+          "version": "1.0.0",
+          "date": "2025-01-01",
+          "changes": "Initial version with Overview and Task Breakdown sections"
+        }
+      ]
+    },
+    "checklist.md": {
+      "current_version": "2.0.0",
+      "min_supported": "1.0.0",
+      "changelog": [
+        {
+          "version": "2.0.0",
+          "date": "2025-12-06",
+          "changes": "Added priority levels (P0/P1/P2), verification evidence format, Level 2+ enforcement"
+        },
+        {
+          "version": "1.0.0",
+          "date": "2025-01-01",
+          "changes": "Initial version with Purpose and Checklist Items sections"
+        }
+      ]
+    },
+    "decision-record.md": {
+      "current_version": "2.0.0",
+      "min_supported": "1.0.0",
+      "changelog": [
+        {
+          "version": "2.0.0",
+          "date": "2025-12-06",
+          "changes": "Added ADR format compliance, alternatives comparison matrix, consequences tracking"
+        },
+        {
+          "version": "1.0.0",
+          "date": "2025-01-01",
+          "changes": "Initial version with Context, Decision, Alternatives, Consequences sections"
+        }
+      ]
+    },
+    "research.md": {
+      "current_version": "2.0.0",
+      "min_supported": "1.0.0",
+      "changelog": [
+        {
+          "version": "2.0.0",
+          "date": "2025-12-06",
+          "changes": "Added research questions framework, findings structure, Level 3 optional template"
+        },
+        {
+          "version": "1.0.0",
+          "date": "2025-01-01",
+          "changes": "Initial version with Objective, Context, Research Questions, Findings sections"
+        }
+      ]
+    },
+    "research-spike.md": {
+      "current_version": "2.0.0",
+      "min_supported": "1.0.0",
+      "changelog": [
+        {
+          "version": "2.0.0",
+          "date": "2025-12-06",
+          "changes": "Added time-boxing guidance, hypothesis validation format, Level 3 optional template"
+        },
+        {
+          "version": "1.0.0",
+          "date": "2025-01-01",
+          "changes": "Initial version with Objective, Hypothesis, Experiment, Results sections"
+        }
+      ]
+    }
+  }
+}
