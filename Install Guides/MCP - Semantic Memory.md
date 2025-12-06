@@ -1,0 +1,828 @@
+# Semantic Memory MCP Server Installation Guide
+
+A comprehensive guide to installing, configuring, and using the Semantic Memory MCP server for conversation context retrieval and vector search.
+
+---
+
+## AI-FIRST INSTALL GUIDE
+
+**Copy and paste this prompt to your AI assistant to get installation help:**
+
+```
+I want to install the Semantic Memory MCP server for conversation memory retrieval.
+
+Please help me:
+1. Check if I have Node.js 18+ installed
+2. Verify better-sqlite3 and sqlite-vec are available
+3. Copy the server files to my MCP Servers directory
+4. Create the required symlinks for node_modules
+5. Configure for my AI environment (I'm using: [Claude Code / OpenCode])
+6. Initialize the database
+7. Test the installation with a basic memory search
+
+My project path is: [your-project-path]
+My MCP Servers directory is: [your-mcp-servers-path]
+
+Guide me through each step with the exact commands and configuration needed.
+```
+
+**What the AI will do:**
+- Verify Node.js 18+ and npm are available
+- Check for or install native dependencies (better-sqlite3, sqlite-vec)
+- Copy server files to your designated location
+- Create symlink to shared node_modules
+- Configure MCP settings for your platform
+- Initialize the SQLite database with vector extension
+- Test all three tools: `memory_search`, `memory_load`, `memory_match_triggers`
+
+**Expected setup time:** 5-10 minutes
+
+---
+
+#### TABLE OF CONTENTS
+
+1. [OVERVIEW](#1--overview)
+2. [PREREQUISITES](#2--prerequisites)
+3. [INSTALLATION](#3--installation)
+4. [CONFIGURATION](#4-️-configuration)
+5. [VERIFICATION](#5--verification)
+6. [USAGE](#6--usage)
+7. [FEATURES](#7--features)
+8. [TROUBLESHOOTING](#8--troubleshooting)
+9. [RESOURCES](#9--resources)
+
+---
+
+## 1. OVERVIEW
+
+The Semantic Memory MCP Server provides AI assistants with conversation memory retrieval capabilities. It enables semantic search using local vector embeddings, fast trigger phrase matching, and direct memory content loading.
+
+### Key Features
+
+- **Local Embeddings**: Uses `all-MiniLM-L6-v2` model (384 dimensions) - no external API calls
+- **Fast Trigger Matching**: Sub-50ms phrase matching for proactive surfacing
+- **Multi-Concept Search**: Find memories matching ALL specified concepts
+- **Graceful Degradation**: Falls back to anchor-only mode if sqlite-vec unavailable
+- **Cross-Platform**: Works with Claude Code, OpenCode, and other MCP clients
+
+### Tool Selection Flowchart
+
+```
+User Request
+     │
+     ▼
+┌─────────────────────────────────────────┐
+│ Does request contain specific keywords? │
+└────────────────┬────────────────────────┘
+                 │
+         ┌───────┴───────┐
+         │               │
+        YES              NO
+         │               │
+         ▼               ▼
+┌─────────────────┐  ┌────────────────────┐
+│ memory_match_   │  │ Need semantic      │
+│ triggers        │  │ understanding?     │
+│ (<50ms)         │  └─────────┬──────────┘
+└────────┬────────┘            │
+         │              ┌──────┴──────┐
+         │             YES            NO
+         │              │              │
+         ▼              ▼              ▼
+┌─────────────────┐  ┌──────────────┐  ┌────────────────┐
+│ Found matches?  │  │ memory_search│  │ memory_load    │
+│                 │  │ (~500ms)     │  │ (direct access)│
+└────────┬────────┘  └──────────────┘  └────────────────┘
+         │
+    ┌────┴────┐
+   YES        NO
+    │          │
+    ▼          ▼
+┌────────┐  ┌──────────────┐
+│ Done!  │  │ memory_search│
+│        │  │ (fallback)   │
+└────────┘  └──────────────┘
+```
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    MCP Client (Claude/OpenCode)             │
+└─────────────────────────────┬───────────────────────────────┘
+                              │ stdio
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    memory-server.js                         │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ MCP Protocol Handler (@modelcontextprotocol/sdk)    │   │
+│  │ - ListTools / CallTool handlers                     │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                              │                              │
+│  ┌───────────┬───────────────┼───────────────┬───────────┐ │
+│  │           │               │               │           │ │
+│  ▼           ▼               ▼               ▼           │ │
+│ ┌─────┐   ┌─────────┐   ┌─────────┐   ┌──────────────┐  │ │
+│ │embed│   │vector-  │   │trigger- │   │trigger-      │  │ │
+│ │dings│   │index.js │   │matcher  │   │extractor.js  │  │ │
+│ │.js  │   │         │   │.js      │   │(save only)   │  │ │
+│ └──┬──┘   └────┬────┘   └────┬────┘   └──────────────┘  │ │
+│    │           │              │                          │ │
+│    │     ┌─────┴─────┐        │                          │ │
+│    │     │           │        │                          │ │
+│    ▼     ▼           ▼        ▼                          │ │
+│ ┌────────────┐  ┌────────────────┐                       │ │
+│ │ HuggingFace│  │ SQLite + vec   │                       │ │
+│ │ MiniLM-L6  │  │ memory-index   │                       │ │
+│ │ (local)    │  │ .sqlite        │                       │ │
+│ └────────────┘  └────────────────┘                       │ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Performance Targets
+
+| Operation | Target | Typical |
+|-----------|--------|---------|
+| Trigger matching | <50ms | ~35ms |
+| Vector search | <500ms | ~450ms |
+| Memory load | <10ms | ~5ms |
+| Embedding generation | <500ms | ~400ms |
+
+---
+
+## 2. PREREQUISITES
+
+Before installing the Semantic Memory MCP server, ensure you have:
+
+### Required
+
+- **Node.js 18 or higher**
+  ```bash
+  node --version
+  # Should show v18.x or higher
+  ```
+
+- **npm** (comes with Node.js)
+  ```bash
+  npm --version
+  ```
+
+- **MCP-Compatible Client** (one of the following):
+  - Claude Code CLI
+  - OpenCode CLI
+
+### Dependencies (Auto-installed)
+
+These dependencies are required and typically available via shared node_modules:
+
+| Dependency | Purpose |
+|------------|---------|
+| `@modelcontextprotocol/sdk` | MCP protocol implementation |
+| `better-sqlite3` | SQLite database driver |
+| `sqlite-vec` | Vector similarity extension |
+| `@huggingface/transformers` | Local embedding model |
+
+### Database Location
+
+The memory database is stored at:
+```
+~/.claude/memory-index.sqlite
+```
+
+This location is shared between Claude Code and OpenCode.
+
+---
+
+## 3. INSTALLATION
+
+### Step 1: Create Server Directory
+
+```bash
+# Create directory for the MCP server
+mkdir -p "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory"
+cd "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory"
+```
+
+### Step 2: Copy Server Files
+
+Copy from your Claude Code skills directory:
+
+```bash
+# Copy main server file
+cp /path/to/.claude/skills/workflows-save-context/scripts/memory-server.js .
+
+# Copy lib directory
+mkdir -p lib
+cp /path/to/.claude/skills/workflows-save-context/scripts/lib/embeddings.js lib/
+cp /path/to/.claude/skills/workflows-save-context/scripts/lib/vector-index.js lib/
+cp /path/to/.claude/skills/workflows-save-context/scripts/lib/trigger-matcher.js lib/
+cp /path/to/.claude/skills/workflows-save-context/scripts/lib/trigger-extractor.js lib/
+cp /path/to/.claude/skills/workflows-save-context/scripts/lib/retry-manager.js lib/
+```
+
+### Step 3: Create node_modules Symlink
+
+```bash
+# Create symlink to shared dependencies
+ln -s /path/to/.claude/skills/workflows-save-context/node_modules .
+```
+
+**Note:** This avoids duplicating 527MB of dependencies.
+
+### Step 4: Create package.json
+
+```bash
+cat > package.json << 'EOF'
+{
+  "name": "semantic-memory-mcp",
+  "version": "10.0.0",
+  "description": "MCP server for semantic memory search and retrieval",
+  "main": "memory-server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node memory-server.js"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.5.1",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "better-sqlite3": "^11.5.0",
+    "sqlite-vec": "^0.1.6-alpha.4"
+  }
+}
+EOF
+```
+
+### Step 5: Test Server Startup
+
+```bash
+# Test that server starts correctly
+node memory-server.js
+# Press Ctrl+C after seeing successful startup message
+```
+
+---
+
+## 4. CONFIGURATION
+
+### Option A: Configure for Claude Code CLI
+
+Add to `.mcp.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "memory_server": {
+      "command": "node",
+      "args": [
+        "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory/memory-server.js"
+      ],
+      "env": {},
+      "disabled": false
+    }
+  }
+}
+```
+
+Enable in `settings.local.json`:
+
+```json
+{
+  "enabledMcpjsonServers": [
+    "memory_server"
+  ]
+}
+```
+
+### Option B: Configure for OpenCode
+
+Add to `opencode.json` in your project root:
+
+```json
+{
+  "mcp": {
+    "memory_server": {
+      "type": "local",
+      "command": [
+        "node",
+        "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory/memory-server.js"
+      ],
+      "environment": {},
+      "enabled": true
+    }
+  }
+}
+```
+
+### Database Path Configuration
+
+The default database path is `~/.claude/memory-index.sqlite`. This can be overridden via environment variable:
+
+```json
+{
+  "env": {
+    "MEMORY_DB_PATH": "/custom/path/memory-index.sqlite"
+  }
+}
+```
+
+---
+
+## 5. VERIFICATION
+
+### Check 1: Verify Server Files
+
+```bash
+# Check all required files exist
+ls -la /path/to/semantic-memory/
+# Should show: memory-server.js, lib/, node_modules, package.json
+
+ls -la /path/to/semantic-memory/lib/
+# Should show: embeddings.js, vector-index.js, trigger-matcher.js,
+#              trigger-extractor.js, retry-manager.js
+```
+
+### Check 2: Verify node_modules Symlink
+
+```bash
+# Check symlink is valid
+ls -la /path/to/semantic-memory/node_modules/better-sqlite3
+# Should resolve to actual directory, not show broken symlink
+```
+
+### Check 3: Test Server Startup
+
+```bash
+# Start server manually (will wait for MCP protocol input)
+node /path/to/semantic-memory/memory-server.js
+
+# Expected: No errors, server waits for input
+# Press Ctrl+C to exit
+```
+
+### Check 4: Verify in Your AI Client
+
+**In Claude Code:**
+```bash
+# Start Claude Code session
+claude
+
+# Ask about available tools
+> What memory tools are available?
+
+# Expected: Should list memory_search, memory_load, memory_match_triggers
+```
+
+**In OpenCode:**
+```bash
+opencode
+
+> List available MCP tools
+
+# Expected: Memory tools should appear
+```
+
+### Check 5: Test Database Connection
+
+```bash
+# Check database exists and has tables
+sqlite3 ~/.claude/memory-index.sqlite ".tables"
+# Expected: memory_index vec_memories
+
+# Count indexed memories
+sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
+```
+
+---
+
+## 6. USAGE
+
+### Pattern 1: Quick Topic Check
+
+When starting work on a topic, check for existing context:
+
+```
+1. Call memory_match_triggers with topic keywords
+   → Fast check for relevant memories (<50ms)
+
+2. If matches found, call memory_load for details
+   → Load full content of matched memories
+
+3. If no matches, call memory_search for semantic lookup
+   → Broader search using meaning (slower but thorough)
+```
+
+**Example conversation:**
+```
+User: Let's work on the authentication system
+
+AI uses memory_match_triggers("authentication system")
+→ Returns matches with specFolders and file paths
+
+AI uses memory_load(specFolder: "049-auth-system")
+→ Loads full context from previous sessions
+```
+
+### Pattern 2: Deep Research
+
+When researching a complex topic:
+
+```
+1. Call memory_search with natural language query
+   → Find semantically related memories
+
+2. Call memory_search with concepts array
+   → Find memories matching ALL concepts (AND search)
+   → Example: ["authentication", "error handling", "retry"]
+
+3. Call memory_load for promising results
+   → Load full content to review
+```
+
+### Pattern 3: Direct Access
+
+When you know exactly what you need:
+
+```
+1. Call memory_load with specFolder
+   → Get most recent memory for that spec
+
+2. Optionally add anchorId
+   → Get specific section only
+```
+
+**Example:**
+```json
+{
+  "specFolder": "011-semantic-memory-upgrade",
+  "anchorId": "decisions"
+}
+```
+
+### Tool Selection Guide
+
+| Scenario | Tool | Why |
+|----------|------|-----|
+| Quick keyword lookup | `memory_match_triggers` | <50ms, no embeddings |
+| Semantic understanding | `memory_search` | Vector similarity |
+| Known spec folder | `memory_load` | Direct access |
+| Multi-concept search | `memory_search` with `concepts` | AND search |
+
+---
+
+## 7. FEATURES
+
+### 7.1 memory_search
+
+**Purpose**: Search conversation memories semantically using vector similarity.
+
+**Parameters**:
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `query` | string | Yes | - | Natural language search query |
+| `concepts` | array | No | - | 2-5 concepts for AND search |
+| `specFolder` | string | No | - | Limit to specific spec folder |
+| `limit` | number | No | 10 | Maximum results |
+
+**Example Request**:
+```json
+{
+  "query": "authentication implementation decisions",
+  "specFolder": "049-auth-system",
+  "limit": 5
+}
+```
+
+**Example Response**:
+```json
+{
+  "searchType": "vector",
+  "count": 2,
+  "results": [
+    {
+      "id": 42,
+      "specFolder": "049-auth-system",
+      "filePath": "specs/049-auth-system/memory/28-11-25_14-30__oauth.md",
+      "title": "OAuth Implementation Session",
+      "similarity": 0.89,
+      "triggerPhrases": ["oauth", "jwt", "authentication"],
+      "createdAt": "2025-11-28T14:30:00Z"
+    }
+  ]
+}
+```
+
+### 7.2 memory_load
+
+**Purpose**: Load memory content by spec folder, anchor ID, or memory ID.
+
+**Parameters**:
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `specFolder` | string | Yes* | - | Spec folder identifier |
+| `anchorId` | string | No | - | Load specific section |
+| `memoryId` | number | No | - | Direct memory ID access |
+
+*Either `specFolder` or `memoryId` required
+
+**Example Request**:
+```json
+{
+  "specFolder": "011-semantic-memory-upgrade",
+  "anchorId": "decisions"
+}
+```
+
+**Example Response**:
+```json
+{
+  "id": 15,
+  "specFolder": "011-semantic-memory-upgrade",
+  "filePath": "specs/011-semantic-memory-upgrade/memory/06-12-25_18-46.md",
+  "title": "Semantic Memory Implementation",
+  "anchor": "decisions",
+  "content": "## Key Decisions\n\n1. Use MiniLM-L6-v2 for local embeddings..."
+}
+```
+
+### 7.3 memory_match_triggers
+
+**Purpose**: Fast trigger phrase matching without embeddings. Use for quick keyword-based lookups.
+
+**Parameters**:
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `prompt` | string | Yes | - | Text to match against triggers |
+| `limit` | number | No | 3 | Maximum results |
+
+**Example Request**:
+```json
+{
+  "prompt": "How did we implement OAuth with JWT tokens?",
+  "limit": 3
+}
+```
+
+**Example Response**:
+```json
+{
+  "matchType": "trigger-phrase",
+  "count": 2,
+  "results": [
+    {
+      "memoryId": 42,
+      "specFolder": "049-auth-system",
+      "filePath": "specs/049-auth-system/memory/28-11-25_14-30__oauth.md",
+      "title": "OAuth Implementation",
+      "matchedPhrases": ["oauth", "jwt"],
+      "importanceWeight": 0.8
+    }
+  ]
+}
+```
+
+---
+
+## 8. TROUBLESHOOTING
+
+### Server Won't Start
+
+**Problem**: `Error: Cannot find module`
+
+**Solutions**:
+1. Check symlink:
+   ```bash
+   ls -la node_modules
+   # Should point to workflows-save-context/node_modules
+   ```
+
+2. Reinstall if broken:
+   ```bash
+   rm node_modules
+   ln -s /path/to/.claude/skills/workflows-save-context/node_modules .
+   ```
+
+### sqlite-vec Not Loading
+
+**Problem**: `Warning: sqlite-vec unavailable, falling back to anchor-only mode`
+
+**Solutions**:
+1. Check platform binary:
+   ```bash
+   ls node_modules/sqlite-vec-darwin-arm64/  # macOS ARM
+   ls node_modules/sqlite-vec-linux-x64/     # Linux x64
+   ```
+
+2. Install manually (macOS):
+   ```bash
+   brew install sqlite-vec
+   ```
+
+### No Search Results
+
+**Problem**: `memory_search` returns empty results
+
+**Solutions**:
+1. Check database exists:
+   ```bash
+   ls ~/.claude/memory-index.sqlite
+   ```
+
+2. Verify embeddings exist:
+   ```bash
+   sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM vec_memories"
+   ```
+
+3. Check embedding status:
+   ```bash
+   sqlite3 ~/.claude/memory-index.sqlite \
+     "SELECT embedding_status, COUNT(*) FROM memory_index GROUP BY embedding_status"
+   ```
+
+### Slow Performance
+
+**Problem**: Operations exceeding targets
+
+**Solutions**:
+1. Check for large prompt (truncated at 2000 chars)
+2. Verify WAL mode:
+   ```bash
+   sqlite3 ~/.claude/memory-index.sqlite "PRAGMA journal_mode"
+   # Should return: wal
+   ```
+
+### Tool Not Appearing in Client
+
+**Problem**: Memory tools not listed in AI client
+
+**Solutions**:
+1. Verify MCP config is correct for your client
+2. Check server path is absolute, not relative
+3. Restart AI client after configuration changes
+4. Check for JSON syntax errors:
+   ```bash
+   python3 -m json.tool < .mcp.json
+   ```
+
+---
+
+## 9. RESOURCES
+
+### File Structure
+
+```
+semantic-memory/
+├── memory-server.js      # Main MCP server (executable)
+├── package.json          # Dependencies manifest
+├── README.md             # Documentation
+├── node_modules/         # Symlink to shared dependencies
+└── lib/
+    ├── embeddings.js     # HuggingFace embedding generation
+    ├── vector-index.js   # SQLite-vec database operations
+    ├── trigger-matcher.js # Fast phrase matching
+    ├── trigger-extractor.js # TF-IDF phrase extraction
+    └── retry-manager.js  # Failed embedding retry logic
+```
+
+### Database Schema
+
+```sql
+-- Metadata table
+CREATE TABLE memory_index (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  spec_folder TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  anchor_id TEXT,
+  title TEXT,
+  trigger_phrases TEXT,      -- JSON array
+  importance_weight REAL DEFAULT 0.5,
+  embedding_status TEXT DEFAULT 'pending',
+  retry_count INTEGER DEFAULT 0,
+  created_at TEXT,
+  updated_at TEXT
+);
+
+-- Vector table (sqlite-vec)
+CREATE VIRTUAL TABLE vec_memories USING vec0(
+  embedding FLOAT[384]
+);
+-- Note: rowids synchronized between tables
+```
+
+### Configuration Paths
+
+| Client | Configuration File | Server Key |
+|--------|-------------------|------------|
+| **Claude Code** | `.mcp.json` + `settings.local.json` | `memory_server` |
+| **OpenCode** | `opencode.json` | `memory_server` |
+
+### Verification Commands
+
+```bash
+# Check server version
+node memory-server.js --version 2>&1 | head -1
+
+# Test startup (Ctrl+C to exit)
+node memory-server.js
+
+# Check database tables
+sqlite3 ~/.claude/memory-index.sqlite ".tables"
+
+# Count indexed memories
+sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
+
+# Check embedding statistics
+sqlite3 ~/.claude/memory-index.sqlite \
+  "SELECT embedding_status, COUNT(*) as count FROM memory_index GROUP BY embedding_status"
+```
+
+### Performance Monitoring
+
+Slow operations are logged automatically:
+```
+[trigger-matcher] matchTriggerPhrases: 45ms (target <50ms)
+[embeddings] generateEmbedding: 520ms (target <500ms) - SLOW
+```
+
+### Related Documentation
+
+| Document | Location | Purpose |
+|----------|----------|---------|
+| Server README | `semantic-memory/README.md` | Full server documentation |
+| Spec 011 | `specs/011-semantic-memory-upgrade/` | Full specification |
+| Skills SKILL.md | `.claude/skills/workflows-save-context/SKILL.md` | Save context workflow |
+
+---
+
+## Quick Reference
+
+### Tool Summary
+
+| Tool | Purpose | Speed | Use When |
+|------|---------|-------|----------|
+| `memory_search` | Semantic vector search | ~500ms | Need meaning-based retrieval |
+| `memory_load` | Load memory content | <10ms | Know exact spec folder/ID |
+| `memory_match_triggers` | Fast phrase matching | <50ms | Quick keyword lookup first |
+
+### Essential Commands
+
+```bash
+# Verify installation
+ls -la /path/to/semantic-memory/lib/
+sqlite3 ~/.claude/memory-index.sqlite ".tables"
+
+# Test server
+node /path/to/semantic-memory/memory-server.js
+
+# Check database stats
+sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
+```
+
+### Configuration Quick Copy
+
+**Claude Code (.mcp.json):**
+```json
+{
+  "mcpServers": {
+    "memory_server": {
+      "command": "node",
+      "args": ["/path/to/semantic-memory/memory-server.js"],
+      "env": {},
+      "disabled": false
+    }
+  }
+}
+```
+
+**OpenCode (opencode.json):**
+```json
+{
+  "mcp": {
+    "memory_server": {
+      "type": "local",
+      "command": ["node", "/path/to/semantic-memory/memory-server.js"],
+      "environment": {},
+      "enabled": true
+    }
+  }
+}
+```
+
+---
+
+**Installation Complete!**
+
+You now have the Semantic Memory MCP server installed and configured. Use it to retrieve conversation context, search memories semantically, and quickly match trigger phrases.
+
+Start using Semantic Memory by asking your AI assistant:
+```
+Search my memories for information about [topic]
+```
+
+---
+
+**Version**: 10.0.0
+**Protocol**: MCP (Model Context Protocol)
+**Status**: Production Ready
