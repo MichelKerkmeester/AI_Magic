@@ -6,11 +6,15 @@ allowed-tools: Read, Glob, Bash
 
 # SpecKit Status
 
-## 1. 📋 Purpose
+---
+
+## 1. 📋 PURPOSE
 
 Display progress at a glance - single spec or all active specs.
 
-## 2. 🔍 Usage
+---
+
+## 2. 🔍 USAGE
 
 | Command                        | Result                       |
 | ------------------------------ | ---------------------------- |
@@ -18,7 +22,9 @@ Display progress at a glance - single spec or all active specs.
 | `/spec_kit:status all`         | All specs summary dashboard  |
 | `/spec_kit:status specs/014-*` | Specific spec folder         |
 
-## 3. ⚡ Execution Steps
+---
+
+## 3. ⚡ EXECUTION STEPS
 
 ### Step 1: Detect Target
 
@@ -87,7 +93,9 @@ For each spec folder, calculate:
 ╚═══════════════════════════════════════════════════════════════╝
 ```
 
-## 4. 📊 Calculation Logic
+---
+
+## 4. 📊 CALCULATION LOGIC
 
 ### Task Progress
 
@@ -142,7 +150,9 @@ else
 fi
 ```
 
-## 5. 🎯 Success Criteria
+---
+
+## 5. 🎯 SUCCESS CRITERIA
 
 - [ ] Single command shows progress without navigation
 - [ ] Visual progress bars for quick scanning
@@ -153,3 +163,4 @@ fi
 ---
 
 **Tip:** Run `/spec_kit:status` at session start to quickly resume where you left off.
+

@@ -6,11 +6,13 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task
 
 # SpecKit Resume
 
-## 1. 📋 Purpose
+## 1. 📋 PURPOSE
 
 Resume work on an existing spec folder by automatically detecting the last active session, loading context from memory files, and presenting progress with clear next steps.
 
-## 2. 🔍 Usage
+---
+
+## 2. 🔍 USAGE
 
 | Command                        | Result                                     |
 | ------------------------------ | ------------------------------------------ |
@@ -18,7 +20,9 @@ Resume work on an existing spec folder by automatically detecting the last activ
 | `/spec_kit:resume specs/014-*` | Resume specific spec folder                |
 | `/spec_kit:resume:auto`        | Resume without confirmation prompts        |
 
-## 3. ⚡ Execution Steps
+---
+
+## 3. ⚡ EXECUTION STEPS
 
 ### Step 1: Session Detection
 
@@ -136,7 +140,9 @@ Ready to continue. What would you like to do?
   D) Just chat - I'll work on it myself
 ```
 
-## 4. 📊 Output Format
+---
+
+## 4. 📊 OUTPUT FORMAT
 
 ### Success Output
 
@@ -186,7 +192,9 @@ Ready to continue. What would you like to do?
 ╰─────────────────────────────────────────────────────────────╯
 ```
 
-## 5. 🎯 Success Criteria
+---
+
+## 5. 🎯 SUCCESS CRITERIA
 
 - [ ] Detects active session from `.spec-active` marker
 - [ ] Falls back to most recent memory file if no marker
@@ -195,7 +203,9 @@ Ready to continue. What would you like to do?
 - [ ] Handles missing/stale sessions gracefully
 - [ ] Integrates with existing A/B/C/D question pattern
 
-## 6. 🔗 Related Commands
+---
+
+## 6. 🔗 RELATED COMMANDS
 
 | Command               | Relationship                                        |
 | --------------------- | --------------------------------------------------- |

@@ -123,11 +123,11 @@ CHECK spec_choice value:
 
 **Before continuing to the workflow, verify ALL gates:**
 
-| Gate | Required Status | Your Status | Output Value |
-|------|-----------------|-------------|--------------|
-| GATE 0: Input | ✅ PASSED | ______ | feature_description: ______ |
-| GATE 1: Spec Folder | ✅ PASSED | ______ | spec_choice: ___ / spec_path: ______ |
-| GATE 2: Memory | ✅ PASSED or ⏭️ N/A | ______ | memory_loaded: ______ |
+| Gate                | Required Status   | Your Status | Output Value                         |
+| ------------------- | ----------------- | ----------- | ------------------------------------ |
+| GATE 0: Input       | ✅ PASSED          | ______      | feature_description: ______          |
+| GATE 1: Spec Folder | ✅ PASSED          | ______      | spec_choice: ___ / spec_path: ______ |
+| GATE 2: Memory      | ✅ PASSED or ⏭️ N/A | ______      | memory_loaded: ______                |
 
 ```
 VERIFICATION CHECK:
@@ -156,7 +156,6 @@ VERIFICATION CHECK:
 5. RESUME only after all gates pass verification
 ```
 
----
 ---
 
 # SpecKit Complete
@@ -200,20 +199,20 @@ $ARGUMENTS
 
 ## Workflow Overview (12 Steps)
 
-| Step | Name | Purpose | Outputs |
-|------|------|---------|---------|
-| 1 | Request Analysis | Analyze inputs, define scope | requirement_summary |
-| 2 | Pre-Work Review | Review AGENTS.md, standards | coding_standards_summary |
-| 3 | Specification | Create spec.md | spec.md, feature branch |
-| 4 | Clarification | Resolve ambiguities | updated spec.md |
-| 5 | Quality Checklist | Generate validation checklist (ACTIVELY USED for verification at completion) | checklists/requirements.md |
-| 6 | Planning | Create technical plan | plan.md, research.md |
-| 7 | Task Breakdown | Break into tasks | tasks.md |
-| 8 | Analysis | Verify consistency | consistency_report |
-| 9 | Implementation Check | Verify prerequisites | greenlight |
-| 10 | Development | Execute implementation | code changes |
-| 11 | Completion | Generate summary | implementation-summary.md |
-| 12 | Save Context | Preserve conversation | memory/*.md |
+| Step | Name                 | Purpose                                                                      | Outputs                    |
+| ---- | -------------------- | ---------------------------------------------------------------------------- | -------------------------- |
+| 1    | Request Analysis     | Analyze inputs, define scope                                                 | requirement_summary        |
+| 2    | Pre-Work Review      | Review AGENTS.md, standards                                                  | coding_standards_summary   |
+| 3    | Specification        | Create spec.md                                                               | spec.md, feature branch    |
+| 4    | Clarification        | Resolve ambiguities                                                          | updated spec.md            |
+| 5    | Quality Checklist    | Generate validation checklist (ACTIVELY USED for verification at completion) | checklists/requirements.md |
+| 6    | Planning             | Create technical plan                                                        | plan.md, research.md       |
+| 7    | Task Breakdown       | Break into tasks                                                             | tasks.md                   |
+| 8    | Analysis             | Verify consistency                                                           | consistency_report         |
+| 9    | Implementation Check | Verify prerequisites                                                         | greenlight                 |
+| 10   | Development          | Execute implementation                                                       | code changes               |
+| 11   | Completion           | Generate summary                                                             | implementation-summary.md  |
+| 12   | Save Context         | Preserve conversation                                                        | memory/*.md                |
 
 ---
 
@@ -225,11 +224,11 @@ $ARGUMENTS
 
 Detect execution mode from command invocation:
 
-| Pattern | Mode | Behavior |
-|---------|------|----------|
-| `/spec_kit:complete:auto` | AUTONOMOUS | Execute all steps without user approval gates |
-| `/spec_kit:complete:confirm` | INTERACTIVE | Pause at each step for user approval |
-| `/spec_kit:complete` (no suffix) | PROMPT | Ask user to choose mode |
+| Pattern                          | Mode        | Behavior                                      |
+| -------------------------------- | ----------- | --------------------------------------------- |
+| `/spec_kit:complete:auto`        | AUTONOMOUS  | Execute all steps without user approval gates |
+| `/spec_kit:complete:confirm`     | INTERACTIVE | Pause at each step for user approval          |
+| `/spec_kit:complete` (no suffix) | PROMPT      | Ask user to choose mode                       |
 
 #### Step 1.2: Mode Selection (when no suffix detected)
 
@@ -237,10 +236,10 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 **Question**: "How would you like to execute this workflow?"
 
-| Option | Mode | Description |
-|--------|------|-------------|
-| **A** | Autonomous | Execute all 12 steps without approval gates. Best for well-defined tasks with clear requirements. |
-| **B** | Interactive | Pause at each step for approval. Best for complex features where you want control over decisions. |
+| Option | Mode        | Description                                                                                       |
+| ------ | ----------- | ------------------------------------------------------------------------------------------------- |
+| **A**  | Autonomous  | Execute all 12 steps without approval gates. Best for well-defined tasks with clear requirements. |
+| **B**  | Interactive | Pause at each step for approval. Best for complex features where you want control over decisions. |
 
 **Wait for user response before proceeding.**
 
@@ -248,11 +247,11 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 **Confirm all mandatory gates from the header were completed:**
 
-| Gate | Status |
-|------|--------|
-| GATE 0: Input Validation | ✅ feature_description captured |
-| GATE 1: Spec Folder Selection | ✅ spec_choice + spec_path set |
-| GATE 2: Memory Context | ✅ PASSED or ⏭️ N/A |
+| Gate                          | Status                         |
+| ----------------------------- | ------------------------------ |
+| GATE 0: Input Validation      | ✅ feature_description captured |
+| GATE 1: Spec Folder Selection | ✅ spec_choice + spec_path set  |
+| GATE 2: Memory Context        | ✅ PASSED or ⏭️ N/A              |
 
 **If any gate is incomplete, STOP and return to complete it before continuing.**
 
@@ -262,15 +261,15 @@ Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs f
 
 **Field Extraction Rules**:
 
-| Field | Pattern Detection | Default If Empty |
-|-------|-------------------|------------------|
-| `git_branch` | "branch: X", "on branch X", "feature/X" | Auto-create feature-{NNN} |
-| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | **USE VALUE FROM STEP 1.3** (user's explicit choice) |
-| `context` | "using X", "with Y", "tech stack:", "constraints:" | Infer from request |
-| `issues` | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Discover during workflow |
-| `request` | Primary task description (REQUIRED) | ERROR if completely empty |
-| `environment` | URLs starting with http(s)://, "staging:", "production:" | Skip browser testing |
-| `scope` | File paths, glob patterns like `src/**/*.js`, "files:" | Default to specs/** |
+| Field         | Pattern Detection                                               | Default If Empty                                     |
+| ------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
+| `git_branch`  | "branch: X", "on branch X", "feature/X"                         | Auto-create feature-{NNN}                            |
+| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X"                      | **USE VALUE FROM STEP 1.3** (user's explicit choice) |
+| `context`     | "using X", "with Y", "tech stack:", "constraints:"              | Infer from request                                   |
+| `issues`      | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Discover during workflow                             |
+| `request`     | Primary task description (REQUIRED)                             | ERROR if completely empty                            |
+| `environment` | URLs starting with http(s)://, "staging:", "production:"        | Skip browser testing                                 |
+| `scope`       | File paths, glob patterns like `src/**/*.js`, "files:"          | Default to specs/**                                  |
 
 **IMPORTANT:** The `spec_folder` field MUST come from the user's explicit choice in Step 1.3.
 Do NOT auto-create or infer - the user MUST have selected Option A, B, C, or D.
@@ -330,30 +329,30 @@ See CLAUDE.md Section 2 for full memory file handling details.
 
 ## Failure Recovery
 
-| Failure Type | Recovery Action |
-|--------------|-----------------|
-| Step validation fails | Review requirements, ask clarifying questions, retry |
-| User rejects approach | Present alternatives, modify plan, document decision |
-| Tests fail during implementation | Debug, fix, re-run before marking complete |
-| Prerequisites insufficient | Return to prior workflow phase (planning) |
-| Environment unavailable | Skip browser testing, document limitation |
+| Failure Type                     | Recovery Action                                      |
+| -------------------------------- | ---------------------------------------------------- |
+| Step validation fails            | Review requirements, ask clarifying questions, retry |
+| User rejects approach            | Present alternatives, modify plan, document decision |
+| Tests fail during implementation | Debug, fix, re-run before marking complete           |
+| Prerequisites insufficient       | Return to prior workflow phase (planning)            |
+| Environment unavailable          | Skip browser testing, document limitation            |
 
 ## Error Handling
 
-| Condition | Action |
-|-----------|--------|
-| Empty `$ARGUMENTS` | Prompt user: "Please describe what you want to accomplish" |
-| Missing required field | Apply intelligent default or ask user |
-| Prerequisites missing | Guide user to prerequisite commands |
-| Validation failure | Log issue and attempt resolution or escalate |
+| Condition              | Action                                                     |
+| ---------------------- | ---------------------------------------------------------- |
+| Empty `$ARGUMENTS`     | Prompt user: "Please describe what you want to accomplish" |
+| Missing required field | Apply intelligent default or ask user                      |
+| Prerequisites missing  | Guide user to prerequisite commands                        |
+| Validation failure     | Log issue and attempt resolution or escalate               |
 
 ## Documentation Levels (Progressive Enhancement)
 
-| Level | Required Files | LOC Guidance | Use Case |
-|-------|---------------|--------------|----------|
-| **Level 1 (Baseline)** | spec.md + plan.md + tasks.md | <100 LOC | Simple changes, bug fixes |
-| **Level 2 (Verification)** | Level 1 + checklist.md | 100-499 LOC | Medium features, refactoring |
-| **Level 3 (Full)** | Level 2 + decision-record.md | >=500 LOC | Complex features, architecture changes |
+| Level                      | Required Files               | LOC Guidance | Use Case                               |
+| -------------------------- | ---------------------------- | ------------ | -------------------------------------- |
+| **Level 1 (Baseline)**     | spec.md + plan.md + tasks.md | <100 LOC     | Simple changes, bug fixes              |
+| **Level 2 (Verification)** | Level 1 + checklist.md       | 100-499 LOC  | Medium features, refactoring           |
+| **Level 3 (Full)**         | Level 2 + decision-record.md | >=500 LOC    | Complex features, architecture changes |
 
 **Note:** LOC thresholds are soft guidance. Choose level based on complexity and risk.
 

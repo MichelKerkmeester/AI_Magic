@@ -4,33 +4,110 @@ argument-hint: "<prompt-text> [:quick|:improve|:refine]"
 allowed-tools: Read, Write, AskUserQuestion
 ---
 
-# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+# ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
 
-**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+**YOU MUST COMPLETE ALL GATES BEFORE READING ANYTHING ELSE IN THIS FILE.**
+
+These gates are BLOCKING - you cannot proceed past any gate until its condition is satisfied.
+
+---
+
+## GATE 0: Input Validation ⛔ HARD STOP
+
+**Check `$ARGUMENTS` for prompt text to improve:**
 
 ```
-IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
-    → STOP IMMEDIATELY
-    → Use AskUserQuestion tool with this exact question:
-        question: "What prompt would you like to improve?"
-        options:
-          - label: "Paste my prompt"
-            description: "I'll provide the prompt text to enhance"
-          - label: "Describe what I need"
-            description: "I'll describe what the prompt should accomplish"
-    → WAIT for user response
-    → Use their response as the prompt to improve
-    → Only THEN continue with this workflow
+IF $ARGUMENTS is empty, undefined, or contains only whitespace:
+    ⛔ BLOCKED - Cannot proceed
+    
+    ACTION REQUIRED:
+    1. Use AskUserQuestion tool with this exact question:
+       question: "What prompt would you like me to improve?"
+       options:
+         - label: "Provide prompt text"
+           description: "I'll paste or describe the prompt to improve"
+    2. WAIT for user response
+    3. Capture response as: prompt_text = ______
+    4. Only THEN proceed to GATE 1
 
 IF $ARGUMENTS contains prompt text:
-    → Continue reading this file
+    ✅ Capture: prompt_text = $ARGUMENTS
+    → Proceed to GATE 1
 ```
 
-**CRITICAL RULES:**
-- **DO NOT** infer prompts from context, screenshots, or conversation history
-- **DO NOT** assume what prompt the user wants to improve
-- **DO NOT** proceed past this point without explicit prompt text from the user
-- The prompt MUST come from `$ARGUMENTS` or user's answer to the question above
+**GATE 0 Output:**
+- `prompt_text = ______` (REQUIRED - must be filled before continuing)
+
+---
+
+## GATE 1: Spec Folder Selection ⛔ HARD STOP
+
+**You MUST ask user to select a spec folder option. DO NOT SKIP THIS QUESTION.**
+
+```
+⛔ BLOCKED until user explicitly selects A, B, C, or D
+
+ACTION REQUIRED:
+1. Use AskUserQuestion tool with these exact options:
+   question: "Where should I save the prompt improvement documentation?"
+   options:
+     A) Use existing spec folder - [suggest relevant existing folder if found]
+     B) Create new spec folder - specs/[###-prompt-improvement]/
+     C) Update related spec - [suggest if related spec exists]
+     D) Skip documentation - (output directly without saving)
+
+2. WAIT for user response
+3. Capture: spec_folder_choice = ______ (A, B, C, or D)
+4. Capture: spec_folder_path = ______
+5. Only THEN proceed to GATE 2 (if applicable) or continue workflow
+```
+
+**GATE 1 Output:**
+- `spec_folder_choice = ______` (REQUIRED - A, B, C, or D)
+- `spec_folder_path = ______` (REQUIRED - actual path, or "N/A" if D)
+
+---
+
+## GATE 2: Memory Context Loading (Conditional)
+
+**This gate only applies if user selected Option A or C in GATE 1.**
+
+```
+IF spec_folder_choice is A or C AND memory/ folder exists with files:
+    → Auto-load the most recent memory file (DEFAULT)
+    → Briefly confirm: "Loaded context from [filename]"
+    → User can say "skip memory" or "fresh start" to bypass
+    
+IF spec_folder_choice is B or D:
+    → Skip this gate (no memory to load)
+    ✅ Proceed to workflow
+```
+
+---
+
+## Gate Status Verification
+
+Before proceeding, verify all gates are passed:
+
+| Gate | Status | Required Output |
+|------|--------|-----------------|
+| GATE 0 | ⬜ | `prompt_text = ______` |
+| GATE 1 | ⬜ | `spec_folder_choice = ______`, `spec_folder_path = ______` |
+| GATE 2 | ⬜ | Memory loaded OR skipped (conditional) |
+
+**All gates must show ✅ before continuing to the workflow below.**
+
+---
+
+## Violation Self-Detection
+
+If you notice yourself:
+- Reading workflow steps before completing gates → ⛔ STOP, return to incomplete gate
+- Assuming prompt text without explicit input → ⛔ STOP, return to GATE 0
+- Skipping spec folder question → ⛔ STOP, return to GATE 1
+- Proceeding without user's explicit choice → ⛔ STOP, ask the required question
+
+**Recovery Protocol:** State "I need to complete the mandatory gates first" and return to the first incomplete gate.
 
 ---
 
@@ -143,6 +220,20 @@ Apply systematic prompt enhancement with:
      - **C)** Update related spec (show any existing prompt-related specs)
      - **D)** Skip documentation (creates `.claude/.spec-skip` marker) - NOT RECOMMENDED
    - Store: `spec_folder_path`, `spec_folder_choice`
+
+---
+
+### Step 1.3: Verify Gates Passed
+
+Before continuing, confirm all gates are complete:
+
+```
+□ GATE 0: prompt_text captured from $ARGUMENTS or user response
+□ GATE 1: spec_folder_choice explicitly selected (A/B/C/D)
+□ GATE 2: Memory loaded (if applicable) or skipped
+
+If ANY gate incomplete → STOP and return to that gate
+```
 
 ---
 

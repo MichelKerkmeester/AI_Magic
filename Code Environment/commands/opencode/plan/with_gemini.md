@@ -6,31 +6,110 @@ agent: plan
 model: gemini-3.0-pro
 ---
 
-# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+# ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
 
-**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+**YOU MUST COMPLETE ALL GATES BEFORE READING ANYTHING ELSE IN THIS FILE.**
+
+These gates are BLOCKING - you cannot proceed past any gate until its condition is satisfied.
+
+---
+
+## GATE 0: Input Validation ⛔ HARD STOP
+
+**Check `$ARGUMENTS` for task description:**
 
 ```
 IF $ARGUMENTS is empty, undefined, or contains only whitespace:
-    → STOP IMMEDIATELY
-    → Use AskUserQuestion tool with this exact question:
-        question: "What would you like to plan?"
-        options:
-          - label: "Describe my task"
-            description: "I'll provide a task description for planning"
-    → WAIT for user response
-    → Use their response as the task description
-    → Only THEN continue with this workflow
+    ⛔ BLOCKED - Cannot proceed
+    
+    ACTION REQUIRED:
+    1. Use AskUserQuestion tool with this exact question:
+       question: "What would you like to plan?"
+       options:
+         - label: "Describe my task"
+           description: "I'll provide a task description for planning"
+    2. WAIT for user response
+    3. Capture response as: task_description = ______
+    4. Only THEN proceed to GATE 1
 
 IF $ARGUMENTS contains a task description:
-    → Continue reading this file
+    ✅ Capture: task_description = $ARGUMENTS
+    → Proceed to GATE 1
 ```
 
-**CRITICAL RULES:**
-- **DO NOT** infer tasks from context, screenshots, or existing spec folders
-- **DO NOT** assume what the user wants based on conversation history
-- **DO NOT** proceed past this point without an explicit task from the user
-- The task MUST come from `$ARGUMENTS` or user's answer to the question above
+**GATE 0 Output:**
+- `task_description = ______` (REQUIRED - must be filled before continuing)
+
+---
+
+## GATE 1: Spec Folder Selection ⛔ HARD STOP
+
+**You MUST ask user to select a spec folder option. DO NOT SKIP THIS QUESTION.**
+
+```
+⛔ BLOCKED until user explicitly selects A, B, C, or D
+
+ACTION REQUIRED:
+1. Use AskUserQuestion tool with these exact options:
+   question: "Where should I create the planning documentation?"
+   options:
+     A) Use existing spec folder - [suggest relevant existing folder if found]
+     B) Create new spec folder - specs/[###-suggested-name]/
+     C) Update related spec - [suggest if related spec exists]
+     D) Skip documentation - (not recommended for plan commands)
+
+2. WAIT for user response
+3. Capture: spec_folder_choice = ______ (A, B, C, or D)
+4. Capture: spec_folder_path = ______
+5. Only THEN proceed to GATE 2 (if applicable) or continue workflow
+```
+
+**GATE 1 Output:**
+- `spec_folder_choice = ______` (REQUIRED - A, B, C, or D)
+- `spec_folder_path = ______` (REQUIRED - actual path)
+
+---
+
+## GATE 2: Memory Context Loading (Conditional)
+
+**This gate only applies if user selected Option A or C in GATE 1.**
+
+```
+IF spec_folder_choice is A or C AND memory/ folder exists with files:
+    → Auto-load the most recent memory file (DEFAULT)
+    → Briefly confirm: "Loaded context from [filename]"
+    → User can say "skip memory" or "fresh start" to bypass
+    
+IF spec_folder_choice is B or D:
+    → Skip this gate (no memory to load)
+    ✅ Proceed to workflow
+```
+
+---
+
+## Gate Status Verification
+
+Before proceeding, verify all gates are passed:
+
+| Gate | Status | Required Output |
+|------|--------|-----------------|
+| GATE 0 | ⬜ | `task_description = ______` |
+| GATE 1 | ⬜ | `spec_folder_choice = ______`, `spec_folder_path = ______` |
+| GATE 2 | ⬜ | Memory loaded OR skipped (conditional) |
+
+**All gates must show ✅ before continuing to the workflow below.**
+
+---
+
+## Violation Self-Detection
+
+If you notice yourself:
+- Reading workflow steps before completing gates → ⛔ STOP, return to incomplete gate
+- Assuming task description without explicit input → ⛔ STOP, return to GATE 0
+- Skipping spec folder question → ⛔ STOP, return to GATE 1
+- Proceeding without user's explicit choice → ⛔ STOP, ask the required question
+
+**Recovery Protocol:** State "I need to complete the mandatory gates first" and return to the first incomplete gate.
 
 ---
 
@@ -112,6 +191,20 @@ Execute the following workflow:
    - Pattern: `mode:simple` or `mode:complex` in arguments
    - If found: Use specified mode, skip auto-detection
    - If not found: Continue to Step 2 for auto-detection
+
+### Step 1.3: Verify Gates Passed
+
+Before continuing, confirm all gates are complete:
+
+```
+□ GATE 0: task_description captured from $ARGUMENTS or user response
+□ GATE 1: spec_folder_choice explicitly selected (A/B/C/D)
+□ GATE 2: Memory loaded (if applicable) or skipped
+
+If ANY gate incomplete → STOP and return to that gate
+```
+
+---
 
 ### Step 2: Auto-Detect Planning Mode
 

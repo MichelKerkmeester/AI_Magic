@@ -6,7 +6,7 @@ allowed-tools: Read
 
 # SpecKit Help
 
-## 1. 📋 Available Commands
+## 1. 📋 AVAILABLE COMMANDS
 
 | Command               | Purpose                           | When to Use                      |
 | --------------------- | --------------------------------- | -------------------------------- |
@@ -18,7 +18,9 @@ allowed-tools: Read
 | `/spec_kit:status`    | Show current progress             | Check completion status          |
 | `/spec_kit:resume`    | Resume previous session           | Returning to incomplete work     |
 
-## 2. 🔍 Quick Reference
+---
+
+## 2. 🔍 QUICK REFERENCE
 
 ### Documentation Levels (Progressive Enhancement)
 
@@ -38,7 +40,9 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research
 | 2     | 100-499   | Features needing QA validation         |
 | 3     | ≥500      | Complex features, architecture changes |
 
-## 3. ⚡ Command Modes
+---
+
+## 3. ⚡ COMMAND MODES
 
 All commands support two modes via suffix:
 - `:auto` - Autonomous execution (minimal prompts)
@@ -51,7 +55,9 @@ All commands support two modes via suffix:
 /spec_kit:implement specs/045-feature/ :auto
 ```
 
-## 4. 📁 Spec Folder Structure
+---
+
+## 4. 📁 SPEC FOLDER STRUCTURE
 
 ```text
 specs/###-short-name/
@@ -67,7 +73,9 @@ specs/###-short-name/
 └── memory/              (auto-created for context)
 ```
 
-## 5. 🚀 Quick Actions
+---
+
+## 5. 🚀 QUICK ACTIONS
 
 | I want to...              | Command                                    |
 | ------------------------- | ------------------------------------------ |
@@ -80,7 +88,7 @@ specs/###-short-name/
 
 ---
 
-## 6. 🔧 Troubleshooting
+## 6. 🔧 TROUBLESHOOTING
 
 ### Quick Fixes
 
@@ -117,7 +125,7 @@ specs/###-short-name/
 
 ---
 
-## 7. 🚀 Quick Start
+## 7. 🚀 QUICK START
 
 **Fastest path to productivity:**
 ```bash
