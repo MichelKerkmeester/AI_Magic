@@ -123,11 +123,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreCompact/prune-context.sh",
-            "timeout": 5000
-          },
-          {
-            "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/PreCompact/save-context-before-compact.sh",
             "timeout": 10000
           }
