@@ -4,32 +4,160 @@ argument-hint: "[research-topic] [:auto|:confirm]"
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion, WebFetch, WebSearch
 ---
 
-# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+# 🚨 MANDATORY GATES - BLOCKING ENFORCEMENT
 
-**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+**These gates MUST be passed sequentially. Each gate BLOCKS until complete. You CANNOT proceed to the workflow until ALL gates show ✅ PASSED or ⏭️ N/A.**
+
+---
+
+## 🔒 GATE 0: Input Validation
+
+**STATUS: ☐ BLOCKED**
 
 ```
-IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
-    → STOP IMMEDIATELY
-    → Use AskUserQuestion tool with this exact question:
-        question: "What topic would you like to research?"
-        options:
-          - label: "Describe my research topic"
-            description: "I'll provide a topic for technical investigation"
-    → WAIT for user response
-    → Use their response as the research topic
-    → Only THEN continue with this workflow
+EXECUTE THIS CHECK FIRST:
 
-IF $ARGUMENTS contains a research topic:
-    → Continue reading this file
+├─ IF $ARGUMENTS is empty, undefined, or whitespace-only (ignoring :auto/:confirm flags):
+│   │
+│   ├─ ASK user: "What topic would you like to research?"
+│   ├─ WAIT for user response (DO NOT PROCEED)
+│   ├─ Store response as: research_topic
+│   └─ SET STATUS: ✅ PASSED
+│
+└─ IF $ARGUMENTS contains content:
+    ├─ Store as: research_topic
+    └─ SET STATUS: ✅ PASSED
+
+⛔ HARD STOP: DO NOT read past this gate until STATUS = ✅ PASSED
+⛔ NEVER infer topics from context, screenshots, or conversation history
 ```
 
-**CRITICAL RULES:**
-- **DO NOT** infer topics from context, screenshots, or existing spec folders
-- **DO NOT** assume what the user wants based on conversation history
-- **DO NOT** proceed past this point without an explicit research topic from the user
-- The topic MUST come from `$ARGUMENTS` or user's answer to the question above
+**Gate 0 Output:** `research_topic = ________________`
 
+---
+
+## 🔒 GATE 1: Spec Folder Selection
+
+**STATUS: ☐ BLOCKED**
+
+```
+EXECUTE AFTER GATE 0 PASSES:
+
+1. Search for related spec folders:
+   $ ls -d specs/*/ 2>/dev/null | tail -10
+
+2. ASK user with these EXACT options:
+   ┌────────────────────────────────────────────────────────────┐
+   │ "Where should this research be documented?"                │
+   │                                                            │
+   │ A) Use existing spec folder: [suggest if related found]    │
+   │ B) Create new spec folder: specs/[NNN]-[topic-slug]/       │
+   │ C) Update related spec: [if partial match found]           │
+   │ D) Skip documentation (research only, no persistent        │
+   │    artifacts)                                              │
+   └────────────────────────────────────────────────────────────┘
+
+3. WAIT for explicit user choice (A, B, C, or D)
+
+4. Store results:
+   - spec_choice = [A/B/C/D]
+   - spec_path = [path or null if D]
+
+5. SET STATUS: ✅ PASSED
+
+⛔ HARD STOP: DO NOT proceed until user explicitly selects A, B, C, or D
+⛔ NEVER auto-create spec folders without user confirmation
+⛔ NEVER assume or infer the user's choice
+```
+
+**Gate 1 Output:** `spec_choice = ___` | `spec_path = ________________`
+
+---
+
+## 🔒 GATE 2: Memory Context Loading
+
+**STATUS: ☐ BLOCKED / ☐ N/A**
+
+```
+EXECUTE AFTER GATE 1 PASSES:
+
+CHECK spec_choice value:
+
+├─ IF spec_choice == D (Skip):
+│   └─ SET STATUS: ⏭️ N/A (no spec folder, no memory)
+│
+├─ IF spec_choice == B (Create new):
+│   └─ SET STATUS: ⏭️ N/A (new folder has no memory)
+│
+└─ IF spec_choice == A or C (Use existing):
+    │
+    ├─ Check: Does spec_path/memory/ exist AND contain files?
+    │
+    ├─ IF memory/ is empty or missing:
+    │   └─ SET STATUS: ⏭️ N/A (no memory to load)
+    │
+    └─ IF memory/ has files:
+        │
+        ├─ ASK user:
+        │   ┌────────────────────────────────────────────────────┐
+        │   │ "Load previous context from this spec folder?"     │
+        │   │                                                    │
+        │   │ A) Load most recent memory file (quick refresh)    │
+        │   │ B) Load all recent files, up to 3 (comprehensive)  │
+        │   │ C) List all files and select specific              │
+        │   │ D) Skip (start fresh, no context)                  │
+        │   └────────────────────────────────────────────────────┘
+        │
+        ├─ WAIT for user response
+        ├─ Execute loading based on choice (use Read tool)
+        ├─ Acknowledge loaded context briefly
+        └─ SET STATUS: ✅ PASSED
+
+⛔ HARD STOP: DO NOT proceed until STATUS = ✅ PASSED or ⏭️ N/A
+```
+
+**Gate 2 Output:** `memory_loaded = [yes/no]` | `context_summary = ________________`
+
+---
+
+## ✅ GATE STATUS VERIFICATION
+
+**Before continuing to the workflow, verify ALL gates:**
+
+| Gate | Required Status | Your Status | Output Value |
+|------|-----------------|-------------|--------------|
+| GATE 0: Input | ✅ PASSED | ______ | research_topic: ______ |
+| GATE 1: Spec Folder | ✅ PASSED | ______ | spec_choice: ___ / spec_path: ______ |
+| GATE 2: Memory | ✅ PASSED or ⏭️ N/A | ______ | memory_loaded: ______ |
+
+```
+VERIFICATION CHECK:
+├─ ALL gates show ✅ PASSED or ⏭️ N/A?
+│   ├─ YES → Proceed to "# SpecKit Research" section below
+│   └─ NO  → STOP and complete the blocked gate
+```
+
+---
+
+## ⚠️ VIOLATION SELF-DETECTION
+
+**You are IN VIOLATION if you:**
+- Started reading the workflow section before all gates passed
+- Proceeded without asking user for research topic (Gate 0)
+- Auto-created or assumed a spec folder without A/B/C/D choice (Gate 1)
+- Skipped memory prompt when using existing folder with memory files (Gate 2)
+- Inferred topic from context instead of explicit user input
+
+**VIOLATION RECOVERY PROTOCOL:**
+```
+1. STOP immediately - do not continue current action
+2. STATE: "I violated GATE [X] by [specific action]. Correcting now."
+3. RETURN to the violated gate
+4. COMPLETE the gate properly (ask user, wait for response)
+5. RESUME only after all gates pass verification
+```
+
+---
 ---
 
 # SpecKit Research
@@ -136,64 +264,27 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 **Wait for user response before proceeding.**
 
-#### Step 1.3: Spec Folder Confirmation (MANDATORY - DO NOT SKIP)
+#### Step 1.3: Verify Gates Passed
 
-🚨 **This step is REQUIRED by AGENTS.md Section 1 - "Collaboration First"**
+**⚠️ CHECKPOINT: Confirm all gates from the enforcement section above are complete.**
 
-**BEFORE any file creation or workflow execution, you MUST:**
+Before proceeding, verify you have these values from the gates:
+- `research_topic` from GATE 0
+- `spec_choice` and `spec_path` from GATE 1  
+- `memory_loaded` status from GATE 2
 
-1. **Search for related spec folders:**
-   ```bash
-   ls -d specs/*/ 2>/dev/null | head -10
-   ```
-   Also search for keyword matches in existing spec folders related to the research topic.
-
-2. **Present A/B/C/D options using AskUserQuestion:**
-   ```
-   question: "Where should this research be documented?"
-   options:
-     - A) Use existing spec folder: [suggest if related spec found]
-     - B) Create new spec folder: specs/[NNN]-[research-topic-slug]/
-     - C) Update related spec: [if partial match found]
-     - D) Skip documentation (research only, no persistent artifacts)
-   ```
-
-3. **WAIT for explicit user response** - Do NOT proceed until user selects an option.
-
-4. **If user selects Option A or C AND memory files exist:**
-   - Trigger memory file selection (MANDATORY per AGENTS.md Section 1):
-   ```
-   question: "Load previous context from this spec folder?"
-   options:
-     - A) Load most recent memory file (quick context refresh)
-     - B) Load all recent files (up to 3) (comprehensive context)
-     - C) List all files and select specific (historical search)
-     - D) Skip (start fresh, no context)
-   ```
-   - Use Read tool to load selected memory files
-   - Acknowledge loaded context before proceeding
-
-5. **Create/use spec folder based on user's explicit choice:**
-   - Option A: Use specified existing folder
-   - Option B: Create new folder with next sequential number
-   - Option C: Update specified related folder
-   - Option D: Skip folder creation (research output will not be persisted)
-
-**CRITICAL:**
-- NEVER auto-create spec folders without user confirmation
-- NEVER skip this step even if `$ARGUMENTS` contains a spec folder reference
-- NEVER proceed to Step 1.4 until user has explicitly chosen
+**If ANY gate is incomplete, STOP and return to the MANDATORY GATES section.**
 
 #### Step 1.4: Transform Raw Input
 
-Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
+Parse the research_topic (from GATE 0) and transform into structured user_inputs fields.
 
 **Field Extraction Rules**:
 
 | Field | Pattern Detection | Default If Empty |
 |-------|-------------------|------------------|
 | `git_branch` | "branch: X", "on branch X", "feature/X" | Auto-create feature-{NNN} |
-| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | **USE VALUE FROM STEP 1.3** (user's explicit choice) |
+| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | **USE VALUE FROM GATE 1** (user's explicit choice) |
 | `context` | "using X", "with Y", "tech stack:", "investigating:" | Infer from request |
 | `issues` | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Topics to investigate |
 | `request` | Research topic description (REQUIRED) | ERROR if completely empty |

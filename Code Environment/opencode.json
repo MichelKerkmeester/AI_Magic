@@ -5,8 +5,7 @@
     "input_newline": "ctrl+s"
   },
   "plugin": [
-    "opencode-skills",
-    "@tarquinen/opencode-dcp@latest"
+    "opencode-skills"
   ],
   "mcp": {
     "code_mode": {

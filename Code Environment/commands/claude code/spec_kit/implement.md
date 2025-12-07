@@ -4,32 +4,168 @@ argument-hint: "<spec-folder> [:auto|:confirm]"
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
 ---
 
-# 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
+# 🚨 MANDATORY GATES - BLOCKING ENFORCEMENT
 
-**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
+**These gates MUST be passed sequentially. Each gate BLOCKS until complete. You CANNOT proceed to the workflow until ALL gates show ✅ PASSED or ⏭️ N/A.**
+
+---
+
+## 🔒 GATE 0: Spec Folder Input Validation
+
+**STATUS: ☐ BLOCKED**
 
 ```
-IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
-    → STOP IMMEDIATELY
-    → Use AskUserQuestion tool with this exact question:
-        question: "Which spec folder would you like to implement?"
-        options:
-          - label: "Specify the folder"
-            description: "I'll provide the spec folder path (e.g., specs/042-feature-name/)"
-    → WAIT for user response
-    → Use their response as the spec folder path
-    → Only THEN continue with this workflow
+EXECUTE THIS CHECK FIRST:
 
-IF $ARGUMENTS contains a spec folder path:
-    → Continue reading this file
+├─ IF $ARGUMENTS is empty, undefined, or whitespace-only (ignoring :auto/:confirm flags):
+│   │
+│   ├─ Search for available spec folders with plan.md:
+│   │   $ ls -d specs/*/ 2>/dev/null | tail -10
+│   │
+│   ├─ ASK user: "Which spec folder would you like to implement?"
+│   │   Present found folders with plan.md status
+│   ├─ WAIT for user response (DO NOT PROCEED)
+│   ├─ Store response as: spec_folder_input
+│   └─ SET STATUS: ✅ PASSED
+│
+└─ IF $ARGUMENTS contains a spec folder path:
+    ├─ Store as: spec_folder_input
+    └─ SET STATUS: ✅ PASSED
+
+⛔ HARD STOP: DO NOT read past this gate until STATUS = ✅ PASSED
+⛔ NEVER infer spec folder from context, .spec-active, or conversation history
 ```
 
-**CRITICAL RULES:**
-- **DO NOT** infer the spec folder from context, screenshots, or .spec-active markers
-- **DO NOT** assume which spec folder the user wants to implement
-- **DO NOT** proceed past this point without an explicit spec folder path from the user
-- The spec folder MUST come from `$ARGUMENTS` or user's answer to the question above
+**Gate 0 Output:** `spec_folder_input = ________________`
 
+---
+
+## 🔒 GATE 1: Spec Folder Validation & Confirmation
+
+**STATUS: ☐ BLOCKED**
+
+```
+EXECUTE AFTER GATE 0 PASSES:
+
+1. Validate spec_folder_input exists and has required files:
+   $ ls -la [spec_folder_input]/
+   
+   Check for:
+   - spec.md (REQUIRED)
+   - plan.md (REQUIRED)
+   - tasks.md (will create if missing)
+   - checklist.md (REQUIRED for Level 2+)
+
+2. IF required files missing:
+   ├─ INFORM user: "Missing required files: [list]"
+   ├─ ASK: "Run /spec_kit:plan first, or select different folder?"
+   │   - A) Run /spec_kit:plan to create planning artifacts
+   │   - B) Select a different spec folder
+   └─ WAIT and redirect accordingly
+
+3. IF files exist, ASK user for confirmation:
+   ┌────────────────────────────────────────────────────────────┐
+   │ "Confirm implementation of this spec folder?"              │
+   │                                                            │
+   │ Folder: [spec_folder_input]                                │
+   │ ├─ spec.md ✓                                               │
+   │ ├─ plan.md ✓                                               │
+   │ └─ [other files status]                                    │
+   │                                                            │
+   │ A) Yes, implement this spec folder                         │
+   │ B) No, select a different spec folder                      │
+   │ C) Cancel - I need to plan first                           │
+   └────────────────────────────────────────────────────────────┘
+
+4. WAIT for explicit user confirmation
+
+5. Store confirmed path:
+   - spec_path = [confirmed path]
+
+6. SET STATUS: ✅ PASSED
+
+⛔ HARD STOP: DO NOT proceed until user explicitly confirms A
+⛔ NEVER assume spec folder is correct without validation
+```
+
+**Gate 1 Output:** `spec_path = ________________` | `prerequisites_valid = [yes/no]`
+
+---
+
+## 🔒 GATE 2: Memory Context Loading
+
+**STATUS: ☐ BLOCKED / ☐ N/A**
+
+```
+EXECUTE AFTER GATE 1 PASSES:
+
+1. Check: Does spec_path/memory/ exist AND contain files?
+
+├─ IF memory/ is empty or missing:
+│   └─ SET STATUS: ⏭️ N/A (no memory to load)
+│
+└─ IF memory/ has files:
+    │
+    ├─ ASK user:
+    │   ┌────────────────────────────────────────────────────┐
+    │   │ "Load previous context from this spec folder?"     │
+    │   │                                                    │
+    │   │ A) Load most recent memory file (quick refresh)    │
+    │   │ B) Load all recent files, up to 3 (comprehensive)  │
+    │   │ C) List all files and select specific              │
+    │   │ D) Skip (start fresh, no context)                  │
+    │   └────────────────────────────────────────────────────┘
+    │
+    ├─ WAIT for user response
+    ├─ Execute loading based on choice (use Read tool)
+    ├─ Acknowledge loaded context briefly
+    └─ SET STATUS: ✅ PASSED
+
+⛔ HARD STOP: DO NOT proceed until STATUS = ✅ PASSED or ⏭️ N/A
+```
+
+**Gate 2 Output:** `memory_loaded = [yes/no]` | `context_summary = ________________`
+
+---
+
+## ✅ GATE STATUS VERIFICATION
+
+**Before continuing to the workflow, verify ALL gates:**
+
+| Gate | Required Status | Your Status | Output Value |
+|------|-----------------|-------------|--------------|
+| GATE 0: Spec Input | ✅ PASSED | ______ | spec_folder_input: ______ |
+| GATE 1: Validation | ✅ PASSED | ______ | spec_path: ______ / valid: ______ |
+| GATE 2: Memory | ✅ PASSED or ⏭️ N/A | ______ | memory_loaded: ______ |
+
+```
+VERIFICATION CHECK:
+├─ ALL gates show ✅ PASSED or ⏭️ N/A?
+│   ├─ YES → Proceed to "# SpecKit Implement" section below
+│   └─ NO  → STOP and complete the blocked gate
+```
+
+---
+
+## ⚠️ VIOLATION SELF-DETECTION
+
+**You are IN VIOLATION if you:**
+- Started reading the workflow section before all gates passed
+- Proceeded without asking user for spec folder (Gate 0)
+- Started implementation without validating spec folder has required files (Gate 1)
+- Skipped memory prompt when memory files exist (Gate 2)
+- Inferred spec folder from .spec-active or context instead of explicit user input
+
+**VIOLATION RECOVERY PROTOCOL:**
+```
+1. STOP immediately - do not continue current action
+2. STATE: "I violated GATE [X] by [specific action]. Correcting now."
+3. RETURN to the violated gate
+4. COMPLETE the gate properly (ask user, wait for response)
+5. RESUME only after all gates pass verification
+```
+
+---
 ---
 
 # SpecKit Implement
@@ -131,65 +267,27 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 **Wait for user response before proceeding.**
 
-#### Step 1.3: Spec Folder Confirmation (MANDATORY - DO NOT SKIP)
+#### Step 1.3: Verify Gates Passed
 
-🚨 **This step is REQUIRED by AGENTS.md Section 1 - "Collaboration First"**
+**⚠️ CHECKPOINT: Confirm all gates from the enforcement section above are complete.**
 
-**BEFORE any file reading or workflow execution, you MUST:**
+Before proceeding, verify you have these values from the gates:
+- `spec_path` from GATE 0 and GATE 1 (validated and confirmed)
+- `prerequisites_valid` from GATE 1
+- `memory_loaded` status from GATE 2
 
-1. **Detect or search for spec folder:**
-   - If spec folder specified in `$ARGUMENTS`: validate it exists and has required files
-   - If NOT specified: search for spec folders with plan.md:
-   ```bash
-   ls -d specs/*/ 2>/dev/null | head -10
-   ```
-
-2. **Present confirmation using AskUserQuestion:**
-   ```
-   question: "Which spec folder should be implemented?"
-   options:
-     - A) Use [detected/specified folder]: specs/[NNN]-[name]/ (has plan.md ✓)
-     - B) Select different spec folder (I'll list available options)
-     - C) Search by keyword (I'll find matching specs)
-   ```
-
-3. **WAIT for explicit user response** - Do NOT proceed until user confirms.
-
-4. **Validate prerequisites exist in chosen folder:**
-   - `spec.md` - REQUIRED
-   - `plan.md` - REQUIRED
-   - `tasks.md` - Will create if missing
-   - `checklist.md` - REQUIRED for Level 2+
-
-   If missing required files, guide user to run `/spec_kit:plan` first.
-
-5. **If memory files exist in chosen spec folder, ask for memory loading:**
-   ```
-   question: "Load previous context from this spec folder?"
-   options:
-     - A) Load most recent memory file (quick context refresh)
-     - B) Load all recent files (up to 3) (comprehensive context)
-     - C) List all files and select specific (historical search)
-     - D) Skip (start fresh, no context)
-   ```
-   - Use Read tool to load selected memory files
-   - Acknowledge loaded context before proceeding
-
-**CRITICAL:**
-- NEVER assume which spec folder to use without user confirmation
-- NEVER skip memory loading prompt if memory files exist
-- NEVER proceed to Step 1.4 until user has explicitly confirmed spec folder
+**If ANY gate is incomplete, STOP and return to the MANDATORY GATES section.**
 
 #### Step 1.4: Transform Raw Input
 
-Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
+Parse the spec_path (from GATE 1) and any additional arguments.
 
 **Field Extraction Rules**:
 
 | Field | Pattern Detection | Default If Empty |
 |-------|-------------------|------------------|
 | `git_branch` | "branch: X", "on branch X", "feature/X" | Use existing branch from spec folder |
-| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | **USE VALUE FROM STEP 1.3** (user's confirmed choice) |
+| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | **USE VALUE FROM GATE 1** (user's confirmed choice) |
 | `context` | "using X", "with Y", "constraints:" | Infer from spec folder |
 | `issues` | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Discover during workflow |
 | `request` | Additional instructions | "Conduct comprehensive review and implement" |
