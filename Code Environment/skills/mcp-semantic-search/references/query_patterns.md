@@ -556,20 +556,6 @@ Faster, no API call, no vector search needed.
 - "How do we prevent form resubmission?"
 - "What protects against XSS attacks?"
 
-### Template 5: Evolution/History
-
-```
-"When was [FEATURE] added?" (use search_commit_history)
-"What changed in [AREA]?" (use search_commit_history)
-"Find commits related to [FEATURE]" (use search_commit_history)
-```
-
-**Examples:**
-
-- "When was the cookie consent added?"
-- "What changed in the video player?"
-- "Find commits related to form validation"
-
 ---
 
 ## 8. 🚀 ADVANCED QUERY PATTERNS

@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "global_defaults": {
+    "max_attempts": 3,
+    "escalation_delay_minutes": 5,
+    "auto_delegate": true
+  },
+  "per_category_limits": {
+    "syntax_error": { "max_attempts": 2, "priority": "high" },
+    "type_error": { "max_attempts": 3, "priority": "high" },
+    "runtime_error": { "max_attempts": 4, "priority": "medium" },
+    "test_failure": { "max_attempts": 5, "priority": "medium" },
+    "build_error": { "max_attempts": 3, "priority": "high" },
+    "lint_error": { "max_attempts": 2, "priority": "low" }
+  },
+  "escalation_rules": {
+    "on_threshold_reached": "delegate_to_specialist",
+    "on_repeated_failure": "escalate_to_user",
+    "specialist_capabilities": ["debug", "analyze", "refactor"]
+  }
+}

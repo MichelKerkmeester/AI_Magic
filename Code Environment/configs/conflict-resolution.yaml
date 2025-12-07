@@ -1,0 +1,298 @@
+# ───────────────────────────────────────────────────────────────
+# CONFLICT RESOLUTION CONFIGURATION
+# ───────────────────────────────────────────────────────────────
+# Configuration for the merge-engine.sh conflict resolution system.
+# Defines resolution strategies, severity escalation rules, and
+# auto-resolution policies.
+#
+# Version: 1.0.0
+# Created: 2025-12-06
+# Spec: specs/013-speckit-enhancements-from-repo-reference/
+# Tasks: T167 (US-023)
+#
+# USAGE:
+#   Referenced by: .claude/hooks/lib/merge-engine.sh
+#   
+# MODIFICATION:
+#   Update this file to customize conflict resolution behavior
+#   for your project's specific needs.
+# ───────────────────────────────────────────────────────────────
+
+version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════
+# RESOLUTION STRATEGIES
+# ═══════════════════════════════════════════════════════════════
+# Available strategies for resolving parallel agent conflicts.
+# Each strategy has applicability rules and risk assessment.
+
+resolution_strategies:
+  
+  # ─────────────────────────────────────────────────────────────
+  # auto_merge: Automatically merge non-overlapping changes
+  # ─────────────────────────────────────────────────────────────
+  # Safest automatic resolution - only applies when changes
+  # don't touch the same lines and have no semantic dependencies.
+  auto_merge:
+    description: "Automatically merge non-overlapping changes"
+    applicable_when:
+      - different_line_ranges      # Changes affect different lines
+      - no_semantic_conflict       # No functional dependencies
+      - no_shared_imports          # No conflicting import statements
+      - no_variable_overlap        # Variables used don't overlap
+    risk: low
+    auto_apply: true
+    requires_review: false
+    timeout_minutes: 5
+    
+  # ─────────────────────────────────────────────────────────────
+  # prefer_newer: Keep the more recent change
+  # ─────────────────────────────────────────────────────────────
+  # Uses timestamp to determine which change is more recent.
+  # Useful when changes represent iterative improvements.
+  prefer_newer:
+    description: "Keep the more recent change"
+    applicable_when:
+      - same_line_changes          # Both changed same lines
+      - clear_timestamp_order      # Timestamps are unambiguous
+      - not_semantic_conflict      # Not a breaking change
+    risk: medium
+    auto_apply: false
+    requires_review: true
+    rationale: "Assumes newer change incorporates context of older change"
+    
+  # ─────────────────────────────────────────────────────────────
+  # prefer_agent: Prefer specific agent's changes based on role
+  # ─────────────────────────────────────────────────────────────
+  # Uses agent role hierarchy to determine which changes take
+  # precedence. Primary code agents beat secondary agents.
+  prefer_agent:
+    description: "Prefer specific agent's changes based on role"
+    applicable_when:
+      - agents_have_different_roles
+      - clear_priority_difference
+      - both_changes_valid
+    risk: medium
+    auto_apply: false
+    requires_review: true
+    # Priority order (first = highest priority)
+    priority_order:
+      - code      # Primary code agents take precedence
+      - test      # Test agents next
+      - docs      # Documentation agents
+      - devops    # DevOps/infrastructure
+      - research  # Research agents
+      - other     # Ad-hoc agents
+    rationale: "Primary task agents understand context better"
+    
+  # ─────────────────────────────────────────────────────────────
+  # manual: Require human intervention
+  # ─────────────────────────────────────────────────────────────
+  # Fall-through strategy when automatic resolution isn't safe.
+  # Creates a resolution task for human review.
+  manual:
+    description: "Require human intervention"
+    applicable_when:
+      - semantic_conflict          # Changes are functionally incompatible
+      - critical_severity          # Severity too high for automation
+      - complex_overlap            # Changes are interleaved
+      - user_requested             # User explicitly requested manual
+    risk: none                     # Human decides, no automation risk
+    auto_apply: false
+    requires_review: true          # By definition
+    creates_blocker: true          # Creates BLOCKER flag
+    rationale: "Some conflicts require human judgment"
+
+# ═══════════════════════════════════════════════════════════════
+# SEVERITY ESCALATION RULES
+# ═══════════════════════════════════════════════════════════════
+# Defines how conflict severity affects resolution handling.
+# Higher severity = more restrictive policies.
+
+severity_escalation:
+  
+  # ─────────────────────────────────────────────────────────────
+  # LOW: Minor conflicts, safe to auto-resolve
+  # ─────────────────────────────────────────────────────────────
+  low:
+    auto_resolve: true
+    strategy: auto_merge
+    require_review: false
+    create_blocker: false
+    timeout_hours: 24
+    examples:
+      - "Whitespace-only changes"
+      - "Comment modifications"
+      - "Non-overlapping additions to different sections"
+    
+  # ─────────────────────────────────────────────────────────────
+  # MEDIUM: Standard conflicts, suggest auto but allow review
+  # ─────────────────────────────────────────────────────────────
+  medium:
+    auto_resolve: true
+    strategy: auto_merge
+    require_review: false
+    create_blocker: false
+    timeout_hours: 8
+    escalate_after_failures: 2     # Escalate to HIGH after 2 failed attempts
+    examples:
+      - "Non-overlapping code changes"
+      - "Different function modifications"
+      - "Separate file sections"
+    
+  # ─────────────────────────────────────────────────────────────
+  # HIGH: Significant conflicts, suggest strategy but need review
+  # ─────────────────────────────────────────────────────────────
+  high:
+    auto_resolve: false
+    suggest_strategy: prefer_newer
+    require_review: true
+    create_blocker: false
+    timeout_hours: 4
+    escalate_if_unresolved: true
+    notification_required: true
+    examples:
+      - "Same function modified by multiple agents"
+      - "Overlapping line ranges"
+      - "Import statement conflicts"
+      - "Variable naming conflicts"
+    
+  # ─────────────────────────────────────────────────────────────
+  # CRITICAL: Breaking conflicts, require immediate attention
+  # ─────────────────────────────────────────────────────────────
+  critical:
+    auto_resolve: false
+    suggest_strategy: manual
+    require_review: true
+    require_manual: true
+    create_blocker: true           # Blocks all work until resolved
+    timeout_hours: 1
+    escalate_immediately: true
+    notification_required: true
+    pause_related_agents: true     # Pause agents working on related files
+    examples:
+      - "Core logic conflicts"
+      - "API signature changes from multiple agents"
+      - "Security-related code conflicts"
+      - "Test failures from conflicting changes"
+
+# ═══════════════════════════════════════════════════════════════
+# AUTO-RESOLUTION POLICIES
+# ═══════════════════════════════════════════════════════════════
+# Global policies for automatic resolution behavior.
+
+auto_resolution:
+  
+  # Enable/disable auto-resolution globally
+  enabled: true
+  
+  # Maximum severity level for auto-resolution
+  max_auto_severity: medium
+  
+  # File patterns that always require manual resolution
+  always_manual_patterns:
+    - "*.lock"                     # Lock files
+    - "**/security/**"             # Security-related files
+    - "**/auth/**"                 # Authentication code
+    - "**/.env*"                   # Environment files
+    - "**/migrations/**"           # Database migrations
+    - "package.json"               # Package manifests
+    
+  # File patterns safe for aggressive auto-merge
+  safe_auto_merge_patterns:
+    - "*.md"                       # Documentation
+    - "*.txt"                      # Text files
+    - "**/test/**"                 # Test files (with caution)
+    - "**/docs/**"                 # Documentation
+    
+  # Maximum number of auto-resolution attempts before escalating
+  max_auto_attempts: 3
+  
+  # Cooldown between auto-resolution attempts (seconds)
+  attempt_cooldown_seconds: 30
+
+# ═══════════════════════════════════════════════════════════════
+# BLOCKER INTEGRATION
+# ═══════════════════════════════════════════════════════════════
+# Configuration for integration with the flag system.
+
+blocker_integration:
+  
+  # Automatically create BLOCKER flags for unresolved conflicts
+  auto_create_blockers: true
+  
+  # Severity levels that trigger BLOCKER creation
+  blocker_trigger_severities:
+    - critical
+    - high
+    
+  # Time before unresolved conflict becomes BLOCKER (minutes)
+  escalation_to_blocker_minutes:
+    high: 60
+    critical: 0                    # Immediate
+    
+  # Message templates for BLOCKER flags
+  blocker_message_template: |
+    Unresolved conflict requires attention
+    Conflict ID: {conflict_id}
+    File: {file}
+    Severity: {severity}
+    Agents: {agent1} vs {agent2}
+    Run: get_resolution_instructions('{conflict_id}')
+
+# ═══════════════════════════════════════════════════════════════
+# NOTIFICATION SETTINGS
+# ═══════════════════════════════════════════════════════════════
+# How and when to notify about conflicts.
+
+notifications:
+  
+  # Use systemMessage for always-visible output
+  use_system_message: true
+  
+  # Log file for conflict resolution events
+  log_file: "logs/merge-engine.log"
+  
+  # Include conflict preview in notifications
+  include_preview: true
+  
+  # Maximum preview lines to include
+  max_preview_lines: 10
+
+# ═══════════════════════════════════════════════════════════════
+# MERGE PREVIEW SETTINGS
+# ═══════════════════════════════════════════════════════════════
+# Configuration for merge preview generation.
+
+merge_preview:
+  
+  # Maximum lines of context around changes
+  context_lines: 3
+  
+  # Show line numbers in preview
+  show_line_numbers: true
+  
+  # Highlight change markers
+  highlight_changes: true
+  
+  # Maximum total lines in preview
+  max_preview_lines: 100
+
+# ═══════════════════════════════════════════════════════════════
+# RESOLUTION HISTORY
+# ═══════════════════════════════════════════════════════════════
+# Settings for tracking resolution history.
+
+history:
+  
+  # Enable resolution history tracking
+  enabled: true
+  
+  # Maximum history entries to keep
+  max_entries: 100
+  
+  # State key for storing history
+  state_key: "resolution_history"
+  
+  # Retention period (hours)
+  retention_hours: 168            # 1 week

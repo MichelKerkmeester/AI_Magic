@@ -1,6 +1,7 @@
 {
   "enabledMcpjsonServers": [
     "code_mode",
+    "semantic_memory",
     "semantic_search"
   ],
   "hooks": {
@@ -308,6 +309,11 @@
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/workflows-save-context-trigger.sh",
             "timeout": 60000
+          },
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/UserPromptSubmit/memory-surfacing.sh",
+            "timeout": 50
           }
         ]
       }

@@ -20,6 +20,24 @@
       },
       "enabled": true
     },
+    "sequential_thinking": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "enabled": true
+    },
+    "semantic_memory": {
+      "type": "local",
+      "command": [
+        "node",
+        "/path/to/mcp-servers/semantic-memory/semantic-memory.js"
+      ],
+      "environment": {},
+      "enabled": true
+    },
     "semantic_search": {
       "type": "local",
       "command": [
@@ -40,15 +58,6 @@
         "MCP_CODEBASE_JUDGE_MAX_TOKENS": "1024",
         "MCP_CODEBASE_JUDGE_TEMPERATURE": "0"
       },
-      "enabled": true
-    },
-    "sequential_thinking": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
       "enabled": true
     }
   }

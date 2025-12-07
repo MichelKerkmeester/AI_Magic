@@ -47,22 +47,26 @@ else
     EXIT_BLOCK=1
 fi
 
+source "$LIB_DIR/perf-timing.sh" 2>/dev/null || true
+
+# Fallback timing function if library not loaded
+if ! type _get_nano_time &>/dev/null; then
+  _get_nano_time() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      echo $(($(date +%s) * 1000000000))
+    else
+      date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
+    fi
+  }
+fi
+
 # Configuration
 LOG_DIR="$HOOKS_DIR/logs"
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 
 mkdir -p "$LOG_DIR"
 
-# Cross-platform nanosecond timing helper
-_get_nano_time() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo $(($(date +%s) * 1000000000))
-  else
-    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
-  fi
-}
-
-# Performance tracking
+# Performance tracking (using centralized _get_nano_time from perf-timing.sh)
 START_TIME=$(_get_nano_time)
 
 # Function to log blocks

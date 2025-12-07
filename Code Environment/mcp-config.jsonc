@@ -17,6 +17,24 @@
         "*"
       ] // Expose all available MCP tools (use array of tool names to restrict)
     },
+    // Advanced Reasoning for non Reasoning Copilot Models
+    "sequential-thinking": {
+      "command": "/path/to/mcp-sequential-thinking/.venv/bin/python3.12",
+      "args": [
+        "-m",
+        "mcp_sequential_thinking.server"
+      ]
+    },
+    // Semantic Memory MCP Server - Persistent memory storage
+    "semantic_memory": {
+      "command": "node",
+      "args": [
+        "/path/to/mcp-servers/semantic-memory/semantic-memory.js"
+      ],
+      "tools": [
+        "*"
+      ] // Expose all available MCP tools
+    },
     // Semantic Search MCP Server - Intent-based code discovery
     "semantic_search": {
       "command": "/path/to/mcp-servers/semantic-search/venv/bin/python",
@@ -37,14 +55,6 @@
         "MCP_CODEBASE_JUDGE_MAX_TOKENS": "1024",
         "MCP_CODEBASE_JUDGE_TEMPERATURE": "0"
       }
-    },
-    // Advanced Reasoning for non Reasoning Copilot Models
-    "sequential-thinking": {
-      "command": "/path/to/mcp-sequential-thinking/.venv/bin/python3.12",
-      "args": [
-        "-m",
-        "mcp_sequential_thinking.server"
-      ]
     }
   }
 }

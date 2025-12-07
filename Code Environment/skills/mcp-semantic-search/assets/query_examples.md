@@ -147,9 +147,9 @@ Categorized collection of example queries demonstrating effective semantic searc
 
 ---
 
-## 8. 🏗️ PROJECT-SPECIFIC EXAMPLES
+## 8. 🏗️ PROJECT-SPECIFIC (ANOBEL.COM)
 
-**Queries specific to your project:**
+**Queries specific to anobel.com project:**
 
 ```
 "Find video player implementation in hero section"
@@ -162,35 +162,13 @@ Categorized collection of example queries demonstrating effective semantic searc
 "Where do we initialize Webflow interactions?"
 ```
 
-**When to use:** Navigating your project codebase.
+**When to use:** Navigating the anobel.com codebase.
 
 **Expected results:** Project-specific implementations.
 
 ---
 
-## 9. 📜 COMMIT HISTORY (USING SEARCH_COMMITS)
-
-**Search git history for changes:**
-
-```
-"Find commits related to the contact form"
-"Show changes to the video player"
-"When was the cookie consent added?"
-"What bug fixes were made to the hero animation?"
-"Find commits about form validation"
-"Show me video player updates"
-"When did we add Motion.dev integration?"
-```
-
-**Tool:** Use `search_commit_history()` instead of `semantic_search()`
-
-**When to use:** Understanding code evolution and change history.
-
-**Expected results:** Commit messages, diffs, timestamps.
-
----
-
-## 10. 💡 GOOD VS BAD EXAMPLES
+## 9. 💡 GOOD VS BAD EXAMPLES
 
 ### Example Set 1: Email Validation
 
@@ -408,7 +386,7 @@ Aspects:
 
 ## 14. 📊 PROJECT-SPECIFIC INDEX STATS
 
-**Example project index statistics:**
+**Current anobel.com index (as of 2025-11-25):**
 
 - **Files:** 249 files indexed
 - **Code blocks:** 496 chunks

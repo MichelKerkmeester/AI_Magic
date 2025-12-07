@@ -5,6 +5,8 @@ allowed-tools: [Read, Grep, Glob, Bash]
 version: 2.0.0
 ---
 
+<!-- Keywords: workflows-code, development-orchestrator, frontend-development, browser-verification, debugging-workflow, implementation-patterns, webflow-integration, devtools -->
+
 # Code Workflows - Development Orchestrator
 
 Unified workflow guidance across 6 specialized code quality skills for frontend development.

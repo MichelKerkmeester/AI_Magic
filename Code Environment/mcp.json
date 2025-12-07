@@ -11,6 +11,14 @@
       "working_directory": null,
       "disabled": false
     },
+    "semantic_memory": {
+      "command": "node",
+      "args": [
+        "/path/to/mcp-servers/semantic-memory/semantic-memory.js"
+      ],
+      "env": {},
+      "disabled": false
+    },
     "semantic_search": {
       "command": "/path/to/mcp-servers/semantic-search/venv/bin/python",
       "args": [

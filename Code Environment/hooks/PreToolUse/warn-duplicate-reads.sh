@@ -37,17 +37,9 @@ HOOKS_DIR="$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd)"
 source "$HOOKS_DIR/lib/output-helpers.sh" 2>/dev/null || exit 0
 source "$HOOKS_DIR/lib/exit-codes.sh" 2>/dev/null || exit 0
 source "$HOOKS_DIR/lib/shared-state.sh" 2>/dev/null || exit 0
+source "$HOOKS_DIR/lib/perf-timing.sh" 2>/dev/null || exit 0
 
-# Cross-platform nanosecond timing helper
-_get_nano_time() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo $(($(date +%s) * 1000000000))
-  else
-    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
-  fi
-}
-
-# Performance timing
+# Performance timing (using centralized _get_nano_time from perf-timing.sh)
 START_TIME=$(_get_nano_time)
 
 # ───────────────────────────────────────────────────────────────
@@ -252,7 +244,8 @@ if echo "$HISTORY" | jq -e --arg sig "$SIGNATURE" '.signatures[$sig]' >/dev/null
 
     # Emit systemMessage for Claude Code visibility (use short description)
     # Construct message with variables safely
-    local display_path="${FILE_PATH:-$PATTERN}"
+    # NOTE: Not using 'local' here as this is top-level script, not inside a function
+    display_path="${FILE_PATH:-$PATTERN}"
     echo "{\"systemMessage\": \"⚠️ Duplicate $TOOL_NAME detected: ${display_path} (~${TOKEN_WASTE_THIS_CALL} tokens wasted) - reuse previous output from message #$PREV_MSG\"}"
 
     # Emit machine-readable JSON intelligence (using jq for safe JSON construction)

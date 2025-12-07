@@ -5,6 +5,8 @@ allowed-tools: [Grep, Read, Glob]
 version: 1.0.0
 ---
 
+<!-- Keywords: semantic-search, mcp, code-discovery, natural-language-search, vector-embeddings, intent-based-search, cli-ai-agents, codebase-exploration -->
+
 # MCP Semantic Search - Intent-Based Code Discovery
 
 Semantic code search for CLI AI agents that enables AI-powered codebase exploration using natural language queries instead of keyword searches. Available exclusively for CLI AI agents with MCP (Model Context Protocol) support.
@@ -160,19 +162,14 @@ def route_semantic_search_resources(task):
 
 ### Tool Overview
 
-**Three semantic search MCP tools available:**
+**Two semantic search MCP tools available:**
 
 1. **`semantic_search`** - Search current project semantically
    - Primary tool for code discovery
    - Finds code by intent and behavior
    - Returns ranked code snippets with file paths
 
-2. **`search_commit_history`** - Search git commit history
-   - Understanding why code was changed
-   - Finding when features were added
-   - Locating bug fixes
-
-3. **`visit_other_project`** - Search other indexed projects
+2. **`visit_other_project`** - Search other indexed projects
    - Finding similar patterns in other codebases
    - Reusing code from other projects
    - Cross-project comparisons
@@ -374,7 +371,6 @@ Read("src/components/hero_section.js")
 **Required MCP tools:**
 
 - `semantic_search` - Semantic code search
-- `search_commit_history` - Semantic commit history search
 - `visit_other_project` - Cross-project search
 
 **MCP server:** semantic-search (Python)
@@ -410,7 +406,7 @@ Read("src/components/hero_section.js")
 **Note on Code Mode:**
 
 - Semantic search is a **NATIVE MCP tool** - call directly, NOT through Code Mode
-- Use `semantic_search()`, `search_commit_history()`, `visit_other_project()` directly
+- Use `mcp__semantic_search__semantic_search()`, `mcp__semantic_search__visit_other_project()` directly
 - Code Mode is for external tools (Webflow, Figma, ClickUp, etc.)
 - See [.claude/skills/mcp-code-mode/SKILL.md](../mcp-code-mode/SKILL.md) for external tool patterns
 
@@ -443,7 +439,7 @@ Read("src/components/hero_section.js")
 - Use `/semantic_search stats` to verify indexing status
 - Indexer watches files for automatic updates
 
-**Example project index statistics:**
+**Current anobel.com index (as of 2025-11-25):**
 
 - 249 files indexed
 - 496 code blocks

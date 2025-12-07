@@ -32,6 +32,7 @@ const DB_PERMISSIONS = 0o600; // Owner read/write only
 let db = null;
 let dbPath = DEFAULT_DB_PATH;
 let sqliteVecAvailable = true; // Track if sqlite-vec is available (NFR-R01)
+let shuttingDown = false;
 
 /**
  * Initialize or get database connection
@@ -280,8 +281,8 @@ function updateMemory(params) {
       UPDATE memory_index SET ${updates.join(', ')} WHERE id = ?
     `).run(...values);
 
-    // Update embedding if provided
-    if (embedding) {
+    // Update embedding if provided (only if sqlite-vec available)
+    if (embedding && sqliteVecAvailable) {
       const embeddingBuffer = Buffer.from(embedding.buffer);
 
       // Delete old vector (BigInt for vec_memories rowid)
@@ -296,6 +297,7 @@ function updateMemory(params) {
     return id;
   });
 
+  // Execute transaction (better-sqlite3 uses BEGIN IMMEDIATE by default)
   return updateMemoryTx();
 }
 
@@ -309,8 +311,10 @@ function deleteMemory(id) {
   const database = initializeDb();
 
   const deleteMemoryTx = database.transaction(() => {
-    // Delete from vec_memories first (BigInt for rowid)
-    database.prepare('DELETE FROM vec_memories WHERE rowid = ?').run(BigInt(id));
+    // Delete from vec_memories first (only if sqlite-vec available)
+    if (sqliteVecAvailable) {
+      database.prepare('DELETE FROM vec_memories WHERE rowid = ?').run(BigInt(id));
+    }
 
     // Delete from memory_index
     const result = database.prepare('DELETE FROM memory_index WHERE id = ?').run(id);
@@ -463,39 +467,25 @@ function vectorSearch(queryEmbedding, options = {}) {
   // similarity = (1 - distance/2) * 100, so distance = 2 * (1 - similarity/100)
   const maxDistance = 2 * (1 - minSimilarity / 100);
 
-  let sql;
-  let params;
+  // Refactored to compute distance only once using subquery pattern
+  const sql = `
+    SELECT sub.*,
+           ROUND((1 - sub.distance / 2) * 100, 2) as similarity
+    FROM (
+      SELECT m.*, vec_distance_cosine(v.embedding, ?) as distance
+      FROM memory_index m
+      JOIN vec_memories v ON m.id = v.rowid
+      WHERE m.embedding_status = 'success'
+      ${specFolder ? 'AND m.spec_folder = ?' : ''}
+    ) sub
+    WHERE sub.distance <= ?
+    ORDER BY sub.distance ASC
+    LIMIT ?
+  `;
 
-  if (specFolder) {
-    sql = `
-      SELECT
-        m.*,
-        vec_distance_cosine(v.embedding, ?) as distance,
-        ROUND((1 - vec_distance_cosine(v.embedding, ?) / 2) * 100, 2) as similarity
-      FROM memory_index m
-      JOIN vec_memories v ON m.id = v.rowid
-      WHERE m.embedding_status = 'success'
-        AND m.spec_folder = ?
-        AND vec_distance_cosine(v.embedding, ?) <= ?
-      ORDER BY distance ASC
-      LIMIT ?
-    `;
-    params = [queryBuffer, queryBuffer, specFolder, queryBuffer, maxDistance, limit];
-  } else {
-    sql = `
-      SELECT
-        m.*,
-        vec_distance_cosine(v.embedding, ?) as distance,
-        ROUND((1 - vec_distance_cosine(v.embedding, ?) / 2) * 100, 2) as similarity
-      FROM memory_index m
-      JOIN vec_memories v ON m.id = v.rowid
-      WHERE m.embedding_status = 'success'
-        AND vec_distance_cosine(v.embedding, ?) <= ?
-      ORDER BY distance ASC
-      LIMIT ?
-    `;
-    params = [queryBuffer, queryBuffer, queryBuffer, maxDistance, limit];
-  }
+  const params = specFolder
+    ? [queryBuffer, specFolder, maxDistance, limit]
+    : [queryBuffer, maxDistance, limit];
 
   const rows = database.prepare(sql).all(...params);
 
@@ -605,6 +595,15 @@ function multiConceptSearch(conceptEmbeddings, options = {}) {
 // ───────────────────────────────────────────────────────────────
 
 /**
+ * Close database connection safely
+ */
+function safeClose() {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  closeDb();
+}
+
+/**
  * Close database connection
  */
 function closeDb() {
@@ -636,6 +635,17 @@ function getDb() {
  * @returns {Object} Integrity check results
  */
 function verifyIntegrity() {
+  if (!sqliteVecAvailable) {
+    return {
+      isConsistent: false,
+      error: 'Vector search unavailable - sqlite-vec extension not loaded',
+      totalMemories: 0,
+      memoriesWithEmbeddings: 0,
+      orphanedVectors: 0,
+      missingVectors: 0
+    };
+  }
+
   const database = initializeDb();
 
   // Count mismatched rowids
@@ -678,6 +688,7 @@ module.exports = {
   // Initialization
   initializeDb,
   closeDb,
+  safeClose,
   getDb,
   getDbPath,
 

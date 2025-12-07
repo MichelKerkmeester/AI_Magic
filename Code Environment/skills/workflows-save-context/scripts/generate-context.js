@@ -30,6 +30,12 @@ const {
   extractSpecNumber
 } = require('./lib/anchor-generator');
 
+// Semantic memory v10.0 - embedding generation and vector indexing
+const { generateEmbedding, EMBEDDING_DIM, MODEL_NAME } = require('./lib/embeddings');
+const vectorIndex = require('./lib/vector-index');
+const retryManager = require('./lib/retry-manager');
+const { extractTriggerPhrases } = require('./lib/trigger-extractor');
+
 // ───────────────────────────────────────────────────────────────
 // CONFIGURATION
 // ───────────────────────────────────────────────────────────────
@@ -80,7 +86,7 @@ function loadConfig() {
 const userConfig = loadConfig();
 
 const CONFIG = {
-  SKILL_VERSION: '9.0.0',
+  SKILL_VERSION: '10.0.0',
   MESSAGE_COUNT_TRIGGER: 20, // Auto-save every 20 messages
   MAX_RESULT_PREVIEW: userConfig.maxResultPreview,
   MAX_CONVERSATION_MESSAGES: userConfig.maxConversationMessages,
@@ -91,7 +97,10 @@ const CONFIG = {
   TIMEZONE_OFFSET_HOURS: userConfig.timezoneOffsetHours,
   TOOL_PREVIEW_LINES: 10, // lines to show in tool result preview
   TEMPLATE_DIR: path.join(__dirname, '..', 'templates'),
-  PROJECT_ROOT: process.cwd(),
+  // Fix: Derive PROJECT_ROOT from script location, not cwd()
+  // __dirname = .claude/skills/workflows-save-context/scripts
+  // PROJECT_ROOT = 4 levels up from __dirname
+  PROJECT_ROOT: path.resolve(__dirname, '..', '..', '..', '..'),
   DATA_FILE: process.argv[2] || null, // Accept data file as first argument
   SPEC_FOLDER_ARG: process.argv[3] || null // Accept spec folder as second argument (optional)
 };
@@ -871,6 +880,12 @@ async function main() {
           filesModified: implementationSummary.filesModified.length,
           decisions: implementationSummary.decisions.length,
           messageStats: implementationSummary.messageStats
+        },
+        // Semantic memory v10.0 - embedding metadata (CHK016)
+        embedding: {
+          status: 'pending', // Updated after Step 11 completes
+          model: MODEL_NAME,
+          dimensions: EMBEDDING_DIM
         }
       }, null, 2)
     };
@@ -990,6 +1005,117 @@ async function main() {
     console.log(`  • ${decisions.DECISIONS.length} key decisions documented`);
     console.log(`  • ${diagrams.DIAGRAMS.length} diagrams preserved`);
     console.log(`  • Session duration: ${sessionData.DURATION}\n`);
+
+    // ─────────────────────────────────────────────────────────────
+    // Step 11: Semantic Memory Indexing (v10.0)
+    // ─────────────────────────────────────────────────────────────
+    console.log('🧠 Step 11: Indexing semantic memory...');
+
+    try {
+      const embeddingStart = Date.now();
+
+      // Get the context content for embedding
+      const contextContent = files[contextFilename];
+      const filePath = path.join(contextDir, contextFilename);
+
+      // Generate embedding from the context content
+      const embedding = await generateEmbedding(contextContent);
+
+      if (embedding) {
+        const embeddingTime = Date.now() - embeddingStart;
+
+        // Extract title from the first heading or use filename
+        const titleMatch = contextContent.match(/^#\s+(.+)$/m);
+        const title = titleMatch ? titleMatch[1] : contextFilename.replace('.md', '');
+
+        // Extract trigger phrases using TF-IDF + N-gram algorithm (FR-012)
+        let triggerPhrases = [];
+        try {
+          triggerPhrases = extractTriggerPhrases(contextContent);
+          console.log(`   ✓ Extracted ${triggerPhrases.length} trigger phrases`);
+        } catch (triggerError) {
+          console.warn(`   ⚠️  Trigger extraction failed: ${triggerError.message}`);
+          // Continue with empty trigger phrases - not a blocking failure
+        }
+
+        // Calculate importance weight based on content characteristics (FR-013)
+        const contentLength = contextContent.length;
+        const anchorCount = (contextContent.match(/<!-- anchor:/g) || []).length;
+        const lengthFactor = Math.min(contentLength / 10000, 1) * 0.3; // Max 0.3
+        const anchorFactor = Math.min(anchorCount / 10, 1) * 0.3; // Max 0.3
+        const recencyFactor = 0.2; // New memory = max recency
+        const importanceWeight = Math.round((lengthFactor + anchorFactor + recencyFactor + 0.2) * 100) / 100;
+
+        // Index the memory
+        const memoryId = vectorIndex.indexMemory({
+          specFolder: specFolderName,
+          filePath: filePath,
+          anchorId: null, // Full document, no specific anchor
+          title: title,
+          triggerPhrases: triggerPhrases,
+          importanceWeight: importanceWeight,
+          embedding: embedding
+        });
+
+        console.log(`   ✓ Embedding generated in ${embeddingTime}ms`);
+        console.log(`   ✓ Indexed as memory #${memoryId} (${EMBEDDING_DIM} dimensions)`);
+
+        // Update metadata.json with successful embedding info (CHK016)
+        try {
+          const metadataPath = path.join(contextDir, 'metadata.json');
+          const metadataContent = await fs.readFile(metadataPath, 'utf-8');
+          const metadata = JSON.parse(metadataContent);
+          metadata.embedding = {
+            status: 'indexed',
+            model: MODEL_NAME,
+            dimensions: EMBEDDING_DIM,
+            memoryId: memoryId,
+            generatedAt: new Date().toISOString(),
+            triggerPhrases: triggerPhrases.slice(0, 5), // Top 5 for reference
+            importanceWeight: importanceWeight
+          };
+          await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+          console.log(`   ✓ Updated metadata.json with embedding info`);
+        } catch (metaError) {
+          console.warn(`   ⚠️  Could not update metadata.json: ${metaError.message}`);
+        }
+
+        // Performance warning if slow
+        if (embeddingTime > 500) {
+          console.warn(`   ⚠️  Embedding took ${embeddingTime}ms (target <500ms)`);
+        }
+      } else {
+        console.warn('   ⚠️  Embedding generation returned null - skipping indexing');
+      }
+    } catch (embeddingError) {
+      // Graceful degradation - save succeeded, embedding failed (T028)
+      console.warn(`   ⚠️  Embedding failed: ${embeddingError.message}`);
+      console.warn('   ℹ️  Context saved successfully without semantic indexing');
+      console.warn('   ℹ️  Run "npm run rebuild" to retry indexing later');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Step 12: Opportunistic Retry (v10.0 - T037)
+    // ─────────────────────────────────────────────────────────────
+    // Process up to 3 pending/retry embeddings opportunistically
+    try {
+      const retryStats = retryManager.getRetryStats();
+      if (retryStats.queueSize > 0) {
+        console.log('🔄 Step 12: Processing retry queue...');
+
+        const results = await retryManager.processRetryQueue(3);
+
+        if (results.processed > 0) {
+          console.log(`   ✓ Processed ${results.processed} pending embeddings`);
+          console.log(`   ✓ Succeeded: ${results.succeeded}, Failed: ${results.failed}`);
+        }
+      }
+    } catch (retryError) {
+      // Don't fail the save if retry processing fails
+      console.warn(`   ⚠️  Retry processing error: ${retryError.message}`);
+    }
+
+    console.log();
 
   } catch (error) {
     console.error('❌ Error:', error.message);

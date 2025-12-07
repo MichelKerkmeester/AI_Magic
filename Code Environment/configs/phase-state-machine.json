@@ -1,0 +1,177 @@
+{
+  "version": "1.0.0",
+  "description": "Workflow state machine configuration for phase-based development",
+  "states": {
+    "init": {
+      "name": "init",
+      "description": "Initial state when workflow starts. Validates environment and prepares for research phase.",
+      "allowed_transitions": ["research"],
+      "required_artifacts": [],
+      "blocking_conditions": [
+        "workspace_not_accessible",
+        "git_not_initialized"
+      ]
+    },
+    "research": {
+      "name": "research",
+      "description": "Gathering information, analyzing codebase, understanding requirements and context.",
+      "allowed_transitions": ["planning", "init"],
+      "required_artifacts": [],
+      "blocking_conditions": [
+        "requirements_unclear",
+        "codebase_analysis_incomplete"
+      ]
+    },
+    "planning": {
+      "name": "planning",
+      "description": "Creating spec.md, plan.md, and tasks.md documents. Defining scope and approach.",
+      "allowed_transitions": ["implement", "init"],
+      "required_artifacts": [
+        "spec.md",
+        "plan.md",
+        "tasks.md"
+      ],
+      "blocking_conditions": [
+        "spec_incomplete",
+        "plan_not_approved",
+        "tasks_undefined"
+      ]
+    },
+    "implement": {
+      "name": "implement",
+      "description": "Writing code, making file changes, implementing the planned solution.",
+      "allowed_transitions": ["review", "init"],
+      "required_artifacts": [
+        "spec.md",
+        "plan.md",
+        "tasks.md"
+      ],
+      "blocking_conditions": [
+        "code_changes_incomplete",
+        "build_failing",
+        "critical_errors_present"
+      ]
+    },
+    "review": {
+      "name": "review",
+      "description": "Validating changes, running tests, checking quality criteria, browser verification.",
+      "allowed_transitions": ["complete", "implement", "init"],
+      "required_artifacts": [
+        "spec.md",
+        "plan.md",
+        "tasks.md"
+      ],
+      "blocking_conditions": [
+        "tests_failing",
+        "checklist_incomplete",
+        "browser_verification_pending",
+        "review_feedback_unaddressed"
+      ]
+    },
+    "complete": {
+      "name": "complete",
+      "description": "Workflow finished successfully. All tasks done, artifacts created, changes validated.",
+      "allowed_transitions": ["init"],
+      "required_artifacts": [
+        "spec.md",
+        "plan.md",
+        "tasks.md"
+      ],
+      "blocking_conditions": []
+    }
+  },
+  "transitions_matrix": {
+    "init": {
+      "research": true,
+      "planning": false,
+      "implement": false,
+      "review": false,
+      "complete": false
+    },
+    "research": {
+      "init": true,
+      "planning": true,
+      "implement": false,
+      "review": false,
+      "complete": false
+    },
+    "planning": {
+      "init": true,
+      "research": false,
+      "implement": true,
+      "review": false,
+      "complete": false
+    },
+    "implement": {
+      "init": true,
+      "research": false,
+      "planning": false,
+      "review": true,
+      "complete": false
+    },
+    "review": {
+      "init": true,
+      "research": false,
+      "planning": false,
+      "implement": true,
+      "complete": true
+    },
+    "complete": {
+      "init": true,
+      "research": false,
+      "planning": false,
+      "implement": false,
+      "review": false
+    }
+  },
+  "transition_rules": [
+    {
+      "from": "init",
+      "to": "research",
+      "trigger": "start_research",
+      "description": "Begin gathering information and context"
+    },
+    {
+      "from": "research",
+      "to": "planning",
+      "trigger": "research_complete",
+      "description": "Move to planning after sufficient context gathered"
+    },
+    {
+      "from": "planning",
+      "to": "implement",
+      "trigger": "planning_approved",
+      "description": "Start implementation after plan approval"
+    },
+    {
+      "from": "implement",
+      "to": "review",
+      "trigger": "implementation_ready",
+      "description": "Submit changes for review and validation"
+    },
+    {
+      "from": "review",
+      "to": "complete",
+      "trigger": "review_passed",
+      "description": "All checks pass, workflow complete"
+    },
+    {
+      "from": "review",
+      "to": "implement",
+      "trigger": "revision_needed",
+      "description": "Loop back for fixes based on review feedback"
+    },
+    {
+      "from": "*",
+      "to": "init",
+      "trigger": "reset_workflow",
+      "description": "Reset workflow from any state"
+    }
+  ],
+  "metadata": {
+    "total_states": 6,
+    "total_transitions": 7,
+    "created_by": "Agent 2 (StateMachine-Config)",
+    "tasks": ["T027", "T028"]
+  }
+}

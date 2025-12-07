@@ -12,7 +12,8 @@
 - Solve only the stated problem; **avoid over-engineering** and premature optimization
 - **Verify with checks** (simplicity, performance, maintainability, scope) before making changes
 - **All MCP tool calls MUST go through code mode** - use `call_tool_chain` for efficient lazy-loaded MCP access (68% fewer tokens, 98.7% reduction in context overhead, 60% faster execution vs traditional tool calling) (if available) **EXCEPT** for native MCP tools (Sequential Thinking, Semantic Search)
-- **CLI AI agents MUST use semantic search MCP** for code exploration/discovery - it's intent-based, not keyword matching (use grep/read for literal text). Call directly: `semantic_search()`, `search_commit_history()`, `visit_other_project()` - NOT through Code Mode
+- **CLI AI agents MUST use semantic search MCP** for code exploration/discovery - it's intent-based, not keyword matching (use grep/read for literal text). Call directly: `mcp__semantic_search__semantic_search()`, `mcp__semantic_search__visit_other_project()` - NOT through Code Mode
+- **Semantic Memory MCP is MANDATORY** for research tasks, context recovery, and finding prior work. Call directly: `mcp__semantic_memory__memory_search()`, `mcp__semantic_memory__memory_load()`, `mcp__semantic_memory__memory_match_triggers()` - NOT through Code Mode
 - **Sequential Thinking MCP** - OPTIONAL: Claude Code users use native ultrathink instead; VSCode/Copilot/OpenCode users can use when configured in `.mcp.json`
 
 #### ⚡ Code Quality Standards Compliance
@@ -22,7 +23,8 @@
 - Before **writing documentation**: Use create-documentation skill for structure/style enforcement (if available)
 - Before **initialization code**: Follow initialization patterns from code quality standards (if available)
 - Before **animation implementation**: See animation workflow references (if available)
-- Before **searching codebase**: Use mcp-semantic-search skill for intent-based code discovery (if available)
+- Before **searching codebase**: Use mcp-semantic-search skill for intent-based code discovery (MANDATORY for exploration tasks)
+- Before **research tasks**: Use semantic memory MCP to find prior work, saved context, and related memories (MANDATORY)
 - Before **complex multi-domain tasks**: ALWAYS ask user before parallel sub-agent dispatch (2+ domains triggers mandatory question)
 - Before **spec folder creation**: Use workflows-spec-kit skill for template structure and sub-folder organization (if available)
 - Before **conversation milestones**: workflows-save-context auto-triggers every 20 messages for context preservation (if available)
@@ -55,16 +57,14 @@ Before ANY code/file changes or terminal commands:
 #### ⚡ Memory File Loading (After Spec Folder Selection)
 When user selects Option A (Use existing spec folder) or Option C (Update related spec), and memory files exist:
 
-1. **Ask user for memory file selection** (MANDATORY)
-   - Show up to 3 recent memory files with timestamps
-   - Offer options (A/B/C/D):
-     - **A)** Load most recent file (quick context refresh)
-     - **B)** Load all recent files (comprehensive context)
-     - **C)** List all files and select specific (historical search)
-     - **D)** Skip (start fresh, no context)
-   - You MUST ask user to explicitly select option
-   - NEVER load memory files autonomously
-2. Use Read tool to load selected files (parallel calls for option B)
+1. **Auto-load the most recent memory file** (DEFAULT BEHAVIOR)
+   - Automatically load the newest file from `memory/` folder
+   - Briefly confirm: "Loaded context from [filename]"
+   - User can say "skip memory" or "fresh start" to bypass
+2. **On-demand options** (only if user requests):
+   - "load all memory" - Load all recent files (comprehensive context)
+   - "list memory" - Show available files for manual selection
+   - "skip memory" / "fresh start" - No context loading
 
 #### ⚡ Git Workspace Choice (MANDATORY)
 
@@ -125,7 +125,7 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
 
 #### ⚡ Common Failure Patterns & Detection
 
-**Quick Reference (13 Critical Patterns):**
+**Quick Reference (14 Critical Patterns):**
 
 **1. Task Misinterpretation**
 - **Prevention:** Parse request carefully, confirm scope
@@ -191,13 +191,20 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
 - **Detection Trigger:** "done", "complete", "finished" without checklist verification
 - **Action:** STOP → Load checklist.md → Verify each item → Mark [x] with evidence → Then claim done
 
+**14. Skipping Semantic Memory on Research/Exploration Tasks**
+- **Prevention:** ALWAYS use semantic memory MCP before research, exploration, or "read into" tasks
+- **Example:** Using only Glob/Read/Grep for exploration when semantic memory has saved context
+- **Detection Trigger:** "read into", "research", "explore", "find out about", "what do we have on", "prior work"
+- **Action:** Call `mcp__semantic_memory__memory_search()` FIRST, then supplement with file reads
+- **Tools:** `mcp__semantic_memory__memory_search()`, `mcp__semantic_memory__memory_load()`, `mcp__semantic_search__semantic_search()`
+
 **Enforcement Protocol:** If you detect ANY pattern above:
 1. **STOP** - Do not proceed
 2. **Acknowledge** - "I was about to [pattern], which violates process discipline"
 3. **Correct** - Follow proper procedure
 4. **Verify** - Show evidence of correct process
 
-**Detection Triggers:** "straightforward", "obvious", "trivial edit", "I already know", "skip checklist", "just in case", "done/complete/finished" (without checklist verification for Level 2+)
+**Detection Triggers:** "straightforward", "obvious", "trivial edit", "I already know", "skip checklist", "just in case", "done/complete/finished" (without checklist verification for Level 2+), "read into/research/explore" (without semantic memory search)
 
 ---
 
@@ -285,6 +292,8 @@ CHECKLIST VERIFICATION RULE (Level 2+):
 - `decision-record.md` → Architecture Decision Records/ADRs (Level 3, prefix with topic)
 - `research-spike.md` → Time-boxed research/PoC (Level 3 optional, prefix with topic)
 - `research.md` → Comprehensive research documentation (Level 3 optional)
+- `handover.md` → Session handover for continuity (utility, any level)
+- `debug-delegation.md` → Debug task delegation to sub-agents (utility, any level)
 
 **Decision rules:**
 - **When in doubt → choose higher level** (better to over-document than under-document)
@@ -586,13 +595,83 @@ Review response for:
 
 **Key Routing Rules:**
 - **Code Mode (mcp-code-mode):** MANDATORY for external MCP tools (Webflow, Figma, ClickUp, Chrome DevTools) - 68% fewer tokens, 98.7% context reduction
-- **Semantic Search (mcp-semantic-search):** MANDATORY for CLI AI agents doing code discovery ("Find code that...", "How does..."). **Native MCP** - call directly: `semantic_search()`, `search_commit_history()`, `visit_other_project()` - NOT through Code Mode
+- **Semantic Search (mcp-semantic-search):** MANDATORY for code discovery ("Find code that...", "How does..."). **Native MCP** - call directly: `mcp__semantic_search__semantic_search()`, `mcp__semantic_search__visit_other_project()` - NOT through Code Mode
+- **Semantic Memory (mcp-semantic-memory):** MANDATORY for research, context recovery, finding prior work. **Native MCP** - call directly: `mcp__semantic_memory__memory_search()`, `mcp__semantic_memory__memory_load()` - NOT through Code Mode
 - **Sequential Thinking (OPTIONAL):** Claude Code: use ultrathink instead; VSCode/Copilot/OpenCode: useful when configured - **Native MCP** - call directly, NOT through Code Mode
 - **Parallel Sub-Agents (Task tool):** ALWAYS ask user when 2+ domains detected (mandatory question before dispatch)
 - **Chrome DevTools (cli-chrome-devtools):** Browser debugging via terminal (bdg CLI tool) - through Code Mode
 - **Native Tools:** Read/Grep/Glob/Bash for file operations and simple tasks
 
-See Quick Decision tree in Section 6 for routing logic.
+### Tool Routing (Quick Decision)
+```
+Known file path? → Read()
+Know what code DOES? → mcp__semantic_search__semantic_search() [NATIVE MCP - MANDATORY]
+Research/prior work? → mcp__semantic_memory__memory_search() [NATIVE MCP - MANDATORY]
+Exact symbol/keyword? → Grep()
+File structure? → Glob()
+Complex reasoning? → ultrathink (Claude Code) | process_thought() (Sequential Thinking MCP) (VSCode/OpenCode)
+Browser debugging? → cli-chrome-devtools skill [bdg CLI tool, through Code Mode]
+External MCP tools? → call_tool_chain() [Code Mode - Webflow, Figma, ClickUp, etc.]
+2+ domains detected? → Ask user: parallel sub-agents or direct handling? (MANDATORY question)
+
+NATIVE MCP (call directly - NEVER through Code Mode):
+  ┌─ SEMANTIC SEARCH (code discovery):
+  │   mcp__semantic_search__semantic_search()
+  │   mcp__semantic_search__visit_other_project()
+  │
+  ├─ SEMANTIC MEMORY (context/research):
+  │   mcp__semantic_memory__memory_search()
+  │   mcp__semantic_memory__memory_load()
+  │   mcp__semantic_memory__memory_match_triggers()
+  │
+  └─ SEQUENTIAL THINKING (optional):
+      process_thought(), generate_summary()
+
+CODE MODE (call_tool_chain):
+  - Webflow, Figma, ClickUp, Chrome DevTools, Notion, etc.
+```
+
+**User Override Phrases:**
+- `"proceed directly"` - Force direct handling
+- `"use parallel agents"` - Force parallel dispatch
+- `"auto-decide"` - Enable session auto-mode
+
+**Example:** Auth + tests + docs = 3 domains (code + testing + docs) → ASK user before dispatch (mandatory question A/B/C)
+
+#### The Iron Law (workflows-code)
+**NO COMPLETION CLAIMS WITHOUT BROWSER VERIFICATION**
+- Open actual browser before saying "works", "fixed", "done"
+- Test Chrome + mobile viewport (375px) minimum
+- Check DevTools console for errors
+- See: workflows-code skill for full 3-phase lifecycle (if available)
+
+```python
+# ──────────────────────────────────────────────────────────────────────────────
+# SKILL DISPATCH (Executable Logic)
+# ──────────────────────────────────────────────────────────────────────────────
+COMPLEXITY_FORMULA = {"domains": 35, "files": 25, "loc": 15, "parallel": 20, "task_type": 5}
+
+def calculate_complexity(task: dict) -> int:
+    """Calculate complexity (0-100%). Args: {domains, files, loc, parallel_opportunity, complexity_rating}"""
+    return round(
+        COMPLEXITY_FORMULA["domains"] * _norm(task["domains"], "domains", max=5) +
+        COMPLEXITY_FORMULA["files"] * _norm(task["files"], "files", max=10) +
+        COMPLEXITY_FORMULA["loc"] * _norm(task["loc"], "loc", max=500) +
+        COMPLEXITY_FORMULA["parallel"] * task["parallel_opportunity"] +
+        COMPLEXITY_FORMULA["task_type"] * task["complexity_rating"]
+    )
+
+def _norm(val: int, cat: str, max: int) -> float:
+    """Normalize value to 0.0-1.0."""
+    return min(val / max, 1.0)
+
+def dispatch_decision(domains: int) -> dict:
+    """ALWAYS ask user when 2+ domains detected. Never dispatch autonomously."""
+    if domains >= 2:
+        return {"action": "ask_user", "reason": "2+ domains - MANDATORY question"}
+    else:
+        return {"action": "handle_direct", "reason": "single domain"}
+```
 
 #### Project-Specific MCP Configuration
 
@@ -607,7 +686,7 @@ See Quick Decision tree in Section 6 for routing logic.
      - **VSCode/Copilot/OpenCode**: Valuable - provides reasoning those environments lack
    - **Semantic Search**:
      - Configured in `.mcp.json`, NOT in `.utcp_config.json`
-     - ALWAYS called directly via `semantic_search()`, `search_commit_history()`, `visit_other_project()`
+     - ALWAYS called directly via `semantic_search()`, `visit_other_project()`
      - NEVER use Code Mode or `call_tool_chain()`
      - **Why Native**: Reduces overhead, simpler invocation pattern
    - **Code Mode server**: The Code Mode tool itself (for accessing external tools)
@@ -659,96 +738,3 @@ All Code Mode tool calls follow the pattern: `{manual_name}.{manual_name}_{tool_
   ]
 }
 ```
-
----
-
-## 6. 🎯 SKILL ACTIVATION QUICK REFERENCE
-
-**workflows-spec-kit**
-- **Trigger:** Any file modification
-- **Reference:** Section 2
-
-**workflows-save-context**
-- **Trigger:** Every 20 messages, "save context"
-- **Reference:** Auto-triggered
-
-**workflows-code**
-- **Trigger:** Frontend code changes
-- **Reference:** Section 5, Tool #1 (if available)
-
-**mcp-semantic-search**
-- **Trigger:** "Find code that...", "How does..."
-- **Reference:** Section 5, Tool #4 (if available)
-
-**mcp-code-mode**
-- **Trigger:** ANY MCP tool call (except Sequential Thinking)
-- **Reference:** Section 5, Tool #3 (if available)
-
-**cli-chrome-devtools**
-- **Trigger:** "bdg", "browser debugging", Chrome DevTools CLI
-- **Reference:** Section 5, Tool #5 (if available)
-
-**create-documentation**
-- **Trigger:** Creating/editing docs or skills
-- **Reference:** Available as skill in some environments
-
-#### The Iron Law (workflows-code)
-**NO COMPLETION CLAIMS WITHOUT BROWSER VERIFICATION**
-- Open actual browser before saying "works", "fixed", "done"
-- Test Chrome + mobile viewport (375px) minimum
-- Check DevTools console for errors
-- See: workflows-code skill for full 3-phase lifecycle (if available)
-
-```python
-# ──────────────────────────────────────────────────────────────────────────────
-# SKILL DISPATCH (Executable Logic)
-# ──────────────────────────────────────────────────────────────────────────────
-COMPLEXITY_FORMULA = {"domains": 35, "files": 25, "loc": 15, "parallel": 20, "task_type": 5}
-
-def calculate_complexity(task: dict) -> int:
-    """Calculate complexity (0-100%). Args: {domains, files, loc, parallel_opportunity, complexity_rating}"""
-    return round(
-        COMPLEXITY_FORMULA["domains"] * _norm(task["domains"], "domains", max=5) +
-        COMPLEXITY_FORMULA["files"] * _norm(task["files"], "files", max=10) +
-        COMPLEXITY_FORMULA["loc"] * _norm(task["loc"], "loc", max=500) +
-        COMPLEXITY_FORMULA["parallel"] * task["parallel_opportunity"] +
-        COMPLEXITY_FORMULA["task_type"] * task["complexity_rating"]
-    )
-
-def _norm(val: int, cat: str, max: int) -> float:
-    """Normalize value to 0.0-1.0."""
-    return min(val / max, 1.0)
-
-def dispatch_decision(domains: int) -> dict:
-    """ALWAYS ask user when 2+ domains detected. Never dispatch autonomously."""
-    if domains >= 2:
-        return {"action": "ask_user", "reason": "2+ domains - MANDATORY question"}
-    else:
-        return {"action": "handle_direct", "reason": "single domain"}
-```
-
-#### Tool Routing (Quick Decision)
-```
-Known file path? → Read()
-Know what code DOES? → semantic_search() [NATIVE MCP - call directly, NOT Code Mode]
-Exact symbol/keyword? → Grep()
-File structure? → Glob()
-Complex reasoning? → ultrathink (Claude Code) | process_thought() (Sequential Thinking MCP) (VSCode/OpenCode)
-Browser debugging? → cli-chrome-devtools skill [bdg CLI tool, through Code Mode]
-External MCP tools? → call_tool_chain() [Code Mode - Webflow, Figma, ClickUp, etc.]
-2+ domains detected? → Ask user: parallel sub-agents or direct handling? (MANDATORY question)
-
-NATIVE MCP (call directly):
-  - semantic_search(), search_commit_history(), visit_other_project()
-  - process_thought(), generate_summary() (Sequential Thinking)
-
-CODE MODE (call_tool_chain):
-  - Webflow, Figma, ClickUp, Chrome DevTools, Notion, etc.
-```
-
-**User Override Phrases:**
-- `"proceed directly"` - Force direct handling
-- `"use parallel agents"` - Force parallel dispatch
-- `"auto-decide"` - Enable session auto-mode
-
-**Example:** Auth + tests + docs = 3 domains (code + testing + docs) → ASK user before dispatch (mandatory question A/B/C)

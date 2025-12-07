@@ -5,6 +5,8 @@ allowed-tools: [Bash, Read, Write, Grep, Glob]
 version: 1.0.0
 ---
 
+<!-- Keywords: cli-codex, openai-codex, code-generation, code-review, parallel-processing, second-opinion, test-generation, ai-orchestration -->
+
 # Codex CLI Integration Skill
 
 Enable Claude Code to effectively orchestrate OpenAI Codex CLI (v0.58.0+) with GPT-5.1 Codex for code generation, review, analysis, and specialized tasks requiring a second AI perspective.

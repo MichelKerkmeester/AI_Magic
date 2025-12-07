@@ -1,0 +1,207 @@
+# Blocking Conditions Configuration
+# Defines what must be true before leaving each phase
+# Used by blocking-checks.sh to evaluate phase transitions
+
+version: "1.0.0"
+
+# Severity levels:
+#   blocker - Cannot proceed, hard stop
+#   warning - Can proceed with user confirmation
+
+# Check types:
+#   directory_exists - Check directory is accessible
+#   file_exists      - Check file(s) exist (supports glob)
+#   file_pattern     - Check file contains pattern
+#   command_success  - Run command, check exit 0
+#   git_clean        - No uncommitted changes
+#   flag_set         - Environment variable is set
+#   checklist_complete - All [ ] are [x] in file
+
+phases:
+  init:
+    description: "Initial workflow state - setup and validation"
+    exit_conditions:
+      - condition_id: "workspace_accessible"
+        description: "Workspace directory must be accessible"
+        check_type: "directory_exists"
+        target: "${WORKSPACE_ROOT}"
+        severity: "blocker"
+      - condition_id: "git_initialized"
+        description: "Git repository must be initialized"
+        check_type: "directory_exists"
+        target: "${WORKSPACE_ROOT}/.git"
+        severity: "blocker"
+      - condition_id: "specs_directory"
+        description: "Specs directory must exist"
+        check_type: "directory_exists"
+        target: "${WORKSPACE_ROOT}/specs"
+        severity: "warning"
+
+  research:
+    description: "Gathering information and context"
+    exit_conditions:
+      - condition_id: "research_documented"
+        description: "Research findings must be documented"
+        check_type: "file_exists"
+        target: "specs/${SPEC_ID}/research.md"
+        severity: "blocker"
+      - condition_id: "research_has_content"
+        description: "Research file must have substantive content"
+        check_type: "file_pattern"
+        target: "specs/${SPEC_ID}/research.md"
+        pattern: "^## "
+        severity: "warning"
+      - condition_id: "context_gathered"
+        description: "Relevant files identified in research"
+        check_type: "file_pattern"
+        target: "specs/${SPEC_ID}/research.md"
+        pattern: "(File|Source|Reference):"
+        severity: "warning"
+
+  planning:
+    description: "Creating specification and implementation plan"
+    exit_conditions:
+      - condition_id: "spec_complete"
+        description: "Specification document must exist"
+        check_type: "file_exists"
+        target: "specs/${SPEC_ID}/spec.md"
+        severity: "blocker"
+      - condition_id: "spec_has_requirements"
+        description: "Spec must define requirements"
+        check_type: "file_pattern"
+        target: "specs/${SPEC_ID}/spec.md"
+        pattern: "(## Requirements|## User Stories|## Acceptance Criteria)"
+        severity: "blocker"
+      - condition_id: "plan_complete"
+        description: "Implementation plan must exist"
+        check_type: "file_exists"
+        target: "specs/${SPEC_ID}/plan.md"
+        severity: "blocker"
+      - condition_id: "plan_has_steps"
+        description: "Plan must have implementation steps"
+        check_type: "file_pattern"
+        target: "specs/${SPEC_ID}/plan.md"
+        pattern: "^(## Phase|## Step|### [0-9])"
+        severity: "warning"
+      - condition_id: "tasks_defined"
+        description: "Task breakdown must exist"
+        check_type: "file_exists"
+        target: "specs/${SPEC_ID}/tasks.md"
+        severity: "blocker"
+      - condition_id: "tasks_have_items"
+        description: "Tasks file must have actionable items"
+        check_type: "file_pattern"
+        target: "specs/${SPEC_ID}/tasks.md"
+        pattern: "- \\[ \\]"
+        severity: "warning"
+      - condition_id: "no_unresolved_placeholders"
+        description: "No placeholder text in documentation"
+        check_type: "command_success"
+        target: "! grep -r '\\[PLACEHOLDER\\]\\|\\[TODO\\]\\|\\[TBD\\]' specs/${SPEC_ID}/*.md"
+        severity: "blocker"
+
+  implement:
+    description: "Writing code and making changes"
+    exit_conditions:
+      - condition_id: "no_shell_syntax_errors"
+        description: "Shell scripts must have valid syntax"
+        check_type: "command_success"
+        target: "find . -name '*.sh' -exec bash -n {} \\;"
+        severity: "blocker"
+      - condition_id: "no_yaml_syntax_errors"
+        description: "YAML files must be valid"
+        check_type: "command_success"
+        target: "find . -name '*.yaml' -o -name '*.yml' | head -20 | xargs -I{} python3 -c \"import yaml; yaml.safe_load(open('{}'))\""
+        severity: "blocker"
+      - condition_id: "no_json_syntax_errors"
+        description: "JSON files must be valid"
+        check_type: "command_success"
+        target: "find .claude -name '*.json' | xargs -I{} python3 -c \"import json; json.load(open('{}'))\""
+        severity: "blocker"
+      - condition_id: "tasks_in_progress"
+        description: "At least one task marked in progress or complete"
+        check_type: "file_pattern"
+        target: "specs/${SPEC_ID}/tasks.md"
+        pattern: "- \\[(x|~)\\]"
+        severity: "warning"
+      - condition_id: "changes_staged_or_committed"
+        description: "Changes should be committed or staged"
+        check_type: "git_clean"
+        severity: "warning"
+
+  review:
+    description: "Validating, testing, and verifying changes"
+    exit_conditions:
+      - condition_id: "tests_passing"
+        description: "All tests must pass"
+        check_type: "command_success"
+        target: "npm test 2>/dev/null || bats .claude/hooks/tests/*.bats 2>/dev/null || true"
+        severity: "blocker"
+      - condition_id: "checklist_exists"
+        description: "Checklist file must exist for Level 2+"
+        check_type: "file_exists"
+        target: "specs/${SPEC_ID}/checklist.md"
+        severity: "warning"
+      - condition_id: "checklist_complete"
+        description: "All P0/P1 checklist items must be checked"
+        check_type: "checklist_complete"
+        target: "specs/${SPEC_ID}/checklist.md"
+        severity: "blocker"
+      - condition_id: "no_unchecked_p0"
+        description: "No unchecked P0 (critical) items"
+        check_type: "command_success"
+        target: "! grep -E '^- \\[ \\].*P0' specs/${SPEC_ID}/checklist.md 2>/dev/null"
+        severity: "blocker"
+      - condition_id: "browser_verified"
+        description: "Browser testing completed (frontend changes)"
+        check_type: "flag_set"
+        target: "BROWSER_VERIFIED"
+        severity: "warning"
+      - condition_id: "all_tasks_complete"
+        description: "All tasks should be marked complete"
+        check_type: "command_success"
+        target: "! grep -E '^- \\[ \\]' specs/${SPEC_ID}/tasks.md 2>/dev/null"
+        severity: "warning"
+      - condition_id: "changes_committed"
+        description: "All changes must be committed"
+        check_type: "git_clean"
+        severity: "blocker"
+
+  complete:
+    description: "Workflow finished successfully"
+    exit_conditions:
+      - condition_id: "memory_saved"
+        description: "Context should be saved for future reference"
+        check_type: "directory_exists"
+        target: "specs/${SPEC_ID}/memory"
+        severity: "warning"
+      - condition_id: "final_commit"
+        description: "Final state committed to git"
+        check_type: "git_clean"
+        severity: "warning"
+      - condition_id: "spec_archived"
+        description: "Spec folder properly organized"
+        check_type: "file_exists"
+        target: "specs/${SPEC_ID}/spec.md"
+        severity: "warning"
+
+# Global conditions that apply to all phase transitions
+global_conditions:
+  - condition_id: "no_merge_conflicts"
+    description: "No unresolved merge conflicts"
+    check_type: "command_success"
+    target: "! git diff --name-only --diff-filter=U | grep -q ."
+    severity: "blocker"
+  - condition_id: "workspace_writable"
+    description: "Workspace must be writable"
+    check_type: "command_success"
+    target: "test -w ${WORKSPACE_ROOT}"
+    severity: "blocker"
+
+# Bypass rules for emergency situations
+bypass:
+  allowed_with_flag: "FORCE_TRANSITION"
+  requires_confirmation: true
+  log_bypasses: true
+  excluded_conditions:
+    - "no_merge_conflicts"  # Never bypass merge conflict check

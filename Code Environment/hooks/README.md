@@ -212,6 +212,10 @@ User Action
 | enforce-git-workspace-choice | UserPromptSubmit | Git workspace mandatory question | `new feature`, `create branch` | 0* | <100ms |
 | enforce-verification | UserPromptSubmit | Require verification (v3.0.0 - 0% false positives) | Implementation tasks | 1 | ~50ms |
 | enforce-markdown-strict | UserPromptSubmit | Markdown structure validation | Markdown edits | 1 | <200ms |
+| detect-research-need | UserPromptSubmit | Suggests dispatching research agent for investigation prompts | `research`, `find examples`, `investigate` | 0 | <50ms |
+| memory-surfacing | UserPromptSubmit | Surfaces relevant memories via trigger phrase matching | Trigger phrases matched (min 10 chars) | 0 | <50ms |
+| suggest-conflict-resolution | UserPromptSubmit | Displays pending conflicts and resolution options | Pending conflicts exist | 0 | <50ms |
+| validate-new-task | UserPromptSubmit | Validates new task start, prompts to complete active task | New task while task in_progress | 2 | <50ms |
 | validate-bash | PreToolUse | Block wasteful commands | Bash tool | 1 | <50ms |
 | validate-mcp-calls | PreToolUse | Enforce Code Mode routing | MCP tools | 0 | ~30ms |
 | check-pending-questions | PreToolUse | Mandatory question enforcement | Any tool | 1 | <10ms |
@@ -220,6 +224,14 @@ User Action
 | validate-spec-final | PreToolUse | Final spec validation | Write/Edit/NotebookEdit | 1 | ~40ms |
 | announce-task-dispatch | PreToolUse | Agent dispatch (v2.0.0 - rich metadata) | Task tool | 0 | <20ms |
 | warn-duplicate-reads | PreToolUse | Duplicate detection (v2.0.0 - JSON intelligence) | Read/Grep/Glob | 0 | 25-55ms |
+| check-flag-gates | PreToolUse | Check flag gates before Write/Edit; blocks on BLOCKER flags | Write, Edit, Bash with flag state | 0/1 | <50ms |
+| detect-task-packing | PreToolUse | Monitor for task packing anti-patterns (>5 files, >3 domains) | Write, Edit, NotebookEdit | 0 | <50ms |
+| enforce-capabilities | PreToolUse | Enforce agent capability boundaries; block unauthorized tools | Any tool with agent ID context | 0/1 | <100ms |
+| enforce-phase-checkpoints | PreToolUse | Enforce workflow phase checkpoints; block skipping phases | Write, Bash, Task | 0/1 | <50ms |
+| enforce-semantic-search | PreToolUse | Educate on semantic search vs grep for behavioral patterns | Grep with behavioral keywords | 0 | <50ms |
+| enforce-task-scope | PreToolUse | Validate file operations within task scope boundaries | Write, Edit, NotebookEdit, Bash | 0/2 | <50ms |
+| validate-agent-registration | PreToolUse | Validate agent registration data before registration | Task tool with registration patterns | 0/1 | <100ms |
+| validate-completion-checklist | PreToolUse | Validate phase checklist completion before task complete | Task, Bash (git), Write (memory) | 0/1 | <50ms |
 | enforce-markdown-naming | PostToolUse | Filename enforcement (merged v2.0.0) | Write/Edit/Task | 0 | <200ms |
 | remind-cdn-versioning | PostToolUse | CDN reminders (v2.0.0 - multi-tier detection) | Edit CSS/JS | 0 | <20ms |
 | skill-scaffold-trigger | PostToolUse | Auto-scaffold skill directories | Write SKILL.md | 0 | ~30ms |
@@ -230,10 +242,16 @@ User Action
 | detect-scope-growth | PostToolUse | Scope growth (v2.0.0 - NOW FUNCTIONAL) | Write/Edit .md | 0 | <50ms |
 | summarize-task-completion | PostToolUse | Task summaries (fixed: duration calculation) | Task tool | 0 | ~20ms |
 | validate-output-quality | PostToolUse | Fluff/ambiguity detection (v1.0.0) | Task tool | 0 | <100ms |
+| auto-delegate-on-failure | PostToolUse | Track Bash failures; dispatch debug specialist at threshold | Bash with non-zero exit | 0 | <50ms |
+| track-conflict-changes | PostToolUse | Monitor Write/Edit for multi-agent conflicts | Write, Edit completions | 0 | <20ms |
+| track-test-failures | PostToolUse | Track test failures; suggest test specialist after consecutive | Bash running test commands | 0 | <50ms |
 | validate-subagent-output | SubagentStop | Block bad sub-agent output (v1.0.0 - quality gate) | Task completion | 0/block | <50ms |
+| cleanup-adhoc-agent | SubagentStop | Clean up ad-hoc agents; archive output to spec memory | Session ID starts with `adhoc-` | 0 | <100ms |
+| detect-parallel-conflicts | SubagentStop | Detect file modification conflicts between parallel agents | Multiple agents complete work | 0* | <50ms |
 | prune-context | PreCompact | Context pruning (v2.0.0 - DCP-style output) | Before compaction | 0 | <5s |
 | save-context-before-compact | PreCompact | Auto-save before compact | Before compaction | 0 | <10s |
 | initialize-session | PreSessionStart | Session initialization | Session start | 0 | <50ms |
+| offer-state-restore | PreSessionStart | Check saved state; offer cross-session restoration | Session starts, saved state exists | 0 | <100ms |
 | cleanup-session | PostSessionEnd | Session cleanup | Session end | 0 | <100ms |
 
 **Exit Codes**: `0` = Non-blocking | `0*` = Prompts user | `1` = Blocking
@@ -456,8 +474,10 @@ json_escape() {
 #### workflows-save-context-trigger.sh (UserPromptSubmit)
 **Triggers**: Keywords (`save context`), Every 20 messages
 **V9 features**: Session-aware markers, anchor-based retrieval, sub-folder routing
+**V10 features (Spec 015)**: Interactive search mode with rich result cards, filtering, clustering, pagination, session persistence
 **Execution**: Parallel (non-blocking) when supported
 **Output**: Saves to `specs/###-folder/memory/` (or sub-folder when versioning active)
+**Search**: `search-interactive.js` provides rich CLI for memory search with preview, filtering, and state management
 
 #### prune-context.sh (PreCompact) - v2.0.0 DCP-Style Output
 **Purpose**: Prune conversation context before compaction using intelligent deduplication
@@ -1012,6 +1032,12 @@ Most hooks write to `.claude/hooks/logs/`:
 | **migrate-spec-folder.sh** | Spec folder versioning (v1.0.0) | `migrate_to_subfolder()`, `archive_root_content()` | enforce-spec-folder.sh | <100ms |
 | **mcp-auth-cache.sh** | MCP auth token caching (v1.0.0) | `mcp_auth_cached()`, `mcp_auth_store()`, `mcp_auth_clear()`, `mcp_auth_get()` | MCP tool integrations | <5ms |
 | **agent-state-handoff.sh** | Parallel agent state management (v1.0.0) | `agent_state_init()`, `agent_state_update()`, `agent_state_wait()`, `agent_state_read()` | Parallel dispatch orchestration | <10ms |
+| **interactive-search.js** | Interactive search state machine (Spec 015) | State machine (IDLE→RESULTS→PREVIEW/FILTERED), action parser, navigation | search-interactive.js | <50ms |
+| **result-formatter.js** | Rich result card formatting (Spec 015) | `formatCard()`, `formatResultsPage()`, `formatActionBar()`, color support | search-interactive.js | <20ms |
+| **session-state.js** | Search session persistence (Spec 015) | `saveSession()`, `loadSession()`, `expireSession()`, 1-hour TTL | search-interactive.js | <10ms |
+| **filter-cluster.js** | Result filtering and clustering (Spec 015) | `parseFilter()`, `applyFilter()`, `clusterByFolder()` | search-interactive.js | <30ms |
+| **pagination.js** | Pagination state management (Spec 015) | Page navigation, boundary handling, position tracking | search-interactive.js | <10ms |
+| **preview-handler.js** | Memory preview display (Spec 015) | `formatPreview()`, section extraction, anchor extraction | search-interactive.js | <30ms |
 
 ### 8.1 Core Libraries
 

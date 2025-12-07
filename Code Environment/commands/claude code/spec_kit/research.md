@@ -265,9 +265,20 @@ See CLAUDE.md Section 2 for full memory file handling details.
 
 ## Templates Used
 
+**Core Templates:**
+- `.opencode/speckit/templates/spec.md` (Level 1+)
+- `.opencode/speckit/templates/plan.md` (Level 1+)
+- `.opencode/speckit/templates/tasks.md` (Level 1+)
+- `.opencode/speckit/templates/checklist.md` (Level 2+)
+- `.opencode/speckit/templates/decision-record.md` (Level 3)
+
+**Research Templates (primary for this workflow):**
 - `.opencode/speckit/templates/research.md` (primary output)
 - `.opencode/speckit/templates/research-spike.md` (optional for time-boxed sub-investigations)
-- `.opencode/speckit/templates/decision-record.md` (Level 3 - for significant decisions)
+
+**Utility Templates:**
+- `.opencode/speckit/templates/handover.md` (any level)
+- `.opencode/speckit/templates/debug-delegation.md` (any level)
 
 ## Completion Report
 

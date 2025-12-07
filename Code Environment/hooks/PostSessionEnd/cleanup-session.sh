@@ -35,6 +35,7 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || (cd "$SCRIPT_DIR/../
 source "$HOOKS_DIR/lib/output-helpers.sh" 2>/dev/null || true
 source "$HOOKS_DIR/lib/shared-state.sh" 2>/dev/null || true
 source "$HOOKS_DIR/lib/exit-codes.sh" 2>/dev/null || true
+source "$HOOKS_DIR/lib/speckit-state.sh" 2>/dev/null || true
 
 # Directories
 LOG_DIR="$HOOKS_DIR/logs"
@@ -107,6 +108,16 @@ for log in "$LOG_DIR"/*.log; do
     break
   fi
 done
+
+# ─── T186: Save session state before cleanup ───
+# Auto-save session state to spec memory folder for cross-session continuity
+if type save_state_artifact &>/dev/null; then
+  STATE_SAVED=""
+  STATE_SAVED=$(save_state_artifact 2>/dev/null) || true
+  if [ -n "$STATE_SAVED" ]; then
+    echo "  state_saved: $STATE_SAVED" >> "$SESSION_LOG" 2>/dev/null
+  fi
+fi
 
 # V9: Clean up session-specific spec marker
 # Each session has its own marker file (.claude/.spec-active.{SESSION_ID})

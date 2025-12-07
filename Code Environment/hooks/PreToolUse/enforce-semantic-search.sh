@@ -29,22 +29,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 HOOKS_DIR="$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd)"
 source "$HOOKS_DIR/lib/output-helpers.sh" || exit 0
 source "$HOOKS_DIR/lib/exit-codes.sh" || exit 0
+source "$HOOKS_DIR/lib/perf-timing.sh" 2>/dev/null || true
 
 # Logging configuration
 LOG_DIR="$HOOKS_DIR/logs"
 mkdir -p "$LOG_DIR" 2>/dev/null
 LOG_FILE="$LOG_DIR/$(basename "$0" .sh).log"
 
-# Cross-platform nanosecond timing helper
-_get_nano_time() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo $(($(date +%s) * 1000000000))
-  else
-    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
-  fi
-}
-
-# Performance timing START (cross-platform)
+# Performance timing START (using centralized _get_nano_time from perf-timing.sh)
 START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin

@@ -39,7 +39,12 @@ const MAX_RETRIES = 3;
  * @returns {Object[]} Array of memories ready for retry
  */
 function getRetryQueue(limit = 10) {
+  vectorIndex.initializeDb();  // Ensure DB is ready
   const db = vectorIndex.getDb();
+  if (!db) {
+    console.warn('[retry-manager] Database not available');
+    return [];
+  }
   const now = Date.now();
 
   // Get all retry-eligible memories
@@ -148,6 +153,10 @@ function getRetryStats() {
  */
 async function retryEmbedding(id, content) {
   const db = vectorIndex.getDb();
+  if (!db) {
+    return { success: false, error: 'Database not initialized' };
+  }
+
   const now = new Date().toISOString();
 
   try {
@@ -172,8 +181,8 @@ async function retryEmbedding(id, content) {
       return { success: false, error: 'Embedding returned null' };
     }
 
-    // Success - update with new embedding
-    db.transaction(() => {
+    // Success - update with new embedding using transaction with error handling
+    const updateTx = db.transaction(() => {
       // Update metadata
       db.prepare(`
         UPDATE memory_index
@@ -185,14 +194,24 @@ async function retryEmbedding(id, content) {
       `).run(now, now, id);
 
       // Delete old vector if exists
-      db.prepare('DELETE FROM vec_memories WHERE rowid = ?').run(BigInt(id));
+      try {
+        db.prepare('DELETE FROM vec_memories WHERE rowid = ?').run(BigInt(id));
+      } catch (e) {
+        // Ignore if doesn't exist
+      }
 
       // Insert new vector
       const embeddingBuffer = Buffer.from(embedding.buffer);
       db.prepare('INSERT INTO vec_memories (rowid, embedding) VALUES (?, ?)').run(BigInt(id), embeddingBuffer);
-    })();
+    });
 
-    return { success: true, id, dimensions: embedding.length };
+    try {
+      updateTx();
+      return { success: true, id, dimensions: embedding.length };
+    } catch (txError) {
+      incrementRetryCount(id, `Transaction failed: ${txError.message}`);
+      return { success: false, error: `Transaction failed: ${txError.message}` };
+    }
 
   } catch (error) {
     incrementRetryCount(id, error.message);
@@ -208,10 +227,17 @@ async function retryEmbedding(id, content) {
  */
 function incrementRetryCount(id, reason) {
   const db = vectorIndex.getDb();
+  if (!db) return;
+
   const now = new Date().toISOString();
 
   const memory = vectorIndex.getMemory(id);
-  const newRetryCount = (memory?.retry_count || 0) + 1;
+  if (!memory) {
+    console.warn(`[retry-manager] Memory ${id} not found during retry count increment`);
+    return;
+  }
+
+  const newRetryCount = (memory.retry_count || 0) + 1;
 
   if (newRetryCount >= MAX_RETRIES) {
     markAsFailed(id, reason);

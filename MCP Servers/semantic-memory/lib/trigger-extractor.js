@@ -133,7 +133,7 @@ function tokenize(text) {
     .filter(token =>
       token.length >= CONFIG.MIN_WORD_LENGTH &&
       !/^\d+$/.test(token) &&
-      !/^[^a-z]+$/.test(token)
+      !/^[^a-z\u00C0-\u024F\u1E00-\u1EFF]+$/i.test(token)  // Skip tokens with no Latin letters (including accented)
     );
 }
 
@@ -197,10 +197,11 @@ function countNgrams(tokens, n) {
  * Calculate TF-IDF-like scores with length bonus
  * @param {Array<{phrase: string, count: number}>} ngrams - N-gram frequency data
  * @param {number} lengthBonus - Multiplier for longer phrases
- * @param {number} totalTokens - Total token count for normalization
+ * @param {number} totalTokens - Total token count for normalization (reserved for future IDF implementation)
  * @returns {Array<{phrase: string, score: number, count: number}>}
  */
-function scoreNgrams(ngrams, lengthBonus, totalTokens) {
+function scoreNgrams(ngrams, lengthBonus, totalTokens = 0) {
+  // Note: totalTokens reserved for future IDF implementation
   if (ngrams.length === 0) return [];
 
   const maxCount = ngrams[0].count; // Already sorted descending
@@ -231,36 +232,43 @@ function scoreNgrams(ngrams, lengthBonus, totalTokens) {
  * @returns {Array<{phrase: string, score: number}>} - Deduplicated candidates
  */
 function deduplicateSubstrings(candidates) {
-  // Sort by score descending
-  const sorted = [...candidates].sort((a, b) => b.score - a.score);
-  const result = [];
-  const seen = new Set();
+  // Sort by score descending, then by length descending (prefer longer phrases)
+  candidates.sort((a, b) => {
+    const scoreDiff = b.score - a.score;
+    if (Math.abs(scoreDiff) > 0.1) return scoreDiff;  // If score difference is significant, use score
+    return b.phrase.length - a.phrase.length;  // Otherwise prefer longer phrases
+  });
 
-  for (const candidate of sorted) {
+  const deduplicated = [];
+  for (const candidate of candidates) {
     const phrase = candidate.phrase;
+    let isRedundant = false;
 
-    // Check if this phrase is a substring of any already-selected phrase
-    let isSubstring = false;
-    for (const existing of result) {
-      if (existing.phrase.includes(phrase) || phrase.includes(existing.phrase)) {
-        // If current phrase contains existing (and is longer), replace it
-        if (phrase.includes(existing.phrase) && phrase.length > existing.phrase.length) {
-          // Skip - keep the shorter, higher-scoring one
-          isSubstring = true;
-          break;
-        }
-        isSubstring = true;
+    for (const existing of deduplicated) {
+      // Check if one contains the other
+      const existingContainsCandidate = existing.phrase.includes(phrase);
+      const candidateContainsExisting = phrase.includes(existing.phrase);
+
+      if (existingContainsCandidate) {
+        // Current phrase is a substring of existing - skip it
+        isRedundant = true;
         break;
+      }
+
+      if (candidateContainsExisting) {
+        // Current phrase contains existing - keep the longer one (current)
+        // Don't mark as redundant, but we might want to remove the shorter existing one
+        // For now, skip to avoid complexity - the sort order handles most cases
+        continue;
       }
     }
 
-    if (!isSubstring && !seen.has(phrase)) {
-      result.push(candidate);
-      seen.add(phrase);
+    if (!isRedundant) {
+      deduplicated.push(candidate);
     }
   }
 
-  return result;
+  return deduplicated;
 }
 
 /**
@@ -291,7 +299,7 @@ function filterTechStopWords(candidates) {
  */
 function extractTriggerPhrases(text) {
   // Validation
-  if (!text || typeof text !== 'string') {
+  if (!text || typeof text !== 'string' || text.constructor !== String) {
     return [];
   }
 

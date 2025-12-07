@@ -114,10 +114,20 @@ prerequisites:
 # AVAILABLE TEMPLATES
 # ─────────────────────────────────────────────────────────────────
 available_templates:
-  # Level 1+ (Baseline - required at all levels)
+  # Level 1+ (Baseline)
+  spec: .opencode/speckit/templates/spec.md
+  plan: .opencode/speckit/templates/plan.md
   tasks: .opencode/speckit/templates/tasks.md
   # Level 2+ (Verification)
   checklist: .opencode/speckit/templates/checklist.md
+  # Level 3 (Full)
+  decision_record: .opencode/speckit/templates/decision-record.md
+  # Optional (any level)
+  research: .opencode/speckit/templates/research.md
+  research_spike: .opencode/speckit/templates/research-spike.md
+  # Utility (any level)
+  handover: .opencode/speckit/templates/handover.md
+  debug_delegation: .opencode/speckit/templates/debug-delegation.md
 
 # ─────────────────────────────────────────────────────────────────
 # PARALLEL DISPATCH CONFIGURATION

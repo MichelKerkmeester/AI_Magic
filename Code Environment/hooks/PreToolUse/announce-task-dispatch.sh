@@ -31,21 +31,13 @@ HOOKS_DIR="$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd)"
 source "$HOOKS_DIR/lib/output-helpers.sh" 2>/dev/null || true
 source "$HOOKS_DIR/lib/agent-tracking.sh" 2>/dev/null || true
 source "$HOOKS_DIR/lib/shared-state.sh" 2>/dev/null || true
+source "$HOOKS_DIR/lib/perf-timing.sh" 2>/dev/null || true
 
 # Logging
 LOG_FILE="$HOOKS_DIR/logs/task-dispatch.log"
 mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null
 
-# Cross-platform nanosecond timing helper
-_get_nano_time() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo $(($(date +%s) * 1000000000))
-  else
-    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
-  fi
-}
-
-# Performance timing
+# Performance timing (using centralized _get_nano_time from perf-timing.sh)
 START_TIME=$(_get_nano_time)
 
 # Read JSON input from stdin
@@ -207,7 +199,12 @@ touch "/tmp/.claude_task_start_$$" 2>/dev/null || true
 trap "rm -f /tmp/.claude_task_start_$$" EXIT
 
 # Store enhanced metadata in agent state
-STATE_FILE="/tmp/claude_hooks_state/agent_tracking.json"
+# Use get_state_dir() if available, fallback to hardcoded path for compatibility
+if command -v get_state_dir >/dev/null 2>&1; then
+  STATE_FILE="$(get_state_dir)/agent_tracking.json"
+else
+  STATE_FILE="/tmp/claude_hooks_state/agent_tracking.json"
+fi
 if [ -f "$STATE_FILE" ]; then
   # Enrich agent record with metadata
   TEMP_STATE=$(jq --arg id "$AGENT_ID" \

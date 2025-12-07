@@ -169,7 +169,7 @@ if [ "$current_files" -gt "$baseline_files" ]; then
     # Check if we already warned about this growth
     if ! has_hook_state "growth_warning_shown" 600 2>/dev/null; then
       # Output systemMessage for Claude Code visibility (FIRST)
-      local growth_pct=$((growth_ratio - 100))
+      growth_pct=$((growth_ratio - 100))
       jq -n --arg f "$spec_folder" --arg g "$growth_pct" '{systemMessage: ("⚠️ Scope growth +" + $g + "% in " + $f + " - Consider upgrading documentation level")}'
 
       # Backward compatibility output

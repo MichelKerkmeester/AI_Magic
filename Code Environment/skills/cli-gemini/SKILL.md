@@ -5,6 +5,8 @@ allowed-tools: [Bash, Read, Write, Grep, Glob]
 version: 1.1.0
 ---
 
+<!-- Keywords: gemini-cli, google-gemini, code-generation, code-review, web-search, codebase-analysis, ai-orchestration, cross-validation -->
+
 # Gemini CLI Integration Skill
 
 Enable Claude Code to effectively orchestrate Gemini CLI (v0.16.0+) with Gemini 3 Pro for code generation, review, analysis, and specialized tasks requiring a second AI perspective or real-time web information.

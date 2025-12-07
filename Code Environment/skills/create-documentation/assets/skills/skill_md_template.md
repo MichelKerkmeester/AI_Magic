@@ -146,6 +146,8 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion]
 version: 1.0.0
 ---
 
+<!-- Keywords: {{KEYWORDS}} -->
+
 # [Skill Title - Comprehensive Name]
 
 [One-sentence tagline followed by key capabilities overview]

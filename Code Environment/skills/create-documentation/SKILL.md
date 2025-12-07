@@ -5,6 +5,8 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion]
 version: 4.0.0
 ---
 
+<!-- Keywords: create-documentation, markdown-quality, skill-creation, c7score, document-validation, ascii-flowchart, llms-txt, content-optimization -->
+
 # Documentation Creation Specialist - Unified Markdown & Skill Management
 
 Unified specialist providing: (1) Complete document quality pipeline with structure enforcement, content optimization (c7score), and style guide compliance, (2) Complete skill creation workflow with scaffolding, validation, and packaging, and (3) ASCII flowchart creation for visualizing complex workflows, user journeys, system architectures, and decision trees.

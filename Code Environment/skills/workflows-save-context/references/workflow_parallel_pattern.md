@@ -1,10 +1,16 @@
-# Workflow Flowchart - Parallel Pattern Example
+# Workflow Flowchart - Parallel Pattern Reference
 
-Demonstrates concurrent execution of multiple phases with synchronization points.
+> Concurrent execution patterns for complex workflows with multiple parallel streams.
 
 ---
 
-## Use Case: Multi-File Refactoring with Parallel Tasks
+## 1. 📖 OVERVIEW
+
+The parallel pattern demonstrates concurrent execution of multiple phases with synchronization points. Use this pattern for workflows with more than 4 phases or when tasks can be executed simultaneously.
+
+---
+
+## 2. 📊 EXAMPLE: MULTI-FILE REFACTORING
 
 ```
 ╭────────────────────────────────────────────────────────╮
@@ -15,7 +21,7 @@ Demonstrates concurrent execution of multiple phases with synchronization points
 ┌────────────────────────────────────────────────────────┐
 │  Preparation                                           │
 │  • Analyzing codebase structure                        │
-│  • Identifying target files                            │
+│  • Identifying target files                             │
 │  Duration: 3 minutes                                   │
 └────────────────────────────────────────────────────────┘
                         │
@@ -48,7 +54,7 @@ Demonstrates concurrent execution of multiple phases with synchronization points
 ┌────────────────────────────────────────────────────────┐
 │  Integration & Testing                                 │
 │  • Running integration tests                           │
-│  • Validating cross-file changes                       │
+│  • Validating cross-file changes                        │
 │  • Checking type consistency                           │
 │  Duration: 4 minutes                                   │
 └────────────────────────────────────────────────────────┘
@@ -61,28 +67,23 @@ Demonstrates concurrent execution of multiple phases with synchronization points
 
 ---
 
-## Key Features Demonstrated
+## 3. 🎯 WHEN TO USE
 
-- **Parallel execution**: Multiple phases running concurrently
-- **Synchronization points**: Coordination between parallel streams
-- **Section labels**: Complete boxes marking parallel block boundaries
-- **Sync annotations**: "(All phases complete)" markers
-- **Complete side-by-side boxes**: 20-char width for parallel tasks with full borders
-- **Detailed timing**: Duration for each concurrent phase
-- **Branch visualization**: Tree-like structure showing splits and merges
+| Scenario | Example |
+|----------|---------|
+| Concurrent development tasks | Multiple files edited simultaneously |
+| Multi-file refactoring | Updating related components in parallel |
+| Parallel research and implementation | Investigate while building |
+| Independent feature development | Features with no dependencies |
+| Distributed problem-solving | Team work on separate parts |
+| Workflows with > 4 phases | Complex multi-step processes |
 
-## When to Use This Pattern
+---
 
-- Concurrent development tasks
-- Multi-file refactoring
-- Parallel research and implementation
-- Independent feature development
-- Distributed problem-solving
-- Any workflow with > 4 phases
+## 4. 🛠️ PARALLEL BLOCK STRUCTURE
 
-## Style Guidelines
+### Section Labels
 
-### Parallel Block Structure
 ```
 ┌────────────────────────────────────────────────────────┐
 │  SECTION LABEL - Context information                   │
@@ -103,21 +104,38 @@ Demonstrates concurrent execution of multiple phases with synchronization points
             └───────────────────────────┼───────────────────────────┘
 ```
 
+---
+
+## 5. 📐 STYLE GUIDELINES
+
 ### Parallel Phase Boxes
-- **Width**: 20 characters (complete boxes with proper padding)
-- **Content**: Full words with proper spacing, no truncation
-- **Spacing**: 6 spaces between boxes
-- **Max boxes**: 3 per row (more than 3 creates second row)
-- **Padding**: 2 spaces from left edge, right-aligned with proper borders
+
+| Property | Value |
+|----------|-------|
+| **Width** | 20 characters (complete boxes with proper padding) |
+| **Content** | Full words with proper spacing, no truncation |
+| **Spacing** | 6 spaces between boxes |
+| **Max boxes** | 3 per row (more than 3 creates second row) |
+| **Padding** | 2 spaces from left edge, right-aligned with proper borders |
 
 ### Synchronization Annotations
-- **Location**: Below merge point of parallel branches
-- **Format**: `(All phases complete)` or `(All X complete)`
-- **Spacing**: Right-aligned with flow (4 spaces after arrow)
+
+| Property | Value |
+|----------|-------|
+| **Location** | Below merge point of parallel branches |
+| **Format** | `(All phases complete)` or `(All X complete)` |
+| **Spacing** | Right-aligned with flow (4 spaces after arrow) |
 
 ### Section Labels
-- **Format**: Complete box with borders (┌─┐└─┘)
-- **Width**: 56 characters (matching standard box width)
-- **Label**: UPPERCASE with context info in same box
-- **Usage**: Mark entry and exit of parallel blocks
-- **Padding**: 2 spaces from left edge, proper right alignment
+
+| Property | Value |
+|----------|-------|
+| **Format** | Complete box with borders (┌─┐└─┘) |
+| **Width** | 56 characters (matching standard box width) |
+| **Label** | UPPERCASE with context info in same box |
+| **Usage** | Mark entry and exit of parallel blocks |
+| **Padding** | 2 spaces from left edge, proper right alignment |
+
+---
+
+*Related: [workflow_linear_pattern.md](./workflow_linear_pattern.md) | [SKILL.md](../SKILL.md)*

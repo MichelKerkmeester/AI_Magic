@@ -57,16 +57,9 @@ source "$HOOKS_DIR/lib/output-helpers.sh" 2>/dev/null || {
   }
 }
 
-# Cross-platform nanosecond timing helper
-_get_nano_time() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo $(($(date +%s) * 1000000000))
-  else
-    date +%s%N 2>/dev/null || echo $(($(date +%s) * 1000000000))
-  fi
-}
+source "$HOOKS_DIR/lib/perf-timing.sh" 2>/dev/null || true
 
-# Performance tracking
+# Performance tracking (using centralized _get_nano_time from perf-timing.sh)
 START_TIME=$(_get_nano_time)
 
 # ───────────────────────────────────────────────────────────────

@@ -25,32 +25,44 @@ const MAX_TEXT_LENGTH = 2000;
 
 let extractor = null;
 let modelLoadTime = null;
+let loadingPromise = null;  // Track loading state to prevent race conditions
 
 /**
  * Get or create the embedding pipeline (singleton pattern)
  * First call downloads/loads model, subsequent calls return cached instance.
+ * Prevents race conditions with multiple simultaneous model load requests.
  *
  * @returns {Promise<Object>} Feature extraction pipeline
  */
 async function getModel() {
+  // If already loaded, return immediately
   if (extractor) {
     return extractor;
   }
 
-  const start = Date.now();
+  // If currently loading, wait for that to complete
+  if (loadingPromise) {
+    return loadingPromise;
+  }
 
-  // Dynamic import for ESM module
-  const { pipeline } = await import('@huggingface/transformers');
+  // Start loading and store the promise
+  loadingPromise = (async () => {
+    const startTime = Date.now();
+    try {
+      const { pipeline } = await import('@huggingface/transformers');
+      extractor = await pipeline('feature-extraction', MODEL_NAME, {
+        quantized: true
+      });
+      modelLoadTime = Date.now() - startTime;
+      console.log(`[embeddings] Model loaded in ${modelLoadTime}ms`);
+      return extractor;
+    } catch (error) {
+      loadingPromise = null;  // Reset on failure so retry is possible
+      throw new Error(`Failed to load embedding model: ${error.message}`);
+    }
+  })();
 
-  extractor = await pipeline('feature-extraction', MODEL_NAME, {
-    dtype: 'fp32',
-    device: 'cpu'
-  });
-
-  modelLoadTime = Date.now() - start;
-  console.warn(`[embeddings] Model loaded in ${modelLoadTime}ms`);
-
-  return extractor;
+  return loadingPromise;
 }
 
 // ───────────────────────────────────────────────────────────────
@@ -99,8 +111,10 @@ async function generateEmbedding(text) {
       normalize: true
     });
 
-    // Convert to Float32Array
-    const embedding = new Float32Array(output.data);
+    // Convert to Float32Array (optimize by avoiding unnecessary copy)
+    const embedding = output.data instanceof Float32Array
+      ? output.data
+      : new Float32Array(output.data);
 
     const inferenceTime = Date.now() - start;
 
@@ -149,6 +163,22 @@ function getModelLoadTime() {
   return modelLoadTime;
 }
 
+/**
+ * Pre-warm the embedding model (call on server startup)
+ * @returns {Promise<boolean>} true if model loaded successfully
+ */
+async function preWarmModel() {
+  try {
+    console.log('[embeddings] Pre-warming model...');
+    await getModel();
+    console.log('[embeddings] Model pre-warmed successfully');
+    return true;
+  } catch (error) {
+    console.error(`[embeddings] Pre-warm failed: ${error.message}`);
+    return false;
+  }
+}
+
 // ───────────────────────────────────────────────────────────────
 // MODULE EXPORTS
 // ───────────────────────────────────────────────────────────────
@@ -159,6 +189,7 @@ module.exports = {
   getModelName,
   isModelLoaded,
   getModelLoadTime,
+  preWarmModel,
 
   // Constants for external use
   EMBEDDING_DIM,

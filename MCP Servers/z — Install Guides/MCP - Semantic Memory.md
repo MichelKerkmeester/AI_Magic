@@ -6,6 +6,24 @@ A comprehensive guide to installing, configuring, and using the Semantic Memory 
 
 ## 🤖 AI-FIRST INSTALL GUIDE
 
+### Verify Success (30 seconds)
+
+After installation, test immediately:
+1. Open Claude Code in a configured project
+2. Type: "Search my memories for recent decisions"
+3. See tool invocation = SUCCESS
+
+Not working? Jump to [Troubleshooting](#troubleshooting).
+
+---
+
+> **Related Documentation:**
+> - [MCP Server README](../semantic-memory/README.md) - Technical reference
+> - workflows-save-context SKILL.md - Workflow details (in your project's `.claude/skills/` or `.opencode/skills/`)
+> - `/save_context` command - Command reference
+
+---
+
 **Copy and paste this prompt to your AI assistant to get installation help:**
 
 ```
@@ -113,7 +131,7 @@ User Request
                               │ stdio
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    memory-server.js                         │
+│                    semantic-memory.js                         │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │ MCP Protocol Handler (@modelcontextprotocol/sdk)    │    │
 │  │ - ListTools / CallTool handlers                     │    │
@@ -191,6 +209,19 @@ The memory database is stored at:
 
 This location is shared between Claude Code and OpenCode.
 
+### Common Setup Gotchas
+
+**Two config files needed (Claude Code):**
+- `.mcp.json` - defines the server
+- `settings.local.json` - enables via `enabledMcpjsonServers: ["semantic_memory"]`
+
+**Platform-specific sqlite-vec:**
+- macOS ARM: `sqlite-vec-darwin-arm64`
+- macOS Intel: `sqlite-vec-darwin-x64`
+- Linux: `sqlite-vec-linux-x64`
+
+**Graceful fallback:** If sqlite-vec fails, system uses keyword search automatically.
+
 ---
 
 ## 3. 📥 INSTALLATION
@@ -209,7 +240,7 @@ Copy from your Claude Code skills directory:
 
 ```bash
 # Copy main server file
-cp /path/to/.claude/skills/workflows-save-context/scripts/memory-server.js .
+cp /path/to/.claude/skills/workflows-save-context/scripts/semantic-memory.js .
 
 # Copy lib directory
 mkdir -p lib
@@ -237,10 +268,10 @@ cat > package.json << 'EOF'
   "name": "semantic-memory-mcp",
   "version": "10.0.0",
   "description": "MCP server for semantic memory search and retrieval",
-  "main": "memory-server.js",
+  "main": "semantic-memory.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node memory-server.js"
+    "start": "node semantic-memory.js"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.5.1",
@@ -256,7 +287,7 @@ EOF
 
 ```bash
 # Test that server starts correctly
-node memory-server.js
+node semantic-memory.js
 # Press Ctrl+C after seeing successful startup message
 ```
 
@@ -271,10 +302,10 @@ Add to `.mcp.json` in your project root:
 ```json
 {
   "mcpServers": {
-    "memory_server": {
+    "semantic_memory": {
       "command": "node",
       "args": [
-        "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory/memory-server.js"
+        "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory/semantic-memory.js"
       ],
       "env": {},
       "disabled": false
@@ -288,7 +319,7 @@ Enable in `settings.local.json`:
 ```json
 {
   "enabledMcpjsonServers": [
-    "memory_server"
+    "semantic_memory"
   ]
 }
 ```
@@ -300,11 +331,11 @@ Add to `opencode.json` in your project root:
 ```json
 {
   "mcp": {
-    "memory_server": {
+    "semantic_memory": {
       "type": "local",
       "command": [
         "node",
-        "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory/memory-server.js"
+        "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory/semantic-memory.js"
       ],
       "environment": {},
       "enabled": true
@@ -329,12 +360,18 @@ The default database path is `~/.claude/memory-index.sqlite`. This can be overri
 
 ## 5. ✅ VERIFICATION
 
+### One-Command Health Check
+
+```bash
+sqlite3 ~/.claude/memory-index.sqlite "SELECT 'OK: ' || COUNT(*) || ' memories' FROM memory_index" 2>/dev/null || echo "Database not created yet (will be created on first save)"
+```
+
 ### Check 1: Verify Server Files
 
 ```bash
 # Check all required files exist
 ls -la /path/to/semantic-memory/
-# Should show: memory-server.js, lib/, node_modules, package.json
+# Should show: semantic-memory.js, lib/, node_modules, package.json
 
 ls -la /path/to/semantic-memory/lib/
 # Should show: embeddings.js, vector-index.js, trigger-matcher.js,
@@ -353,7 +390,7 @@ ls -la /path/to/semantic-memory/node_modules/better-sqlite3
 
 ```bash
 # Start server manually (will wait for MCP protocol input)
-node /path/to/semantic-memory/memory-server.js
+node /path/to/semantic-memory/semantic-memory.js
 
 # Expected: No errors, server waits for input
 # Press Ctrl+C to exit
@@ -591,80 +628,93 @@ When you know exactly what you need:
 
 **Problem**: `Error: Cannot find module`
 
-**Solutions**:
-1. Check symlink:
-   ```bash
-   ls -la node_modules
-   # Should point to workflows-save-context/node_modules
-   ```
+**What it means**: The server can't find its dependencies. The symlink to node_modules is missing or broken.
 
-2. Reinstall if broken:
-   ```bash
-   rm node_modules
-   ln -s /path/to/.claude/skills/workflows-save-context/node_modules .
-   ```
+**Fix**:
+```bash
+ls -la node_modules
+# Should point to workflows-save-context/node_modules
+```
+
+**If that doesn't work**:
+```bash
+rm node_modules
+ln -s /path/to/.claude/skills/workflows-save-context/node_modules .
+```
 
 ### sqlite-vec Not Loading
 
 **Problem**: `Warning: sqlite-vec unavailable, falling back to anchor-only mode`
 
-**Solutions**:
-1. Check platform binary:
-   ```bash
-   ls node_modules/sqlite-vec-darwin-arm64/  # macOS ARM
-   ls node_modules/sqlite-vec-linux-x64/     # Linux x64
-   ```
+**What it means**: The vector search extension isn't loading. The system will still work using keyword search, but semantic similarity won't be available.
 
-2. Install manually (macOS):
-   ```bash
-   brew install sqlite-vec
-   ```
+**Fix**:
+```bash
+# Check if the right platform binary exists
+ls node_modules/sqlite-vec-darwin-arm64/  # macOS ARM
+ls node_modules/sqlite-vec-darwin-x64/    # macOS Intel
+ls node_modules/sqlite-vec-linux-x64/     # Linux x64
+```
+
+**If that doesn't work**:
+```bash
+# Install manually (macOS)
+brew install sqlite-vec
+```
 
 ### No Search Results
 
 **Problem**: `memory_search` returns empty results
 
-**Solutions**:
-1. Check database exists:
-   ```bash
-   ls ~/.claude/memory-index.sqlite
-   ```
+**What it means**: Either no memories have been saved yet, or the embeddings haven't been generated for existing memories.
 
-2. Verify embeddings exist:
-   ```bash
-   sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM vec_memories"
-   ```
+**Fix**:
+```bash
+# Check database exists
+ls ~/.claude/memory-index.sqlite
 
-3. Check embedding status:
-   ```bash
-   sqlite3 ~/.claude/memory-index.sqlite \
-     "SELECT embedding_status, COUNT(*) FROM memory_index GROUP BY embedding_status"
-   ```
+# Verify embeddings exist
+sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM vec_memories"
+```
+
+**If that doesn't work**:
+```bash
+# Check embedding status - most should show 'completed'
+sqlite3 ~/.claude/memory-index.sqlite \
+  "SELECT embedding_status, COUNT(*) FROM memory_index GROUP BY embedding_status"
+```
 
 ### Slow Performance
 
-**Problem**: Operations exceeding targets
+**Problem**: Operations exceeding targets (triggers >50ms, search >500ms)
 
-**Solutions**:
-1. Check for large prompt (truncated at 2000 chars)
-2. Verify WAL mode:
-   ```bash
-   sqlite3 ~/.claude/memory-index.sqlite "PRAGMA journal_mode"
-   # Should return: wal
-   ```
+**What it means**: The database may not be optimized, or queries are hitting large datasets.
+
+**Fix**:
+```bash
+# Verify WAL mode is enabled for better concurrency
+sqlite3 ~/.claude/memory-index.sqlite "PRAGMA journal_mode"
+# Should return: wal
+```
+
+**If that doesn't work**: Large prompts are truncated at 2000 characters. If you're sending very long queries, try shorter, more specific ones.
 
 ### Tool Not Appearing in Client
 
 **Problem**: Memory tools not listed in AI client
 
-**Solutions**:
-1. Verify MCP config is correct for your client
-2. Check server path is absolute, not relative
-3. Restart AI client after configuration changes
-4. Check for JSON syntax errors:
-   ```bash
-   python3 -m json.tool < .mcp.json
-   ```
+**What it means**: The MCP configuration isn't being read, or there's a syntax error in the config file.
+
+**Fix**:
+```bash
+# Check for JSON syntax errors
+python3 -m json.tool < .mcp.json
+```
+
+**If that doesn't work**:
+1. Verify the server path is absolute, not relative
+2. For Claude Code: ensure both `.mcp.json` AND `settings.local.json` are configured
+3. Restart the AI client after configuration changes
 
 ---
 
@@ -674,7 +724,7 @@ When you know exactly what you need:
 
 ```
 semantic-memory/
-├── memory-server.js      # Main MCP server (executable)
+├── semantic-memory.js      # Main MCP server (executable)
 ├── package.json          # Dependencies manifest
 ├── README.md             # Documentation
 ├── node_modules/         # Symlink to shared dependencies
@@ -715,17 +765,17 @@ CREATE VIRTUAL TABLE vec_memories USING vec0(
 
 | Client          | Configuration File                  | Server Key      |
 | --------------- | ----------------------------------- | --------------- |
-| **Claude Code** | `.mcp.json` + `settings.local.json` | `memory_server` |
-| **OpenCode**    | `opencode.json`                     | `memory_server` |
+| **Claude Code** | `.mcp.json` + `settings.local.json` | `semantic_memory` |
+| **OpenCode**    | `opencode.json`                     | `semantic_memory` |
 
 ### Verification Commands
 
 ```bash
 # Check server version
-node memory-server.js --version 2>&1 | head -1
+node semantic-memory.js --version 2>&1 | head -1
 
 # Test startup (Ctrl+C to exit)
-node memory-server.js
+node semantic-memory.js
 
 # Check database tables
 sqlite3 ~/.claude/memory-index.sqlite ".tables"
@@ -751,8 +801,7 @@ Slow operations are logged automatically:
 | Document        | Location                                         | Purpose                   |
 | --------------- | ------------------------------------------------ | ------------------------- |
 | Server README   | `semantic-memory/README.md`                      | Full server documentation |
-| Spec 011        | `specs/011-semantic-memory-upgrade/`             | Full specification        |
-| Skills SKILL.md | `.claude/skills/workflows-save-context/SKILL.md` | Save context workflow     |
+| Skills SKILL.md | Your project's `.claude/skills/` or `.opencode/skills/` | Save context workflow     |
 
 ---
 
@@ -774,7 +823,7 @@ ls -la /path/to/semantic-memory/lib/
 sqlite3 ~/.claude/memory-index.sqlite ".tables"
 
 # Test server
-node /path/to/semantic-memory/memory-server.js
+node /path/to/semantic-memory/semantic-memory.js
 
 # Check database stats
 sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
@@ -786,9 +835,9 @@ sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
 ```json
 {
   "mcpServers": {
-    "memory_server": {
+    "semantic_memory": {
       "command": "node",
-      "args": ["/path/to/semantic-memory/memory-server.js"],
+      "args": ["/path/to/semantic-memory/semantic-memory.js"],
       "env": {},
       "disabled": false
     }
@@ -800,9 +849,9 @@ sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
 ```json
 {
   "mcp": {
-    "memory_server": {
+    "semantic_memory": {
       "type": "local",
-      "command": ["node", "/path/to/semantic-memory/memory-server.js"],
+      "command": ["node", "/path/to/semantic-memory/semantic-memory.js"],
       "environment": {},
       "enabled": true
     }
@@ -820,6 +869,16 @@ Start using Semantic Memory by asking your AI assistant:
 ```
 Search my memories for information about [topic]
 ```
+
+---
+
+## Next Steps
+
+- **Test the system**: Run `/save_context check` in Claude Code
+- **Save your first context**: Type "save context" after a meaningful conversation
+- **Search memories**: Try `/save_context how did we...`
+
+**Need help?** See [Troubleshooting](#troubleshooting) or check Claude Code terminal for server logs.
 
 ---
 

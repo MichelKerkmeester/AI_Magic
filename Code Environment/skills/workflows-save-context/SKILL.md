@@ -1,82 +1,64 @@
 ---
 name: workflows-save-context
-description: This skill saves expanded conversation context when completing features or architectural discussions. It preserves full dialogue, decision rationale, visual flowcharts, and file changes for team sharing. Auto-triggered by keywords (e.g., "save context", "save conversation") or every 20 messages. (v9.0+ includes anchor-based context retrieval)
+description: Saves expanded conversation context with full dialogue, decision rationale, visual flowcharts, and file changes. Auto-triggers on keywords or every 20 messages. Includes semantic vector search.
 allowed-tools: [Read, Write, Bash]
-version: 9.0.0
+version: 1.0.0
 ---
+
+<!-- Keywords: save-context, context-preservation, memory, session-documentation, auto-save, semantic-search, anchor-retrieval -->
 
 # Save Context - Expanded Conversation Documentation
 
-Preserve comprehensive conversation context in human-readable markdown files. Creates structured documentation with session summaries, full dialogue flow, decisions, and auto-generated flowcharts.
+> **Related Documentation:**
+> - [README.md](./README.md) - Semantic Memory setup, MCP integration, API reference
+> - [/save_context](../../commands/save_context.md) - Slash command reference
 
-**Auto-Triggering**: Automatically saves when user types trigger keywords OR every 20 messages (context budget management).
+> **TL;DR**: Say "save context" or let it auto-save every 20 messages. Creates `specs/###-feature/memory/{timestamp}.md` with full conversation, decisions, and diagrams. Includes semantic vector search.
 
 ---
 
 ## 1. 🎯 WHEN TO USE
 
-### Navigation Guide
+### Trigger Phrases
 
-**This file (SKILL.md)**: Core workflow and auto-trigger configuration
+| Phrase | Also Works |
+|--------|------------|
+| "save context" | "save conversation" |
+| "document this" | "preserve context" |
+| "save session" | "save this discussion" |
 
-**Reference Files** (workflow patterns):
-- [workflow_linear_pattern.md](./references/workflow_linear_pattern.md) – Sequential workflow pattern (≤4 phases)
-- [workflow_parallel_pattern.md](./references/workflow_parallel_pattern.md) – Concurrent workflow pattern (>4 phases)
+### Auto-Save
 
-**Templates** (output format):
-- [context_template.md](./templates/context_template.md) – Generated markdown file structure
+**Every 20 messages** the system automatically saves context. No action required.
 
-**Scripts** (automation):
-- [generate-context.js](./scripts/generate-context.js) – Node.js script that processes JSON and generates markdown
+### When to Save
 
-### When to Use
+| Scenario | Example |
+|----------|---------|
+| Feature complete | "Just finished the payment integration" |
+| Complex discussion | "We made 5 architecture decisions today" |
+| Team sharing | "Need to document this for the team" |
+| Session ending | "Wrapping up for the day" |
 
-**Auto-Triggered By**:
-- **Keywords**: "save context", "save conversation", "document this", "preserve context", etc.
-- **Message Count**: Every 20 messages (configurable context budget trigger)
+### When NOT to Use
 
-**Manual Invocation** (when auto-trigger doesn't fire):
-- Completing a significant implementation or research session
-- Wrapping up a complex feature with multiple decisions
-- Documenting an architectural discussion
-- Creating a reference for future conversations
-- Sharing conversation context with team members
-
-**This skill should NOT be used for**:
 - Simple typo fixes or trivial changes
-- Context already well-documented in spec/plan files
-- Real-time progress tracking (use claude-mem instead)
-- Conversations without spec folders (create spec folder first)
+- Context already documented in spec/plan files
+- Conversations without spec folders (create one first)
 
-**Key Characteristics**:
-- **Triggering**: Automatic via keywords or context threshold (no /clear needed)
-- **Granularity**: Full conversation flow with intelligent summaries
-- **Format**: Human-readable markdown files in `specs/###-feature/memory/`
-- **Detail Level**: Intelligent summaries with key code snippets
-- **Visual Docs**: Auto-generated flowcharts and decision trees
-- **Use Case**: Session documentation and team sharing
+### Context Recovery (CRITICAL)
 
-### When to RETRIEVE Context (Equally Important)
+**Before implementing ANY changes** in a spec folder with memory files, search for relevant context:
 
-**MANDATORY: Before ANY implementation work in a spec folder with memory files**:
-- Search anchors for prior decisions and implementations
-- Load relevant sections using the Context Recovery Protocol
-- Acknowledge what you found (or note absence)
+```bash
+# Keyword search
+grep -r "anchor:.*keyword" specs/###-current-spec/memory/*.md
 
-**Why Retrieval Matters**:
-- **Prevents duplicate work** - Don't re-implement what's already done
-- **Ensures consistency** - Don't contradict prior approved decisions
-- **Reduces token waste** - Don't re-discover known information (93% savings)
-- **Maintains continuity** - Build on prior context, not from scratch
+# Semantic search
+claude-mem vector "your search query"
+```
 
-**When to Search Anchors**:
-- Starting work in ANY spec folder with a `memory/` directory
-- Before making architectural decisions
-- Before implementing features that might have prior context
-- When user references "what we discussed" or "the previous approach"
-
-**See Section 4 for the full Context Recovery Protocol (MANDATORY).**
-
+If found, load and acknowledge context before proceeding.
 
 ---
 
@@ -84,1070 +66,444 @@ Preserve comprehensive conversation context in human-readable markdown files. Cr
 
 ```python
 def route_save_context_resources(task):
-    # context generation script
+    # Main context generation
     if task.generating_context:
-        return execute("scripts/generate-context.js")  # main generator
-    
-    # flowchart pattern selection
+        return execute("scripts/generate-context.js")
+
+    # Flowchart patterns
     if task.needs_flowchart:
         if task.phase_count <= 4:
-            return load("assets/workflow_linear_pattern.md")  # simple linear
+            return load("references/workflow_linear_pattern.md")
         else:
-            return load("assets/workflow_parallel_pattern.md")  # complex parallel
-    
-    # output format reference
-    if task.needs_output_format:
-        return load("references/output_format.md")  # timestamp, naming, structure
-    
-    # alignment scoring explanation
-    if task.alignment_questions:
-        return load("references/alignment_scoring.md")  # topic/file/phase weights
-    
-    # trigger configuration
-    if task.configuring_triggers:
-        return load("references/trigger_config.md")  # keywords, auto-save interval
+            return load("references/workflow_parallel_pattern.md")
 
-# triggers: "save context", "save conversation", "save session", or every 20 messages
-# output: specs/###-feature/memory/{timestamp}__{topic}.md
-# alignment threshold: 70% (warns if lower)
+    # Semantic features
+    if task.semantic_search:
+        return load("references/semantic_memory.md")
+
+    # Execution details
+    if task.needs_execution_details:
+        return load("references/execution_methods.md")
+
+    # Spec folder routing
+    if task.folder_detection:
+        return load("references/spec_folder_detection.md")
+
+    # Troubleshooting
+    if task.has_issues:
+        return load("references/troubleshooting.md")
+
+    # Output format
+    if task.needs_output_format:
+        return load("references/output_format.md")
+
+    # Configuration
+    if task.configuring:
+        return load("references/trigger_config.md")
+
+# Output: specs/###-feature/memory/{timestamp}__{topic}.md
+# Alignment threshold: 70%
 ```
 
 ---
 
 ## 3. 🗂️ REFERENCES
 
-### Core Framework & Workflows
-| Document                                | Purpose                                   | Key Insight                                                 |
-| --------------------------------------- | ----------------------------------------- | ----------------------------------------------------------- |
-| **Save Context - Auto-Trigger**         | Keyword and message-count based activation| **Zero-friction context preservation at 20-message intervals** |
-| **Save Context - Manual Workflow**      | On-demand session documentation           | **Comprehensive dialogue + flowcharts + decisions**         |
+### Core Resources
 
-### Bundled Resources
-| Document                                    | Purpose                                    | Key Insight                                |
-| ------------------------------------------- | ------------------------------------------ | ------------------------------------------ |
-| **references/workflow_linear_pattern.md**   | Sequential workflow pattern (≤4 phases)    | Linear conversation flow visualization     |
-| **references/workflow_parallel_pattern.md** | Concurrent workflow pattern (>4 phases)    | Multi-threaded conversation flow handling  |
-| **templates/context_template.md**           | Output markdown file structure             | Ensures consistent documentation format    |
-| **scripts/generate-context.js**             | Node.js processor (JSON → Markdown)        | **Promise.all() for parallel processing**  |
+| Document | Purpose | When to Read |
+|----------|---------|--------------|
+| [execution_methods.md](./references/execution_methods.md) | 4 execution paths, anchor retrieval | Running save-context |
+| [semantic_memory.md](./references/semantic_memory.md) | Vector search, MCP tools | Semantic features |
+| [spec_folder_detection.md](./references/spec_folder_detection.md) | Folder routing, markers | Understanding routing |
+
+### Workflow Patterns
+
+| Document | Purpose | When to Read |
+|----------|---------|--------------|
+| [workflow_linear_pattern.md](./references/workflow_linear_pattern.md) | Sequential diagrams (<=4 phases) | Creating flowcharts |
+| [workflow_parallel_pattern.md](./references/workflow_parallel_pattern.md) | Concurrent diagrams (>4 phases) | Complex flows |
+
+### Configuration & Troubleshooting
+
+| Document | Purpose | When to Read |
+|----------|---------|--------------|
+| [trigger_config.md](./references/trigger_config.md) | Keywords, auto-save interval | Customizing triggers |
+| [output_format.md](./references/output_format.md) | Timestamps, file naming | Understanding output |
+| [alignment_scoring.md](./references/alignment_scoring.md) | Topic matching weights | Score questions |
+| [troubleshooting.md](./references/troubleshooting.md) | Issue resolution | Debugging problems |
+
+### Templates & Config
+
+| File | Purpose |
+|------|---------|
+| [context_template.md](./templates/context_template.md) | Output format template |
+| [config.jsonc](./config.jsonc) | Runtime configuration |
+| [filters.jsonc](./filters.jsonc) | Content filtering rules |
 
 ---
 
 ## 4. 🛠️ HOW TO USE
 
-This skill is **standalone** - it does NOT use claude-mem MCP or external memory systems. Claude creates the conversation summary directly from the current session.
+### Quick Overview
 
-### Automatic Triggering (Recommended - Zero Effort)
+| Action | Method | When to Use |
+|--------|--------|-------------|
+| Auto-save | Say trigger phrase or wait 20 msgs | Normal workflow |
+| Manual save | `/save_context` command | Explicit control |
+| Script | `node generate-context.js` | Testing/debugging |
+| Semantic search | `claude-mem vector "query"` | Find prior context |
 
-**Most Common Usage**: Let the UserPromptSubmit hook handle everything automatically
+### Execution Methods
 
-**User Action**:
-- Type trigger keywords: "save context", "save conversation", "document this", etc.
-- OR simply continue conversation (auto-saves every 20 messages)
+| Method | Hooks | AI | Effort | Use Case |
+|--------|-------|-----|--------|----------|
+| **Keyword trigger** | No | No | Zero | Type "save context" |
+| **Slash command** | No | Yes | Low | `/save_context` |
+| **Direct script** | No | No | Medium | Testing |
+| **Helper script** | No | No | Low | Standalone |
 
-**What Happens Automatically**:
-1. UserPromptSubmit hook detects keyword or message count
-2. Hook finds transcript file and current spec folder
-3. Hook transforms transcript to JSON format
-4. Hook calls script with correct arguments
-5. Context saved to `specs/###-feature/memory/`
-6. Confirmation message displayed
+For detailed examples, see [execution_methods.md](./references/execution_methods.md).
 
-**AI Agent Action**: **NONE** - Hook handles everything automatically
+### Basic Script Usage
 
-**Result**: ✅ Context saved without AI agent intervention
-
-**Example Output**:
-```
-💾 Auto-saving context (keyword: 'save context' detected)...
-   ✓ Loaded conversation data
-   📁 Step 2: Detecting spec folder...
-   ✓ Using spec folder: 122-skill-standardization
-   📝 Step 3: Generating context documentation...
-   ✓ Context file created: 23-11-25_10-15__skill-standardization.md
-   ✅ Context saved to: specs/122-skill-standardization/memory/
-```
-
-### Alternative Execution Methods
-
-The save-context system supports **4 independent execution paths**. Hooks are supplementary and **NOT required** - any method can be used standalone.
-
-#### Method 1: Hook Auto-Trigger (Recommended - Zero Effort)
-
-**When to Use**: Production use, normal workflow
-**Requirement**: Hook enabled in `.claude/settings.local.json`
-
-See "Automatic Triggering" section above for full details.
-
-#### Method 2: Slash Command (Manual Trigger)
-
-**When to Use**: Manual save without typing trigger keywords
-**Requirement**: Slash command file exists at `.claude/commands/save_context.md`
-
-**Usage**:
-```
-/save_context
-```
-
-**What Happens**:
-1. Slash command expands to full prompt
-2. AI agent analyzes conversation history
-3. AI agent creates structured JSON summary
-4. AI agent calls `generate-context.js` with JSON data
-5. Context saved to active spec folder's `memory/` directory
-
-**Result**: Same output as hook auto-trigger, but AI-driven instead of hook-driven
-
-#### Method 3: Direct Script Execution (Development/Testing)
-
-**When to Use**: Testing, debugging, custom workflows
-**Requirement**: Node.js installed
-
-**Usage**:
 ```bash
-# Create minimal JSON data file
-cat > /tmp/test-save-context.json << 'EOF'
+# With spec folder argument
+node .claude/skills/workflows-save-context/scripts/generate-context.js \
+  /tmp/context-data.json "122-feature-name"
+
+# Helper script (auto-detects folder)
+bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh
+```
+
+### Output Files
+
+| File | Content |
+|------|---------|
+| `{date}_{time}__{topic}.md` | Full session documentation |
+| `metadata.json` | Session statistics |
+
+**Naming**: `DD-MM-YY_HH-MM__topic.md` (e.g., `07-12-25_14-30__oauth.md`)
+
+---
+
+## 5. 🔗 ANCHOR-BASED RETRIEVAL
+
+Memory files include searchable HTML anchors for targeted loading.
+
+### Token Efficiency
+
+| Approach | Tokens | Savings |
+|----------|--------|---------|
+| Full file read | ~12,000 | - |
+| Anchor extraction | ~800 | 93% |
+
+### Anchor Format
+
+`<!-- anchor: category-keywords-spec# -->`
+
+**Categories**: `implementation`, `decision`, `guide`, `architecture`, `files`, `discovery`, `integration`
+
+### Quick Commands
+
+```bash
+# Find anchors by keyword
+grep -l "anchor:.*decision.*auth" specs/*/memory/*.md
+
+# Extract specific section
+sed -n '/<!-- anchor: decision-jwt-049 -->/,/<!-- \/anchor: decision-jwt-049 -->/p' file.md
+```
+
+### Context Recovery Protocol
+
+**MANDATORY**: Before implementing changes in folders with memory files:
+
+1. **Extract keywords** from your task (2-4 key terms)
+2. **Search anchors**: `grep -r "anchor:.*keyword" specs/###-spec/memory/*.md`
+3. **Or use semantic search**: `claude-mem vector "your query"`
+4. **Load relevant sections** if found
+5. **Acknowledge context**: "Based on prior decision in [file]..."
+
+See [execution_methods.md](./references/execution_methods.md) for full protocol.
+
+---
+
+## 6. 🧠 SEMANTIC SEARCH
+
+Semantic vector search enables intelligent memory retrieval.
+
+### Key Commands
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `search <query>` | Interactive semantic search | `/save_context search "OAuth"` |
+| `multi <concepts>` | AND search across concepts | `/save_context search "oauth" "security"` |
+| `rebuild` | Rebuild vector index | `/save_context rebuild` |
+| `verify` | Check index integrity | `/save_context verify` |
+| `resume` | Resume previous search session | `/save_context resume` |
+
+### Interactive Search Mode (NEW - Spec 015)
+
+Rich interactive search with preview, filtering, and session persistence:
+
+```
+/save_context search "oauth implementation"
+
+Memory Search Results                              Page 1/3
+============================================================
+
+Query: "oauth implementation"
+Found: 25 memories across 5 spec folders
+
+#1 [92%] OAuth callback flow implementation
+   Folder: 049-auth-system  |  Date: Dec 5  |  Tags: oauth, jwt
+   "Authorization Code flow with PKCE, httpOnly refresh..."
+
+#2 [85%] JWT token refresh strategy
+   Folder: 049-auth-system  |  Date: Dec 4  |  Tags: jwt, refresh
+   "Sliding window refresh with httpOnly cookies..."
+
+---------------------------------------------------------------------
+Actions: [v]iew #n | [l]oad #n | [f]ilter | [c]luster | [n]ext | [q]uit
+```
+
+### Interactive Actions
+
+| Action | Purpose | Example |
+|--------|---------|---------|
+| `v#` or `view #` | Preview memory before loading | `v1` |
+| `l#` or `load #` | Load memory into context | `l1` |
+| `f <filter>` | Filter results | `f folder:auth date:>2025-12-01` |
+| `c` | Cluster by spec folder | `c` |
+| `n` / `p` | Next/previous page | `n` |
+| `e <anchor>` | Extract specific section | `e decisions` |
+| `b` | Back to previous view | `b` |
+| `?` | Show help | `?` |
+
+### Filter Syntax
+
+```bash
+f folder:049-auth      # Filter by spec folder (partial match)
+f date:>2025-12-01     # Filter by date (after)
+f date:<2025-12-01     # Filter by date (before)
+f tag:oauth            # Filter by tag
+f folder:auth tag:jwt  # Multiple filters (AND)
+```
+
+### Session Persistence
+
+Search sessions persist for 1 hour:
+- Resume with `/save_context resume`
+- Auto-saves on every action
+- Preserves filters, pagination, and state
+
+### MCP Tools (for AI agents)
+
+| Tool | Purpose |
+|------|---------|
+| `memory_search` | Semantic vector search |
+| `memory_load` | Load memory by spec folder |
+| `memory_match_triggers` | Fast trigger phrase matching |
+
+See [semantic_memory.md](./references/semantic_memory.md) for complete documentation.
+
+---
+
+## 7. 📋 IMPLEMENTATION
+
+### JSON Data Structure
+
+```javascript
 {
-  "SPEC_FOLDER": "049-anchor-context-retrieval",
+  "SPEC_FOLDER": "049-feature-name",
   "recent_context": [{
-    "request": "Test save-context execution",
-    "completed": "Verified system works standalone",
-    "learning": "Direct script execution requires minimal JSON",
-    "duration": "5m",
-    "date": "2025-11-28T18:30:00Z"
+    "request": "What user asked for",
+    "completed": "What was accomplished",
+    "learning": "Key insights",
+    "duration": "45m",
+    "date": "2025-12-07T14:30:00Z"
   }],
   "observations": [{
-    "type": "discovery",
-    "title": "Standalone execution test",
-    "narrative": "Testing direct script invocation",
-    "timestamp": "2025-11-28T18:30:00Z",
-    "files": [],
-    "facts": ["No hooks required", "Minimal data sufficient"]
+    "type": "feature|bugfix|decision|discovery|change",
+    "title": "Brief title",
+    "narrative": "Detailed description",
+    "timestamp": "2025-12-07T14:30:00Z",
+    "files": ["path/to/file.js"],
+    "facts": ["Key point 1", "Key point 2"]
   }],
   "user_prompts": [{
-    "prompt": "Test save-context standalone",
-    "timestamp": "2025-11-28T18:30:00Z"
-  }]
-}
-EOF
-
-# Execute script directly
-cd /path/to/project
-node .claude/skills/workflows-save-context/scripts/generate-context.js \
-  /tmp/test-save-context.json \
-  "049-anchor-context-retrieval"
-```
-
-**Result**: Context saved to specified spec folder's `memory/` directory
-
-#### Method 4: Helper Script (Standalone - Easiest Manual Invocation)
-
-**When to Use**: Manual saves without hooks or slash commands
-**Requirement**: Node.js and jq installed
-
-**Location**: `.claude/skills/workflows-save-context/scripts/save-context-manual.sh`
-
-**Usage**:
-```bash
-# Save to specific spec folder
-bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh \
-  "049-anchor-context-retrieval" \
-  "Manual save session"
-
-# Auto-detect most recent spec folder
-bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh
-
-# Show help
-bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh --help
-```
-
-**What It Does**:
-1. Auto-detects most recent spec folder (if not specified)
-2. Creates minimal JSON data with placeholder content
-3. Calls `generate-context.js` with proper arguments
-4. Shows success confirmation with file location
-
-**Result**: Context saved with minimal placeholder data (useful for testing)
-
-#### Execution Method Comparison
-
-| Method | Hooks Required | AI Agent Required | Use Case | Effort |
-|--------|----------------|-------------------|----------|--------|
-| **Hook Auto-Trigger** | ✅ Yes | ❌ No | Production | Zero |
-| **Slash Command** | ❌ No | ✅ Yes | Manual save | Low |
-| **Direct Script** | ❌ No | ❌ No | Testing/Debug | Medium |
-| **Helper Script** | ❌ No | ❌ No | Standalone | Low |
-
-**Key Principle**: Hooks supplement the system but are **NOT required**. All execution paths work independently.
-
-**Output Files** (both methods):
-```
-/specs/###-feature-name/
-└── memory/
-    ├── 09-11-25_07-52__feature-name.md  # Complete session documentation
-    └── metadata.json                     # Session stats and metadata
-```
-
-**Primary Document**: `{date}_{time}__{topic}.md`
-- **Format**: Timestamped markdown file
-- **Naming**: DD-MM-YY_HH-MM__topic.md (Dutch date format, 2-digit year, no seconds)
-- **Topic**: Derived from spec folder name (without number prefix)
-- **Example**: `09-11-25_07-52__adaptive-page-loader.md`
-- **Contains**: Session summary, full dialogue, decisions, diagrams, and analysis
-
-**Metadata File**: `metadata.json`
-- **Purpose**: Machine-readable session statistics
-- **Contains**: Date, time, message count, decision count, diagram count, skill version
-
-**Visual Documentation**:
-- **Workflow Flowchart**: Visual representation of conversation phases
-  - Linear pattern (≤4 phases): Sequential workflows
-  - Parallel pattern (>4 phases): Concurrent tasks
-- **Decision Trees**: Visual breakdown of key decisions with options/rationale
-
-### Retrieving Saved Context (v9.0+ - Anchor-Based Retrieval)
-
-**New in v9.0**: Memory files now include searchable HTML comment anchors for task-oriented context retrieval.
-
-**Why Anchor-Based Retrieval**:
-- **Token Efficiency**: Load relevant sections (500-1500 tokens) instead of full files (10k-15k tokens)
-- **Task-Oriented**: Search by what was done ("OAuth implementation") not when it happened
-- **Grep-Friendly**: Simple command-line extraction without parsing markdown or JSON
-
-**Anchor Format**: `<!-- anchor: category-keywords-spec# -->`
-- Example: `<!-- anchor: implementation-oauth-callback-049 -->`
-- Categories: implementation, decision, guide, architecture, files, discovery, integration
-
----
-
-### Context Recovery Protocol (MANDATORY)
-
-**CRITICAL**: Before implementing ANY changes in a spec folder with memory files, you MUST search for relevant anchors. This is NOT optional.
-
-**Why This Is Mandatory**:
-- Prevents duplicating work that was already completed
-- Ensures consistency with prior decisions
-- Reduces token waste by not re-discovering known information
-- Maintains continuity across sessions (93-97% token savings)
-
-**Protocol Steps**:
-
-1. **Extract Keywords** from your current task:
-   - Identify 2-4 key terms (e.g., "auth", "oauth", "callback", "hook")
-   - Focus on domain terms, not common words
-
-2. **Search Anchors** using grep:
-   ```bash
-   # Search within current spec folder
-   grep -r "anchor:.*keyword" specs/###-current-spec/memory/*.md
-
-   # Cross-spec search if broader context needed
-   grep -r "anchor:.*keyword" specs/*/memory/*.md
-
-   # Find all decision anchors (high-value context)
-   grep -l "anchor: decision" specs/###-current-spec/memory/*.md
-   ```
-
-3. **Load Relevant Sections** if matches found:
-   ```bash
-   # Use load-related-context.sh for intelligent retrieval
-   .claude/hooks/lib/load-related-context.sh "###-spec" smart "your keywords"
-
-   # Or extract specific anchor directly
-   sed -n '/<!-- anchor: decision-auth-049 -->/,/<!-- \/anchor: decision-auth-049 -->/p' file.md
-   ```
-
-4. **Acknowledge Context** in your response:
-   - If found: "Based on prior decision in memory file [filename], I see that [summary]..."
-   - If not found: "No prior context found for [task keywords] - proceeding with fresh implementation"
-
-**Anti-Patterns (NEVER DO)**:
-- ❌ Assuming no prior work exists without searching anchors first
-- ❌ Saying "I don't see any X" without running grep commands
-- ❌ Ignoring loaded context and re-implementing from scratch
-- ❌ Making decisions that contradict documented prior decisions
-- ❌ Skipping anchor search because "this seems like a new task"
-
-**Enforcement**: If you skip this protocol, you risk:
-- Duplicating hours of prior work
-- Contradicting decisions the user already approved
-- Wasting tokens re-discovering information that's already documented
-- Breaking consistency across the codebase
-
----
-
-**Quick Search - Find Memory Files**:
-```bash
-# Find all memory files containing OAuth implementation
-grep -l "anchor: implementation-oauth" specs/*/memory/*.md
-
-# Find all decision anchors about authentication
-grep -l "anchor: decision.*auth" specs/*/memory/*.md
-
-# List all available anchors in a memory file
-grep -o 'anchor: [a-z0-9-]*' specs/049-*/memory/*.md | sort -u
-```
-
-**Extract Specific Sections**:
-```bash
-# Extract OAuth implementation section (500-1500 tokens vs 10k+ for full file)
-sed -n '/<!-- anchor: implementation-oauth-callback-049 -->/,/<!-- \/anchor: implementation-oauth-callback-049 -->/p' \
-  specs/049-anchor-context-retrieval/memory/23-11-28_14-30__anchor-context.md
-
-# Extract decision about JWT vs Sessions
-sed -n '/<!-- anchor: decision-jwt-sessions-049 -->/,/<!-- \/anchor: decision-jwt-sessions-049 -->/p' \
-  specs/049-*/memory/*.md
-
-# Extract summary section (always available)
-sed -n '/<!-- anchor: summary-049 -->/,/<!-- \/anchor: summary-049 -->/p' \
-  specs/049-*/memory/*.md
-```
-
-**Backward Compatibility**:
-- **v8.x and earlier**: Memory files do NOT include anchor tags - use full file reading
-- **v9.0+**: All new memory files include anchor tags automatically
-- **Migration**: No action needed - old files work as-is, new files include anchors
-- **Detection**: Check for `<!-- anchor:` presence to determine if file supports anchors
-
-**Best Practices**:
-1. **Always grep first**: Find which memory files contain relevant anchors before extraction
-2. **Use wildcards**: `specs/*/memory/*.md` searches across all spec folders
-3. **Verify anchor exists**: `grep -q "anchor: ${ANCHOR_ID}"` before sed extraction
-4. **Fallback to full read**: If anchor not found, read entire file (v8.x compatibility)
-
-**Token Savings Example**:
-```
-Traditional approach: Read full memory file = 12,000 tokens
-Anchor-based approach: Read specific section = 800 tokens
-Savings: 93% token reduction (14x more efficient)
-```
-
-**Context Retrieval Commands** (Phase 3-4):
-
-The `load-related-context.sh` script provides intelligent memory file access:
-
-| Command | Purpose | Example | Token Count |
-|---------|---------|---------|-------------|
-| `list` | Show all memory sessions | `load-related-context.sh "049-..." list` | N/A |
-| `summary` | Load summary from recent file | `load-related-context.sh "049-..." summary` | ~400 tokens |
-| `search <kw>` | Find anchors by keyword | `load-related-context.sh "049-..." search "oauth"` | N/A |
-| `extract <id>` | Load specific section | `load-related-context.sh "049-..." extract "decision-jwt-049"` | ~600 tokens |
-| `recent N` | Load last N summaries | `load-related-context.sh "049-..." recent 3` | ~900 tokens |
-| `smart <query>` | Relevance-ranked search | `load-related-context.sh "049-..." smart "auth bug"` | ~600 tokens |
-| `search_all <kw>` | Cross-spec search | `load-related-context.sh search_all "oauth"` | Varies |
-
-**Retrieval Decision Tree** (MANDATORY FIRST STEP):
-```
-Starting work in spec folder?
-│
-└─► SEARCH ANCHORS FIRST (see Context Recovery Protocol above)
-    │
-    ├─ Found relevant anchors?
-    │   │
-    │   ├─ YES → Load sections, acknowledge context, then proceed
-    │   │        ├─ Quick refresh    → summary (400 tokens)
-    │   │        ├─ Specific section → extract <anchor-id> (600 tokens)
-    │   │        ├─ Multiple files   → recent 3 (900 tokens)
-    │   │        └─ Deep search      → smart <query> (relevance-ranked)
-    │   │
-    │   └─ NO  → Note "no prior context found for [keywords]"
-    │            Proceed with fresh implementation
-    │
-    └─ Need cross-project context?
-        └─ search_all <keyword> → spans all spec folders
-```
-
-**Relevance Scoring** (Phase 4):
-
-Smart and search_all commands use weighted multi-dimensional scoring:
-
-- **Category Match** (35%): decision > implementation > guide > architecture
-- **Keyword Overlap** (30%): Number of query keywords in anchor ID
-- **Recency Factor** (20%): Newer files rank higher (1 / days+1)
-- **Spec Proximity** (15%): Same spec=1.0, parent=0.8, other=0.3
-
-Formula: `score = (category*0.35 + keywords*0.30 + recency*0.20 + proximity*0.15) * 100`
-
-**Hook Integration**:
-
-When you return to a spec folder with memory files, the hook asks:
-```
-🧠 MEMORY FILES DETECTED - Found N previous session file(s)
-
-Would you like to load previous session context?
-  A) Load most recent session (summary only)
-  B) Load last 3 sessions (multi-summary)
-  C) List all sessions and select specific
-  D) Skip (start fresh)
-
-Choose an option (A/B/C/D):
-```
-
----
-
-## 5. 📋 IMPLEMENTATION STEPS
-
-### Step 1: Analyze Current Conversation
-
-Review conversation history and extract:
-- What the user requested
-- What work was completed
-- Key decisions made and their rationale
-- Files created or modified
-- Conversation phases (Research → Planning → Implementation → Testing)
-- Any diagrams or flowcharts discussed
-
-### Step 2: Create Conversation Summary JSON
-
-Build structured JSON with this format:
-
-```javascript
-{
-  recent_context: [{
-    request: "Brief description of what user asked for",
-    completed: "What was accomplished",
-    learning: "Key insights from this session",
-    duration: "Estimated session duration (e.g., '45m')",
-    date: "ISO timestamp"
-  }],
-
-  observations: [{
-    type: "feature|bugfix|decision|discovery|change",
-    title: "Brief title of what happened",
-    narrative: "Detailed description of the event",
-    timestamp: "ISO timestamp",
-    files: ["list", "of", "files", "touched"],
-    facts: ["Key", "fact", "points"]
-  }],
-
-  user_prompts: [{
-    prompt: "The actual user message",
-    timestamp: "ISO timestamp"
+    "prompt": "The actual user message",
+    "timestamp": "2025-12-07T14:30:00Z"
   }]
 }
 ```
 
-### Step 3: Write Data File
-
-Save conversation summary to temporary file:
-
-```javascript
-const dataFilePath = '/tmp/save-context-data.json';
-
-await Write({
-  file_path: dataFilePath,
-  content: JSON.stringify(conversationData, null, 2)
-});
-```
-
-### Step 4: Execute Script
-
-Run Node.js script to process data:
-
-```bash
-# Basic usage (will prompt for spec folder if alignment is low)
-node .claude/skills/workflows-save-context/scripts/generate-context.js /tmp/save-context-data.json
-
-# With spec folder argument (bypasses interactive prompt)
-node .claude/skills/workflows-save-context/scripts/generate-context.js /tmp/save-context-data.json 124-feature-name
-```
-
-**Script Arguments**:
-- **Arg 1** (required): Path to JSON data file
-- **Arg 2** (optional): Spec folder name (e.g., `124-feature-name`)
-  - **Format**: Must be full folder name matching `###-feature-name` pattern
-  - **Examples**: `122-skill-standardization`, `124-asset-file-enhancement`
-  - Bypasses interactive folder selection prompt
-  - Useful for non-interactive environments (hooks, automation)
-  - Script verifies folder exists in `specs/` directory
-
-**⚠️ Common Mistakes - Arg 2 Format**:
-
-| ❌ Incorrect | ✅ Correct | Reason |
-|-------------|-----------|--------|
-| `"122"` | `"122-skill-standardization"` | Must include full folder name |
-| `"mcp-skills-alignment"` | `"122-skill-standardization"` | Must be spec folder, not subfolder |
-| `"latest"` | `"122-skill-standardization"` | No magic keywords, use actual folder name |
-| `"skill-standardization"` | `"122-skill-standardization"` | Must include ###- prefix |
-
-**How to find correct folder name**:
-```bash
-# List all spec folders
-ls -d specs/[0-9][0-9][0-9]-*/
-
-# Get most recent spec folder
-ls -d specs/[0-9][0-9][0-9]-*/ | sort -r | head -1 | xargs basename
-```
-
-**Script Operations** (uses `Promise.all()` for parallel execution):
-- Session metadata collection
-- Conversation flow extraction
-- Decision documentation
-- Diagram detection and generation
-
-**Performance**: ~2-5 seconds for typical conversations
-
-### Step 5: Clean Up
-
-```bash
-rm /tmp/save-context-data.json
-```
-
-### Step 6: Report Results
-
-Display script output showing created files and location.
-
----
-
-## 6. 📊 DATA STRUCTURE GUIDELINES
-
-**Session Metadata** (`recent_context`):
-- 1 entry summarizing entire conversation
-- `request`: User's initial ask (1-2 sentences)
-- `completed`: What was delivered (2-3 sentences)
-- `learning`: Key insights (1-2 sentences)
-- `duration`: Estimate based on conversation length
-
-**Observations**:
-Create for significant events:
-- `feature`: New capability added
-- `bugfix`: Problem fixed
-- `decision`: Technical choice with rationale
-- `discovery`: New understanding gained
-- `change`: Refactoring or modification
-
-Each should have clear title, narrative explaining what/why, and affected files.
-
-**User Prompts**:
-- Include ALL user messages chronologically
-- Preserve original wording
-- Include timestamps
-
-**Quality Guidelines**:
-- Be comprehensive but concise
-- Focus on "what" and "why", not just "how"
-- Capture decision rationale and trade-offs
-- Note diagrams or visual elements discussed
-
----
-
-## 7. 🔄 SPEC FOLDER DETECTION
-
-**Logic**:
-1. Check if current directory is within `/specs/###-*/`
-2. If yes, use that as target
-3. If no, find most recent spec folder in `/specs/`
-4. Check alignment between conversation topics and folder name
-   - Extract keywords from conversation request/observations
-   - Calculate alignment score (0-100%) with spec folder name
-   - Threshold: **70%** (strict alignment required)
-5. If alignment < 70%, prompt user to select target folder
-6. **MANDATORY**: If no spec folder exists, fail with error instructing user to create spec folder
-
-**Context Alignment**:
-- **Automatic filtering**: Archive folders (`z_*`, `*archive*`, `old*`) excluded from consideration
-- **Topic extraction**: Keywords from `recent_context.request` and `observations[].title`
-- **Scoring**: Percentage of spec folder keywords found in conversation topics
-- **Interactive prompt** (when alignment < 70%):
-  ```
-  ⚠️  Conversation topic may not align with most recent spec folder
-  Most recent: 020-page-loader (25% match)
-
-  Alternative spec folders:
-  1. 018-auth-improvements (85% match)
-  2. 017-authentication-refactor (90% match)
-  3. 020-page-loader (25% match)
-  4. Specify custom folder path
-
-  Select target folder (1-4): _
-  ```
-
-**Behavior** - Single memory folder with timestamped files:
-- Uses single `memory/` folder per spec or sub-folder
-- Creates timestamped markdown files: `{date}_{time}__{topic}.md`
-- Example: `09-11-25_07-52__skill-refinement.md`
-- No conflicts - each save creates a new timestamped file
-
-**Sub-Folder Awareness**:
-- When `.spec-active` marker exists, routes to sub-folder's memory/
-- Marker format: `specs/###-name/sub-folder-name`
-- Marker location (V9): `.claude/.spec-active.{SESSION_ID}` (session-isolated)
-- Marker location (legacy): `.claude/.spec-active` (fallback when no session ID)
-- Verifies sub-folder exists before using
-- Falls back to root `memory/` if marker invalid
-- Cleans up stale markers automatically
-
-**Session Isolation (V9)**:
-- Each Claude Code session has its own marker file
-- Prevents concurrent sessions from overwriting each other's spec context
-- Session marker cleaned up when session ends
-- Stale markers (>24h) cleaned up on session start
-
-**Versioning Example**:
-```
-specs/122-skill-standardization/
-├── 001-cli-codex-alignment/
-│   └── memory/
-│       └── 23-11-25_10-03__cli-codex.md
-├── 002-workflows-spec-kit/
-│   └── memory/
-│       └── 23-11-25_10-06__workflows.md
-└── 003-spec-folder-versioning/  ← Active (from .spec-active)
-    └── memory/
-        └── 23-11-25_15-30__versioning.md  ← Writes here
-```
-
-**Routing Logic**:
-1. **Hook**: Reads `.spec-active.{SESSION_ID}` marker (V9: session-isolated, falls back to legacy `.spec-active`)
-2. **Hook**: Validates sub-folder path exists within current spec folder
-3. **Hook**: Determines spec target:
-   - Sub-folder active: `"###-name/NNN-subfolder"` (full path)
-   - Sub-folder inactive: `"###-name"` (parent only)
-4. **Hook**: Passes spec target to Node script as second argument
-5. **Node Script**: Creates `{spec-target}/memory/` directory
-6. **Node Script**: Writes context to correct memory/ folder
-7. **Fallback**: Uses root `specs/###/memory/` if:
-   - No `.spec-active` marker exists
-   - Marker points to non-existent path
-   - Marker points outside current spec folder
-
-**Edge Case** - No conversation data:
-- Skip alignment check (backward compatible)
-- Use most recent spec folder automatically
-
-### Sub-Folder Marker Validation
-
-**Purpose**: Ensures `.spec-active.{SESSION_ID}` marker preserves full sub-folder paths when sub-folder versioning is active.
-
-**Problem**: When reusing a spec folder with root-level content (Option A workflow), the hook may write the parent folder path to the marker instead of the full sub-folder path, causing save-context to save to the wrong memory/ directory.
-
-**Validation Pattern** (applied in enforce-spec-folder.sh):
-```bash
-# Validate if sub-folder needed before creating marker
-local target_folder="$stored_folder"
-if has_root_level_content "$stored_folder" && [ -f "$SPEC_MARKER" ]; then
-  # Sub-folder exists - use path from existing marker
-  target_folder=$(cat "$SPEC_MARKER" 2>/dev/null | tr -d '\n')
-fi
-create_spec_marker "$target_folder"
-```
-
-**When Validation Triggers**:
-- User selects Option A (reuse existing spec folder)
-- Spec folder has root-level markdown files (indicates sub-folder structure)
-- A `.spec-active.{SESSION_ID}` marker already exists
-
-**Behavior**:
-- **With validation**: Reads existing marker containing full sub-folder path (e.g., `specs/006-commands/004-plan-claude-upgrade`)
-- **Without validation**: Would use parent folder path only (e.g., `specs/006-commands`) - WRONG
-- **Result**: save-context saves to correct sub-folder's memory/ directory
-
-**Safety Warning** (added to create_spec_marker() function):
-```bash
-# Safety check: warn if creating marker for folder with root content
-if has_root_level_content "$spec_path"; then
-  echo "⚠️  WARNING: Creating marker for folder with root content: $spec_path" >&2
-  echo "   This may indicate sub-folder versioning is needed" >&2
-  echo "   If this is intentional, ignore this warning" >&2
-fi
-```
-
-**Troubleshooting**:
-- If save-context saves to parent memory/ instead of sub-folder memory/: Check marker content with `cat .claude/.spec-active.*`
-- Expected marker content: Full sub-folder path (e.g., `specs/122-feature/003-iteration`)
-- Incorrect marker content: Parent path only (e.g., `specs/122-feature`)
-
-### AUTO_SAVE_MODE Environment Variable
-
-The `AUTO_SAVE_MODE` environment variable controls how the save-context script behaves when invoked programmatically (by hooks or automation).
-
-**Usage**:
-```bash
-# Enable auto-save mode (bypasses all prompts)
-AUTO_SAVE_MODE=true node generate-context.js data.json 122-feature-name
-
-# Default mode (may prompt on low alignment)
-node generate-context.js data.json
-```
-
-**Behavior When `AUTO_SAVE_MODE=true`**:
-- Bypasses alignment score prompts (no user interaction)
-- Always uses most recent spec folder without confirmation
-- Ideal for automated triggers (hooks, CI/CD)
-- Silent operation - only outputs on success or error
-
-**Behavior When `AUTO_SAVE_MODE=false` (default)**:
-- Prompts user when alignment score < 70%
-- Offers spec folder alternatives to choose from
-- Interactive mode suitable for manual invocation
-
-**When to Use**:
-- **Hooks/Automation**: Always set `AUTO_SAVE_MODE=true`
-- **Manual Invocation**: Leave unset for interactive prompts
-- **Testing**: Set to `true` to skip prompts during automated tests
-
-**Edge Case** - No spec folder exists:
-- Skill will fail with clear error message
-- Error instructs user to create spec folder first: `mkdir -p specs/###-feature-name/`
-- Aligns with conversation-documentation mandate that all conversations require spec folders
-
-### Troubleshooting Context Retrieval (Phase 3-4)
-
-Common issues with load-related-context.sh commands and solutions:
-
-| Issue | Symptom | Solution |
-|-------|---------|----------|
-| **Anchor not found** | `⚠️  Anchor not found: X` | Use `search <keyword>` to find available anchors, or verify anchor ID spelling |
-| **Memory folder empty** | `📚 No previous sessions found` | Run `save context` command to create first memory file in spec folder |
-| **Wrong memory loaded** | Context from different session/spec | Check `.spec-active.*` marker matches your SESSION_ID and spec folder |
-| **V8.x file detected** | `⚠️ v8.x format detected` | Re-save context to generate v9.0 anchors, or use Read tool for full file |
-| **Token budget exceeded** | `🛑 Token budget exceeded: N tokens` | Use `summary` (~400 tokens) or `extract <id>` (~600 tokens) instead of full file |
-| **No results from smart search** | `❌ No anchors found matching: query` | Check keywords match anchor IDs, try broader terms, or use `list` to see available files |
-| **Cross-spec search fails** | `❌ No memory files found` | Ensure other spec folders have `memory/*.md` files with v9.0 anchors |
-| **Session marker mismatch** | Loads context from parallel session | Set/check `CLAUDE_SESSION_ID` environment variable for session isolation |
-
-**Debugging Commands**:
-```bash
-# Check if memory file has anchors (v9.0 vs v8.x)
-grep -c "<!-- anchor:" specs/049-*/memory/*.md
-
-# List all available anchor IDs in a file
-grep -o 'anchor: [a-z0-9-]*' specs/049-*/memory/*.md | sed 's/anchor: //' | sort -u
-
-# Check which session marker is active
-ls -la .claude/.spec-active* && cat .claude/.spec-active.*
-
-# Find all v9.0 memory files across project
-find specs -name "*.md" -path "*/memory/*" -exec grep -l "<!-- anchor:" {} \;
-
-# Test relevance scoring on specific anchor
-source .claude/hooks/lib/relevance-scorer.sh
-show_score_breakdown "decision-auth-049" "authentication decision" \
-  "specs/049-*/memory/*.md" "049-folder"
-```
-
-**v9.0 vs v8.x Detection**:
-```bash
-# v9.0 file (with anchors) - supports extract, smart, search_all
-grep -q "<!-- anchor:" file.md && echo "v9.0 (supports anchors)" || echo "v8.x (full read only)"
-
-# Count v9 vs v8 files in spec folder
-v9_count=$(find specs/049-*/memory -name "*.md" -exec grep -l "<!-- anchor:" {} \; | wc -l)
-v8_count=$(find specs/049-*/memory -name "*.md" | wc -l)
-echo "v9.0: $v9_count | v8.x: $((v8_count - v9_count))"
-```
-
-**Common Workflow Issues**:
-
-1. **"I can't find a specific decision I know we made"**
-   - Solution: Use `search_all "decision keyword"` to search across all spec folders
-   - Example: `load-related-context.sh search_all "auth decision" --limit 10`
-
-2. **"Smart search returns nothing but I know the content exists"**
-   - Cause: Most files are v8.x format (no anchors)
-   - Solution: Re-save context in those spec folders to generate v9.0 anchors
-   - Workaround: Use `list` + Read tool for v8.x files
-
-3. **"Context loaded from wrong spec folder"**
-   - Cause: Session marker points to different folder
-   - Solution: Check `.spec-active.{SESSION_ID}` content, or use full spec path
-   - Example: `load-related-context.sh "001-skills/049-feature" summary`
-
-4. **"Relevance scores seem wrong"**
-   - Cause: Category weights or keyword matching not optimal for your use case
-   - Solution: Use `show_score_breakdown` to debug, adjust query keywords
-   - Future: Category weights will be configurable in `.claude/configs/`
+### Spec Folder Detection
+
+| Step | Action |
+|------|--------|
+| 1 | Check if in `/specs/###-*/` directory |
+| 2 | If not, find most recent spec folder |
+| 3 | Calculate alignment score (threshold: 70%) |
+| 4 | If < 70%, prompt user to select folder |
+| 5 | If no spec folder exists, fail with error |
+
+See [spec_folder_detection.md](./references/spec_folder_detection.md) for sub-folder routing.
 
 ---
 
 ## 8. 📖 RULES
 
-### ✅ ALWAYS 
+### ALWAYS
 
-- Detect spec folder before creating memory documentation
+- Detect spec folder before creating documentation
 - Use single `memory/` folder with timestamped files
 - Include `metadata.json` with session stats
-- Preserve timestamps in conversation flow
-- Reference files instead of copying large code blocks
-- Follow document style guide for markdown formatting
+- Search anchors/semantic before implementing in folders with memory
+- Generate vector embeddings for new memory files
 
-### ❌ NEVER 
+### NEVER
 
 - Fabricate decisions that weren't made
 - Include sensitive data (passwords, API keys)
 - Skip template validation before writing
 - Proceed if spec folder detection fails
-- Create versioned memory folders (always use single memory/)
-- Save context without spec folder (must have spec folder first)
+- Save context without spec folder
 
-### ⚠️ ESCALATE IF
+### ESCALATE IF
 
-- Cannot create conversation summary (unclear what happened)
+- Cannot create conversation summary
 - Script execution fails with errors
 - File write permissions denied
-- No spec folder exists (instruct user to create one first)
+- Vector embedding generation fails repeatedly
+- No spec folder exists
 
 ---
 
 ## 9. 🎓 SUCCESS CRITERIA
 
-**Task complete when**:
-- ✅ Auto-detects current spec folder
-- ✅ Creates 2 files in `memory/` folder (timestamped .md + metadata.json)
-- ✅ Generates readable, well-formatted comprehensive documentation
-- ✅ Includes accurate timestamps and metadata
-- ✅ Handles edge cases gracefully
-- ✅ Follows document style guide standards
+### Task Complete When
 
-**Performance**:
-- ✅ Execution time: 2-5 seconds (parallel processing)
-- ✅ Works in all Node.js v18+ environments
-- ✅ No timeout errors
+- [x] Auto-detects current spec folder
+- [x] Creates 2 files: `{timestamp}.md` + `metadata.json`
+- [x] Generates readable, well-formatted documentation
+- [x] Includes accurate timestamps and metadata
+- [x] Vector embeddings generated
+- [x] Trigger phrases extracted
 
----
+### Performance Targets
 
-## 10. ⚡ PERFORMANCE CHARACTERISTICS
-
-### Execution Time
-
-**Typical execution times**:
-- Manual save: 2-3 seconds
-- Auto-save (20-message trigger): 3-5 seconds (includes relevance analysis)
-- Context with diagrams: +1-2 seconds (diagram generation)
-
-### Blocking Behavior
-
-**Important**: save-context executes **synchronously** and blocks conversation flow during execution.
-
-**Why synchronous?**
-- Guarantees context is saved before continuing
-- Prevents data loss if conversation interrupted
-- Ensures error handling is immediate and visible
-- No risk of race conditions or partial saves
-
-**Trade-offs**:
-
-✅ **Synchronous (current)**:
-- Guaranteed completion before continuing
-- Immediate error handling and user feedback
-- No data loss risk
-- Simple, reliable implementation
-- ❌ Blocks conversation for 2-5 seconds
-
-⚠️ **Asynchronous (potential future)**:
-- No blocking during save
-- ❌ Completion not guaranteed
-- ❌ Error handling delayed or missed
-- ❌ Complex state management needed
-
-### Performance Impact
-
-**Auto-save triggers every 20 messages** and blocks conversation for 3-5 seconds while:
-1. Analyzing conversation for relevance (1-2s)
-2. Generating context summary with metadata (1-2s)
-3. Writing to memory/ folder (0.5-1s)
-4. Updating metadata.json (0.5s)
-
-**Mitigation strategies**:
-- **Manual triggering**: Use `/save-context` command for control over timing
-- **Strategic timing**: Trigger at natural breakpoints (feature complete, before task switching)
-- **Deferred save**: Wait until end of session if auto-save feels disruptive
-- **Disable auto-save**: Set threshold higher in config if needed
-
-### Optimization
-
-The script uses **parallel processing** (`Promise.all()`) internally:
-- Session metadata collection runs in parallel
-- Conversation flow extraction runs in parallel
-- Decision documentation runs in parallel
-- Diagram detection runs in parallel
-
-**Result**: 40-60% faster than sequential processing would be.
-
-### Future Improvements
-
-Planned enhancement to move save-context to background Task tool execution:
-- Would eliminate blocking behavior
-- Requires Task tool API stabilization
-- Adds complexity for error handling
-- Currently deferred until user feedback indicates need
-
-**Current recommendation**: Synchronous execution is the right choice for reliability.
+| Operation | Target | Actual |
+|-----------|--------|--------|
+| Manual save | 2-3s | ~2.5s |
+| Auto-save | 3-5s | ~4s |
+| Vector search | <500ms | ~450ms |
+| Trigger matching | <50ms | ~35ms |
 
 ---
 
-## 11. 🗂️ MEMORY MANAGEMENT & CLEANUP
+## 10. 🔗 INTEGRATION POINTS
 
-### Growth Over Time
+### Data Flow
 
-Each auto-save creates a timestamped file in `specs/[spec]/memory/`:
-- 20 messages = ~1 save = ~50KB
-- 100 messages = ~5 saves = ~250KB
-- Long projects accumulate dozens of memory files
-
-### Cleanup Strategy
-
-**When to Clean Up:**
-- After feature completion and merge
-- Quarterly maintenance (archive old specs)
-- When spec folder >10MB
-
-**Manual Cleanup Commands:**
-```bash
-# List memory folder sizes
-du -sh specs/*/memory/ | sort -h
-
-# Archive old spec (completed >30 days ago)
-SPEC="specs/085-old-feature"
-tar -czf "${SPEC}.tar.gz" "$SPEC" && rm -rf "$SPEC"
-
-# Or move to archive directory
-mkdir -p specs/z_archive/
-mv specs/085-old-feature specs/z_archive/
+```
+Conversation → AI Analysis → JSON → Script → Markdown + Embeddings
 ```
 
-**Auto-Archiving Script** (optional):
-```bash
-#!/usr/bin/env bash
-# Archive specs completed >30 days ago
-find specs/ -maxdepth 1 -type d -mtime +30 | while read spec; do
-  echo "Archiving: $spec"
-  tar -czf "${spec}.tar.gz" "$spec"
-  rm -rf "$spec"
-done
+### Pairs With
+
+| Skill | Integration |
+|-------|-------------|
+| `git-commit` | Enhances with commit SHAs |
+| `create-documentation` | Flowchart generation |
+| `workflows-spec-kit` | Spec folder workflows |
+
+### Script Location
+
+```
+.claude/skills/workflows-save-context/scripts/generate-context.js
 ```
 
-### Best Practices
+### Semantic Components
 
-- Keep active specs only in specs/ directory
-- Archive completed work quarterly
-- Compress before archiving (tar.gz)
-- Document archive location in project README
+| Component | Location |
+|-----------|----------|
+| Embeddings | `scripts/lib/embeddings.js` |
+| Vector Index | `scripts/lib/vector-index.js` |
+| Trigger Matcher | `scripts/lib/trigger-matcher.js` |
+| Memory Database | `~/.claude/memory-index.sqlite` |
 
 ---
 
-## 12. 💡 EXAMPLES
+## 11. 💡 EXAMPLES
 
 ### Example 1: Feature Implementation
 
-**Context**: Completed implementing authentication system
-
-**Invocation**: `Skill(skill: "save-context")`
+**Context**: Completed OAuth implementation
 
 **Output**:
 ```
-/specs/015-auth-system/
-└── memory/
-    ├── 09-11-25_14-23__auth-system.md  # Complete session documentation
-    └── metadata.json                    # Machine-readable stats
+specs/015-auth-system/memory/
+├── 07-12-25_14-23__auth-system.md
+└── metadata.json
 ```
 
-**Markdown File Contains**:
-- Overview and summary
-- JWT decision rationale
-- Authentication flow diagram
-- 45-message dialogue
-- Session metadata (2.5 hours, 3 decisions)
+**Contains**: Session summary, JWT decision rationale, auth flow diagram, 45-message dialogue, vector embeddings
 
-**Use Case**: Team lead reviews why JWT was chosen
+### Example 2: Finding Prior Context
 
-### Example 2: Bug Investigation
+```bash
+# Search for authentication decisions
+claude-mem vector "how did we implement OAuth"
 
-**Context**: Traced performance issue to N+1 query problem
-
-**Output**:
+# Result:
+# [92%] specs/049-auth/memory/28-11-25_14-30__oauth.md
+#       → OAuth callback flow with JWT tokens
 ```
-/specs/023-fix-performance/
-└── memory/
-    ├── 09-11-25_16-45__fix-performance.md  # Complete session documentation
-    └── metadata.json                        # Machine-readable stats
-```
-
-**Markdown File Contains**:
-- Root cause analysis
-- Solution implementation
-- Query optimization diagram
-- Debugging steps
-- Session metadata (30 minutes, 2 decisions)
-
-**Use Case**: Documentation for future similar bugs
 
 ---
 
-## 13. 🔧 TROUBLESHOOTING
+## 12. ⚠️ COMMON MISTAKES
 
-### "Low alignment score - what does it mean?"
+> **Quick Fixes**
+> 1. **Missing spec folder**: `mkdir -p specs/###-feature/`
+> 2. **Wrong script path**: Use `.claude/skills/workflows-save-context/scripts/generate-context.js`
+> 3. **Arg 2 format**: Full folder name like `122-skill-standardization`, not just `122`
+> 4. **Vector search empty**: Run `claude-mem rebuild` to generate embeddings
 
-**Context**: Alignment score < 70% triggers folder selection prompt
+### Alignment Score
 
-**Understanding Scores**:
-- **90-100%**: Excellent match - conversation clearly relates to spec folder topic
-- **70-89%**: Good match - auto-selected without prompt
-- **50-69%**: Moderate match - may be related, user should verify
-- **30-49%**: Weak match - conversation likely about different topic
-- **0-29%**: Poor match - definitely different topic
+| Score | Meaning | Action |
+|-------|---------|--------|
+| 90-100% | Excellent match | Auto-selected |
+| 70-89% | Good match | Auto-selected |
+| 50-69% | Moderate match | Verify manually |
+| 30-49% | Weak match | Select different folder |
+| 0-29% | Poor match | Create new spec folder |
 
-**When to override**:
-- Accept suggestion if high-scoring folder (>80%) matches your intent
-- Override if you're intentionally documenting unrelated work in that folder
-- Create new spec folder if no good match exists (option 4 in prompt)
-
-**Example**:
-```
-Conversation about "authentication improvements"
-→ 018-auth-improvements (90% match) ✅ Accept
-→ 020-page-loader (15% match) ❌ Wrong folder
-```
-
-### "Cannot create conversation summary"
-
-**Solution**:
-1. Review conversation history manually
-2. Focus on key events (what user asked, what was delivered, major decisions)
-3. Create simplified summary with available information
-4. Document what information is incomplete
-
-### "Permission denied writing to context/"
-
-**Solution**:
-1. Check folder permissions: `ls -la specs/###-*/`
-2. Fix: `chmod -R u+w specs/###-*/`
-3. Re-invoke skill
+See [troubleshooting.md](./references/troubleshooting.md) for detailed issue resolution.
 
 ---
 
-## 14. 🔗 INTEGRATION POINTS
+## 13. 📊 QUICK REFERENCE
 
-**Standalone Architecture**:
-- **Input**: Current conversation session (Claude's analysis)
-- **Processing**: Node.js script with intelligent summarization
-- **Output**: Human-readable markdown documentation
+**Invocation**: Say "save context" or use `/save_context`
 
-**Data Flow**:
+**Menu Flow (v10.1)**: All `/save_context` invocations show an interactive menu first:
 ```
-Conversation → Claude Analysis → JSON → Script → Markdown Files
+Tier 1: Save | Search | Recent | Manage Index
+Tier 2 (Search): Natural language | Multi-concept
+Tier 2 (Index): Health check | Fix problems | Rebuild
 ```
+*Note: `AskUserQuestion` supports max 4 options per question, hence two-tier design.*
 
-**Pairs With**:
-- `git-commit` - Can enhance with commit SHAs in conversation flow
-- `create-documentation` - Can contribute diagrams via flowchart mode (Mode 3)
+**Output**: `specs/###-feature/memory/{date}_{time}__{topic}.md`
 
----
+**Semantic Search**: `claude-mem vector "your query"`
 
-## 15. 🎯 QUICK REFERENCE
+**Anchor Format**: `<!-- anchor: category-keywords-spec# -->`
 
-**Invocation**: `Skill(skill: "save-context")`
-
-**Output Location**:
-- **ONLY**: `specs/###-feature/memory/` (spec folder mandatory)
-
-**Files Created**:
-1. **Timestamped Markdown** - `{date}_{time}__{topic}.md`
-   - Contains: Session summary, full dialogue, decisions, diagrams
-   - Example: `09-11-25_07-52__feature-name.md` or `09-11-25_07-52__session_summary.md`
-2. **Metadata JSON** - `metadata.json`
-   - Contains: Session stats (message/decision/diagram counts, timestamps)
-
-**Key Data Structure**:
+**Key Data**:
 ```json
 {
   "recent_context": [{ "request", "completed", "learning", "duration" }],
@@ -1156,10 +512,10 @@ Conversation → Claude Analysis → JSON → Script → Markdown Files
 }
 ```
 
-**Script Location**: `.claude/skills/workflows-save-context/scripts/generate-context.js`
+**Performance**: Save ~2-5s | Search <500ms | Triggers <50ms
 
-**Performance**: ~2-5 seconds (parallel execution)
+**Script**: `.claude/skills/workflows-save-context/scripts/generate-context.js`
 
 ---
 
-**Remember**: This skill operates as a context preservation engine. It captures dialogue, decisions, and visual flows to maintain continuity across sessions.
+*This skill operates as a context preservation engine with semantic search, capturing dialogue, decisions, and visual flows while enabling intelligent retrieval across sessions.*

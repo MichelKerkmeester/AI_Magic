@@ -5,10 +5,91 @@
   "messageTimeWindow": 300000,
   "contextPreviewHeadLines": 50,
   "contextPreviewTailLines": 20,
-  "timezoneOffsetHours": 1
+  "timezoneOffsetHours": 1,
+
+  "semanticSearch": {
+    "enabled": true,
+    "minSimilarityScore": 50,
+    "maxResults": 10,
+    "embeddingModel": "minilm-l6-v2"
+  },
+
+  "memoryIndex": {
+    "databasePath": "~/.claude/memory-index.sqlite",
+    "autoRebuildOnSave": true,
+    "verifyOnStartup": false
+  },
+
+  "triggerSurfacing": {
+    "enabled": true,
+    "minSimilarity": 70,
+    "maxResults": 3,
+    "performanceTargetMs": 50
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
+// v10.0 SEMANTIC SEARCH CONFIGURATION
+// ─────────────────────────────────────────────────────────────
+
+// → semanticSearch (object)
+// ─────────────────────────────────────────────────────────────
+// Configuration for semantic vector search functionality.
+//
+// • enabled (boolean, default: true)
+//   Enable/disable semantic search features
+//
+// • minSimilarityScore (number, default: 50)
+//   Minimum similarity score (0-100) for search results
+//   Lower = more results, higher = stricter matching
+//
+// • maxResults (number, default: 10)
+//   Maximum number of results to return from vector search
+//
+// • embeddingModel (string, default: "minilm-l6-v2")
+//   Embedding model to use. Options:
+//   - "minilm-l6-v2": 384 dimensions, fast, good quality
+//   - Future: additional models may be supported
+
+// → memoryIndex (object)
+// ─────────────────────────────────────────────────────────────
+// Configuration for the SQLite vector database.
+//
+// • databasePath (string, default: "~/.claude/memory-index.sqlite")
+//   Location of the sqlite-vec database file
+//   Supports ~ expansion for home directory
+//
+// • autoRebuildOnSave (boolean, default: true)
+//   Automatically update embeddings when context is saved
+//   Set to false if you prefer manual rebuilds
+//
+// • verifyOnStartup (boolean, default: false)
+//   Run integrity check on database when Claude starts
+//   Useful for debugging, adds ~100ms startup time
+
+// → triggerSurfacing (object)
+// ─────────────────────────────────────────────────────────────
+// Configuration for automatic memory surfacing via hooks.
+//
+// • enabled (boolean, default: true)
+//   Enable/disable automatic trigger phrase detection
+//
+// • minSimilarity (number, default: 70)
+//   Minimum similarity score for surfaced results
+//   Higher than search default for quality over quantity
+//
+// • maxResults (number, default: 3)
+//   Maximum context snippets to surface per prompt
+//   Keep low to avoid overwhelming responses
+//
+// • performanceTargetMs (number, default: 50)
+//   Target execution time in milliseconds
+//   Hook will optimize to meet this target
+
+// ─────────────────────────────────────────────────────────────
+// LEGACY CONFIGURATION (v9.x and earlier)
+// ─────────────────────────────────────────────────────────────
+
 // → maxResultPreview (number, default: 500)
 // ─────────────────────────────────────────────────────────────
 // Maximum characters to show when previewing tool results/outputs

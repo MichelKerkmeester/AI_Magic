@@ -1,10 +1,16 @@
-# Workflow Flowchart - Linear Pattern Example
+# Workflow Flowchart - Linear Pattern Reference
 
-Demonstrates simple sequential progression through conversation phases.
+> Sequential progression patterns for simple, straightforward conversation workflows.
 
 ---
 
-## Use Case: Straightforward Bug Fix Implementation
+## 1. 📖 OVERVIEW
+
+The linear pattern demonstrates simple sequential progression through conversation phases. Use this pattern for workflows with 4 or fewer phases that proceed in a step-by-step manner.
+
+---
+
+## 2. 📊 EXAMPLE: BUG FIX WORKFLOW
 
 ```
 ╭────────────────────────────────────────────────────────╮
@@ -31,9 +37,9 @@ Demonstrates simple sequential progression through conversation phases.
                         │
                         ▼
 ┌────────────────────────────────────────────────────────┐
-│  Verification                                          │
+│  Verification                                           │
 │  • Running test suite                                  │
-│  • Confirming fix works                                │
+│  • Confirming fix works                                  │
 │  • Checking for regressions                            │
 │  Duration: 3 minutes                                   │
 └────────────────────────────────────────────────────────┘
@@ -46,28 +52,24 @@ Demonstrates simple sequential progression through conversation phases.
 
 ---
 
-## Key Features Demonstrated
+## 3. 🎯 WHEN TO USE
 
-- **Sequential progression**: Step-by-step workflow execution
-- **Detailed activities**: Inline breakdown of phase tasks (3 bullets per phase)
-- **Timing information**: Duration tracking for each phase
-- **Simple flow**: Top-to-bottom without branching
-- **Consistent structure**: All phases follow same format
-- **Clear progression**: Each phase builds on previous
+| Scenario | Example |
+|----------|---------|
+| Simple sequential tasks | Step-by-step file updates |
+| Straightforward implementations | Adding a single feature |
+| Basic request-response workflows | Answer a question, provide solution |
+| Bug fixes and patches | Identify, fix, verify |
+| Documentation generation | Research, write, format |
+| Single-path processes | No branching or concurrency |
+| Workflows with ≤ 4 phases | Most common use case |
 
-## When to Use This Pattern
+---
 
-- Simple sequential tasks
-- Straightforward feature implementations
-- Basic request-response workflows
-- Bug fixes and patches
-- Documentation generation
-- Single-path processes
-- Workflows with ≤ 4 phases
-
-## Style Guidelines
+## 4. 🛠️ STYLE GUIDELINES
 
 ### Box Structure (Standard Process)
+
 ```
 ┌────────────────────────────────────────────────────────┐
 │  Phase Name                                            │
@@ -79,23 +81,35 @@ Demonstrates simple sequential progression through conversation phases.
 ```
 
 ### Content Rules
-- **Line 1**: Phase name (left-aligned, 2 spaces from edge)
-- **Lines 2-4**: Activities with bullet points (• character)
-- **Last line**: Duration or timing information
-- **Activity limit**: 2-4 items (3 is ideal)
-- **Text truncation**: Fits within 50 chars per line
+
+| Element | Rule |
+|---------|------|
+| **Line 1** | Phase name (left-aligned, 2 spaces from edge) |
+| **Lines 2-4** | Activities with bullet points (• character) |
+| **Last line** | Duration or timing information |
+| **Activity limit** | 2-4 items (3 is ideal) |
+| **Text truncation** | Fits within 50 chars per line |
 
 ### Flow Connectors
+
 ```
                         │
                         ▼
 ```
+
 - **Vertical pipe**: Centered at column 24
 - **Arrow**: Downward triangle at column 24
 - **Spacing**: One blank line above and below boxes
 
 ### Terminal Boxes
-- **Start**: Rounded corners with centered title
-- **End**: Rounded corners with centered completion message
-- **Width**: Same as process boxes (56 chars)
-- **Centering**: Title centered using space padding
+
+| Type | Description |
+|------|-------------|
+| **Start** | Rounded corners with centered title |
+| **End** | Rounded corners with centered completion message |
+| **Width** | Same as process boxes (56 chars) |
+| **Centering** | Title centered using space padding |
+
+---
+
+*Related: [workflow_parallel_pattern.md](./workflow_parallel_pattern.md) | [SKILL.md](../SKILL.md)*

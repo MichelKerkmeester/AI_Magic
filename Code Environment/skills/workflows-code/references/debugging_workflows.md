@@ -55,7 +55,7 @@ Instead of manually opening DevTools, capture console output programmatically:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://anobel.com"
 
 2. List console messages:
    [Use tool: mcp__chrome_devtools_2__list_console_messages]
@@ -75,7 +75,7 @@ Instead of manually opening DevTools, capture console output programmatically:
 {
   "type": "error",
   "text": "Uncaught TypeError: Cannot read property 'play' of null",
-  "url": "https://example.com/video-player.js",
+  "url": "https://anobel.com/video-player.js",
   "lineNumber": 45,
   "columnNumber": 12,
   "stackTrace": "at VideoPlayer.play (video-player.js:45:12)\n  at initialize (app.js:120:5)"
@@ -88,7 +88,7 @@ For terminal-first workflows, use bdg CLI tool (cli-chrome-devtools skill):
 
 ```bash
 # Capture console errors
-bdg https://example.com 2>&1
+bdg https://anobel.com 2>&1
 bdg console logs 2>&1 | jq '.[] | select(.level=="error")'
 bdg stop 2>&1
 ```
@@ -183,7 +183,7 @@ Instead of manually checking Network tab, capture requests programmatically:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://anobel.com"
 
 2. List network requests:
    [Use tool: mcp__chrome_devtools_2__list_network_requests]
@@ -223,7 +223,7 @@ For terminal-first workflows, use bdg CLI tool:
 
 ```bash
 # Navigate and capture network activity (HAR file)
-bdg https://example.com 2>&1
+bdg https://anobel.com 2>&1
 bdg har export network.har 2>&1
 bdg stop 2>&1
 
@@ -337,7 +337,7 @@ Instead of manually typing in console, execute JavaScript via MCP tools:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://anobel.com"
 
 2. Test if element exists:
    [Use tool: mcp__chrome_devtools_2__evaluate_script]
@@ -376,7 +376,7 @@ For terminal-first workflows, use bdg CLI tool:
 
 ```bash
 # Navigate and execute JavaScript
-bdg https://example.com 2>&1
+bdg https://anobel.com 2>&1
 bdg Runtime.evaluate --expression "document.querySelector('[video-hero]') !== null" 2>&1
 bdg Runtime.evaluate --expression "typeof Hls" 2>&1
 bdg stop 2>&1
@@ -966,7 +966,7 @@ Solutions:
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://anobel.com"
 
 2. Start performance trace:
    [Use tool: mcp__chrome_devtools_2__performance_start_trace]
@@ -1000,7 +1000,7 @@ Solutions:
 **Performance Metrics Capture:**
 ```bash
 # Navigate to page
-bdg https://example.com 2>&1
+bdg https://anobel.com 2>&1
 
 # Get performance metrics
 bdg cdp Performance.getMetrics 2>&1 > performance-metrics.json
@@ -1022,7 +1022,7 @@ bdg stop 2>&1
 **Network HAR Analysis:**
 ```bash
 # Capture full network trace
-bdg https://example.com 2>&1
+bdg https://anobel.com 2>&1
 bdg har export network-trace.har 2>&1
 bdg stop 2>&1
 
@@ -1039,7 +1039,7 @@ jq '[.log.entries[].time] | add' network-trace.har
 **Memory Metrics:**
 ```bash
 # Get JavaScript heap size
-bdg https://example.com 2>&1
+bdg https://anobel.com 2>&1
 bdg cdp Performance.getMetrics 2>&1 | jq '.result.metrics[] | select(.name | contains("JSHeap"))'
 bdg stop 2>&1
 ```
@@ -1059,7 +1059,7 @@ bdg stop 2>&1
 **DOM Statistics:**
 ```bash
 # Get DOM node count
-bdg https://example.com 2>&1
+bdg https://anobel.com 2>&1
 bdg js "document.getElementsByTagName('*').length" 2>&1
 bdg stop 2>&1
 
@@ -1074,7 +1074,7 @@ bdg js "document.styleSheets.length" 2>&1  # Stylesheet count
 #!/bin/bash
 # Create performance baseline for regression testing
 
-URL="https://example.com"
+URL="https://anobel.com"
 OUTPUT_DIR="performance-baselines"
 mkdir -p "$OUTPUT_DIR"
 

@@ -22,7 +22,7 @@
 # EXIT CODE CONVENTION:
 #   0 = Allow (hook passed, continue execution)
 #   1 = Block (hook failed, stop execution with warning)
-#   2 = Error (reserved for critical failures)
+#   2 = Block (alternative blocking code per Claude Code convention)
 # ───────────────────────────────────────────────────────────────
 
 # Source output helpers (completely silent on success)

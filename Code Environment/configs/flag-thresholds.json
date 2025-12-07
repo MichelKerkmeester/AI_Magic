@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "description": "Flag system thresholds and escalation rules for SpecKit",
+  "thresholds": {
+    "BLOCKER": {
+      "max_active": 0,
+      "blocks_progression": true,
+      "description": "Critical issues that block ANY progression"
+    },
+    "WARNING": {
+      "max_active": 3,
+      "blocks_completion": true,
+      "description": "Issues that block completion after threshold exceeded"
+    },
+    "INFO": {
+      "max_active": 10,
+      "blocks_nothing": true,
+      "description": "Informational flags for tracking - no blocking"
+    }
+  },
+  "auto_escalation": {
+    "warning_to_blocker_after_hours": 24,
+    "info_to_warning_after_days": 3,
+    "enabled": true,
+    "description": "Automatic escalation of unresolved flags"
+  },
+  "gate_rules": {
+    "blocker_gate": {
+      "blocks": ["Write", "Edit", "Bash"],
+      "description": "BLOCKER flags block all file modifications"
+    },
+    "review_gate": {
+      "blocks_on_completion": true,
+      "description": "WARNING threshold blocks task completion claims"
+    }
+  }
+}

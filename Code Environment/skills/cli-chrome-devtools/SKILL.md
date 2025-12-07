@@ -5,6 +5,8 @@ allowed-tools: [Bash, Read, Write, Edit, Grep, Glob]
 version: 1.0.0
 ---
 
+<!-- Keywords: chrome-devtools, cdp, browser-debugger-cli, bdg, browser-automation, terminal-debugging, screenshot-capture, network-monitoring -->
+
 # Chrome DevTools CLI - Direct CDP Access via Terminal Commands
 
 Enables AI agents to leverage browser-debugger-cli (bdg) for direct Chrome DevTools Protocol access via terminal commands. Provides lightweight browser automation, debugging, and testing without the overhead of MCP servers or Puppeteer/Playwright frameworks.

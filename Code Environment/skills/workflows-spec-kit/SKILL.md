@@ -5,6 +5,8 @@ allowed-tools: ["*"]
 version: 1.0.1
 ---
 
+<!-- Keywords: spec-kit, speckit, documentation-workflow, spec-folder, template-enforcement, context-preservation, hook-automation, progressive-documentation -->
+
 # 🗂️ Conversation Documentation Workflow - Mandatory Spec Folder System & Template Enforcement
 
 Orchestrates mandatory spec folder creation for all conversations involving file modifications. This skill ensures proper documentation level selection (1-3), template usage, and context preservation through automated workflows and hook-assisted enforcement.
@@ -18,7 +20,7 @@ Orchestrates mandatory spec folder creation for all conversations involving file
 **This file (SKILL.md)**: Overview of conversation documentation workflow and orchestration
 
 **Reference Files** (detailed documentation):
-- [level_specifications.md](./references/level_specifications.md) - Complete specifications for documentation levels 0-3
+- [level_specifications.md](./references/level_specifications.md) - Complete specifications for documentation levels 1-3
 - [template_guide.md](./references/template_guide.md) - Template selection, copying, and adaptation rules
 - [automation_workflows.md](./references/automation_workflows.md) - Hook behavior, enforcement, and context auto-save
 - [quick_reference.md](./references/quick_reference.md) - Commands, checklists, and troubleshooting
@@ -63,7 +65,11 @@ def route_conversation_resources(task):
     Progressive Enhancement Model:
     - Level 1 (Baseline):     spec.md + plan.md + tasks.md
     - Level 2 (Verification): Level 1 + checklist.md
-    - Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
+    - Level 3 (Full):         Level 2 + decision-record.md + optional research.md/research-spike.md
+
+    Utility Templates (any level):
+    - handover.md        → Session continuity for multi-session work
+    - debug-delegation.md → Sub-agent debugging task delegation
 
     LOC thresholds are SOFT GUIDANCE (not enforcement):
     - <100 LOC suggests Level 1
@@ -72,6 +78,10 @@ def route_conversation_resources(task):
 
     Enforcement is HARD - hooks block commits with missing required templates.
     """
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TEMPLATES (9 files in .opencode/speckit/templates/)
+    # ═══════════════════════════════════════════════════════════════════════════
 
     # Level 1: Baseline (all tasks start here)
     # Required: spec.md + plan.md + tasks.md
@@ -86,19 +96,43 @@ def route_conversation_resources(task):
 
     # Level 3: Full documentation (complex/architectural)
     # Required: Level 2 + decision-record.md
-    # Optional: research-spike.md
+    # Optional: research.md, research-spike.md
     if task.is_complex or task.has_arch_impact or task.estimated_loc >= 500:
         load("templates/decision-record.md")
         if task.needs_research:
-            load("templates/research-spike.md")
+            load("templates/research.md")          # Comprehensive research
+            load("templates/research-spike.md")    # Time-boxed PoC
+
+    # Utility templates: available at ANY level
+    if task.is_multi_session:
+        load("templates/handover.md")              # Session continuity
+    if task.needs_debug_delegation:
+        load("templates/debug-delegation.md")      # Sub-agent debugging
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ASSETS (2 files in ./assets/) - Decision support tools
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    load("assets/level_decision_matrix.md")    # LOC thresholds, complexity factors
+    load("assets/template_mapping.md")         # Template-to-level mapping, copy commands
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # REFERENCES (4 files in ./references/) - Detailed documentation
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    load("references/level_specifications.md")   # Complete Level 1-3 specifications
+    load("references/template_guide.md")         # Template selection & adaptation rules
+    load("references/automation_workflows.md")   # Hook enforcement & context auto-save
+    load("references/quick_reference.md")        # Commands, checklists, troubleshooting
 
     # Overrides: High risk OR arch impact OR >5 files → bump to higher level
     # Enforcement: Hard block - hooks prevent commits with missing files
     # Rule: When in doubt → choose higher level
 
-# LOC as soft guidance: <100 (L1), 100-499 (L2), ≥500 (L3)
-# Progressive enhancement: each level BUILDS on previous
-# templates in: .opencode/speckit/templates/
+# SUMMARY: 15 total documents
+# - 9 templates in: .opencode/speckit/templates/
+# - 2 assets in:    ./assets/
+# - 4 references in: ./references/
 ```
 
 ---
@@ -107,20 +141,20 @@ def route_conversation_resources(task):
 
 ### Core Framework & Workflows
 
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
+| Document                                       | Purpose                                                      | Key Insight                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------- |
 | **Conversation Documentation - Main Workflow** | Orchestrates spec folder creation for all file modifications | **Hook-assisted enforcement with 3-level decision framework** |
 
 ### Bundled Resources
 
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **assets/level_decision_matrix.md** | LOC thresholds and decision factors | **LOC is soft guidance**; progressive enhancement model |
-| **assets/template_mapping.md** | Template-to-level mapping with copy commands | Always copy from `.opencode/speckit/templates/` - **never freehand** |
-| **references/level_specifications.md** | Complete Level 1-3 specifications | **Progressive enhancement**: each level builds on previous |
-| **references/template_guide.md** | Template selection and adaptation rules | Fill **ALL placeholders**, remove sample content |
-| **references/automation_workflows.md** | Hook enforcement and context auto-save | **Hard enforcement** - hooks block commits with missing files |
-| **references/quick_reference.md** | Commands, checklists, troubleshooting | Pre-implementation checklist is **mandatory** |
+| Document                               | Purpose                                      | Key Insight                                                          |
+| -------------------------------------- | -------------------------------------------- | -------------------------------------------------------------------- |
+| **assets/level_decision_matrix.md**    | LOC thresholds and decision factors          | **LOC is soft guidance**; progressive enhancement model              |
+| **assets/template_mapping.md**         | Template-to-level mapping with copy commands | Always copy from `.opencode/speckit/templates/` - **never freehand** |
+| **references/level_specifications.md** | Complete Level 1-3 specifications            | **Progressive enhancement**: each level builds on previous           |
+| **references/template_guide.md**       | Template selection and adaptation rules      | Fill **ALL placeholders**, remove sample content                     |
+| **references/automation_workflows.md** | Hook enforcement and context auto-save       | **Hard enforcement** - hooks block commits with missing files        |
+| **references/quick_reference.md**      | Commands, checklists, troubleshooting        | Pre-implementation checklist is **mandatory**                        |
 
 ---
 
@@ -135,7 +169,9 @@ Level 1 (Baseline):     spec.md + plan.md + tasks.md
                               ↓
 Level 2 (Verification): Level 1 + checklist.md
                               ↓
-Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.md
+Level 3 (Full):         Level 2 + decision-record.md + optional research.md/research-spike.md
+
+Utility (any level):    handover.md, debug-delegation.md
 ```
 
 **Level 1: Baseline Documentation** (LOC guidance: <100)
@@ -187,16 +223,20 @@ LOC thresholds are **SOFT GUIDANCE** - these factors can push to higher level:
 
 ### Template System (Progressive Enhancement)
 
-**All templates located in**: `.opencode/speckit/templates/`
+**All 9 templates located in**: `.opencode/speckit/templates/`
 
 **Required templates by level (progressive):**
 - Level 1: `spec.md` + `plan.md` + `tasks.md` (baseline)
 - Level 2: Level 1 + `checklist.md` (adds verification)
 - Level 3: Level 2 + `decision-record.md` (adds decision records)
 
-**Optional templates (Level 3 only):**
-- `research-spike.md` → `research-spike-[name].md` (research/POC)
+**Optional templates (Level 3):**
+- `research-spike.md` → `research-spike-[name].md` (time-boxed research/POC)
 - `research.md` → `research.md` (comprehensive research)
+
+**Utility templates (any level):**
+- `handover.md` → Session continuity for multi-session work
+- `debug-delegation.md` → Sub-agent debugging task delegation
 
 
 ### Folder Naming Convention
@@ -596,6 +636,46 @@ specs/122-skill-standardization/
 
 ## 7. 🔗 INTEGRATION POINTS
 
+### CAPS Integration (Context-Aware Permission System)
+
+SpecKit integrates with CAPS for validation and enforcement through hook-assisted rules.
+
+**CAPS Components Used:**
+| Component              | Purpose                                   | Location             |
+| ---------------------- | ----------------------------------------- | -------------------- |
+| `context-inference.sh` | Core CAPS engine (v1.0.0)                 | `.claude/hooks/lib/` |
+| `caps-adapter.sh`      | Adapter bridging operations to CAPS rules | `.claude/hooks/lib/` |
+| `rule-evaluation.sh`   | Rule priority evaluation (P0/P1/P2)       | `.claude/hooks/lib/` |
+| `speckit-state.sh`     | SpecKit state management with CAPS        | `.claude/hooks/lib/` |
+
+**Enforcement Levels (CAPS Priority System):**
+- **P0 (Blocker)**: Hard block - cannot proceed without resolution
+  - Missing required templates for level (e.g., no `checklist.md` for Level 2)
+  - Unresolved placeholders in templates (`[PLACEHOLDER]`)
+- **P1 (Warning)**: Must address or explicitly defer with user approval
+  - Incomplete checklist items before completion claims
+  - Missing optional templates for level
+- **P2 (Optional)**: Can defer without approval
+  - Documentation enhancements
+  - Additional context preservation
+
+**CAPS Functions Available:**
+```bash
+# Validate operations via CAPS rules
+result=$(validate_agent_via_caps "$context_json")
+
+# Context inference for permission decisions
+context=$(infer_context "$prompt_text")
+
+# Rule evaluation with priority
+rules=$(evaluate_rules "$context_json")
+```
+
+**SpecKit-Specific CAPS Triggers:**
+- `enforce-spec-folder.sh` → Validates spec folder existence and template completeness
+- `save-context-trigger.sh` → Triggers context preservation at 20-message intervals
+- Template validation → Checks placeholder removal and required field completion
+
 ### Related Skills
 
 **Upstream (feeds into this skill):**
@@ -626,19 +706,6 @@ specs/122-skill-standardization/
 - `.claude/hooks/UserPromptSubmit/enforce-spec-folder.sh` - Hook enforcement
 - `.claude/hooks/UserPromptSubmit/save-context-trigger.sh` - Context auto-save
 - `/spec_kit:complete` - Level 3 auto-generation command
-
-### Skill Maintenance
-
-**Version**: 1.0.0
-**Last Updated**: 2025-11-23
-**Maintainer**: Engineering Team
-**Update Frequency**: As needed when template system changes
-
-**Change Log:**
-- 2025-11-23: Initial skill creation from conversation_documentation.md knowledge base
-- Converted from knowledge base to skill for better integration and discoverability
-- Added standardized structure: navigation guide, references section, routing diagram
-- Organized content into bundled resources (assets/ and references/)
 
 ---
 

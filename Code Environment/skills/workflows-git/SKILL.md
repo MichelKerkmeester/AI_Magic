@@ -5,6 +5,8 @@ allowed-tools: [Read, Bash]
 version: 1.0.0
 ---
 
+<!-- Keywords: git-workflow, git-worktree, conventional-commits, branch-management, pull-request, commit-hygiene, workspace-isolation, version-control -->
+
 # Git Workflows - Git Development Orchestrator
 
 > Unified workflow guidance across workspace isolation, commit hygiene, and work completion.

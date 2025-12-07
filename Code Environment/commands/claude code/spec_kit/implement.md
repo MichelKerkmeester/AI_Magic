@@ -287,8 +287,20 @@ Please run /spec_kit:plan first to create planning artifacts.
 
 ## Templates Used
 
+**Core Templates:**
+- `.opencode/speckit/templates/spec.md` (Level 1+)
+- `.opencode/speckit/templates/plan.md` (Level 1+)
 - `.opencode/speckit/templates/tasks.md` (Level 1+)
 - `.opencode/speckit/templates/checklist.md` (Level 2+)
+- `.opencode/speckit/templates/decision-record.md` (Level 3)
+
+**Research Templates (optional):**
+- `.opencode/speckit/templates/research.md` (any level)
+- `.opencode/speckit/templates/research-spike.md` (any level)
+
+**Utility Templates:**
+- `.opencode/speckit/templates/handover.md` (any level)
+- `.opencode/speckit/templates/debug-delegation.md` (any level)
 
 ## Completion Report
 

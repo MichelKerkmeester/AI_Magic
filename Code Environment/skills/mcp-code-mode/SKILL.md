@@ -5,6 +5,8 @@ allowed-tools: [mcp__code_mode__call_tool_chain, mcp__code_mode__search_tools, m
 version: 1.0.0
 ---
 
+<!-- Keywords: mcp-code-mode, typescript-execution, multi-tool-workflow, tool-orchestration, context-reduction, progressive-discovery, external-api-integration, mcp-server -->
+
 # MCP Code Mode
 
 Execute TypeScript code with direct access to 200+ MCP tools through progressive disclosure. Code Mode eliminates context overhead by loading tools on-demand, enabling complex multi-tool workflows in a single execution with state persistence and built-in error handling.
