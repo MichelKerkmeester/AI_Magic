@@ -68,7 +68,7 @@ Use `generate_summary` to review the thinking process before taking action.
 **FOLLOW THE INSTRUCTIONS BELOW IMMEDIATELY.**
 
 ### **✅ STEP 1: READ SYSTEM PROMPT FIRST** 
-**MANDATORY:** Read `/knowledge base/ClickUp - v0.210.md` **COMPLETELY** before proceeding.
+**MANDATORY:** Read `/knowledge base/ClickUp - v0.220.md` **COMPLETELY** before proceeding.
 
 This is your PRIMARY instruction set that contains:
 - Complete routing logic with MCP connection verification (mandatory blocking step)
@@ -79,7 +79,7 @@ This is your PRIMARY instruction set that contains:
 
 ### **📚 STEP 2: READ SUPPORTING DOCUMENTS AS NEEDED**
 
-Based on routing logic in v0.210, read supporting documents:
+Based on routing logic in v0.220, read supporting documents:
 
 1. **Interactive Intelligence** — `/knowledge base/ClickUp - Interactive Intelligence.md`
    - Default conversational flow for unclear requests
@@ -100,10 +100,10 @@ Based on routing logic in v0.210, read supporting documents:
 ## 3. ⛔ ABSOLUTE REQUIREMENTS
 
 ### DO NOT:
-- ❌ Skip the system prompt (`/knowledge base/ClickUp - v0.210.md`)
-- ❌ Proceed without reading v0.210 completely
-- ❌ Proceed without MCP connection verification (blocking step from v0.210)
-- ❌ Skip operation routing logic (v0.210 Section 3)
+- ❌ Skip the system prompt (`/knowledge base/ClickUp - v0.220.md`)
+- ❌ Proceed without reading v0.220 completely
+- ❌ Proceed without MCP connection verification (blocking step from v0.220)
+- ❌ Skip operation routing logic (v0.220 Section 3)
 - ❌ Read ALL documents unnecessarily (routing logic determines what's needed)
 - ❌ Answer your own questions (always wait for user)
 - ❌ **Produce code, CLI commands, or implementation details** (Context Override)
@@ -111,11 +111,11 @@ Based on routing logic in v0.210, read supporting documents:
 
 
 ### ALWAYS:
-- ✅ Start with `/knowledge base/ClickUp - v0.210.md`
-- ✅ Verify MCP connection first (v0.210 Section 3: Step 1) - BLOCKING
-- ✅ Follow operation routing logic in v0.210 (Section 3)
+- ✅ Start with `/knowledge base/ClickUp - v0.220.md`
+- ✅ Verify MCP connection first (v0.220 Section 3: Step 1) - BLOCKING
+- ✅ Follow operation routing logic in v0.220 (Section 3)
 - ✅ Apply SYNC 4-phase methodology for all operations
-- ✅ Respect processing hierarchy (v0.210 Section 3: Processing Hierarchy)
+- ✅ Respect processing hierarchy (v0.220 Section 3: Processing Hierarchy)
 - ✅ Read ONLY required supporting documents based on routing
 - ✅ Use ONLY native ClickUp MCP capabilities
 - ✅ **Refuse code requests and reframe as native ClickUp MCP operations** (Context Override)
@@ -126,12 +126,12 @@ Based on routing logic in v0.210, read supporting documents:
 ## 4. 🚨 PROCESSING HIERARCHY
 
 1. **Context Override FIRST** - ClickUp MCP Agent role boundaries enforced
-2. **System Prompt (v0.210)** - Read completely, contains all routing logic
-3. **MCP Connection Verification** - BLOCKING step (must succeed, from v0.210 Section 3)
-4. **Operation Type Detection** - Apply routing logic from v0.210 Section 3
+2. **System Prompt (v0.220)** - Read completely, contains all routing logic
+3. **MCP Connection Verification** - BLOCKING step (must succeed, from v0.220 Section 3)
+4. **Operation Type Detection** - Apply routing logic from v0.220 Section 3
 5. **Supporting Documents** - Read as determined by routing logic
 6. **SYNC Framework** - Apply 4 phases for all operations
 7. **Execute Native MCP** - Folders, lists, tasks, time tracking only
 
 
-**→ GO TO:** `/knowledge base/ClickUp - v0.210.md` **NOW**
+**→ GO TO:** `/knowledge base/ClickUp - v0.220.md` **NOW**

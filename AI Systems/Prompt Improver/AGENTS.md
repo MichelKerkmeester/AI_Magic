@@ -66,7 +66,7 @@ Use `generate_summary` to review the thinking process before taking action.
 **FOLLOW THE INSTRUCTIONS BELOW IMMEDIATELY.**
 
 ### **✅ STEP 1: READ SYSTEM PROMPT FIRST** 
-**MANDATORY:** Read `/knowledge base/Prompt Improver - v0.930.md` **COMPLETELY** before proceeding.
+**MANDATORY:** Read `/knowledge base/Prompt Improver - v0.940.md` **COMPLETELY** before proceeding.
 
 This is your PRIMARY instruction set that contains:
 - Complete routing logic with format, mode, and framework command detection
@@ -77,7 +77,7 @@ This is your PRIMARY instruction set that contains:
 
 ### **📚 STEP 2: READ SUPPORTING DOCUMENTS AS NEEDED**
 
-Based on routing logic in v0.930, read supporting documents:
+Based on routing logic in v0.940, read supporting documents:
 
 1. **Interactive Mode** - `/knowledge base/Prompt - Interactive Mode.md`
    - Skip if $quick or direct mode/framework specified
@@ -103,8 +103,8 @@ Based on routing logic in v0.930, read supporting documents:
 ## 3. ⛔ ABSOLUTE REQUIREMENTS
 
 ### DO NOT:
-- ❌ Skip the system prompt (`/knowledge base/Prompt Improver - v0.930.md`)
-- ❌ Proceed without reading v0.930 completely
+- ❌ Skip the system prompt (`/knowledge base/Prompt Improver - v0.940.md`)
+- ❌ Proceed without reading v0.940 completely
 - ❌ Read ALL documents unnecessarily (routing logic determines what's needed)
 - ❌ Answer your own questions (always wait for user, except $quick)
 - ❌ **Produce code, CLI commands, or implementation details** (Context Override)
@@ -112,10 +112,10 @@ Based on routing logic in v0.930, read supporting documents:
 
 
 ### ALWAYS:
-- ✅ Start with `/knowledge base/Prompt Improver - v0.930.md`
-- ✅ Follow routing logic in v0.930 (Section 3)
-- ✅ Apply file organization rules (v0.930 Section 3: File Organization)
-- ✅ Respect processing hierarchy (v0.930 Section 3: Processing Hierarchy)
+- ✅ Start with `/knowledge base/Prompt Improver - v0.940.md`
+- ✅ Follow routing logic in v0.940 (Section 3)
+- ✅ Apply file organization rules (v0.940 Section 3: File Organization)
+- ✅ Respect processing hierarchy (v0.940 Section 3: Processing Hierarchy)
 - ✅ Read ONLY required supporting documents based on routing
 - ✅ **Refuse code requests and reframe as prompt enhancement deliverables** (Context Override)
 
@@ -125,10 +125,10 @@ Based on routing logic in v0.930, read supporting documents:
 ## 4. 🚨 PROCESSING HIERARCHY
 
 1. **Context Override FIRST** - Prompt enhancement specialist role boundaries enforced
-2. **System Prompt (v0.930)** - Read completely, contains all routing logic
-3. **Apply Routing** - Follow command detection in v0.930 Section 3
+2. **System Prompt (v0.940)** - Read completely, contains all routing logic
+3. **Apply Routing** - Follow command detection in v0.940 Section 3
 4. **Supporting Documents** - Read as determined by routing logic
-5. **Create Deliverable** - Following all rules in v0.930
+5. **Create Deliverable** - Following all rules in v0.940
 
 
-**→ GO TO:** `/knowledge base/Prompt Improver - v0.930.md` **NOW**
+**→ GO TO:** `/knowledge base/Prompt Improver - v0.940.md` **NOW**
