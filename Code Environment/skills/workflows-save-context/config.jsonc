@@ -15,7 +15,7 @@
   },
 
   "memoryIndex": {
-    "databasePath": "~/.claude/memory-index.sqlite",
+    "databasePath": ".opencode/memory/memory-index.sqlite",
     "autoRebuildOnSave": true,
     "verifyOnStartup": false
   },
@@ -55,9 +55,9 @@
 // ─────────────────────────────────────────────────────────────
 // Configuration for the SQLite vector database.
 //
-// • databasePath (string, default: "~/.claude/memory-index.sqlite")
-//   Location of the sqlite-vec database file
-//   Supports ~ expansion for home directory
+// • databasePath (string, default: ".opencode/memory/memory-index.sqlite")
+//   Location of the sqlite-vec database file (project-local)
+//   Relative to project root - same location for Claude Code and Opencode
 //
 // • autoRebuildOnSave (boolean, default: true)
 //   Automatically update embeddings when context is saved

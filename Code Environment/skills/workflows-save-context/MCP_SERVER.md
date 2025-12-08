@@ -469,17 +469,17 @@ Slow operations are logged automatically:
 **Solutions**:
 1. Check database exists:
    ```bash
-   ls ~/.claude/memory-index.sqlite
+   ls .opencode/memory/memory-index.sqlite
    ```
 
 2. Verify embeddings exist:
    ```bash
-   sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM vec_memories"
+   sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM vec_memories"
    ```
 
 3. Check embedding status:
    ```bash
-   sqlite3 ~/.claude/memory-index.sqlite \
+   sqlite3 .opencode/memory/memory-index.sqlite \
      "SELECT embedding_status, COUNT(*) FROM memory_index GROUP BY embedding_status"
    ```
 
@@ -499,7 +499,7 @@ Slow operations are logged automatically:
 1. Check for large prompt (truncated at 2000 chars)
 2. Verify WAL mode:
    ```bash
-   sqlite3 ~/.claude/memory-index.sqlite "PRAGMA journal_mode"
+   sqlite3 .opencode/memory/memory-index.sqlite "PRAGMA journal_mode"
    # Should return: wal
    ```
 
@@ -541,8 +541,8 @@ node memory-server.js --version 2>&1 | head -1
 node memory-server.js
 
 # Check database
-sqlite3 ~/.claude/memory-index.sqlite ".tables"
+sqlite3 .opencode/memory/memory-index.sqlite ".tables"
 
 # Count indexed memories
-sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
+sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
 ```

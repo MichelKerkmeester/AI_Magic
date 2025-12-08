@@ -173,10 +173,8 @@ User Action
          ▼
 ┌─────────────────────────────────────────┐
 │  PreCompact Hooks                       │
-│  - prune-context.sh (0) 🔄              │
 │  - save-context-before-compact.sh (0)   │
 │  Note: (0) = always allows (non-block)  │
-│        🔄  = Context optimization       │
 └────────┬────────────────────────────────┘
          │
          ▼
@@ -248,7 +246,7 @@ User Action
 | validate-subagent-output | SubagentStop | Block bad sub-agent output (v1.0.0 - quality gate) | Task completion | 0/block | <50ms |
 | cleanup-adhoc-agent | SubagentStop | Clean up ad-hoc agents; archive output to spec memory | Session ID starts with `adhoc-` | 0 | <100ms |
 | detect-parallel-conflicts | SubagentStop | Detect file modification conflicts between parallel agents | Multiple agents complete work | 0* | <50ms |
-| prune-context | PreCompact | Context pruning (v2.0.0 - DCP-style output) | Before compaction | 0 | <5s |
+
 | save-context-before-compact | PreCompact | Auto-save before compact | Before compaction | 0 | <10s |
 | initialize-session | PreSessionStart | Session initialization | Session start | 0 | <50ms |
 | offer-state-restore | PreSessionStart | Check saved state; offer cross-session restoration | Session starts, saved state exists | 0 | <100ms |
@@ -288,11 +286,6 @@ echo '{"systemMessage": "Your visible message here"}'
 echo '{"systemMessage": "Agent #1 DISPATCHED: code-specialist | Model: opus | Task: Fix authentication bug"}'
 ```
 
-**Example - Context pruning notification:**
-```bash
-echo '{"systemMessage": "Context pruned successfully - optimized for compaction"}'
-```
-
 ### Common Mistakes
 
 1. **Using plain echo expecting visibility** - Plain stdout only shows in verbose mode (Ctrl+O)
@@ -326,7 +319,6 @@ json_escape() {
 |------|--------------|
 | `signal-output.sh` | Mandatory question notifications |
 | `announce-task-dispatch.sh` | Agent dispatch notifications |
-| `prune-context.sh` | Context pruning status |
 | `suggest-semantic-search.sh` | Semantic search recommendations |
 
 ---
@@ -478,39 +470,6 @@ json_escape() {
 **Execution**: Parallel (non-blocking) when supported
 **Output**: Saves to `specs/###-folder/memory/` (or sub-folder when versioning active)
 **Search**: `search-interactive.js` provides rich CLI for memory search with preview, filtering, and state management
-
-#### prune-context.sh (PreCompact) - v2.0.0 DCP-Style Output
-**Purpose**: Prune conversation context before compaction using intelligent deduplication
-**Output Format**: Inspired by OpenCode Dynamic Context Pruning (DCP) plugin
-**Features**:
-  - `[DCP]` prefix for all output messages (consistent with OpenCode plugin)
-  - Per-tool breakdown table showing duplicates removed per tool type
-  - Actual token estimates (e.g., `~6.3k tokens`) not just percentages
-  - Handles both Claude Code format (`entry.content`) and Anthropic API format (`entry.message.content`)
-  - Timeout handling (exit codes 124/137) with clear error messages
-**Config**: `.claude/configs/context-pruning.json`
-**Deduplication Targets**: Read, Grep, Glob tools (exact parameter matching)
-**Protected Tools**: Task, TodoWrite, TodoRead, AskUserQuestion, Skill, SlashCommand, EnterPlanMode, ExitPlanMode
-**Performance**: <5s
-**Example Output**:
-```
-[DCP] Context pruning triggered (auto-compact)
-[DCP] Scanning: abc123-session.jsonl
-[DCP] ─────────────────────────────────────────
-[DCP] Deduplication: found 15 duplicates
-[DCP] ─────────────────────────────────────────
-[DCP] Duplicates by tool:
-[DCP] ┌────────────┬───────────┬─────────────┐
-[DCP] │ Tool       │ Removed   │ Tokens      │
-[DCP] ├────────────┼───────────┼─────────────┤
-[DCP] │ Read       │        8  │        4.2k │
-[DCP] │ Grep       │        5  │        1.8k │
-[DCP] │ Glob       │        2  │         350 │
-[DCP] └────────────┴───────────┴─────────────┘
-[DCP] Token savings: ~6.3k tokens (42% reduction)
-[DCP] ─────────────────────────────────────────
-[DCP] Compaction ready (context optimized)
-```
 
 #### warn-duplicate-reads.sh (PreToolUse) - v2.0.0 Intelligence System
 **Transformation**: Low-value warnings → High-value actionable intelligence
@@ -751,7 +710,6 @@ json_escape() {
 - `remind-cdn-versioning.sh` - CDN update reminder (non-blocking)
 - `warn-duplicate-reads.sh` - Real-time duplicate detection advisory (non-blocking)
 - `save-context-before-compact.sh` - PreCompact context backup (always allows, cannot block)
-- `prune-context.sh` - Context pruning at compaction (always allows, cannot block)
 
 ### Exit Code Usage
 
@@ -952,7 +910,7 @@ Tool Executes (Bash, Write, Edit, etc.)
 └─────────────────────────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ PreCompact Hooks (2)                                        │
+│ PreCompact Hooks (1)                                        │
 ├─────────────────────────────────────────────────────────────┤
 │ 1. save-context-before-compact → Backs up transcript        │
 │                                → lib/transform-transcript.js│
@@ -960,10 +918,6 @@ Tool Executes (Bash, Write, Edit, etc.)
 │                                → specs/###/memory/ OR        │
 │                                   ###-name/###-sub/memory/  │
 │                                → Always exits 0 (non-block) │
-│                                                             │
-│ 2. prune-context            → Context pruning engine        │
-│                             → DCP-style deduplication       │
-│                             → Token savings calculation     │
 └─────────────────────────────────────────────────────────────┘
     ↓
 Result Returned to User
@@ -1020,7 +974,6 @@ Most hooks write to `.claude/hooks/logs/`:
 | **load-related-context.sh** | Anchor-based context retrieval | `list`, `summary`, `search`, `extract`, `recent`, `smart`, `search_all` | enforce-spec-folder.sh (Option D) | <200ms core, <500ms smart |
 | **relevance-scorer.sh** | 4-dimension relevance scoring | `calculate_relevance()` (category, keywords, recency, proximity) | load-related-context.sh (smart/search_all) | ~10ms per anchor |
 | **file-scope-tracking.sh** | File modification tracking | `track_file()`, `get_modified_files()` | detect-scope-growth.sh, track-file-modifications.sh | <10ms |
-| **context-pruner.js** | Context pruning engine (v2.0.0 - DCP-style) | `extractToolCalls()`, `deduplicateToolCalls()`, `displaySummary()` | prune-context.sh | <5s |
 | **platform-utils.sh** | Cross-platform utilities (v1.0.0) | `get_file_size()`, `get_file_mtime()`, `sanitize_session_id()`, `relpath()` | Multiple hooks | <5ms |
 | **subagent-validation.sh** | Sub-agent output validation (v1.0.0) | `validate_subagent_output()`, `quick_validate()`, `extract_subagent_output_from_transcript()` | validate-subagent-output.sh | <50ms |
 | **tool-input-parser.sh** | JSON input parsing (v1.0.0) | `read_tool_input()`, `parse_file_path()`, `is_file_editing_tool()` | PreToolUse/PostToolUse hooks | <5ms |

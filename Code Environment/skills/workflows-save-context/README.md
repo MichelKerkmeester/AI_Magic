@@ -20,6 +20,7 @@ A semantic intelligence layer for the save-context memory system, enabling natur
 - [12. 🔧 TROUBLESHOOTING](#12--troubleshooting)
 - [13. ❓ FAQ](#13--faq)
 - [14. 📚 RELATED DOCUMENTS](#14--related-documents)
+- [15. 🔄 PLATFORM COMPATIBILITY](#15--platform-compatibility)
 
 ---
 
@@ -152,6 +153,66 @@ All search and index management operations:
 | `/memory/search rebuild`                | Regenerate all embeddings         |
 | `/memory/search retry`                  | Retry failed embeddings           |
 | `/memory/search list-failed`            | List failed embeddings            |
+
+#### /memory/cleanup
+
+Interactive cleanup of old, unused, or low-relevance memories:
+
+| Feature                  | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| **Zero flags required**  | Works without parameters - uses smart defaults           |
+| **Interactive preview**  | Shows candidates before any deletion                     |
+| **Review mode**          | Step through each memory with [y/n/v]iew options         |
+| **Smart defaults**       | 90 days old, <3 accesses, <0.4 confidence                |
+
+**Usage:**
+```
+/memory/cleanup
+
+# Shows: "Found 5 memories that may be outdated"
+# Actions: [a]ll, [r]eview each, [n]one, [c]ancel
+```
+
+#### /memory/triggers
+
+View and manage learned trigger phrases:
+
+| Feature               | Description                                               |
+| --------------------- | --------------------------------------------------------- |
+| **Transparency**      | See what phrases the system learned from your searches    |
+| **Add/Remove**        | Manually associate or disassociate phrases with memories  |
+| **Search by trigger** | Find memories matching a specific trigger phrase          |
+| **Clear all**         | Reset all learned triggers (with confirmation)            |
+
+**Usage:**
+```
+/memory/triggers              # Interactive menu
+/memory/triggers search oauth # Find memories with "oauth" trigger
+/memory/triggers clear        # Reset all triggers
+```
+
+#### /memory/status
+
+Quick health check and system statistics:
+
+| Metric              | Description                         |
+| ------------------- | ----------------------------------- |
+| **Memories**        | Total indexed count                 |
+| **Health**          | System status (OK/Degraded/Error)   |
+| **Last save**       | When context was last saved         |
+| **Storage**         | Database size in MB                 |
+| **Performance**     | Vector search availability          |
+
+**Usage:**
+```
+/memory/status
+
+# Output:
+# Memories:     47 indexed
+# Health:       All systems operational
+# Storage:      12.5 MB used
+# Quick actions: [s]earch [c]leanup [r]ebuild index
+```
 
 ### Execution Options
 
@@ -387,7 +448,7 @@ Trigger Flow:
 | ----------------- | ------------------------------- | ---------------------------------- |
 | Memory content    | `specs/*/memory/*.md`           | Human-readable, version controlled |
 | Metadata          | `specs/*/memory/metadata.json`  | Session info, embedding status     |
-| Vector embeddings | `~/.claude/memory-index.sqlite` | Fast semantic search               |
+| Vector embeddings | `.opencode/memory/memory-index.sqlite` | Fast semantic search (project-local) |
 | Trigger cache     | In-memory                       | <50ms hook execution               |
 
 ---
@@ -483,7 +544,7 @@ LIMIT 10;
 
 | Variable                   | Default                         | Description                      |
 | -------------------------- | ------------------------------- | -------------------------------- |
-| `CLAUDE_MEMORY_INDEX_PATH` | `~/.claude/memory-index.sqlite` | Vector index location            |
+| `CLAUDE_MEMORY_INDEX_PATH` | `.opencode/memory/memory-index.sqlite` | Vector index location (project-local) |
 | `HUGGINGFACE_CACHE`        | `~/.cache/huggingface/`         | Model cache directory            |
 | `DEBUG_TRIGGER_MATCHER`    | `false`                         | Enable verbose trigger logs      |
 | `MEMORY_SURFACING_LIMIT`   | `3`                             | Max memories surfaced per prompt |
@@ -519,7 +580,7 @@ LIMIT 10;
 
 | File           | Location                        | Purpose                 |
 | -------------- | ------------------------------- | ----------------------- |
-| Vector Index   | `~/.claude/memory-index.sqlite` | Embeddings + metadata   |
+| Vector Index   | `.opencode/memory/memory-index.sqlite` | Embeddings + metadata (project-local) |
 | Memory Content | `specs/*/memory/*.md`           | Human-readable markdown |
 | Metadata       | `specs/*/memory/metadata.json`  | Session metadata        |
 
@@ -647,7 +708,7 @@ node index-all.js /tmp/manifest.txt
 /memory/search verify
 
 # Index statistics
-sqlite3 ~/.claude/memory-index.sqlite \
+sqlite3 .opencode/memory/memory-index.sqlite \
   "SELECT embedding_status, COUNT(*) FROM memory_index GROUP BY embedding_status"
 
 # Test embedding
@@ -729,6 +790,48 @@ A: System falls back to anchor-only mode with a warning. Core functionality pres
 | [context_template.md](./templates/context_template.md) | Output format template  |
 | [config.jsonc](./config.jsonc)                         | Runtime configuration   |
 | [filters.jsonc](./filters.jsonc)                       | Content filtering rules |
+
+---
+
+## 15. PLATFORM COMPATIBILITY
+
+### Claude Code vs Opencode
+
+This skill works identically on both Claude Code and Opencode with one difference:
+
+| Feature | Claude Code | Opencode |
+|---------|-------------|----------|
+| Commands | All 5 available | All 5 available |
+| Scripts | `.claude/skills/...` | Uses shared `.claude/` implementation |
+| Hooks | Full support | Not supported |
+| Context surfacing | Automatic (hook) | Manual (`/memory/search`) |
+
+### Opencode Users
+
+Opencode doesn't support hooks, so proactive context surfacing is manual:
+
+1. **Before starting work** in a spec folder, run:
+   ```
+   /memory/search "your topic"
+   ```
+
+2. **The AI should proactively offer** to search for relevant context when you mention a spec folder
+
+3. **All commands work identically**:
+   - `/memory/save` - Save context
+   - `/memory/search` - Search memories
+   - `/memory/cleanup` - Clean up old memories
+   - `/memory/triggers` - View learned phrases
+   - `/memory/status` - Check system health
+
+### Shared Implementation
+
+Both platforms use the same backend implementation in `.claude/skills/workflows-save-context/`. The `.opencode/` folder contains synced copies for Opencode's skill discovery, but the actual scripts run from `.claude/`.
+
+To sync changes from Claude Code to Opencode:
+```bash
+bash .claude/scripts/sync-to-opencode.sh
+```
 
 ---
 

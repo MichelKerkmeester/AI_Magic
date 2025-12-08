@@ -22,11 +22,11 @@ version: 1.0.0
 
 ### Trigger Phrases
 
-| Phrase | Also Works |
-|--------|------------|
-| "save context" | "save conversation" |
-| "document this" | "preserve context" |
-| "save session" | "save this discussion" |
+| Phrase          | Also Works             |
+| --------------- | ---------------------- |
+| "save context"  | "save conversation"    |
+| "document this" | "preserve context"     |
+| "save session"  | "save this discussion" |
 
 ### Auto-Save
 
@@ -34,12 +34,12 @@ version: 1.0.0
 
 ### When to Save
 
-| Scenario | Example |
-|----------|---------|
-| Feature complete | "Just finished the payment integration" |
+| Scenario           | Example                                  |
+| ------------------ | ---------------------------------------- |
+| Feature complete   | "Just finished the payment integration"  |
 | Complex discussion | "We made 5 architecture decisions today" |
-| Team sharing | "Need to document this for the team" |
-| Session ending | "Wrapping up for the day" |
+| Team sharing       | "Need to document this for the team"     |
+| Session ending     | "Wrapping up for the day"                |
 
 ### When NOT to Use
 
@@ -61,6 +61,51 @@ claude-mem vector "your search query"
 
 If found, load and acknowledge context before proceeding.
 
+### Proactive Context Surfacing (Hook-Powered)
+
+The `memory-surfacing.sh` hook automatically surfaces relevant context when:
+1. User references a spec folder (e.g., "working on 006-semantic-memory")
+2. User mentions spec folder content (e.g., "continue the memory surfacing work")
+3. Trigger phrases are detected in the prompt
+
+**What the Hook Does:**
+
+When you reference a spec folder, the hook automatically displays:
+
+```
+---
+
+**Found relevant context from your previous session(s):**
+
+  **[1]** OAuth implementation decisions (2 days ago)
+  **[2]** JWT token flow discussion (3 days ago)
+  **[3]** Session management notes (5 days ago)
+
+**Load context?** Reply with: [1] [2] [3] [all] [skip]
+
+---
+```
+
+**User Response Options:**
+- `[1]`, `[2]`, `[3]` - Load specific memory
+- `[all]` - Load all listed memories
+- `[skip]` - Continue without loading (instant, never blocks)
+
+**Detection Patterns:**
+- `specs/NNN-name` or `spec/NNN-name` in prompt
+- "spec folder NNN", "spec NNN" phrases
+- "working on", "continue", "resume" + spec folder reference
+- Spec folder name keywords in prompt
+
+**Performance:**
+- Trigger phrase matching: <50ms
+- Context surfacing: <1s
+- Skip is always instant
+
+**Hook Location:** `.claude/hooks/UserPromptSubmit/memory-surfacing.sh`
+
+> **Opencode Users:** Hooks are not supported in Opencode. Instead, manually run `/memory/search` before starting work in a spec folder, or the AI should proactively offer to search for relevant context when you mention a spec folder.
+
 ---
 
 ## 2. 🧭 SMART ROUTING & REFERENCES
@@ -75,10 +120,10 @@ If found, load and acknowledge context before proceeding.
 /memory/search [args]
     │
     ├─► No args
-    │   └─► Show interactive menu (Search | Recent | Manage Index)
+    │   └─► UNIFIED BROWSER: Search prompt screen
     │
-    ├─► "search" | "find" | "query" [query text]
-    │   └─► SEARCH ACTION: Semantic vector search
+    ├─► "query text" (2+ words)
+    │   └─► SEARCH RESULTS: Semantic search with related navigation
     │
     ├─► "recent"
     │   └─► VIEW ACTION: Show recent memory files
@@ -90,13 +135,31 @@ If found, load and acknowledge context before proceeding.
     │   └─► VERIFY ACTION: Check index integrity
     │
     ├─► "retry"
-    │   └─► RETRY ACTION: Retry last failed operation
+    │   └─► RETRY ACTION: Retry failed embeddings
     │
-    ├─► "resume"
-    │   └─► RESUME ACTION: Continue previous search session
+    └─► "resume"
+        └─► RESUME ACTION: Continue previous search session
+
+/memory/cleanup
     │
-    └─► Natural language query (2+ words)
-        └─► SEARCH ACTION (assume search intent)
+    └─► CLEANUP ACTION: Interactive removal of old/unused memories
+        ├─► Shows preview of candidates (NO FLAGS needed)
+        ├─► [a]ll, [r]eview each, [n]one, [c]ancel
+        └─► Smart defaults: 90 days, <3 accesses, <0.4 confidence
+
+/memory/triggers
+    │
+    └─► TRIGGER ACTION: View/manage learned trigger phrases
+        ├─► Shows what system learned from your searches
+        ├─► Add/remove trigger phrases manually
+        └─► Search by trigger, clear all (with confirm)
+
+/memory/status
+    │
+    └─► STATUS ACTION: Quick health check
+        ├─► Memory count, health indicator
+        ├─► Last save, storage size, vector availability
+        └─► Quick action shortcuts: [s]earch [c]leanup [r]ebuild
 ```
 
 ### Resource Router
@@ -192,23 +255,23 @@ def route_save_context_resources(task):
 
 ### Quick Overview
 
-| Action | Method | When to Use |
-|--------|--------|-------------|
-| Auto-save | Say trigger phrase or wait 20 msgs | Normal workflow |
-| Manual save | `/memory/save` command | Explicit control |
-| Search/manage | `/memory/search` command | Find context, manage index |
-| Script | `node generate-context.js` | Testing/debugging |
-| Semantic search | `claude-mem vector "query"` | Find prior context |
+| Action          | Method                             | When to Use                |
+| --------------- | ---------------------------------- | -------------------------- |
+| Auto-save       | Say trigger phrase or wait 20 msgs | Normal workflow            |
+| Manual save     | `/memory/save` command             | Explicit control           |
+| Search/manage   | `/memory/search` command           | Find context, manage index |
+| Script          | `node generate-context.js`         | Testing/debugging          |
+| Semantic search | `claude-mem vector "query"`        | Find prior context         |
 
 ### Execution Methods
 
-| Method | Hooks | AI | Effort | Use Case |
-|--------|-------|-----|--------|----------|
-| **Keyword trigger** | No | No | Zero | Type "save context" |
-| **Save command** | No | Yes | Low | `/memory/save` |
-| **Search command** | No | Yes | Low | `/memory/search` |
-| **Direct script** | No | No | Medium | Testing |
-| **Helper script** | No | No | Low | Standalone |
+| Method              | Hooks | AI  | Effort | Use Case            |
+| ------------------- | ----- | --- | ------ | ------------------- |
+| **Keyword trigger** | No    | No  | Zero   | Type "save context" |
+| **Save command**    | No    | Yes | Low    | `/memory/save`      |
+| **Search command**  | No    | Yes | Low    | `/memory/search`    |
+| **Direct script**   | No    | No  | Medium | Testing             |
+| **Helper script**   | No    | No  | Low    | Standalone          |
 
 For detailed examples, see [execution_methods.md](./references/execution_methods.md).
 
@@ -218,10 +281,10 @@ Run with spec folder: `node scripts/generate-context.js /tmp/data.json "122-feat
 
 ### Output Files
 
-| File | Content |
-|------|---------|
+| File                        | Content                    |
+| --------------------------- | -------------------------- |
 | `{date}_{time}__{topic}.md` | Full session documentation |
-| `metadata.json` | Session statistics |
+| `metadata.json`             | Session statistics         |
 
 **Naming**: `DD-MM-YY_HH-MM__topic.md` (e.g., `07-12-25_14-30__oauth.md`)
 
@@ -233,10 +296,10 @@ Memory files include searchable HTML anchors for targeted loading.
 
 ### Token Efficiency
 
-| Approach | Tokens | Savings |
-|----------|--------|---------|
-| Full file read | ~12,000 | - |
-| Anchor extraction | ~800 | 93% |
+| Approach          | Tokens  | Savings |
+| ----------------- | ------- | ------- |
+| Full file read    | ~12,000 | -       |
+| Anchor extraction | ~800    | 93%     |
 
 ### Anchor Format
 
@@ -266,33 +329,33 @@ Semantic vector search enables intelligent memory retrieval.
 
 ### Key Commands
 
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `search <query>` | Interactive semantic search | `/memory/search "OAuth"` |
-| `multi <concepts>` | AND search across concepts | `/memory/search "oauth" "security"` |
-| `recent` | View recent memory files | `/memory/search recent` |
-| `rebuild` | Rebuild vector index | `/memory/search rebuild` |
-| `verify` | Check index integrity | `/memory/search verify` |
-| `retry` | Retry last failed operation | `/memory/search retry` |
-| `resume` | Resume previous search session | `/memory/search resume` |
+| Command            | Purpose                        | Example                             |
+| ------------------ | ------------------------------ | ----------------------------------- |
+| `search <query>`   | Interactive semantic search    | `/memory/search "OAuth"`            |
+| `multi <concepts>` | AND search across concepts     | `/memory/search "oauth" "security"` |
+| `recent`           | View recent memory files       | `/memory/search recent`             |
+| `rebuild`          | Rebuild vector index           | `/memory/search rebuild`            |
+| `verify`           | Check index integrity          | `/memory/search verify`             |
+| `retry`            | Retry last failed operation    | `/memory/search retry`              |
+| `resume`           | Resume previous search session | `/memory/search resume`             |
 
 ### Interactive Actions
 
-| Action | Purpose | Example |
-|--------|---------|---------|
-| `v#` / `l#` | Preview / Load memory | `v1`, `l1` |
-| `f <filter>` | Filter results | `f folder:auth date:>2025-12-01` |
-| `c` / `n` / `p` | Cluster / Next / Previous | `c`, `n` |
-| `e <anchor>` | Extract section | `e decisions` |
+| Action          | Purpose                   | Example                          |
+| --------------- | ------------------------- | -------------------------------- |
+| `v#` / `l#`     | Preview / Load memory     | `v1`, `l1`                       |
+| `f <filter>`    | Filter results            | `f folder:auth date:>2025-12-01` |
+| `c` / `n` / `p` | Cluster / Next / Previous | `c`, `n`                         |
+| `e <anchor>`    | Extract section           | `e decisions`                    |
 
 Sessions persist 1 hour (resume with `/memory/search resume`).
 
 ### MCP Tools (for AI agents)
 
-| Tool | Purpose |
-|------|---------|
-| `memory_search` | Semantic vector search |
-| `memory_load` | Load memory by spec folder |
+| Tool                    | Purpose                      |
+| ----------------------- | ---------------------------- |
+| `memory_search`         | Semantic vector search       |
+| `memory_load`           | Load memory by spec folder   |
 | `memory_match_triggers` | Fast trigger phrase matching |
 
 See [semantic_memory.md](./references/semantic_memory.md) for complete documentation.
@@ -330,13 +393,13 @@ See [semantic_memory.md](./references/semantic_memory.md) for complete documenta
 
 ### Spec Folder Detection
 
-| Step | Action |
-|------|--------|
-| 1 | Check if in `/specs/###-*/` directory |
-| 2 | If not, find most recent spec folder |
-| 3 | Calculate alignment score (threshold: 70%) |
-| 4 | If < 70%, prompt user to select folder |
-| 5 | If no spec folder exists, fail with error |
+| Step | Action                                     |
+| ---- | ------------------------------------------ |
+| 1    | Check if in `/specs/###-*/` directory      |
+| 2    | If not, find most recent spec folder       |
+| 3    | Calculate alignment score (threshold: 70%) |
+| 4    | If < 70%, prompt user to select folder     |
+| 5    | If no spec folder exists, fail with error  |
 
 See [spec_folder_detection.md](./references/spec_folder_detection.md) for sub-folder routing.
 
@@ -383,12 +446,12 @@ See [spec_folder_detection.md](./references/spec_folder_detection.md) for sub-fo
 
 ### Performance Targets
 
-| Operation | Target | Actual |
-|-----------|--------|--------|
-| Manual save | 2-3s | ~2.5s |
-| Auto-save | 3-5s | ~4s |
-| Vector search | <500ms | ~450ms |
-| Trigger matching | <50ms | ~35ms |
+| Operation        | Target | Actual |
+| ---------------- | ------ | ------ |
+| Manual save      | 2-3s   | ~2.5s  |
+| Auto-save        | 3-5s   | ~4s    |
+| Vector search    | <500ms | ~450ms |
+| Trigger matching | <50ms  | ~35ms  |
 
 ---
 
@@ -402,11 +465,11 @@ Conversation → AI Analysis → JSON → Script → Markdown + Embeddings
 
 ### Pairs With
 
-| Skill | Integration |
-|-------|-------------|
-| `git-commit` | Enhances with commit SHAs |
-| `create-documentation` | Flowchart generation |
-| `workflows-spec-kit` | Spec folder workflows |
+| Skill                  | Integration               |
+| ---------------------- | ------------------------- |
+| `git-commit`           | Enhances with commit SHAs |
+| `create-documentation` | Flowchart generation      |
+| `workflows-spec-kit`   | Spec folder workflows     |
 
 ### Script Location
 
@@ -416,12 +479,12 @@ Conversation → AI Analysis → JSON → Script → Markdown + Embeddings
 
 ### Semantic Components
 
-| Component | Location |
-|-----------|----------|
-| Embeddings | `scripts/lib/embeddings.js` |
-| Vector Index | `scripts/lib/vector-index.js` |
+| Component       | Location                         |
+| --------------- | -------------------------------- |
+| Embeddings      | `scripts/lib/embeddings.js`      |
+| Vector Index    | `scripts/lib/vector-index.js`    |
 | Trigger Matcher | `scripts/lib/trigger-matcher.js` |
-| Memory Database | `~/.claude/memory-index.sqlite` |
+| Memory Database | `.opencode/memory/memory-index.sqlite` |
 
 ---
 
@@ -467,40 +530,57 @@ See [troubleshooting.md](./references/troubleshooting.md) for alignment scoring 
 
 ## 12. 📊 QUICK REFERENCE
 
-**Commands**:
-- `/memory/save` - Save context (interactive folder detection)
-- `/memory/search` - Search, view recent, manage index
+**Commands (5 total)**:
 
-**Save Command** (`/memory/save`):
-- Simple save with automatic spec folder detection
-- Interactive prompt if multiple active specs found
-- Trigger phrases: "save context", "document this", "preserve context"
+| Command            | Purpose             | Interaction                           |
+| ------------------ | ------------------- | ------------------------------------- |
+| `/memory/save`     | Save context        | Existing - works great                |
+| `/memory/search`   | **UNIFIED BROWSER** | Search, Select, Related navigation    |
+| `/memory/cleanup`  | **NEW**             | Interactive cleanup (no flags needed) |
+| `/memory/triggers` | **NEW**             | View/manage learned phrases           |
+| `/memory/status`   | **NEW**             | Health check + quick actions          |
 
-**Search Command** (`/memory/search [args]`):
-- No args: Interactive menu (Search | Recent | Manage Index)
-- `"query"`: Semantic search
-- `recent`: View recent memory files
-- `rebuild`: Rebuild vector index
-- `verify`: Check index health
-- `retry`: Retry last failed operation
-- `resume`: Continue previous search session
+**Enhanced Search** (`/memory/search`):
+- No args: Interactive browser
+- `"query"`: Direct semantic search
+- Single-letter navigation: `[1-9]` select, `[a-c]` related, `[n]ew`, `[b]ack`, `[l]oad`, `[q]uit`
+
+**Cleanup** (`/memory/cleanup`):
+- NO FLAGS needed - uses smart defaults
+- Preview before delete
+- Review each OR bulk actions
+- `[v]iew` content before deciding
+
+**Trigger Management** (`/memory/triggers`):
+- Shows what system learned
+- Add/remove phrases
+- Educational - builds trust
+
+**System Status** (`/memory/status`):
+- One-glance health overview
+- Performance indicators
+- Quick action shortcuts
+
+**Auto Features (Invisible)**:
+- Smart ranking (recency + usage boost)
+- MMR diversity (varied results)
+- Trigger learning (from search patterns)
+- LRU caching (instant repeat searches)
+- Related memory linking (on save)
+
+**Performance Targets**:
+
+| Operation         | Target |
+| ----------------- | ------ |
+| Save              | <3s    |
+| Search            | <200ms |
+| Cached search     | <10ms  |
+| Trigger match     | <50ms  |
+| Context surfacing | <1s    |
 
 **Output**: `specs/###-feature/memory/{date}_{time}__{topic}.md`
 
-**Semantic Search**: `claude-mem vector "your query"`
-
 **Anchor Format**: `<!-- anchor: category-keywords-spec# -->`
-
-**Key Data**:
-```json
-{
-  "recent_context": [{ "request", "completed", "learning", "duration" }],
-  "observations": [{ "type", "title", "narrative", "files", "facts" }],
-  "user_prompts": [{ "prompt", "timestamp" }]
-}
-```
-
-**Performance**: Save ~2-5s | Search <500ms | Triggers <50ms
 
 **Script**: `.claude/skills/workflows-save-context/scripts/generate-context.js`
 

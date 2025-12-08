@@ -42,7 +42,7 @@ For AI agents, the following MCP tools are available:
 | Embeddings | `scripts/lib/embeddings.js` |
 | Vector Index | `scripts/lib/vector-index.js` |
 | Trigger Matcher | `scripts/lib/trigger-matcher.js` |
-| Memory Database | `~/.claude/memory-index.sqlite` |
+| Memory Database | `.opencode/memory/memory-index.sqlite` |
 
 ### Data Flow
 
@@ -148,8 +148,8 @@ claude-mem verify
 
 ### Index Location
 
-- **Database**: `~/.claude/memory-index.sqlite`
-- **Backup**: `~/.claude/memory-index.sqlite.bak`
+- **Database**: `.opencode/memory/memory-index.sqlite`
+- **Backup**: `.opencode/memory/memory-index.sqlite.bak`
 
 ---
 
@@ -227,7 +227,7 @@ const trigger = await mcp.memory_match_triggers({
     "enabled": true,
     "model": "local",  // "local" | "openai"
     "dimensions": 384,
-    "indexPath": "~/.claude/memory-index.sqlite"
+    "indexPath": ".opencode/memory/memory-index.sqlite"
   },
   "triggers": {
     "autoSaveInterval": 20,
@@ -244,7 +244,7 @@ const trigger = await mcp.memory_match_triggers({
 
 ```bash
 # Check if index exists
-ls -la ~/.claude/memory-index.sqlite
+ls -la .opencode/memory/memory-index.sqlite
 
 # Rebuild if missing
 claude-mem rebuild
@@ -254,7 +254,7 @@ claude-mem rebuild
 
 ```bash
 # Check index size
-sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM embeddings"
+sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM embeddings"
 
 # Optimize if >1000 documents
 claude-mem optimize

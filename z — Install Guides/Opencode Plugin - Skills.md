@@ -1,6 +1,6 @@
 # OpenCode Skills Plugin Installation Guide
 
-A comprehensive guide to installing, configuring, and using the OpenCode Skills plugin system.
+A comprehensive guide to installing, configuring, and using the OpenCode Skills plugin system with **OpenSkills** - the universal skills loader for AI coding agents.
 
 ---
 
@@ -9,14 +9,13 @@ A comprehensive guide to installing, configuring, and using the OpenCode Skills 
 **Copy and paste this prompt to your AI assistant to get installation help:**
 
 ```
-I want to set up the OpenCode Skills plugin system in my project.
+I want to set up the OpenSkills plugin system in my project.
 
 Please help me:
-1. Check if I have the required prerequisites (OpenCode CLI, Git, Node.js)
-2. Create the necessary directory structure (.claude/skills, .claude/hooks, .claude/configs)
-3. Configure opencode.json to enable skills and hooks
-4. Create a basic skill-rules.json configuration file
-5. Verify the installation is working correctly
+1. Install openskills globally (npm i -g openskills)
+2. Install skills from Anthropic's marketplace (openskills install anthropics/skills)
+3. Sync skills to AGENTS.md (openskills sync)
+4. Verify the installation is working correctly (openskills list)
 
 My project is located at: [your project path]
 
@@ -24,39 +23,59 @@ Guide me through each step and show me what commands to run.
 ```
 
 **What the AI will do:**
-- Verify your prerequisites are met
-- Create the `.claude/` directory structure
-- Set up `opencode.json` with skills and hooks enabled
-- Create a starter `skill-rules.json` configuration
-- Test that skills are loading correctly
-- Provide next steps for adding specific skills
+- Install the OpenSkills CLI globally
+- Help you select and install skills from GitHub repositories
+- Sync the skills to your AGENTS.md with the `<available_skills>` format
+- Test that skills are loading correctly with `openskills read <skill-name>`
+- Provide next steps for adding custom skills
 
 ---
 
-#### 📋 TABLE OF CONTENTS
+#### TABLE OF CONTENTS
 
-1. [📖 OVERVIEW](#1--overview)
-2. [📋 PREREQUISITES](#2--prerequisites)
-3. [📥 INSTALLATION](#3--installation)
-4. [⚙️ CONFIGURATION](#4-️-configuration)
-5. [✅ VERIFICATION](#5--verification)
-6. [🚀 USAGE](#6--usage)
-7. [🎯 FEATURES](#7--features)
-8. [💡 EXAMPLES](#8--examples)
-9. [🔧 TROUBLESHOOTING](#9--troubleshooting)
-10. [📚 RESOURCES](#10--resources)
+1. [OVERVIEW](#1-overview)
+2. [PREREQUISITES](#2-prerequisites)
+3. [INSTALLATION](#3-installation)
+4. [CONFIGURATION](#4-configuration)
+5. [VERIFICATION](#5-verification)
+6. [USAGE](#6-usage)
+7. [FEATURES](#7-features)
+8. [CREATING CUSTOM SKILLS](#8-creating-custom-skills)
+9. [TROUBLESHOOTING](#9-troubleshooting)
+10. [RESOURCES](#10-resources)
 
 ---
 
-## 1. 📖 OVERVIEW
+## 1. OVERVIEW
 
-OpenCode Skills are specialized AI workflows that extend Claude Code's capabilities for specific domains and tasks. Think of them as plugins that provide:
+### What is OpenSkills?
 
-- **Structured Workflows**: Step-by-step guidance for complex multi-phase tasks
-- **Quality Enforcement**: Automatic checks and best practices
-- **Tool Integration**: Seamless connection to external services (MCP servers, CLI tools)
-- **Context Management**: Smart resource loading and documentation
-- **Reusable Patterns**: Proven implementations for common development tasks
+**OpenSkills** is the closest implementation matching Claude Code's skills system - same prompt format, same marketplace, same folders, just using CLI instead of tools.
+
+[![npm version](https://img.shields.io/npm/v/openskills.svg)](https://www.npmjs.com/package/openskills)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+**Repository**: https://github.com/numman-ali/openskills
+
+### Key Benefits
+
+| For Claude Code Users | For Other Agents (Cursor, Windsurf, Aider, OpenCode) |
+|-----------------------|------------------------------------------------------|
+| Install skills from any GitHub repo | Get Claude Code's skills system universally |
+| Share skills across multiple agents | Access Anthropic's marketplace skills via GitHub |
+| Version control your skills in your repo | Use progressive disclosure (load skills on demand) |
+
+### How It Matches Claude Code Exactly
+
+OpenSkills replicates Claude Code's skills system with **100% compatibility**:
+
+- **Same prompt format** - `<available_skills>` XML with skill tags
+- **Same marketplace** - Install from [anthropics/skills](https://github.com/anthropics/skills)
+- **Same folders** - Uses `.claude/skills/` by default
+- **Same SKILL.md format** - YAML frontmatter + markdown instructions
+- **Same progressive disclosure** - Load skills on demand, not upfront
+
+**Only difference:** Claude Code uses `Skill` tool, OpenSkills uses `openskills read <name>` CLI command.
 
 ### Skill vs Hook vs Knowledge
 
@@ -68,572 +87,496 @@ OpenCode Skills are specialized AI workflows that extend Claude Code's capabilit
 
 ---
 
-## 2. 📋 PREREQUISITES
+## 2. PREREQUISITES
 
 Before installing the Skills plugin system, ensure you have:
 
 ### Required
 
-- **OpenCode CLI** installed and working
-  ```bash
-  # Verify OpenCode installation
-  which opencode
-  ```
-
-- **Git repository** initialized in your project
-  ```bash
-  git init
-  ```
-
-- **Node.js** (v16+) for some automation scripts
+- **Node.js 20.6+** (for OpenSkills CLI)
   ```bash
   node --version
-  npm --version
+  # Should be v20.6.0 or higher
+  ```
+
+- **Git** (for cloning skill repositories)
+  ```bash
+  git --version
+  ```
+
+- **OpenCode CLI** (recommended) or any AI coding agent
+  ```bash
+  which opencode
   ```
 
 ### Optional but Recommended
 
+- **AGENTS.md** file in your project root (required for `openskills sync`)
 - **Python 3.8+** for documentation validation scripts
-- **Bash 4.0+** for hook system
 - **MCP servers** configured (for MCP integration skills)
 
 ---
 
-## 3. 📥 INSTALLATION
+## 3. INSTALLATION
 
-### Option A: Clone Example Skills Structure
-
-The easiest way to get started is to clone an existing Skills structure:
+### Quick Start (3 Commands)
 
 ```bash
-# Create .claude directory in your project root
-mkdir -p .claude
+# 1. Install OpenSkills globally
+npm i -g openskills
 
-# Create skills directory
-mkdir -p .claude/skills
+# 2. Install skills from Anthropic's marketplace (interactive selection)
+openskills install anthropics/skills
 
-# Create supporting directories
-mkdir -p .claude/hooks
-mkdir -p .claude/configs
-mkdir -p .claude/prompts
+# 3. Sync to AGENTS.md
+openskills sync
 ```
 
-### Option B: Copy from Reference Repository
+Done! Your agent now has skills with the same `<available_skills>` format as Claude Code.
 
-If you have access to a reference OpenCode project with Skills:
+### Installation Options
+
+#### Install from Anthropic's Marketplace
 
 ```bash
-# From your reference project
-cp -r /path/to/reference/.claude/skills /path/to/your/project/.claude/
-cp -r /path/to/reference/.claude/hooks /path/to/your/project/.claude/
-cp /path/to/reference/.claude/configs/skill-rules.json /path/to/your/project/.claude/configs/
+# Interactive selection of skills
+openskills install anthropics/skills
 ```
 
-### File Structure
+#### Install from Any GitHub Repository
 
-Your project should now have:
+```bash
+# Install from custom repository
+openskills install your-org/custom-skills
 
+# Install from any Git URL
+openskills install https://github.com/user/skills-repo.git
 ```
-your-project/
-├── .claude/
-│   ├── skills/              # Skill definitions
-│   │   ├── workflows-code/
-│   │   ├── workflows-git/
-│   │   ├── create-documentation/
-│   │   └── ...
-│   ├── hooks/              # Automation hooks
-│   │   ├── UserPromptSubmit/
-│   │   ├── PreToolUse/
-│   │   └── PostToolUse/
-│   ├── configs/            # Configuration files
-│   │   └── skill-rules.json
-│   └── prompts/            # Custom prompts
-└── opencode.json           # OpenCode configuration
+
+#### Installation Modes
+
+| Mode | Command | Location |
+|------|---------|----------|
+| **Project (default)** | `openskills install anthropics/skills` | `./.claude/skills/` |
+| **Global** | `openskills install anthropics/skills --global` | `~/.claude/skills/` |
+| **Universal** | `openskills install anthropics/skills --universal` | `./.agent/skills/` |
+
+### Priority Order
+
+OpenSkills searches 4 locations in priority order:
+
+1. `./.agent/skills/` (project universal)
+2. `~/.agent/skills/` (global universal)
+3. `./.claude/skills/` (project) ← **Default**
+4. `~/.claude/skills/` (global)
+
+Skills with same name only appear once (highest priority wins).
+
+### Universal Mode (Advanced)
+
+Use `--universal` when you have Claude Code + other agents sharing one AGENTS.md:
+
+```bash
+openskills install anthropics/skills --universal
+# → Installs to ./.agent/skills/
 ```
+
+This prevents duplicate skill definitions between Claude Code's native plugins and AGENTS.md skills.
 
 ---
 
-## 4. ⚙️ CONFIGURATION
+## 4. CONFIGURATION
 
-### Step 1: Configure opencode.json
+### What OpenSkills Adds to AGENTS.md
 
-Create or update `opencode.json` in your project root:
+After running `openskills sync`, your AGENTS.md will contain:
 
-```json
-{
-  "version": "1.0.0",
-  "skills": {
-    "enabled": true,
-    "directory": ".claude/skills"
-  },
-  "hooks": {
-    "enabled": true,
-    "directory": ".claude/hooks"
-  }
-}
+```xml
+<skills_system priority="1">
+
+## Available Skills
+
+<!-- SKILLS_TABLE_START -->
+<usage>
+When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively.
+
+How to use skills:
+- Invoke: Bash("openskills read <skill-name>")
+- The skill content will load with detailed instructions
+- Base directory provided in output for resolving bundled resources
+
+Usage notes:
+- Only use skills listed in <available_skills> below
+- Do not invoke a skill that is already loaded in your context
+</usage>
+
+<available_skills>
+
+<skill>
+<name>pdf</name>
+<description>Comprehensive PDF manipulation toolkit...</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>xlsx</name>
+<description>Comprehensive spreadsheet creation...</description>
+<location>project</location>
+</skill>
+
+</available_skills>
+<!-- SKILLS_TABLE_END -->
+
+</skills_system>
 ```
 
-### Step 2: Configure skill-rules.json
+### How Agents Use It
 
-This file defines skill activation patterns and priorities. Create `.claude/configs/skill-rules.json`:
-
-```json
-{
-  "skills": {
-    "workflows-code": {
-      "type": "workflow",
-      "enforcement": "strict",
-      "priority": "high",
-      "description": "Development workflow orchestration (implementation, debugging, verification)",
-      "promptTriggers": {
-        "keywords": ["implement", "debug", "fix", "verify", "animation", "async"],
-        "intentPatterns": [
-          "implement.*feature",
-          "fix.*bug",
-          "debug.*issue"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": ["src/**/*.js", "src/**/*.css"],
-        "contentPatterns": ["addEventListener", "async", "fetch"]
-      }
-    },
-    "create-documentation": {
-      "type": "documentation",
-      "enforcement": "suggest",
-      "priority": "medium",
-      "description": "Documentation creation and validation",
-      "promptTriggers": {
-        "keywords": ["document", "readme", "markdown", "docs"],
-        "intentPatterns": ["create.*doc", "write.*guide"]
-      }
-    }
-  }
-}
-```
-
-### Step 3: Install Minimum Required Skills
-
-At minimum, install these core skills:
-
-1. **workflows-conversation** - Mandatory for all file modifications
-2. **workflows-code** - Development workflow orchestration
-3. **create-documentation** - Documentation creation
-
-Download skill templates from the OpenCode Skills repository or copy from a reference project.
+1. User asks: "Extract data from this PDF"
+2. Agent scans `<available_skills>` → finds "pdf" skill
+3. Agent invokes: `openskills read pdf`
+4. SKILL.md content is output to agent's context
+5. Agent follows instructions to complete task
 
 ---
 
-## 5. ✅ VERIFICATION
+## 5. VERIFICATION
 
-### Check 1: Directory Structure
-
-Verify the skills directory exists:
+### Check 1: Verify Installation
 
 ```bash
-ls -la .claude/skills/
+# Check openskills is installed
+which openskills
+openskills --version
+```
+
+### Check 2: List Installed Skills
+
+```bash
+openskills list
 ```
 
 Expected output:
 ```
-workflows-code/
-workflows-git/
-create-documentation/
-...
+Available Skills:
+
+  pdf                       (project)
+    Comprehensive PDF manipulation toolkit for extracting text...
+
+  xlsx                      (project)
+    Comprehensive spreadsheet creation, editing, and analysis...
+
+Summary: 10 project, 0 global (10 total)
 ```
 
-### Check 2: Validate Skill Files
-
-Each skill should have a `SKILL.md` file with proper frontmatter:
+### Check 3: Test Reading a Skill
 
 ```bash
-head -20 .claude/skills/workflows-code/SKILL.md
+openskills read pdf
 ```
 
-Expected output should show YAML frontmatter:
-```yaml
----
-name: workflows-code
-description: Development workflow orchestration
-allowed-tools: [Read, Write, Edit, Bash]
-version: 2.0.0
----
-```
+Expected: The full SKILL.md content loads with instructions.
 
-### Check 3: Test Skill Activation
-
-Start an OpenCode session and test skill activation:
+### Check 4: Verify AGENTS.md Sync
 
 ```bash
-opencode
+grep "SKILLS_TABLE_START" AGENTS.md
 ```
 
-In the chat, type:
+Should show the skills section was added.
+
+---
+
+## 6. USAGE
+
+### CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `openskills install <source>` | Install from GitHub (interactive) |
+| `openskills sync [-y]` | Update AGENTS.md (interactive) |
+| `openskills list` | Show installed skills |
+| `openskills read <name>` | Load skill (for agents) |
+| `openskills manage` | Remove skills (interactive) |
+| `openskills remove <name>` | Remove specific skill |
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--global` | Install globally to `~/.claude/skills` |
+| `--universal` | Install to `.agent/skills/` instead of `.claude/skills/` |
+| `-y` | Skip interactive selection (for scripts/CI) |
+
+### How AI Agents Use Skills
+
+#### Explicit Skill Invocation
+
+Tell your AI agent:
 ```
-I need to implement a new feature with async functionality
+Use the pdf skill to extract text from document.pdf
 ```
 
-Expected: OpenCode should suggest or activate the `workflows-code` skill.
-
-### Check 4: View Skills README
-
+The agent will run:
 ```bash
-cat .claude/skills/README.md
+openskills read pdf
 ```
 
-This file documents all installed skills and their capabilities.
+#### Automatic Skill Detection
+
+AI agents scan `<available_skills>` in AGENTS.md and automatically invoke relevant skills based on:
+- Keywords in your prompt
+- File types you're working with
+- Intent patterns detected
+
+### Side-by-Side Comparison
+
+| Aspect | Claude Code | OpenSkills |
+|--------|-------------|------------|
+| **System Prompt** | Built into Claude Code | In AGENTS.md |
+| **Invocation** | `Skill("pdf")` tool | `openskills read pdf` CLI |
+| **Prompt Format** | `<available_skills>` XML | `<available_skills>` XML (identical) |
+| **Folder Structure** | `.claude/skills/` | `.claude/skills/` (identical) |
+| **SKILL.md Format** | YAML + markdown | YAML + markdown (identical) |
+| **Progressive Disclosure** | Yes | Yes |
+| **Bundled Resources** | `references/`, `scripts/`, `assets/` | `references/`, `scripts/`, `assets/` (identical) |
+
+**Everything is identical except the invocation method.**
 
 ---
 
-## 6. 🚀 USAGE
+## 7. FEATURES
 
-### Explicit Skill Invocation
+### Available Skills from Anthropic's Marketplace
 
-You can explicitly request a skill in your prompt:
+From [github.com/anthropics/skills](https://github.com/anthropics/skills):
 
-```
-Use the workflows-code skill to implement form validation
-```
+| Skill | Description |
+|-------|-------------|
+| **xlsx** | Spreadsheet creation, editing, formulas, data analysis |
+| **docx** | Document creation with tracked changes and comments |
+| **pdf** | PDF manipulation (extract, merge, split, forms) |
+| **pptx** | Presentation creation and editing |
+| **canvas-design** | Create posters and visual designs |
+| **mcp-builder** | Build Model Context Protocol servers |
+| **skill-creator** | Detailed guide for authoring skills |
 
-### Automatic Skill Activation
+### Your Installed Skills (Project-Specific)
 
-Skills activate automatically based on:
-
-1. **Keywords** in your prompt
-   ```
-   "implement authentication" → workflows-code activates
-   ```
-
-2. **File patterns** you're working with
-   ```
-   Working on src/components/Form.js → workflows-code activates
-   ```
-
-3. **Intent patterns** detected
-   ```
-   "debug console error" → workflows-code Phase 2 (Debugging)
-   ```
-
-### Skill-Specific Usage
-
-#### workflows-code (Development)
-
-```
-I need to implement async form submission with validation
-```
-
-This activates Phase 1 (Implementation) with:
-- Condition-based waiting patterns
-- Defense-in-depth validation
-- Performance optimization patterns
-
-#### create-documentation
-
-```
-Create documentation for the authentication module
-```
-
-This activates documentation workflows with:
-- Structure validation
-- C7Score quality analysis
-- Markdown optimization
-
-#### workflows-git
-
-```
-Create a clean commit for this feature
-```
-
-This activates git workflows with:
-- Conventional commit format
-- Clean commit guidance
-- PR creation assistance
+| Skill | Purpose |
+|-------|---------|
+| **workflows-code** | Development lifecycle (implementing, debugging, verifying) |
+| **workflows-git** | Git operations (commits, PRs, worktrees) |
+| **workflows-spec-kit** | Spec folder documentation workflow |
+| **workflows-save-context** | Context preservation across sessions |
+| **create-documentation** | Document creation and validation |
+| **mcp-code-mode** | MCP tool orchestration via TypeScript |
+| **mcp-semantic-search** | Intent-based code discovery |
+| **cli-codex** | OpenAI Codex CLI integration |
+| **cli-gemini** | Google Gemini CLI integration |
+| **cli-chrome-devtools** | Browser debugging via bdg CLI |
 
 ---
 
-## 7. 🎯 FEATURES
+## 8. CREATING CUSTOM SKILLS
 
-### 7.1 Workflow Orchestrators (4 skills)
+### Minimal Structure
 
-| Skill | Purpose | Use When |
-|-------|---------|----------|
-| **workflows-code** | Development lifecycle | Implementing, debugging, verifying frontend code |
-| **workflows-git** | Git operations | Commits, PRs, worktrees, branch management |
-| **workflows-conversation** | Documentation | ANY file modifications (mandatory) |
-| **create-parallel-sub-agents** | Complex tasks | Multi-domain tasks requiring orchestration |
-
-### 7.2 Documentation Specialists (2 skills)
-
-| Skill | Purpose | Use When |
-|-------|---------|----------|
-| **create-documentation** | Document creation | Writing/validating markdown, skills, guides |
-| **create-flowchart** | Visual workflows | Creating ASCII flowcharts for processes |
-
-### 7.3 CLI Tool Wrappers (2 skills)
-
-| Skill | Purpose | Use When |
-|-------|---------|----------|
-| **cli-codex** | OpenAI Codex integration | Alternative AI perspective, code review |
-| **cli-gemini** | Google Gemini integration | Web research, current information |
-
-### 7.4 MCP Integration (2 skills)
-
-| Skill | Purpose | Use When |
-|-------|---------|----------|
-| **mcp-code-mode** | MCP tool orchestration | Calling ANY MCP tools (mandatory) |
-| **mcp-semantic-search** | Intent-based code search | Finding code by what it does |
-
-**Total**: 12 skills across 5 categories
-
----
-
-## 8. 💡 EXAMPLES
-
-### Example 1: Creating Custom Skills
-
-```bash
-# Option 1: Use create-documentation skill
-opencode
-> Use create-documentation skill to create a new skill called "my-workflow"
-
-# Option 2: Manual creation
-mkdir -p .claude/skills/my-workflow
-cd .claude/skills/my-workflow
+```
+my-skill/
+└── SKILL.md
 ```
 
-### Example 2: SKILL.md Template
-
-Every skill needs a `SKILL.md` file with proper frontmatter:
+### SKILL.md Format
 
 ```markdown
 ---
-name: my-workflow
-description: Brief one-line description of what this skill does
-allowed-tools: [Read, Write, Bash, Grep]
-version: 1.0.0
+name: my-skill
+description: What this does and when to use it
 ---
 
-# My Workflow - Comprehensive Name
+# Instructions in imperative form
 
-One-sentence tagline explaining the skill.
+When the user asks you to X, do Y...
 
----
-
-## 1. 🎯 WHEN TO USE
-
-### Primary Use Cases
-
-**Use when**:
-- Scenario 1 with context
-- Scenario 2 with context
-
-### When NOT to Use
-
-**Do not use for**:
-- Anti-pattern with rationale
-
----
-
-## 2. 🗂️ REFERENCES
-
-### Core Framework & Workflows
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **My Workflow - Main Process** | Core capability | Key differentiator |
-
----
-
-## 3. 🛠️ HOW IT WORKS
-
-### Workflow Overview
-
-Process description...
-
-**Process Flow**:
-```
-STEP 1: Action
-   └─ Output
-   ↓
-STEP 2: Action
-   └─ Output
+1. First step
+2. Second step
+3. Final step
 ```
 
----
+### With Bundled Resources
 
-## 4. 📖 RULES
-
-### ✅ ALWAYS Rules
-
-1. **ALWAYS do X**
-   - Why this matters
-
-### ❌ NEVER Rules
-
-1. **NEVER do Y**
-   - Why problematic
-
-### ⚠️ ESCALATE IF
-
-1. **ESCALATE IF uncertain about Z**
-   - What to ask
-
----
-
-## 5. 🎓 SUCCESS CRITERIA
-
-### Completion Checklist
-
-**Task complete when**:
-- ✅ Criterion 1
-- ✅ Criterion 2
-
----
-
-## 6. 🔗 INTEGRATION POINTS
-
-### Related Skills
-
-**other-skill**: How they integrate
+```
+my-skill/
+├── SKILL.md
+├── references/
+│   └── api-docs.md      # Supporting documentation
+├── scripts/
+│   └── process.py       # Helper scripts
+└── assets/
+    └── template.json    # Templates, configs
 ```
 
-### Example 3: Add to skill-rules.json
-
-Register your skill in `.claude/configs/skill-rules.json`:
-
-```json
-{
-  "skills": {
-    "my-workflow": {
-      "type": "workflow",
-      "enforcement": "suggest",
-      "priority": "medium",
-      "description": "My custom workflow for X",
-      "promptTriggers": {
-        "keywords": ["keyword1", "keyword2"],
-        "intentPatterns": ["implement.*X"]
-      }
-    }
-  }
-}
+Reference resources in SKILL.md:
+```markdown
+1. Read the API documentation in references/api-docs.md
+2. Run the process.py script from scripts/
+3. Use the template from assets/template.json
 ```
 
-### Example 4: Test Your Skill
+### Publishing to GitHub
+
+1. Push to GitHub: `your-username/my-skill`
+2. Users install with: `openskills install your-username/my-skill`
+
+### Authoring Guide
+
+Use Anthropic's skill-creator for detailed guidance:
 
 ```bash
-opencode
-> Use my-workflow skill to do X
+openskills install anthropics/skills
+openskills read skill-creator
 ```
 
 ---
 
-## 9. 🔧 TROUBLESHOOTING
+## 9. TROUBLESHOOTING
 
-### Skill Not Activating
+### Skill Not Found
 
-**Problem**: Skill doesn't activate when expected
+**Problem**: `openskills read skill-name` returns "not found"
 
 **Solutions**:
-1. Check `skill-rules.json` for correct keywords/patterns
-2. Verify `SKILL.md` frontmatter is valid YAML
-3. Ensure skill directory name matches `name` field in frontmatter
-4. Check OpenCode logs for errors
-
 ```bash
-# View logs
-tail -f ~/.opencode/logs/opencode.log
+# List available skills
+openskills list
+
+# Check skill directories
+ls -la .claude/skills/
+ls -la .agent/skills/
 ```
 
-### Invalid Skill Configuration
+### AGENTS.md Not Updated
 
-**Problem**: Error about invalid skill configuration
-
-**Solutions**:
-1. Validate YAML frontmatter syntax
-2. Ensure `allowed-tools` uses array format: `[Tool1, Tool2]`
-3. Check for typos in skill name (must be kebab-case)
-4. Verify description doesn't use angle brackets `<>`
-
-### Skill Files Not Found
-
-**Problem**: OpenCode can't find skill files
+**Problem**: `openskills sync` doesn't update AGENTS.md
 
 **Solutions**:
-1. Verify `.claude/skills/` directory exists
-2. Check `opencode.json` has correct `skills.directory` path
-3. Ensure `SKILL.md` filename is exact (case-sensitive)
-4. Check file permissions
+1. Ensure AGENTS.md exists in project root
+2. Run `openskills sync -y` to skip interactive mode
+3. Check file permissions
 
+### Installation Fails
+
+**Problem**: `npm i -g openskills` fails
+
+**Solutions**:
 ```bash
-# Fix permissions
-chmod -R 755 .claude/skills/
+# Check Node.js version (needs 20.6+)
+node --version
+
+# Try with sudo (macOS/Linux)
+sudo npm i -g openskills
+
+# Or use npx directly
+npx openskills list
 ```
 
-### Hook Conflicts
+### Skills in Wrong Location
 
-**Problem**: Hooks interfere with skill execution
+**Problem**: Skills installed but not detected
 
 **Solutions**:
-1. Check `.claude/hooks/logs/` for error messages
-2. Disable problematic hooks temporarily
-3. Review hook execution order in hook directories
-4. Validate hook scripts are executable
-
 ```bash
-# Make hooks executable
-chmod +x .claude/hooks/**/*.sh
+# Check priority order
+openskills list
+
+# Skills should be in one of:
+# ./.agent/skills/    (project universal)
+# ~/.agent/skills/    (global universal)
+# ./.claude/skills/   (project) ← default
+# ~/.claude/skills/   (global)
 ```
+
+### Why CLI Instead of MCP?
+
+**MCP (Model Context Protocol)** is for:
+- Database connections
+- API integrations
+- Real-time data fetching
+
+**Skills (SKILL.md format)** are for:
+- Specialized workflows (PDF manipulation, spreadsheet editing)
+- Bundled resources (scripts, templates, references)
+- Progressive disclosure (load instructions only when needed)
+- Static, reusable patterns
+
+OpenSkills implements Anthropic's skills spec the way it was designed - as progressively-loaded markdown instructions.
 
 ---
 
-## 10. 📚 RESOURCES
+## 10. RESOURCES
 
-### Documentation
+### Official Links
 
-- **Skills README**: `.claude/skills/README.md` - Complete skills documentation
-- **Hooks System**: `.claude/hooks/README.md` - Hook system documentation
-- **AGENTS.md**: Project root - AI collaboration guidelines
+- **OpenSkills Repository**: https://github.com/numman-ali/openskills
+- **Anthropic Skills Marketplace**: https://github.com/anthropics/skills
+- **OpenCode Docs**: https://opencode.ai/docs
+- **OpenCode Plugins**: https://opencode.ai/docs/plugins/
 
-### Skill Templates
-
-- **SKILL.md Template**: `.claude/skills/create-documentation/assets/skill_md_template.md`
-- **Asset Template**: `.claude/skills/create-documentation/assets/skill_asset_template.md`
-- **Reference Template**: `.claude/skills/create-documentation/assets/skill_reference_template.md`
-
-### Example Skills
-
-Study these well-documented skills as examples:
-
-- **workflows-code**: `.claude/skills/workflows-code/` - Complex multi-phase orchestrator
-- **cli-gemini**: `.claude/skills/cli-gemini/` - Simple CLI wrapper
-- **create-documentation**: `.claude/skills/create-documentation/` - Documentation specialist
-
-### Validation Tools
+### Quick Reference Commands
 
 ```bash
-# Validate skill structure
-python3 .claude/skills/create-documentation/scripts/package_skill.py \
-  .claude/skills/my-skill
+# Install OpenSkills
+npm i -g openskills
 
-# Validate documentation quality
-python3 .claude/skills/create-documentation/scripts/analyze_docs.py \
-  .claude/skills/my-skill/SKILL.md
+# Install skills from GitHub
+openskills install anthropics/skills
+openskills install your-org/custom-skills
+
+# Sync to AGENTS.md
+openskills sync
+openskills sync -y  # Non-interactive
+
+# List installed skills
+openskills list
+
+# Read/load a skill (what AI agents call)
+openskills read pdf
+openskills read xlsx
+
+# Manage skills
+openskills manage     # Interactive removal
+openskills remove pdf # Remove specific skill
 ```
 
-### Helper Scripts
+### File Locations
 
-```bash
-# View skill recommendations log
-tail -50 .claude/hooks/logs/skill-recommendations.log
+| Item | Default Location |
+|------|------------------|
+| **Project Skills** | `./.claude/skills/` |
+| **Global Skills** | `~/.claude/skills/` |
+| **Universal Skills** | `./.agent/skills/` |
+| **Skills Section** | `AGENTS.md` (between `<!-- SKILLS_TABLE_START -->` and `<!-- SKILLS_TABLE_END -->`) |
 
-# Check skill activation history
-grep "SKILL ACTIVATED" ~/.opencode/logs/opencode.log
+### Claude Code Compatibility
+
+You can use **both** Claude Code plugins and OpenSkills project skills together:
+
+```xml
+<skill>
+<name>pdf</name>
+<description>...</description>
+<location>plugin</location>  <!-- Claude Code marketplace -->
+</skill>
+
+<skill>
+<name>custom-skill</name>
+<description>...</description>
+<location>project</location>  <!-- OpenSkills from GitHub -->
+</skill>
 ```
 
-### Getting Help
-
-1. **OpenCode Docs**: https://opencode.ai/docs
-2. **GitHub Issues**: https://github.com/sst/opencode/issues
-3. **Skills README**: `.claude/skills/README.md` in your project
+They coexist perfectly. Claude invokes marketplace plugins via `Skill` tool, OpenSkills skills via CLI.
 
 ---
 
@@ -642,52 +585,48 @@ grep "SKILL ACTIVATED" ~/.opencode/logs/opencode.log
 ### Essential Commands
 
 ```bash
-# List installed skills
-ls -la .claude/skills/
+# Install globally
+npm i -g openskills
 
-# View skill documentation
-cat .claude/skills/[skill-name]/SKILL.md
+# Install skills
+openskills install anthropics/skills
 
-# Test skill activation
-opencode
-> Use [skill-name] to [task]
+# Sync to AGENTS.md
+openskills sync
 
-# Validate skill configuration
-python3 scripts/package_skill.py .claude/skills/[skill-name]
+# List skills
+openskills list
 
-# View skill logs
-tail -f .claude/hooks/logs/skill-recommendations.log
+# Load a skill (AI agents use this)
+openskills read <skill-name>
 ```
-
-### File Locations
-
-- **Skills**: `.claude/skills/[skill-name]/`
-- **Config**: `.claude/configs/skill-rules.json`
-- **Hooks**: `.claude/hooks/[HookType]/`
-- **Logs**: `.claude/hooks/logs/`
-- **OpenCode Config**: `opencode.json`
 
 ### Common Patterns
 
-**Explicit Skill Use**:
+**Ask AI to use a skill:**
 ```
-Use workflows-code skill to implement authentication
+Use the workflows-code skill to implement authentication
 ```
 
-**Check Installed Skills**:
+**Check installed skills:**
 ```
 What skills are installed?
 ```
 
-**Create New Skill**:
+**AI will run:**
+```bash
+openskills list
 ```
-Use create-documentation to create a new skill called "api-client"
+
+**Load skill for instructions:**
+```bash
+openskills read workflows-code
 ```
 
 ---
 
 **Installation Complete!**
 
-You now have the OpenCode Skills plugin system installed and configured. Start using skills by requesting them in your OpenCode sessions or letting them activate automatically based on your work patterns.
+You now have the OpenSkills plugin system installed and configured. Start using skills by requesting them in your AI coding sessions or letting them activate automatically based on the `<available_skills>` section in your AGENTS.md.
 
-For more information, refer to `.claude/skills/README.md` in your project.
+For more information, see the [OpenSkills GitHub repository](https://github.com/numman-ali/openskills).

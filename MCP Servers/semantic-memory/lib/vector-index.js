@@ -22,7 +22,8 @@ const fs = require('fs');
 // ───────────────────────────────────────────────────────────────
 
 const EMBEDDING_DIM = 384;
-const DEFAULT_DB_PATH = path.join(os.homedir(), '.claude', 'memory-index.sqlite');
+// Project-local database - works for both Claude Code and Opencode
+const DEFAULT_DB_PATH = path.join(process.cwd(), '.opencode', 'memory', 'memory-index.sqlite');
 const DB_PERMISSIONS = 0o600; // Owner read/write only
 
 // ───────────────────────────────────────────────────────────────

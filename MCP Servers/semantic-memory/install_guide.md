@@ -204,7 +204,7 @@ These dependencies are required and typically available via shared node_modules:
 
 The memory database is stored at:
 ```
-~/.claude/memory-index.sqlite
+.opencode/memory/memory-index.sqlite
 ```
 
 This location is shared between Claude Code and OpenCode.
@@ -346,7 +346,7 @@ Add to `opencode.json` in your project root:
 
 ### Database Path Configuration
 
-The default database path is `~/.claude/memory-index.sqlite`. This can be overridden via environment variable:
+The default database path is `.opencode/memory/memory-index.sqlite`. This can be overridden via environment variable:
 
 ```json
 {
@@ -363,7 +363,7 @@ The default database path is `~/.claude/memory-index.sqlite`. This can be overri
 ### One-Command Health Check
 
 ```bash
-sqlite3 ~/.claude/memory-index.sqlite "SELECT 'OK: ' || COUNT(*) || ' memories' FROM memory_index" 2>/dev/null || echo "Database not created yet (will be created on first save)"
+sqlite3 .opencode/memory/memory-index.sqlite "SELECT 'OK: ' || COUNT(*) || ' memories' FROM memory_index" 2>/dev/null || echo "Database not created yet (will be created on first save)"
 ```
 
 ### Check 1: Verify Server Files
@@ -422,11 +422,11 @@ opencode
 
 ```bash
 # Check database exists and has tables
-sqlite3 ~/.claude/memory-index.sqlite ".tables"
+sqlite3 .opencode/memory/memory-index.sqlite ".tables"
 # Expected: memory_index vec_memories
 
 # Count indexed memories
-sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
+sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
 ```
 
 ---
@@ -671,16 +671,16 @@ brew install sqlite-vec
 **Fix**:
 ```bash
 # Check database exists
-ls ~/.claude/memory-index.sqlite
+ls .opencode/memory/memory-index.sqlite
 
 # Verify embeddings exist
-sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM vec_memories"
+sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM vec_memories"
 ```
 
 **If that doesn't work**:
 ```bash
 # Check embedding status - most should show 'completed'
-sqlite3 ~/.claude/memory-index.sqlite \
+sqlite3 .opencode/memory/memory-index.sqlite \
   "SELECT embedding_status, COUNT(*) FROM memory_index GROUP BY embedding_status"
 ```
 
@@ -701,7 +701,7 @@ The `--scan` option recursively finds all memory files in nested specs structure
 **Fix**:
 ```bash
 # Verify WAL mode is enabled for better concurrency
-sqlite3 ~/.claude/memory-index.sqlite "PRAGMA journal_mode"
+sqlite3 .opencode/memory/memory-index.sqlite "PRAGMA journal_mode"
 # Should return: wal
 ```
 
@@ -786,13 +786,13 @@ node semantic-memory.js --version 2>&1 | head -1
 node semantic-memory.js
 
 # Check database tables
-sqlite3 ~/.claude/memory-index.sqlite ".tables"
+sqlite3 .opencode/memory/memory-index.sqlite ".tables"
 
 # Count indexed memories
-sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
+sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
 
 # Check embedding statistics
-sqlite3 ~/.claude/memory-index.sqlite \
+sqlite3 .opencode/memory/memory-index.sqlite \
   "SELECT embedding_status, COUNT(*) as count FROM memory_index GROUP BY embedding_status"
 ```
 
@@ -828,13 +828,13 @@ Slow operations are logged automatically:
 ```bash
 # Verify installation
 ls -la /path/to/semantic-memory/lib/
-sqlite3 ~/.claude/memory-index.sqlite ".tables"
+sqlite3 .opencode/memory/memory-index.sqlite ".tables"
 
 # Test server
 node /path/to/semantic-memory/semantic-memory.js
 
 # Check database stats
-sqlite3 ~/.claude/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
+sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
 ```
 
 ### Configuration Quick Copy

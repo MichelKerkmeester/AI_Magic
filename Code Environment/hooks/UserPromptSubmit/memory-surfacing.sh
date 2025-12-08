@@ -1,20 +1,35 @@
 #!/usr/bin/env bash
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Memory Surfacing Hook - Proactive Memory Surfacing via Trigger Phrases
+# Memory Surfacing Hook - Proactive Memory Surfacing
 # ═══════════════════════════════════════════════════════════════════════════════
 #
-# Version: 10.0.0
+# Version: 11.0.0
 # Hook Event: UserPromptSubmit
-# Performance Target: <50ms (NFR-P03)
+# Performance Target: <50ms for trigger matching, <1s for context surfacing (NFR-P03)
 #
-# This hook surfaces relevant memories when trigger phrases are detected
-# in the user's prompt. Uses exact string matching (NOT semantic/embedding).
+# This hook surfaces relevant memories in two ways:
+# 1. TRIGGER MATCHING: When trigger phrases are detected in the prompt
+# 2. SPEC FOLDER DETECTION: When user works in/references a spec folder
+#
+# The #1 pain point is users losing context between sessions. This hook
+# proactively surfaces recent memories when working in spec folders.
 #
 # Usage: memory-surfacing.sh <stdin: hook_data_json>
 # Input: JSON with "prompt" field
 # Output: JSON with "result" and optionally "continue" fields
 #
+# ═══════════════════════════════════════════════════════════════════════════════
+# OPENCODE ALTERNATIVE
+# ═══════════════════════════════════════════════════════════════════════════════
+# Opencode doesn't support hooks. Instead, the SKILL.md file
+# instructs the AI to:
+# 1. Check if working in a spec folder
+# 2. Query recent memories via /memory/search
+# 3. Offer to load relevant context
+#
+# This is documented in:
+# .opencode/skills/workflows-save-context/SKILL.md
 # ═══════════════════════════════════════════════════════════════════════════════
 
 set -euo pipefail
@@ -26,9 +41,35 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="${SCRIPT_DIR}/../../skills/workflows-save-context"
 MATCHER_SCRIPT="${SKILL_DIR}/scripts/lib/trigger-matcher.js"
+VECTOR_INDEX_SCRIPT="${SKILL_DIR}/scripts/lib/vector-index.js"
+LOG_FILE="${SCRIPT_DIR}/../logs/memory-surfacing.log"
 
-# Performance budget
-MAX_EXECUTION_MS=50
+# Performance budgets
+TRIGGER_MATCH_BUDGET_MS=50
+CONTEXT_SURFACE_BUDGET_MS=1000
+
+# Memory surfacing configuration
+RECENT_DAYS=7
+MAX_MEMORIES=3
+
+# ───────────────────────────────────────────────────────────────
+# LOGGING
+# ───────────────────────────────────────────────────────────────
+
+log_debug() {
+  if [[ "${DEBUG_MEMORY_SURFACING:-}" == "1" ]]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [memory-surfacing] $*" >> "$LOG_FILE" 2>/dev/null || true
+  fi
+}
+
+log_perf() {
+  local operation="$1"
+  local elapsed="$2"
+  local budget="$3"
+  if [[ $elapsed -gt $budget ]]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [memory-surfacing] SLOW: ${operation} took ${elapsed}ms (budget: ${budget}ms)" >> "$LOG_FILE" 2>/dev/null || true
+  fi
+}
 
 # ───────────────────────────────────────────────────────────────
 # HELPERS
@@ -47,12 +88,326 @@ output_error() {
   exit 0
 }
 
+# Get current time in milliseconds (macOS compatible)
+get_time_ms() {
+  if command -v gdate &>/dev/null; then
+    gdate +%s%3N
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS: use python for milliseconds
+    python3 -c "import time; print(int(time.time() * 1000))" 2>/dev/null || echo 0
+  else
+    date +%s%3N 2>/dev/null || echo 0
+  fi
+}
+
+# Get elapsed time in milliseconds
+get_elapsed_ms() {
+  local start="$1"
+  local end
+  end=$(get_time_ms)
+  if [[ "$start" -gt 0 && "$end" -gt 0 ]]; then
+    echo $((end - start))
+  else
+    echo 0
+  fi
+}
+
+# ───────────────────────────────────────────────────────────────
+# SPEC FOLDER DETECTION
+# ───────────────────────────────────────────────────────────────
+
+# Detect spec folder from user prompt
+# Patterns matched:
+#   - specs/NNN-name, spec/NNN-name
+#   - "spec folder NNN", "spec NNN"
+#   - "working on NNN-name"
+#   - Explicit spec folder mentions
+detect_spec_folder() {
+  local prompt="$1"
+  local detected=""
+
+  # Pattern 1: Direct path reference (specs/NNN-name or spec/NNN-name)
+  if [[ "$prompt" =~ specs?/([0-9]{2,3}-[a-zA-Z0-9_-]+) ]]; then
+    detected="${BASH_REMATCH[1]}"
+    log_debug "Detected spec folder from path: $detected"
+    echo "$detected"
+    return 0
+  fi
+
+  # Pattern 2: "spec folder NNN" or "spec NNN"
+  if [[ "$prompt" =~ spec[[:space:]]+(folder[[:space:]]+)?([0-9]{2,3})-?([a-zA-Z0-9_-]*) ]]; then
+    local num="${BASH_REMATCH[2]}"
+    local name="${BASH_REMATCH[3]}"
+    if [[ -n "$name" ]]; then
+      detected="${num}-${name}"
+    else
+      # Try to find matching spec folder by number
+      detected=$(find_spec_by_number "$num")
+    fi
+    if [[ -n "$detected" ]]; then
+      log_debug "Detected spec folder from phrase: $detected"
+      echo "$detected"
+      return 0
+    fi
+  fi
+
+  # Pattern 3: "working on NNN-name" or "continue NNN-name"
+  if [[ "$prompt" =~ (working[[:space:]]+on|continue|resume)[[:space:]]+([0-9]{2,3}-[a-zA-Z0-9_-]+) ]]; then
+    detected="${BASH_REMATCH[2]}"
+    log_debug "Detected spec folder from action: $detected"
+    echo "$detected"
+    return 0
+  fi
+
+  # Pattern 4: Check for common spec folder names mentioned
+  # Look for patterns like "memory surfacing", "hook enhancement", etc.
+  local specs_dir="${SCRIPT_DIR}/../../../specs"
+  if [[ -d "$specs_dir" ]]; then
+    # Get list of spec folder names
+    local spec_folders
+    spec_folders=$(ls -1 "$specs_dir" 2>/dev/null | grep -E '^[0-9]{2,3}-' || true)
+
+    local prompt_lower
+    prompt_lower=$(echo "$prompt" | tr '[:upper:]' '[:lower:]')
+
+    for folder in $spec_folders; do
+      # Extract the name part (without number prefix)
+      local folder_name
+      folder_name=$(echo "$folder" | sed 's/^[0-9]*-//' | tr '-' ' ')
+
+      # Check if folder name keywords appear in prompt
+      if [[ "$prompt_lower" == *"$folder_name"* ]]; then
+        detected="$folder"
+        log_debug "Detected spec folder from name match: $detected"
+        echo "$detected"
+        return 0
+      fi
+    done
+  fi
+
+  echo ""
+  return 1
+}
+
+# Find spec folder by number prefix
+find_spec_by_number() {
+  local num="$1"
+  local specs_dir="${SCRIPT_DIR}/../../../specs"
+
+  if [[ -d "$specs_dir" ]]; then
+    local match
+    match=$(ls -1 "$specs_dir" 2>/dev/null | grep -E "^0*${num}-" | head -1 || true)
+    echo "$match"
+  fi
+}
+
+# ───────────────────────────────────────────────────────────────
+# RECENT MEMORY QUERY
+# ───────────────────────────────────────────────────────────────
+
+# Query recent memories for a spec folder (last 7 days)
+# Returns JSON array of recent memories
+query_recent_memories() {
+  local spec_folder="$1"
+
+  # Check if vector-index script exists
+  if [[ ! -f "$VECTOR_INDEX_SCRIPT" ]]; then
+    log_debug "Vector index script not found: $VECTOR_INDEX_SCRIPT"
+    echo "[]"
+    return
+  fi
+
+  local memories
+  memories=$(node -e "
+    'use strict';
+
+    try {
+      const vectorIndex = require('${VECTOR_INDEX_SCRIPT}');
+      const fs = require('fs');
+      const path = require('path');
+
+      // Initialize database
+      vectorIndex.initializeDb();
+
+      // Get memories for this spec folder
+      const memories = vectorIndex.getMemoriesByFolder('${spec_folder}');
+
+      if (!memories || memories.length === 0) {
+        console.log('[]');
+        process.exit(0);
+      }
+
+      // Calculate date threshold (last ${RECENT_DAYS} days)
+      const threshold = new Date();
+      threshold.setDate(threshold.getDate() - ${RECENT_DAYS});
+
+      // Filter to recent memories and enrich with age
+      const recent = memories
+        .filter(m => {
+          const created = new Date(m.created_at);
+          return created >= threshold;
+        })
+        .map(m => {
+          const created = new Date(m.created_at);
+          const now = new Date();
+          const diffDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+
+          // Format age string
+          let age;
+          if (diffDays === 0) {
+            age = 'today';
+          } else if (diffDays === 1) {
+            age = 'yesterday';
+          } else {
+            age = diffDays + ' days ago';
+          }
+
+          return {
+            id: m.id,
+            title: m.title || path.basename(m.file_path, '.md'),
+            filePath: m.file_path,
+            specFolder: m.spec_folder,
+            age: age,
+            daysAgo: diffDays,
+            importance: m.importance_weight || 0.5
+          };
+        })
+        .sort((a, b) => {
+          // Sort by recency first, then importance
+          if (a.daysAgo !== b.daysAgo) {
+            return a.daysAgo - b.daysAgo;
+          }
+          return b.importance - a.importance;
+        })
+        .slice(0, ${MAX_MEMORIES});
+
+      console.log(JSON.stringify(recent));
+    } catch (e) {
+      // Silent failure - return empty array
+      console.log('[]');
+    }
+  " 2>/dev/null || echo "[]")
+
+  echo "$memories"
+}
+
+# ───────────────────────────────────────────────────────────────
+# INTERACTIVE PROMPT FORMATTING
+# ───────────────────────────────────────────────────────────────
+
+# Format interactive context prompt
+# Shows numbered memory selections with age
+format_context_prompt() {
+  local memories_json="$1"
+  local spec_folder="$2"
+
+  local formatted
+  formatted=$(node -e "
+    'use strict';
+
+    try {
+      const memories = JSON.parse(process.argv[1]);
+      const specFolder = process.argv[2];
+
+      if (!memories || memories.length === 0) {
+        console.log('');
+        process.exit(0);
+      }
+
+      const lines = [];
+
+      // Header box
+      lines.push('');
+      lines.push('<!-- PROACTIVE_CONTEXT_SURFACING -->');
+      lines.push('');
+      lines.push('---');
+      lines.push('');
+      lines.push('**Found relevant context from your previous session(s):**');
+      lines.push('');
+
+      // Numbered memory list
+      for (let i = 0; i < memories.length; i++) {
+        const m = memories[i];
+        const num = i + 1;
+        lines.push('  **[' + num + ']** ' + m.title + ' (' + m.age + ')');
+      }
+
+      lines.push('');
+      lines.push('**Load context?** Reply with: [1] [2] [3] [all] [skip]');
+      lines.push('');
+      lines.push('---');
+      lines.push('');
+      lines.push('<!-- END_PROACTIVE_CONTEXT_SURFACING -->');
+
+      console.log(lines.join('\\n'));
+    } catch (e) {
+      console.log('');
+    }
+  " "$memories_json" "$spec_folder" 2>/dev/null || echo "")
+
+  echo "$formatted"
+}
+
+# ───────────────────────────────────────────────────────────────
+# TRIGGER PHRASE MATCHING (Original Functionality)
+# ───────────────────────────────────────────────────────────────
+
+# Match trigger phrases in prompt
+match_trigger_phrases() {
+  local sanitized_prompt="$1"
+
+  if [[ ! -f "$MATCHER_SCRIPT" ]]; then
+    echo ""
+    return
+  fi
+
+  local matches
+  matches=$(node -e "
+    const matcher = require('${MATCHER_SCRIPT}');
+    const prompt = process.argv[1];
+    try {
+      const results = matcher.matchTriggerPhrases(prompt, 3);
+      if (results.length > 0) {
+        console.log(JSON.stringify(results));
+      }
+    } catch (e) {
+      // Silent failure
+    }
+  " "$sanitized_prompt" 2>/dev/null || true)
+
+  echo "$matches"
+}
+
+# Format trigger match results
+format_trigger_matches() {
+  local matches="$1"
+
+  local formatted
+  formatted=$(node -e "
+    const matches = JSON.parse(process.argv[1]);
+    const lines = ['<!-- SURFACED_MEMORIES -->', ''];
+    lines.push('**Related memories found:**');
+    lines.push('');
+    for (const match of matches) {
+      const phrases = match.matchedPhrases.slice(0, 3).join(', ');
+      lines.push('- **' + match.specFolder + '**: ' + (match.title || 'Memory') + ' (matched: ' + phrases + ')');
+      lines.push('  File: \\\`' + match.filePath + '\\\`');
+    }
+    lines.push('');
+    lines.push('<!-- END_SURFACED_MEMORIES -->');
+    console.log(lines.join('\\\\n'));
+  " "$matches" 2>/dev/null || true)
+
+  echo "$formatted"
+}
+
 # ───────────────────────────────────────────────────────────────
 # MAIN LOGIC
 # ───────────────────────────────────────────────────────────────
 
 main() {
-  local start_time=$(date +%s%3N 2>/dev/null || echo 0)
+  local start_time
+  start_time=$(get_time_ms)
 
   # Read hook data from stdin
   local hook_data
@@ -71,37 +426,72 @@ main() {
     return
   fi
 
-  # Skip very short prompts (unlikely to contain trigger phrases)
+  # Skip very short prompts
   if [[ ${#prompt} -lt 10 ]]; then
     output_json "" true
     return
   fi
 
-  # Check if matcher script exists
-  if [[ ! -f "$MATCHER_SCRIPT" ]]; then
-    output_json "" true
-    return
-  fi
-
-  # Sanitize prompt before use - remove dangerous characters to prevent command injection
-  # Limit length to prevent DoS and remove backticks, dollar signs, parens, braces, brackets, backslashes
+  # Sanitize prompt - remove dangerous characters for security
   local sanitized_prompt
   sanitized_prompt=$(echo "$prompt" | tr -d '`$(){}[]\\' | head -c 5000)
 
-  # Run trigger matching via Node.js
+  log_debug "Processing prompt: ${sanitized_prompt:0:100}..."
+
+  # ─────────────────────────────────────────────────────────────
+  # PHASE 1: SPEC FOLDER DETECTION (Proactive Context Surfacing)
+  # ─────────────────────────────────────────────────────────────
+
+  local spec_folder
+  spec_folder=$(detect_spec_folder "$sanitized_prompt" || true)
+
+  if [[ -n "$spec_folder" ]]; then
+    log_debug "Spec folder detected: $spec_folder"
+
+    # Query recent memories for this spec folder
+    local memories_json
+    memories_json=$(query_recent_memories "$spec_folder")
+
+    log_debug "Recent memories: $memories_json"
+
+    # Check if we have memories to surface
+    local memory_count
+    memory_count=$(echo "$memories_json" | jq -r 'length' 2>/dev/null || echo 0)
+
+    if [[ "$memory_count" -gt 0 ]]; then
+      # Format interactive prompt
+      local context_prompt
+      context_prompt=$(format_context_prompt "$memories_json" "$spec_folder")
+
+      if [[ -n "$context_prompt" ]]; then
+        # Performance check for context surfacing
+        local elapsed
+        elapsed=$(get_elapsed_ms "$start_time")
+        log_perf "context_surfacing" "$elapsed" "$CONTEXT_SURFACE_BUDGET_MS"
+
+        # Escape for JSON
+        local escaped
+        escaped=$(echo "$context_prompt" | jq -Rs '.' 2>/dev/null | sed 's/^"//;s/"$//')
+        output_json "$escaped" true
+        return
+      fi
+    fi
+  fi
+
+  # ─────────────────────────────────────────────────────────────
+  # PHASE 2: TRIGGER PHRASE MATCHING (Original Functionality)
+  # ─────────────────────────────────────────────────────────────
+
+  local trigger_start
+  trigger_start=$(get_time_ms)
+
   local matches
-  matches=$(node -e "
-    const matcher = require('${MATCHER_SCRIPT}');
-    const prompt = process.argv[1];
-    try {
-      const results = matcher.matchTriggerPhrases(prompt, 3);
-      if (results.length > 0) {
-        console.log(JSON.stringify(results));
-      }
-    } catch (e) {
-      // Silent failure
-    }
-  " "$sanitized_prompt" 2>/dev/null || true)
+  matches=$(match_trigger_phrases "$sanitized_prompt")
+
+  # Performance check for trigger matching
+  local trigger_elapsed
+  trigger_elapsed=$(get_elapsed_ms "$trigger_start")
+  log_perf "trigger_matching" "$trigger_elapsed" "$TRIGGER_MATCH_BUDGET_MS"
 
   # Skip if no matches
   if [[ -z "$matches" || "$matches" == "[]" ]]; then
@@ -111,33 +501,15 @@ main() {
 
   # Format surfaced memories as context injection
   local formatted
-  formatted=$(node -e "
-    const matches = JSON.parse(process.argv[1]);
-    const lines = ['<!-- SURFACED_MEMORIES -->', ''];
-    lines.push('**Related memories found:**');
-    lines.push('');
-    for (const match of matches) {
-      const phrases = match.matchedPhrases.slice(0, 3).join(', ');
-      lines.push('- **' + match.specFolder + '**: ' + (match.title || 'Memory') + ' (matched: ' + phrases + ')');
-      lines.push('  File: \`' + match.filePath + '\`');
-    }
-    lines.push('');
-    lines.push('<!-- END_SURFACED_MEMORIES -->');
-    console.log(lines.join('\\n'));
-  " "$matches" 2>/dev/null || true)
+  formatted=$(format_trigger_matches "$matches")
 
-  # Performance check
-  local end_time=$(date +%s%3N 2>/dev/null || echo 0)
-  local elapsed=$((end_time - start_time))
-
-  if [[ $elapsed -gt $MAX_EXECUTION_MS ]]; then
-    # Log warning but don't fail
-    echo "[memory-surfacing] WARNING: Execution took ${elapsed}ms (target: <${MAX_EXECUTION_MS}ms)" >&2
-  fi
+  # Total performance check
+  local total_elapsed
+  total_elapsed=$(get_elapsed_ms "$start_time")
+  log_perf "total_execution" "$total_elapsed" "$CONTEXT_SURFACE_BUDGET_MS"
 
   # Output formatted context
   if [[ -n "$formatted" ]]; then
-    # Escape for JSON
     local escaped
     escaped=$(echo "$formatted" | jq -Rs '.' 2>/dev/null | sed 's/^"//;s/"$//')
     output_json "$escaped" true
