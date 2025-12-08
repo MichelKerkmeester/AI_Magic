@@ -15,28 +15,6 @@ Enables AI agents to leverage browser-debugger-cli (bdg) for direct Chrome DevTo
 
 ## 1. 🎯 WHEN TO USE
 
-### 📚 Navigation Guide
-
-**This file (SKILL.md)**: Core workflow patterns, session management basics, common CDP commands, tool comparison for quick browser debugging via terminal.
-
-**Reference Files** (detailed documentation):
-- [cdp_patterns.md](./references/cdp_patterns.md) – Complete CDP domain patterns, Unix composability, discovery workflows (9 sections)
-- [session_management.md](./references/session_management.md) – Advanced session patterns, multi-session management, state persistence (11 sections)
-- [troubleshooting.md](./references/troubleshooting.md) – Systematic diagnostics, error resolution, platform-specific fixes (14 sections)
-
-**Example Scripts** (production-ready bash templates):
-- [examples/](./examples/) – Performance baselines, animation testing, multi-viewport testing with CI/CD integration
-  - `performance-baseline.sh` – Comprehensive performance capture (metrics, HAR, screenshots, console logs)
-  - `animation-testing.sh` – Animation performance testing with assertions and visual captures
-  - `multi-viewport-test.sh` – Cross-viewport testing (desktop, tablet, mobile)
-  - `README.md` – Complete usage guide, customization tips, CI/CD patterns
-
-**When to load references**:
-- CDP domain exploration → cdp_patterns.md
-- Complex session scenarios → session_management.md
-- Errors or installation issues → troubleshooting.md
-- Production automation → examples/ directory
-
 **This skill should be used when**:
 - User mentions "browser debugging", "Chrome DevTools", "CDP" explicitly
 - User asks to inspect, test, or automate browser tasks with lightweight CLI approach
@@ -59,16 +37,16 @@ Enables AI agents to leverage browser-debugger-cli (bdg) for direct Chrome DevTo
 
 ### Tool Comparison
 
-| Feature | cli-chrome-devtools (bdg) | Chrome DevTools MCP | Puppeteer/Playwright |
-|---------|---------------------------|---------------------|---------------------|
-| **Setup** | `npm install -g bdg` | MCP config + server | Heavy dependencies |
-| **Discovery** | `--list`, `--describe`, `--search` | `search_tools()` | API docs required |
-| **Execution** | Direct Bash commands | `call_tool_chain()` | Script files |
-| **Token Cost** | Lowest (self-doc) | Medium (progressive) | Highest (verbose) |
-| **CDP Access** | All 644 methods | MCP-exposed subset | Full but complex |
-| **Best For** | Debugging, inspection | Multi-tool workflows | Complex UI testing |
-| **State** | Session-based | Tool chain | Script context |
-| **Learning Curve** | Minimal | Moderate | Steep |
+| Feature            | cli-chrome-devtools (bdg)          | Chrome DevTools MCP  | Puppeteer/Playwright |
+| ------------------ | ---------------------------------- | -------------------- | -------------------- |
+| **Setup**          | `npm install -g bdg`               | MCP config + server  | Heavy dependencies   |
+| **Discovery**      | `--list`, `--describe`, `--search` | `search_tools()`     | API docs required    |
+| **Execution**      | Direct Bash commands               | `call_tool_chain()`  | Script files         |
+| **Token Cost**     | Lowest (self-doc)                  | Medium (progressive) | Highest (verbose)    |
+| **CDP Access**     | All 644 methods                    | MCP-exposed subset   | Full but complex     |
+| **Best For**       | Debugging, inspection              | Multi-tool workflows | Complex UI testing   |
+| **State**          | Session-based                      | Tool chain           | Script context       |
+| **Learning Curve** | Minimal                            | Moderate             | Steep                |
 
 **Use bdg when**:
 - Quick debugging/inspection tasks
@@ -90,21 +68,58 @@ Enables AI agents to leverage browser-debugger-cli (bdg) for direct Chrome DevTo
 
 ## 2. 🧭 SMART ROUTING
 
+### Activation Detection
+```
+TASK CONTEXT
+    │
+    ├─► User mentions "bdg", "browser-debugger-cli" explicitly
+    │   └─► ACTIVATE this skill
+    │
+    ├─► User requests lightweight browser debugging
+    │   └─► ACTIVATE this skill
+    │
+    ├─► Task involves terminal-based browser automation
+    │   └─► ACTIVATE this skill
+    │
+    ├─► User needs Chrome DevTools Protocol access
+    │   └─► ACTIVATE this skill
+    │
+    └─► Heavy Playwright/Puppeteer/MCP needed
+        └─► Use MCP browser tools instead
+```
+
+### Resource Router
 ```python
 def route_bdg_resources(task):
-    # CDP method guidance and examples
+    # ──────────────────────────────────────────────────────────────────
+    # CDP Patterns
+    # Purpose: CDP domain patterns, command examples, Unix composability, discovery workflows
+    # Key Insight: Load for CDP method guidance, domain exploration, or Unix pipe patterns
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_cdp_patterns or task.exploring_domains or task.unix_pipes:
         return load("references/cdp_patterns.md")
 
-    # Advanced session patterns
+    # ──────────────────────────────────────────────────────────────────
+    # Session Management
+    # Purpose: Advanced session patterns, multi-session management, state persistence, cleanup
+    # Key Insight: Load for session complexity, multi-session scenarios, or resumption needs
+    # ──────────────────────────────────────────────────────────────────
     if task.session_complexity or task.multi_session or task.resumption:
         return load("references/session_management.md")
 
-    # Error resolution
+    # ──────────────────────────────────────────────────────────────────
+    # Troubleshooting
+    # Purpose: Error resolution, installation fixes, platform-specific issues, debug mode
+    # Key Insight: Load for errors, installation issues, browser connection problems, or debugging
+    # ──────────────────────────────────────────────────────────────────
     if task.has_error or task.troubleshooting or task.installation_issue:
         return load("references/troubleshooting.md")
 
-    # Production automation scripts
+    # ──────────────────────────────────────────────────────────────────
+    # Production Automation
+    # Purpose: Production-ready bash templates for CI/CD integration
+    # Key Insight: Load for production automation, CI/CD browser testing, or complete workflow templates
+    # ──────────────────────────────────────────────────────────────────
     if task.production_automation or task.ci_cd_integration or task.needs_complete_workflows:
         return load("examples/README.md")  # + bash scripts
 
@@ -113,23 +128,7 @@ def route_bdg_resources(task):
 
 ---
 
-## 3. 🗂️ REFERENCES
-
-### Core Framework
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **Chrome DevTools CLI - Main Workflow** | Terminal-based CDP access via bdg | **Lightweight alternative to MCP servers with self-documenting discovery** |
-
-### References
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **references/cdp_patterns.md** | CDP domain patterns, command examples, Unix composability, discovery workflows | Load for CDP method guidance, domain exploration, or Unix pipe patterns |
-| **references/session_management.md** | Advanced session patterns, multi-session management, state persistence, cleanup | Load for session complexity, multi-session scenarios, or resumption needs |
-| **references/troubleshooting.md** | Error resolution, installation fixes, platform-specific issues, debug mode | Load for errors, installation issues, browser connection problems, or debugging |
-
----
-
-## 4. 🛠️ HOW IT WORKS
+## 3. 🛠️ HOW IT WORKS
 
 ### Installation & Verification
 
@@ -421,7 +420,7 @@ fi
 
 ---
 
-## 5. 📋 RULES
+## 4. 📋 RULES
 
 ### ✅ ALWAYS
 
@@ -462,7 +461,7 @@ fi
 
 ---
 
-## 6. 🎓 SUCCESS CRITERIA
+## 5. 🎓 SUCCESS CRITERIA
 
 ### Browser Debugging Workflow Completion
 
@@ -478,7 +477,7 @@ fi
 
 ---
 
-## 7. 💡 EXAMPLES
+## 6. 💡 EXAMPLES
 
 ### Example 1: Screenshot Capture
 
@@ -510,7 +509,6 @@ bdg stop 2>&1
 - Session cleaned up
 - File path provided to user
 
----
 
 ### Example 2: Console Log Analysis
 
@@ -544,7 +542,6 @@ echo "Found $error_count console errors"
 - Error messages extracted and displayed
 - Errors saved to `errors.json` for review
 
----
 
 ### Example 3: Network Request Monitoring
 
@@ -576,7 +573,6 @@ bdg stop 2>&1
 - Slow requests identified and displayed
 - URL, timing, and status code for each slow request
 
----
 
 ### Example 4: Cookie Manipulation
 
@@ -613,7 +609,6 @@ bdg stop 2>&1
 - Cookie verification displayed showing name, value, domain, secure flags
 - Session cleaned up
 
----
 
 ### Example 5: Method Discovery Workflow
 
@@ -648,7 +643,7 @@ bdg stop 2>&1
 
 ---
 
-## 8. 🔗 INTEGRATION POINTS
+## 7. 🔗 INTEGRATION POINTS
 
 ### Triggers
 
@@ -716,7 +711,7 @@ echo "✅ Feature verification complete"
 
 ---
 
-## 9. 🎯 QUICK REFERENCE
+## 8. 🎯 QUICK REFERENCE
 
 ### Essential Commands
 
@@ -769,16 +764,16 @@ fi
 
 ### Common Use Cases
 
-| Task | Command |
-|------|---------|
-| Screenshot | `bdg screenshot output.png 2>&1` |
+| Task           | Command                                                        |
+| -------------- | -------------------------------------------------------------- |
+| Screenshot     | `bdg screenshot output.png 2>&1`                               |
 | Console errors | `bdg console logs 2>&1 \| jq '.[] \| select(.level=="error")'` |
-| Get cookies | `bdg network cookies 2>&1` |
-| Set cookie | `bdg cdp Network.setCookie '{...}' 2>&1` |
-| DOM query | `bdg dom query ".class" 2>&1` |
-| Execute JS | `bdg js "document.title" 2>&1` |
-| Export HAR | `bdg har export network.har 2>&1` |
-| Page metrics | `bdg cdp Performance.getMetrics 2>&1` |
+| Get cookies    | `bdg network cookies 2>&1`                                     |
+| Set cookie     | `bdg cdp Network.setCookie '{...}' 2>&1`                       |
+| DOM query      | `bdg dom query ".class" 2>&1`                                  |
+| Execute JS     | `bdg js "document.title" 2>&1`                                 |
+| Export HAR     | `bdg har export network.har 2>&1`                              |
+| Page metrics   | `bdg cdp Performance.getMetrics 2>&1`                          |
 
 ### Production Workflows
 
@@ -786,7 +781,7 @@ For complete workflow templates with error handling, cleanup patterns, and CI/CD
 
 ---
 
-## 10. 📚 BUNDLED RESOURCES
+## 9. 📚 BUNDLED RESOURCES
 
 ### references/
 

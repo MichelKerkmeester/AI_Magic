@@ -12,7 +12,7 @@ These gates are BLOCKING - you cannot proceed past any gate until its condition 
 
 ---
 
-## GATE 0: Input Validation ⛔ HARD STOP
+## 1. 🔒 GATE 0: INPUT VALIDATION
 
 **Check `$ARGUMENTS` for prompt text to improve:**
 
@@ -40,7 +40,7 @@ IF $ARGUMENTS contains prompt text:
 
 ---
 
-## GATE 1: Spec Folder Selection ⛔ HARD STOP
+## 2. 🔒 GATE 1: SPEC FOLDER SELECTION
 
 **You MUST ask user to select a spec folder option. DO NOT SKIP THIS QUESTION.**
 
@@ -68,7 +68,7 @@ ACTION REQUIRED:
 
 ---
 
-## GATE 2: Memory Context Loading (Conditional)
+## 3. 🔒 GATE 2: MEMORY CONTEXT LOADING (CONDITIONAL)
 
 **This gate only applies if user selected Option A or C in GATE 1.**
 
@@ -85,21 +85,21 @@ IF spec_folder_choice is B or D:
 
 ---
 
-## Gate Status Verification
+## 4. 🔒 GATE STATUS VERIFICATION
 
 Before proceeding, verify all gates are passed:
 
-| Gate | Status | Required Output |
-|------|--------|-----------------|
-| GATE 0 | ⬜ | `prompt_text = ______` |
-| GATE 1 | ⬜ | `spec_folder_choice = ______`, `spec_folder_path = ______` |
-| GATE 2 | ⬜ | Memory loaded OR skipped (conditional) |
+| Gate   | Status | Required Output                                            |
+| ------ | ------ | ---------------------------------------------------------- |
+| GATE 0 | ⬜      | `prompt_text = ______`                                     |
+| GATE 1 | ⬜      | `spec_folder_choice = ______`, `spec_folder_path = ______` |
+| GATE 2 | ⬜      | Memory loaded OR skipped (conditional)                     |
 
 **All gates must show ✅ before continuing to the workflow below.**
 
 ---
 
-## Violation Self-Detection
+## 5. ⚠️ VIOLATION SELF-DETECTION
 
 If you notice yourself:
 - Reading workflow steps before completing gates → ⛔ STOP, return to incomplete gate
@@ -133,7 +133,7 @@ operating_mode:
 
 ---
 
-## User Input
+## 6. 📋 USER INPUT
 
 ```text
 $ARGUMENTS
@@ -141,30 +141,30 @@ $ARGUMENTS
 
 ---
 
-## Workflow Overview (5 Phases)
+## 7. 📊 WORKFLOW OVERVIEW (5 PHASES)
 
-| Phase | Name | Purpose | Outputs |
-|-------|------|---------|---------|
-| 1 | Discover | Analyze intent, assess complexity | complexity_score, gap_analysis |
-| 2 | Engineer | Select framework, restructure | framework_selection, structure |
-| 3 | Prototype | Generate enhanced draft | enhanced_prompt_draft |
-| 4 | Test | Validate clarity and completeness | validation_report |
-| 5 | Harmonize | Final polish for consistency | spec.md, enhanced_prompt.yaml |
-
----
-
-## Mode Detection & Routing
-
-| Pattern | Mode | Behavior |
-|---------|------|----------|
-| `/prompt_improver:workflow:quick` | QUICK | 1-5 rounds, auto-framework |
-| `/prompt_improver:workflow:improve` | FULL | 10 rounds, interactive framework selection |
-| `/prompt_improver:workflow:refine` | REFINE | Preserve framework, polish clarity |
-| `/prompt_improver:workflow` (no suffix) | INTERACTIVE | Full user participation |
+| Phase | Name      | Purpose                           | Outputs                        |
+| ----- | --------- | --------------------------------- | ------------------------------ |
+| 1     | Discover  | Analyze intent, assess complexity | complexity_score, gap_analysis |
+| 2     | Engineer  | Select framework, restructure     | framework_selection, structure |
+| 3     | Prototype | Generate enhanced draft           | enhanced_prompt_draft          |
+| 4     | Test      | Validate clarity and completeness | validation_report              |
+| 5     | Harmonize | Final polish for consistency      | spec.md, enhanced_prompt.yaml  |
 
 ---
 
-## Purpose
+## 8. 🔀 MODE DETECTION & ROUTING
+
+| Pattern                                 | Mode        | Behavior                                   |
+| --------------------------------------- | ----------- | ------------------------------------------ |
+| `/prompt_improver:workflow:quick`       | QUICK       | 1-5 rounds, auto-framework                 |
+| `/prompt_improver:workflow:improve`     | FULL        | 10 rounds, interactive framework selection |
+| `/prompt_improver:workflow:refine`      | REFINE      | Preserve framework, polish clarity         |
+| `/prompt_improver:workflow` (no suffix) | INTERACTIVE | Full user participation                    |
+
+---
+
+## 9. 📋 PURPOSE
 
 Apply systematic prompt enhancement with:
 - **Framework selection** - Auto-select from 7 frameworks (RCAF, COSTAR, RACE, CIDI, TIDD-EC, CRISPE, CRAFT)
@@ -173,7 +173,7 @@ Apply systematic prompt enhancement with:
 
 ---
 
-## Contract
+## 10. 📝 CONTRACT
 
 **Input:** `$ARGUMENTS` = prompt text + optional mode (`:quick`, `:improve`, `:refine`)
 
@@ -193,7 +193,7 @@ Apply systematic prompt enhancement with:
 
 ---
 
-## Instructions
+## 11. ⚡ INSTRUCTIONS
 
 ### Phase 1: Parse Input
 
@@ -221,9 +221,8 @@ Apply systematic prompt enhancement with:
      - **D)** Skip documentation (creates `.claude/.spec-skip` marker) - NOT RECOMMENDED
    - Store: `spec_folder_path`, `spec_folder_choice`
 
----
 
-### Step 1.3: Verify Gates Passed
+### Phase 1.5: Verify Gates Passed
 
 Before continuing, confirm all gates are complete:
 
@@ -234,8 +233,6 @@ Before continuing, confirm all gates are complete:
 
 If ANY gate incomplete → STOP and return to that gate
 ```
-
----
 
 ### Phase 2-5: Execute DEPTH Workflow
 
@@ -264,7 +261,6 @@ If ANY gate incomplete → STOP and return to that gate
    - Check framework components are complete and substantive
    - Ensure no placeholder text remains
 
----
 
 ### Phase 6: Dual Output Generation
 
@@ -316,43 +312,43 @@ If ANY gate incomplete → STOP and return to that gate
 
 ---
 
-## Framework Quick Reference
+## 12. 🔗 FRAMEWORK QUICK REFERENCE
 
-| Framework | Components | Best For | Complexity |
-|-----------|-----------|----------|------------|
-| **RCAF** | role, context, action, format | General-purpose | 1-6 |
-| **COSTAR** | context, objective, style, tone, audience, response | Communication | 5-6 |
-| **RACE** | role, action, context, examples | Rapid prototyping | 3-5 |
-| **CIDI** | context, instructions, details, input | Creative/ideation | 4-6 |
-| **TIDD-EC** | task, instructions, details, deliverables, examples, constraints | Technical specs | 5-7 |
-| **CRISPE** | capacity, role, insight, statement, personality, experiment | System prompts | 4-6 |
-| **CRAFT** | context, role, action, format, target | Multi-stakeholder | 7-10 |
-
----
-
-## Failure Recovery
-
-| Failure Type | Recovery Action |
-|--------------|-----------------|
-| Enhancement incomplete | Prompt: retry refinement / accept current / cancel |
-| Framework timeout | Default to RCAF → Notify → Continue |
-| YAML workflow missing | Search `.claude/` then `.opencode/` → Error if both fail |
-| Write permission denied | Output to chat → Suggest manual save |
+| Framework   | Components                                                       | Best For          | Complexity |
+| ----------- | ---------------------------------------------------------------- | ----------------- | ---------- |
+| **RCAF**    | role, context, action, format                                    | General-purpose   | 1-6        |
+| **COSTAR**  | context, objective, style, tone, audience, response              | Communication     | 5-6        |
+| **RACE**    | role, action, context, examples                                  | Rapid prototyping | 3-5        |
+| **CIDI**    | context, instructions, details, input                            | Creative/ideation | 4-6        |
+| **TIDD-EC** | task, instructions, details, deliverables, examples, constraints | Technical specs   | 5-7        |
+| **CRISPE**  | capacity, role, insight, statement, personality, experiment      | System prompts    | 4-6        |
+| **CRAFT**   | context, role, action, format, target                            | Multi-stakeholder | 7-10       |
 
 ---
 
-## Error Handling
+## 13. 🔧 FAILURE RECOVERY
 
-| Condition | Action |
-|-----------|--------|
-| Empty `$ARGUMENTS` | AskUserQuestion with 4 options (paste/describe/file/cancel) |
-| Invalid mode suffix | Default to INTERACTIVE mode |
-| Framework selection fails | Auto-select RCAF as fallback |
-| Spec folder conflict | Prompt for resolution (A/B/C/D options) |
+| Failure Type            | Recovery Action                                          |
+| ----------------------- | -------------------------------------------------------- |
+| Enhancement incomplete  | Prompt: retry refinement / accept current / cancel       |
+| Framework timeout       | Default to RCAF → Notify → Continue                      |
+| YAML workflow missing   | Search `.claude/` then `.opencode/` → Error if both fail |
+| Write permission denied | Output to chat → Suggest manual save                     |
 
 ---
 
-## Context Loading
+## 14. ⚠️ ERROR HANDLING
+
+| Condition                 | Action                                                      |
+| ------------------------- | ----------------------------------------------------------- |
+| Empty `$ARGUMENTS`        | AskUserQuestion with 4 options (paste/describe/file/cancel) |
+| Invalid mode suffix       | Default to INTERACTIVE mode                                 |
+| Framework selection fails | Auto-select RCAF as fallback                                |
+| Spec folder conflict      | Prompt for resolution (A/B/C/D options)                     |
+
+---
+
+## 15. 📁 CONTEXT LOADING
 
 When resuming in an existing spec folder with prior prompt work:
 - **A)** Load most recent enhanced_prompt.yaml (quick context)
@@ -362,14 +358,14 @@ When resuming in an existing spec folder with prior prompt work:
 
 ---
 
-## Templates Used
+## 16. 📁 TEMPLATES USED
 
 - `.claude/commands/prompt_improver/assets/improve_prompt.yaml` - DEPTH workflow logic
 - `.opencode/speckit/templates/spec.md` - SpecKit specification output
 
 ---
 
-## Completion Report
+## 17. 📊 COMPLETION REPORT
 
 After workflow completion, report:
 
@@ -390,7 +386,7 @@ STATUS=OK SPEC={spec_folder_path} FILES=spec.md,enhanced_prompt.yaml
 
 ---
 
-## Examples
+## 18. 🔍 EXAMPLES
 
 ### Quick Mode
 ```bash
@@ -412,7 +408,7 @@ Output: Preserves existing framework, polishes clarity, ~9 seconds
 
 ---
 
-## Critical Rules
+## 19. ⚠️ CRITICAL RULES
 
 - ✅ Execute full DEPTH (10 rounds) unless :quick mode
 - ✅ Generate BOTH files (spec.md + enhanced_prompt.yaml)
@@ -424,7 +420,7 @@ Output: Preserves existing framework, polishes clarity, ~9 seconds
 
 ---
 
-## Notes
+## 20. 📌 NOTES
 
 **Dual-Output Architecture:**
 - `spec.md` = Human review (simplified: Purpose, Original Prompt, numbered framework sections)

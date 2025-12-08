@@ -4,8 +4,8 @@ A Model Context Protocol server providing semantic search, memory loading, and f
 
 > **Navigation**: This is the MCP Server technical reference.
 > - New to semantic memory? Start here
-> - Need workflow details? See [SKILL.md](../../.claude/skills/workflows-save-context/SKILL.md)
-> - Quick command lookup? See [/save_context](../../.claude/commands/save_context.md)
+> - Need workflow details? See [SKILL.md](./SKILL.md)
+> - Quick command lookup? See [/memory/save](../../commands/memory/save.md) or [/memory/search](../../commands/memory/search.md)
 
 ---
 
@@ -482,6 +482,14 @@ Slow operations are logged automatically:
    sqlite3 ~/.claude/memory-index.sqlite \
      "SELECT embedding_status, COUNT(*) FROM memory_index GROUP BY embedding_status"
    ```
+
+4. Rebuild index with batch indexer:
+   ```bash
+   cd .claude/skills/workflows-save-context/scripts
+   node index-all.js --scan /path/to/project
+   ```
+
+   The `--scan` option recursively finds all memory files in nested specs structures.
 
 ### Slow Performance
 

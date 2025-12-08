@@ -65,14 +65,14 @@ brew install sqlite-vec
 # 2. Install Node.js dependencies
 cd .claude/skills/workflows-save-context && npm install
 
-# 3. Use save-context as normal - semantic features are automatic
-/save_context
+# 3. Save context - interactive folder detection
+/memory/save
 
 # 4. Search your memories semantically
-/save_context search "how did we implement authentication"
+/memory/search "how did we implement authentication"
 
 # 5. Rebuild index for existing memories
-/save_context rebuild
+/memory/search rebuild
 ```
 
 That's it! The system works automatically after installation.
@@ -123,33 +123,42 @@ That's it! The system works automatically after installation.
 
 ## 4. ⚙️ EXECUTION METHODS
 
-### Commands (v10.1 Interactive-First)
+### Commands (Split Architecture)
 
-**All commands now show a two-tier interactive menu first:**
+The memory system uses two separate commands for clarity:
 
-| Tier 1 Menu (4 options) | Then routes to...       |
-| ----------------------- | ----------------------- |
-| Save current context    | SAVE action             |
-| Search memories         | Tier 2: Search sub-menu |
-| View recent memories    | RECENT action           |
-| Manage index            | Tier 2: Index sub-menu  |
+| Command          | Purpose                                           |
+| ---------------- | ------------------------------------------------- |
+| `/memory/save`   | Save current context with interactive folder detection |
+| `/memory/search` | Search, manage index, view recent, rebuild, verify, retry |
 
-| Tier 2 Sub-menus         | Purpose                   |
-| ------------------------ | ------------------------- |
-| Natural language search  | Semantic search           |
-| Multi-concept AND search | Find ALL matching terms   |
-| Check index health       | Verify integrity          |
-| Fix problems             | List & retry failed       |
-| Rebuild index            | Regenerate all embeddings |
+#### /memory/save
 
-*Note: `AskUserQuestion` tool supports max 4 options, hence two-tier design.*
+Simple save with interactive spec folder detection:
+- Detects active spec folder from `.spec-active` or recent activity
+- Prompts for confirmation or manual selection
+- Generates memory file with embeddings
+
+#### /memory/search
+
+All search and index management operations:
+
+| Subcommand                              | Purpose                           |
+| --------------------------------------- | --------------------------------- |
+| `/memory/search "query"`                | Semantic search                   |
+| `/memory/search multi "term1" "term2"`  | Multi-concept AND search          |
+| `/memory/search recent`                 | View recent memories              |
+| `/memory/search verify`                 | Check index health                |
+| `/memory/search rebuild`                | Regenerate all embeddings         |
+| `/memory/search retry`                  | Retry failed embeddings           |
+| `/memory/search list-failed`            | List failed embeddings            |
 
 ### Execution Options
 
 | Method              | Hooks | AI  | Effort | Use Case            |
 | ------------------- | ----- | --- | ------ | ------------------- |
 | **Keyword trigger** | No    | No  | Zero   | Type "save context" |
-| **Slash command**   | No    | Yes | Low    | `/save_context`     |
+| **Slash command**   | No    | Yes | Low    | `/memory/save` or `/memory/search` |
 | **Direct script**   | No    | No  | Medium | Testing             |
 | **Helper script**   | No    | No  | Low    | Standalone          |
 
@@ -171,9 +180,9 @@ bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh
 ### Basic Search
 
 ```bash
-/save_context search "how did we implement OAuth authentication"
-/save_context find "database schema design decisions"
-/save_context vector "error handling patterns"
+/memory/search "how did we implement OAuth authentication"
+/memory/search "database schema design decisions"
+/memory/search "error handling patterns"
 ```
 
 **Output:**
@@ -193,8 +202,8 @@ Found 3 relevant memories
 ### Multi-Concept AND Search
 
 ```bash
-/save_context multi "oauth" "error handling"
-/save_context multi "database" "performance" "queries"
+/memory/search multi "oauth" "error handling"
+/memory/search multi "database" "performance" "queries"
 ```
 
 Returns only memories matching **ALL** concepts (2-5 concepts supported).
@@ -204,7 +213,7 @@ Returns only memories matching **ALL** concepts (2-5 concepts supported).
 Rich interactive search with preview, filtering, and session persistence:
 
 ```
-/save_context search "oauth implementation"
+/memory/search "oauth implementation"
 
 Memory Search Results                              Page 1/3
 ============================================================
@@ -250,7 +259,7 @@ f folder:auth tag:jwt  # Multiple filters (AND)
 #### Session Persistence
 
 Search sessions persist for 1 hour:
-- Resume with `/save_context resume`
+- Resume with `/memory/search resume`
 - Auto-saves on every action
 - Preserves filters, pagination, and state
 
@@ -324,8 +333,8 @@ Search sessions persist for 1 hour:
 │      │                                                             │
 │      ▼                                                             │
 │  ┌──────────────────┐                                              │
-│  │ /save_context    │                                              │
-│  │ Command Handler  │                                              │
+│  │ /memory/save     │                                              │
+│  │ /memory/search   │                                              │
 │  └────────┬─────────┘                                              │
 │           │                                                        │
 │           ▼                                                        │
@@ -554,13 +563,13 @@ node scripts/tests/performance/latency.perf.test.js
 
 ```bash
 # 1. Save a test context
-/save_context save
+/memory/save
 
 # 2. Verify it was indexed
-/save_context verify
+/memory/search verify
 
 # 3. Search for it
-/save_context search "your test topic"
+/memory/search "your test topic"
 ```
 
 ---
@@ -595,27 +604,47 @@ export HUGGINGFACE_HUB_CACHE=/path/to/cache
 
 ```bash
 # Check status
-/save_context list-failed
+/memory/search list-failed
 
 # Retry
-/save_context retry
+/memory/search retry
 
 # If persistent, rebuild
-/save_context rebuild
+/memory/search rebuild
 ```
 
 #### Search returns no results
 
-1. Verify index exists: `/save_context verify`
-2. Rebuild index: `/save_context rebuild`
+1. Verify index exists: `/memory/search verify`
+2. Rebuild index: `/memory/search rebuild`
 3. Check query is meaningful (avoid single words)
 4. Lower similarity threshold in config
+
+### Batch Indexing
+
+When you need to rebuild the index or index many memory files at once:
+
+```bash
+cd .claude/skills/workflows-save-context/scripts
+
+# Auto-scan all memory files (recursive - supports nested specs)
+node index-all.js --scan /path/to/project
+
+# Or use a manifest file (one path per line)
+find specs -name "*.md" -path "*/memory/*" > /tmp/manifest.txt
+node index-all.js /tmp/manifest.txt
+```
+
+**Scan Coverage:**
+- `specs/001-foo/memory/` ✓
+- `specs/001-foo/002-bar/memory/` ✓ (nested)
+- `specs/001-foo/002-bar/003-baz/memory/` ✓ (deeply nested)
 
 ### Diagnostic Commands
 
 ```bash
 # System status
-/save_context verify
+/memory/search verify
 
 # Index statistics
 sqlite3 ~/.claude/memory-index.sqlite \
@@ -628,6 +657,9 @@ require('.claude/skills/workflows-save-context/scripts/lib/embeddings')
   .then(e => console.log('OK:', e.length, 'dimensions'))
   .catch(e => console.error('ERROR:', e.message))
 "
+
+# Batch reindex all memories
+node .claude/skills/workflows-save-context/scripts/index-all.js --scan .
 ```
 
 ### Log Locations
@@ -659,7 +691,7 @@ A: No. Embedding generation is async and doesn't block saves. Trigger matching i
 A: Semantic search matches meaning, not keywords. Use grep for exact keyword matches.
 
 **Q: How do I search only one spec folder?**
-A: Use `--spec` flag: `/save_context search "query" --spec 049-auth-system`
+A: Use `--spec` flag: `/memory/search "query" --spec 049-auth-system`
 
 ### Compatibility
 
@@ -676,7 +708,7 @@ A: System falls back to anchor-only mode with a warning. Core functionality pres
 ### Skill Documentation
 
 - **SKILL.md**: [SKILL.md](./SKILL.md) - Main skill reference
-- **Slash Command**: [/save_context](../../commands/save_context.md)
+- **Slash Commands**: `/memory/save` and `/memory/search`
 
 ### Reference Files
 

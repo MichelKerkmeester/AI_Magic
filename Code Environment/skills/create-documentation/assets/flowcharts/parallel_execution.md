@@ -102,7 +102,7 @@ Demonstrates multiple tasks running simultaneously with synchronization points.
 ┌────────────────────────────────────────────────────────┐
 │  Stage 3: Smoke Tests                                  │
 │  • Health check staging endpoints                      │
-│  • Verify critical user flows                          │
+│  • Verify critical user flows                           │
 │  • Check monitoring/alerts                             │
 │  Duration: 1-2 minutes                                 │
 └────────────────────────────────────────────────────────┘
@@ -144,7 +144,7 @@ Demonstrates multiple tasks running simultaneously with synchronization points.
 ┌────────────────────────────────────────────────────────┐
 │  Deploy to Production                                  │
 │  • Blue-green deployment                               │
-│  • Gradual traffic shift                               │
+│  • Gradual traffic shift                                │
 │  • Monitor metrics                                     │
 │  Duration: 5-10 minutes                                │
 └────────────────────────────────────────────────────────┘
@@ -154,7 +154,7 @@ Demonstrates multiple tasks running simultaneously with synchronization points.
 │  Post-Deployment                                       │
 │  • Tag release                                         │
 │  • Update changelog                                    │
-│  • Send notifications                                  │
+│  • Send notifications                                   │
 │  Duration: 30 seconds                                  │
 └────────────────────────────────────────────────────────┘
                     │

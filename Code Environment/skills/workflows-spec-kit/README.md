@@ -874,13 +874,13 @@ Key SpecKit hooks:
 | `memory-surfacing.sh`               | Suggests relevant memory files |
 | `validate-new-task.sh`              | Detects task changes           |
 
-#### `.claude/checklist-evidence/`
+#### `.opencode/speckit/checklist-evidence/`
 
 Stores P0/P1/P2 verification evidence as JSON files:
 - `evidence.json` - Item-level verification with timestamps
 - `general-evidence.json` - Cross-phase evidence storage
 
-#### `.claude/checklists/`
+#### `.opencode/speckit/checklists/`
 
 Phase-specific validation checklists:
 - `research-phase.md`

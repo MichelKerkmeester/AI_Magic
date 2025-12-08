@@ -40,11 +40,12 @@ The save-context system supports **4 independent execution paths**. Hooks are su
 ## 3. ⌨️ METHOD 2: SLASH COMMAND
 
 **When to Use**: Manual save without typing trigger keywords
-**Requirement**: Slash command file exists at `.opencode/command/save_context.md`
+**Requirement**: Slash command files exist in `.claude/commands/memory/` or `.opencode/command/memory/`
 
 **Usage**:
 ```
-/save_context
+/memory/save       # Simple save with interactive folder detection
+/memory/search     # Search, manage index, view recent, rebuild, verify, retry
 ```
 
 **What Happens**:

@@ -11,9 +11,10 @@ version: 1.0.0
 
 > **Related Documentation:**
 > - [README.md](./README.md) - Semantic Memory setup, MCP integration, API reference
-> - [/save_context](../../commands/save_context.md) - Slash command reference
+> - [/memory/save](../../commands/memory/save.md) - Save context command
+> - [/memory/search](../../commands/memory/search.md) - Search, manage index, view recent
 
-> **TL;DR**: Say "save context" or let it auto-save every 20 messages. Creates `specs/###-feature/memory/{timestamp}.md` with full conversation, decisions, and diagrams. Includes semantic vector search.
+> **TL;DR**: Use `/memory/save` to save context or let auto-save trigger every 20 messages. Use `/memory/search` for semantic search and index management. Creates `specs/###-feature/memory/{timestamp}.md` with full conversation, decisions, and diagrams.
 
 ---
 
@@ -62,44 +63,124 @@ If found, load and acknowledge context before proceeding.
 
 ---
 
-## 2. 🧭 SMART ROUTING
+## 2. 🧭 SMART ROUTING & REFERENCES
 
+### Command Entry Points
+```
+/memory/save
+    │
+    └─► SAVE ACTION: Generate context documentation
+        └─► Interactive folder detection if multiple specs active
+
+/memory/search [args]
+    │
+    ├─► No args
+    │   └─► Show interactive menu (Search | Recent | Manage Index)
+    │
+    ├─► "search" | "find" | "query" [query text]
+    │   └─► SEARCH ACTION: Semantic vector search
+    │
+    ├─► "recent"
+    │   └─► VIEW ACTION: Show recent memory files
+    │
+    ├─► "rebuild" | "reindex"
+    │   └─► INDEX ACTION: Rebuild vector embeddings
+    │
+    ├─► "verify" | "health"
+    │   └─► VERIFY ACTION: Check index integrity
+    │
+    ├─► "retry"
+    │   └─► RETRY ACTION: Retry last failed operation
+    │
+    ├─► "resume"
+    │   └─► RESUME ACTION: Continue previous search session
+    │
+    └─► Natural language query (2+ words)
+        └─► SEARCH ACTION (assume search intent)
+```
+
+### Resource Router
 ```python
 def route_save_context_resources(task):
-    # Main context generation
+    # ──────────────────────────────────────────────────────────────────
+    # Main Context Generation
+    # Purpose: 4 execution paths, anchor retrieval
+    # Key Insight: Running save-context
+    # ──────────────────────────────────────────────────────────────────
     if task.generating_context:
         return execute("scripts/generate-context.js")
 
-    # Flowchart patterns
+    # ──────────────────────────────────────────────────────────────────
+    # Flowchart Patterns (Linear)
+    # Purpose: Sequential diagrams (<=4 phases)
+    # Key Insight: Creating flowcharts
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_flowchart:
         if task.phase_count <= 4:
             return load("references/workflow_linear_pattern.md")
+        # ──────────────────────────────────────────────────────────────────
+        # Flowchart Patterns (Parallel)
+        # Purpose: Concurrent diagrams (>4 phases)
+        # Key Insight: Complex flows
+        # ──────────────────────────────────────────────────────────────────
         else:
             return load("references/workflow_parallel_pattern.md")
 
-    # Semantic features
+    # ──────────────────────────────────────────────────────────────────
+    # Semantic Memory
+    # Purpose: Vector search, MCP tools
+    # Key Insight: Semantic features
+    # ──────────────────────────────────────────────────────────────────
     if task.semantic_search:
         return load("references/semantic_memory.md")
 
-    # Execution details
+    # ──────────────────────────────────────────────────────────────────
+    # Execution Methods
+    # Purpose: 4 execution paths, anchor retrieval
+    # Key Insight: Running save-context
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_execution_details:
         return load("references/execution_methods.md")
 
-    # Spec folder routing
+    # ──────────────────────────────────────────────────────────────────
+    # Spec Folder Detection
+    # Purpose: Folder routing, markers
+    # Key Insight: Understanding routing
+    # ──────────────────────────────────────────────────────────────────
     if task.folder_detection:
         return load("references/spec_folder_detection.md")
 
+    # ──────────────────────────────────────────────────────────────────
     # Troubleshooting
+    # Purpose: Issue resolution
+    # Key Insight: Debugging problems
+    # ──────────────────────────────────────────────────────────────────
     if task.has_issues:
         return load("references/troubleshooting.md")
 
-    # Output format
+    # ──────────────────────────────────────────────────────────────────
+    # Output Format
+    # Purpose: Timestamps, file naming
+    # Key Insight: Understanding output
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_output_format:
         return load("references/output_format.md")
 
-    # Configuration
+    # ──────────────────────────────────────────────────────────────────
+    # Trigger Configuration
+    # Purpose: Keywords, auto-save interval
+    # Key Insight: Customizing triggers
+    # ──────────────────────────────────────────────────────────────────
     if task.configuring:
         return load("references/trigger_config.md")
+
+# ══════════════════════════════════════════════════════════════════════
+# STATIC RESOURCES (always available, not conditionally loaded)
+# ══════════════════════════════════════════════════════════════════════
+# references/alignment_scoring.md → Topic matching weights (score questions)
+# templates/context_template.md → Output format template
+# config.jsonc → Runtime configuration
+# filters.jsonc → Content filtering rules
 
 # Output: specs/###-feature/memory/{timestamp}__{topic}.md
 # Alignment threshold: 70%
@@ -107,50 +188,15 @@ def route_save_context_resources(task):
 
 ---
 
-## 3. 🗂️ REFERENCES
-
-### Core Resources
-
-| Document | Purpose | When to Read |
-|----------|---------|--------------|
-| [execution_methods.md](./references/execution_methods.md) | 4 execution paths, anchor retrieval | Running save-context |
-| [semantic_memory.md](./references/semantic_memory.md) | Vector search, MCP tools | Semantic features |
-| [spec_folder_detection.md](./references/spec_folder_detection.md) | Folder routing, markers | Understanding routing |
-
-### Workflow Patterns
-
-| Document | Purpose | When to Read |
-|----------|---------|--------------|
-| [workflow_linear_pattern.md](./references/workflow_linear_pattern.md) | Sequential diagrams (<=4 phases) | Creating flowcharts |
-| [workflow_parallel_pattern.md](./references/workflow_parallel_pattern.md) | Concurrent diagrams (>4 phases) | Complex flows |
-
-### Configuration & Troubleshooting
-
-| Document | Purpose | When to Read |
-|----------|---------|--------------|
-| [trigger_config.md](./references/trigger_config.md) | Keywords, auto-save interval | Customizing triggers |
-| [output_format.md](./references/output_format.md) | Timestamps, file naming | Understanding output |
-| [alignment_scoring.md](./references/alignment_scoring.md) | Topic matching weights | Score questions |
-| [troubleshooting.md](./references/troubleshooting.md) | Issue resolution | Debugging problems |
-
-### Templates & Config
-
-| File | Purpose |
-|------|---------|
-| [context_template.md](./templates/context_template.md) | Output format template |
-| [config.jsonc](./config.jsonc) | Runtime configuration |
-| [filters.jsonc](./filters.jsonc) | Content filtering rules |
-
----
-
-## 4. 🛠️ HOW TO USE
+## 3. 🛠️ HOW TO USE
 
 ### Quick Overview
 
 | Action | Method | When to Use |
 |--------|--------|-------------|
 | Auto-save | Say trigger phrase or wait 20 msgs | Normal workflow |
-| Manual save | `/save_context` command | Explicit control |
+| Manual save | `/memory/save` command | Explicit control |
+| Search/manage | `/memory/search` command | Find context, manage index |
 | Script | `node generate-context.js` | Testing/debugging |
 | Semantic search | `claude-mem vector "query"` | Find prior context |
 
@@ -159,7 +205,8 @@ def route_save_context_resources(task):
 | Method | Hooks | AI | Effort | Use Case |
 |--------|-------|-----|--------|----------|
 | **Keyword trigger** | No | No | Zero | Type "save context" |
-| **Slash command** | No | Yes | Low | `/save_context` |
+| **Save command** | No | Yes | Low | `/memory/save` |
+| **Search command** | No | Yes | Low | `/memory/search` |
 | **Direct script** | No | No | Medium | Testing |
 | **Helper script** | No | No | Low | Standalone |
 
@@ -167,14 +214,7 @@ For detailed examples, see [execution_methods.md](./references/execution_methods
 
 ### Basic Script Usage
 
-```bash
-# With spec folder argument
-node .claude/skills/workflows-save-context/scripts/generate-context.js \
-  /tmp/context-data.json "122-feature-name"
-
-# Helper script (auto-detects folder)
-bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh
-```
+Run with spec folder: `node scripts/generate-context.js /tmp/data.json "122-feature"` or use the helper script for auto-detection. See [execution_methods.md](./references/execution_methods.md) for detailed examples.
 
 ### Output Files
 
@@ -187,7 +227,7 @@ bash .claude/skills/workflows-save-context/scripts/save-context-manual.sh
 
 ---
 
-## 5. 🔗 ANCHOR-BASED RETRIEVAL
+## 4. 🔗 ANCHOR-BASED RETRIEVAL
 
 Memory files include searchable HTML anchors for targeted loading.
 
@@ -216,19 +256,11 @@ sed -n '/<!-- anchor: decision-jwt-049 -->/,/<!-- \/anchor: decision-jwt-049 -->
 
 ### Context Recovery Protocol
 
-**MANDATORY**: Before implementing changes in folders with memory files:
-
-1. **Extract keywords** from your task (2-4 key terms)
-2. **Search anchors**: `grep -r "anchor:.*keyword" specs/###-spec/memory/*.md`
-3. **Or use semantic search**: `claude-mem vector "your query"`
-4. **Load relevant sections** if found
-5. **Acknowledge context**: "Based on prior decision in [file]..."
-
-See [execution_methods.md](./references/execution_methods.md) for full protocol.
+**MANDATORY before implementing in folders with memory**: Search anchors (`grep -r "anchor:.*keyword"`) or semantic (`claude-mem vector "query"`), load relevant sections, acknowledge context. See [execution_methods.md](./references/execution_methods.md) for full protocol.
 
 ---
 
-## 6. 🧠 SEMANTIC SEARCH
+## 5. 🧠 SEMANTIC SEARCH
 
 Semantic vector search enables intelligent memory retrieval.
 
@@ -236,66 +268,24 @@ Semantic vector search enables intelligent memory retrieval.
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `search <query>` | Interactive semantic search | `/save_context search "OAuth"` |
-| `multi <concepts>` | AND search across concepts | `/save_context search "oauth" "security"` |
-| `rebuild` | Rebuild vector index | `/save_context rebuild` |
-| `verify` | Check index integrity | `/save_context verify` |
-| `resume` | Resume previous search session | `/save_context resume` |
-
-### Interactive Search Mode (NEW - Spec 015)
-
-Rich interactive search with preview, filtering, and session persistence:
-
-```
-/save_context search "oauth implementation"
-
-Memory Search Results                              Page 1/3
-============================================================
-
-Query: "oauth implementation"
-Found: 25 memories across 5 spec folders
-
-#1 [92%] OAuth callback flow implementation
-   Folder: 049-auth-system  |  Date: Dec 5  |  Tags: oauth, jwt
-   "Authorization Code flow with PKCE, httpOnly refresh..."
-
-#2 [85%] JWT token refresh strategy
-   Folder: 049-auth-system  |  Date: Dec 4  |  Tags: jwt, refresh
-   "Sliding window refresh with httpOnly cookies..."
-
----------------------------------------------------------------------
-Actions: [v]iew #n | [l]oad #n | [f]ilter | [c]luster | [n]ext | [q]uit
-```
+| `search <query>` | Interactive semantic search | `/memory/search "OAuth"` |
+| `multi <concepts>` | AND search across concepts | `/memory/search "oauth" "security"` |
+| `recent` | View recent memory files | `/memory/search recent` |
+| `rebuild` | Rebuild vector index | `/memory/search rebuild` |
+| `verify` | Check index integrity | `/memory/search verify` |
+| `retry` | Retry last failed operation | `/memory/search retry` |
+| `resume` | Resume previous search session | `/memory/search resume` |
 
 ### Interactive Actions
 
 | Action | Purpose | Example |
 |--------|---------|---------|
-| `v#` or `view #` | Preview memory before loading | `v1` |
-| `l#` or `load #` | Load memory into context | `l1` |
+| `v#` / `l#` | Preview / Load memory | `v1`, `l1` |
 | `f <filter>` | Filter results | `f folder:auth date:>2025-12-01` |
-| `c` | Cluster by spec folder | `c` |
-| `n` / `p` | Next/previous page | `n` |
-| `e <anchor>` | Extract specific section | `e decisions` |
-| `b` | Back to previous view | `b` |
-| `?` | Show help | `?` |
+| `c` / `n` / `p` | Cluster / Next / Previous | `c`, `n` |
+| `e <anchor>` | Extract section | `e decisions` |
 
-### Filter Syntax
-
-```bash
-f folder:049-auth      # Filter by spec folder (partial match)
-f date:>2025-12-01     # Filter by date (after)
-f date:<2025-12-01     # Filter by date (before)
-f tag:oauth            # Filter by tag
-f folder:auth tag:jwt  # Multiple filters (AND)
-```
-
-### Session Persistence
-
-Search sessions persist for 1 hour:
-- Resume with `/save_context resume`
-- Auto-saves on every action
-- Preserves filters, pagination, and state
+Sessions persist 1 hour (resume with `/memory/search resume`).
 
 ### MCP Tools (for AI agents)
 
@@ -309,7 +299,7 @@ See [semantic_memory.md](./references/semantic_memory.md) for complete documenta
 
 ---
 
-## 7. 📋 IMPLEMENTATION
+## 6. 📋 IMPLEMENTATION
 
 ### JSON Data Structure
 
@@ -352,7 +342,7 @@ See [spec_folder_detection.md](./references/spec_folder_detection.md) for sub-fo
 
 ---
 
-## 8. 📖 RULES
+## 7. 📖 RULES
 
 ### ALWAYS
 
@@ -380,7 +370,7 @@ See [spec_folder_detection.md](./references/spec_folder_detection.md) for sub-fo
 
 ---
 
-## 9. 🎓 SUCCESS CRITERIA
+## 8. 🎓 SUCCESS CRITERIA
 
 ### Task Complete When
 
@@ -402,7 +392,7 @@ See [spec_folder_detection.md](./references/spec_folder_detection.md) for sub-fo
 
 ---
 
-## 10. 🔗 INTEGRATION POINTS
+## 9. 🔗 INTEGRATION POINTS
 
 ### Data Flow
 
@@ -435,7 +425,7 @@ Conversation → AI Analysis → JSON → Script → Markdown + Embeddings
 
 ---
 
-## 11. 💡 EXAMPLES
+## 10. 💡 EXAMPLES
 
 ### Example 1: Feature Implementation
 
@@ -463,7 +453,7 @@ claude-mem vector "how did we implement OAuth"
 
 ---
 
-## 12. ⚠️ COMMON MISTAKES
+## 11. ⚠️ COMMON MISTAKES
 
 > **Quick Fixes**
 > 1. **Missing spec folder**: `mkdir -p specs/###-feature/`
@@ -471,31 +461,29 @@ claude-mem vector "how did we implement OAuth"
 > 3. **Arg 2 format**: Full folder name like `122-skill-standardization`, not just `122`
 > 4. **Vector search empty**: Run `claude-mem rebuild` to generate embeddings
 
-### Alignment Score
-
-| Score | Meaning | Action |
-|-------|---------|--------|
-| 90-100% | Excellent match | Auto-selected |
-| 70-89% | Good match | Auto-selected |
-| 50-69% | Moderate match | Verify manually |
-| 30-49% | Weak match | Select different folder |
-| 0-29% | Poor match | Create new spec folder |
-
-See [troubleshooting.md](./references/troubleshooting.md) for detailed issue resolution.
+See [troubleshooting.md](./references/troubleshooting.md) for alignment scoring details and issue resolution.
 
 ---
 
-## 13. 📊 QUICK REFERENCE
+## 12. 📊 QUICK REFERENCE
 
-**Invocation**: Say "save context" or use `/save_context`
+**Commands**:
+- `/memory/save` - Save context (interactive folder detection)
+- `/memory/search` - Search, view recent, manage index
 
-**Menu Flow (v10.1)**: All `/save_context` invocations show an interactive menu first:
-```
-Tier 1: Save | Search | Recent | Manage Index
-Tier 2 (Search): Natural language | Multi-concept
-Tier 2 (Index): Health check | Fix problems | Rebuild
-```
-*Note: `AskUserQuestion` supports max 4 options per question, hence two-tier design.*
+**Save Command** (`/memory/save`):
+- Simple save with automatic spec folder detection
+- Interactive prompt if multiple active specs found
+- Trigger phrases: "save context", "document this", "preserve context"
+
+**Search Command** (`/memory/search [args]`):
+- No args: Interactive menu (Search | Recent | Manage Index)
+- `"query"`: Semantic search
+- `recent`: View recent memory files
+- `rebuild`: Rebuild vector index
+- `verify`: Check index health
+- `retry`: Retry last failed operation
+- `resume`: Continue previous search session
 
 **Output**: `specs/###-feature/memory/{date}_{time}__{topic}.md`
 

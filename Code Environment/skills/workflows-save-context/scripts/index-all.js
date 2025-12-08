@@ -46,7 +46,13 @@ const CONFIG = {
 // ───────────────────────────────────────────────────────────────
 
 /**
- * Scan for memory files in specs directories
+ * Scan for memory files in specs directories (recursive)
+ *
+ * Supports nested structures like:
+ *   specs/001-foo/memory/
+ *   specs/001-foo/002-bar/memory/
+ *   specs/001-foo/002-bar/003-baz/memory/
+ *
  * @param {string} baseDir - Base directory to scan
  * @returns {string[]} - Array of file paths
  */
@@ -59,28 +65,45 @@ async function scanForMemoryFiles(baseDir) {
     return files;
   }
 
-  const specFolders = await fs.readdir(specsDir);
-
-  for (const specFolder of specFolders) {
-    const memoryDir = path.join(specsDir, specFolder, 'memory');
-
-    if (!fsSync.existsSync(memoryDir)) {
-      continue;
-    }
+  /**
+   * Recursively scan directory for memory folders
+   * @param {string} dir - Directory to scan
+   * @param {number} depth - Current depth (max 5 to prevent infinite loops)
+   */
+  async function scanDirectory(dir, depth = 0) {
+    if (depth > 5) return; // Safety limit for recursion depth
 
     try {
-      const memoryFiles = await fs.readdir(memoryDir);
+      const entries = await fs.readdir(dir, { withFileTypes: true });
 
-      for (const file of memoryFiles) {
-        if (file.endsWith(CONFIG.MEMORY_EXTENSION)) {
-          files.push(path.join(memoryDir, file));
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue;
+
+        const entryPath = path.join(dir, entry.name);
+
+        // Check if this is a memory directory
+        if (entry.name === 'memory') {
+          try {
+            const memoryFiles = await fs.readdir(entryPath);
+            for (const file of memoryFiles) {
+              if (file.endsWith(CONFIG.MEMORY_EXTENSION)) {
+                files.push(path.join(entryPath, file));
+              }
+            }
+          } catch (err) {
+            console.warn(`[index-all] Could not read ${entryPath}: ${err.message}`);
+          }
+        } else if (!entry.name.startsWith('.') && entry.name !== 'node_modules') {
+          // Recurse into subdirectories (skip hidden dirs and node_modules)
+          await scanDirectory(entryPath, depth + 1);
         }
       }
     } catch (err) {
-      console.warn(`[index-all] Could not read ${memoryDir}: ${err.message}`);
+      console.warn(`[index-all] Could not scan ${dir}: ${err.message}`);
     }
   }
 
+  await scanDirectory(specsDir);
   return files;
 }
 
@@ -212,6 +235,27 @@ async function processFile(filePath) {
 }
 
 // ───────────────────────────────────────────────────────────────
+// CLEANUP HANDLER
+// ───────────────────────────────────────────────────────────────
+
+/**
+ * Cleanup handler to properly close database before exit
+ * Prevents "mutex lock failed" error from better-sqlite3
+ */
+function cleanup() {
+  try {
+    vectorIndex.closeDb();
+  } catch (err) {
+    // Ignore cleanup errors
+  }
+}
+
+// Register cleanup handlers
+process.on('exit', cleanup);
+process.on('SIGINT', () => { cleanup(); process.exit(130); });
+process.on('SIGTERM', () => { cleanup(); process.exit(143); });
+
+// ───────────────────────────────────────────────────────────────
 // MAIN
 // ───────────────────────────────────────────────────────────────
 
@@ -330,6 +374,8 @@ async function main() {
   const stats = vectorIndex.getStats();
   console.log(`\n[index-all] Index contains ${stats.total} memories (${stats.success} with embeddings)`);
 
+  // Clean up before exit
+  cleanup();
   process.exit(errorCount > 0 ? 1 : 0);
 }
 
@@ -339,5 +385,6 @@ async function main() {
 
 main().catch(err => {
   console.error('[index-all] Fatal error:', err);
+  cleanup();
   process.exit(1);
 });

@@ -15,22 +15,6 @@ version: 1.0.0
 
 ## 1. 🎯 WHEN TO USE
 
-### 📚 Navigation Guide
-
-**This file (SKILL.md)**: Essential overview and navigation to specialized workflows
-
-**Reference Files** (detailed documentation):
-- [worktree_workflows.md](./references/worktree_workflows.md) – Phase 1: Complete worktree creation workflow
-- [commit_workflows.md](./references/commit_workflows.md) – Phase 2: Professional commit workflow
-- [finish_workflows.md](./references/finish_workflows.md) – Phase 3: Work completion and integration
-- [shared_patterns.md](./references/shared_patterns.md) – Git commands, conventions, common patterns
-- [quick_reference.md](./references/quick_reference.md) – One-page cheat sheet
-
-**Assets** (templates and checklists):
-- [commit_message_template.md](./assets/commit_message_template.md) – Conventional Commits examples
-- [pr_template.md](./assets/pr_template.md) – Pull request templates
-- [worktree_checklist.md](./assets/worktree_checklist.md) – Step-by-step worktree creation
-
 ### When to Use This Orchestrator
 
 Use this orchestrator when:
@@ -90,63 +74,94 @@ Once user chooses, their preference is stored for 1 hour. The hook won't re-ask 
 
 ## 3. 🧭 SMART ROUTING
 
+### Phase Detection
+```
+GIT WORKFLOW CONTEXT
+    │
+    ├─► Starting new work / need isolated workspace
+    │   └─► PHASE 1: Workspace Setup (git-worktrees)
+    │       └─► Load: worktree_workflows.md, worktree_checklist.md
+    │
+    ├─► Ready to commit changes
+    │   └─► PHASE 2: Commit (git-commit)
+    │       └─► Load: commit_workflows.md, commit_message_template.md
+    │
+    ├─► Work complete / ready to integrate
+    │   └─► PHASE 3: Finish (git-finish)
+    │       └─► Load: finish_workflows.md, pr_template.md
+    │
+    ├─► Need command reference / conventions
+    │   └─► Load: shared_patterns.md
+    │
+    └─► Quick overview needed
+        └─► Load: quick_reference.md
+```
+
+### Resource Router
 ```python
 def route_git_resources(task):
-    # Phase 1: workspace setup
+    # ──────────────────────────────────────────────────────────────────
+    # Phase 1: Workspace Setup (git-worktrees)
+    # Purpose: Complete 7-step worktree creation workflow
+    # Key Insight: Directory selection priority, safety verification, branch strategies
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_isolated_workspace or "worktree" in task.keywords:
         return load("references/worktree_workflows.md")  # 7-step creation workflow
-    
-    # Phase 2: commit workflow
+
+    # ──────────────────────────────────────────────────────────────────
+    # Phase 2: Commit Workflow (git-commit)
+    # Purpose: Complete 6-step commit workflow
+    # Key Insight: File categorization, artifact filtering, Conventional Commits
+    # ──────────────────────────────────────────────────────────────────
     if task.has_staged_changes or "commit" in task.keywords:
         load("references/commit_workflows.md")  # 6-step commit workflow
         if task.needs_message_help:
             return load("assets/commit_message_template.md")  # Conventional Commits examples
-    
-    # Phase 3: completion/integration
+
+    # ──────────────────────────────────────────────────────────────────
+    # Phase 3: Completion/Integration (git-finish)
+    # Purpose: Complete 5-step completion workflow
+    # Key Insight: Test verification gate, 4 options (merge/PR/keep/discard)
+    # ──────────────────────────────────────────────────────────────────
     if task.ready_to_integrate or "merge" in task.keywords or "pr" in task.keywords:
         load("references/finish_workflows.md")  # 5-step completion workflow
         if task.creating_pr:
             return load("assets/pr_template.md")  # PR description template
-    
-    # quick lookup
+
+    # ──────────────────────────────────────────────────────────────────
+    # Quick Reference
+    # Purpose: One-page cheat sheet
+    # Key Insight: Skill selection flowchart, essential commands
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_quick_reference:
         return load("references/quick_reference.md")  # one-page cheat sheet
-    
-    # shared patterns (branch naming, commands, conventions)
+
+    # ──────────────────────────────────────────────────────────────────
+    # Shared Patterns
+    # Purpose: Common git patterns and command reference
+    # Key Insight: Branch naming, git commands, Conventional Commits format
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_command_reference or task.needs_conventions:
         return load("references/shared_patterns.md")
-    
-    # validation checklist
+
+    # ──────────────────────────────────────────────────────────────────
+    # Worktree Checklist
+    # Purpose: Step-by-step worktree creation checklist
+    # Key Insight: Validation checkpoints for workspace setup
+    # ──────────────────────────────────────────────────────────────────
     if task.setting_up_worktree:
         return load("assets/worktree_checklist.md")  # step-by-step validation
+
+# ══════════════════════════════════════════════════════════════════════
+# STATIC RESOURCES (always available, not conditionally loaded)
+# ══════════════════════════════════════════════════════════════════════
+# assets/commit_message_template.md → Format guide with real-world examples
+# assets/pr_template.md → Structured PR descriptions with examples
 ```
 
 ---
 
-## 4. 🗂️ REFERENCES
-
-### Core Framework & Workflow Phases
-| Document                             | Purpose                                    | Key Insight                                              |
-| ------------------------------------ | ------------------------------------------ | -------------------------------------------------------- |
-| **Git Workflows - Phase 1: Setup**   | Workspace isolation via git-worktrees      | **Parallel work without branch juggling or stash chaos** |
-| **Git Workflows - Phase 2: Commit**  | Professional commit hygiene via git-commit | **Conventional Commits with artifact filtering**         |
-| **Git Workflows - Phase 3: Complete** | Work integration via git-finish            | **Tests gate + 4 structured completion options**         |
-
-### Bundled Resources
-| Document                              | Purpose                                         | Key Insight                                                         |
-| ------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------- |
-| **references/worktree_workflows.md**  | Complete 7-step worktree creation workflow      | Directory selection priority, safety verification, branch strategies |
-| **references/commit_workflows.md**    | Complete 6-step commit workflow                 | File categorization, artifact filtering, Conventional Commits       |
-| **references/finish_workflows.md**    | Complete 5-step completion workflow             | Test verification gate, 4 options (merge/PR/keep/discard)           |
-| **references/shared_patterns.md**     | Common git patterns and command reference       | Branch naming, git commands, Conventional Commits format            |
-| **references/quick_reference.md**     | One-page cheat sheet                            | Skill selection flowchart, essential commands                       |
-| **assets/commit_message_template.md** | Conventional Commits examples                   | Format guide with real-world examples                               |
-| **assets/pr_template.md**             | Pull request templates                          | Structured PR descriptions with examples                            |
-| **assets/worktree_checklist.md**      | Step-by-step worktree creation checklist        | Validation checkpoints for workspace setup                          |
-
----
-
-## 5. 🛠️ HOW TO USE
+## 4. 🛠️ HOW TO USE
 
 ### Git Development Lifecycle Map
 
@@ -177,7 +192,7 @@ Git development flows through 3 phases:
 
 ---
 
-## 6. 🗺️ SKILL SELECTION DECISION TREE
+## 5. 🗺️ SKILL SELECTION DECISION TREE
 
 **What are you doing?**
 
@@ -229,20 +244,7 @@ git-finish (feature A) → git-finish (feature B)
 
 ---
 
-## 7. 📋 SHARED PATTERNS
-
-Common git patterns, commands, and conventions are documented in detail.
-
-**See**: [shared_patterns.md](./references/shared_patterns.md) for:
-- Branch naming conventions (temp, feature, detached HEAD)
-- Git command reference (worktree, commit, merge, remote operations)
-- Conventional Commits format and examples
-- Common workflow patterns and sequences
-- Quality check checklists
-
----
-
-## 8. 💡 INTEGRATION EXAMPLES
+## 6. 💡 INTEGRATION EXAMPLES
 
 ### Example 1: New Authentication Feature
 
@@ -275,16 +277,9 @@ Common git patterns, commands, and conventions are documented in detail.
 
 ---
 
-## 9. ⚡ QUICK REFERENCE
+## 7. ⚡ QUICK REFERENCE
 
 **For one-page cheat sheet**: See [quick_reference.md](./references/quick_reference.md)
-
-**Quick Navigation**:
-- **Starting work?** Section 3 (Lifecycle Map) shows which phase you're in
-- **Need a skill?** Section 4 (Decision Tree) guides selection
-- **Need git commands?** See [shared_patterns.md](./references/shared_patterns.md)
-- **Need an example?** Section 6 (Integration Examples) shows real workflows
-- **Need detailed workflow?** See [worktree_workflows.md](./references/worktree_workflows.md), [commit_workflows.md](./references/commit_workflows.md), [finish_workflows.md](./references/finish_workflows.md)
 
 **Git Workflow Principles**:
 ```

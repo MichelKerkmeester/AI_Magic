@@ -29,7 +29,7 @@ Enforce markdown structure, optimize content for AI assistants, and validate qua
 - Improving AI-friendliness of documentation (c7score optimization)
 - Validating document quality before release
 
-**See**: Sections 2-6 below
+**See**: Sections 2-5 below
 
 ### Mode 2: Skill Creation & Management
 
@@ -42,7 +42,7 @@ Guide the creation of effective Claude skills through a structured 6-step workfl
 - Packaging skills for distribution
 - Updating or maintaining existing skills
 
-**See**: Sections 2-6 below and [skill_creation.md](./references/skill_creation.md)
+**See**: Sections 2-5 below and [skill_creation.md](./references/skill_creation.md)
 
 ### Mode 3: Flowchart Creation
 
@@ -56,170 +56,269 @@ Create comprehensive ASCII flowcharts in markdown for visualizing complex workfl
 - Showing parallel execution paths and dependencies
 - Creating quick reference guides for processes
 
-**See**: Sections 2-6 below and [assets/flowcharts/](./assets/flowcharts/)
+**See**: Sections 2-5 below and [assets/flowcharts/](./assets/flowcharts/)
 
 ---
 
-## 2. 🧭 SMART ROUTING
+## 2. 🧭 SMART ROUTING & REFERENCES
 
+### Mode Selection
+```
+TASK CONTEXT
+    │
+    ├─► Improving existing markdown / documentation quality
+    │   └─► MODE 1: Document Optimization
+    │       └─► Load: core_standards.md, optimization.md, validation.md
+    │
+    ├─► Creating new skill / skill maintenance
+    │   └─► MODE 2: Skill Creation
+    │       └─► Load: skill_creation.md, skill_md_template.md
+    │       └─► Execute: init_skill.py, package_skill.py
+    │
+    ├─► Creating ASCII flowcharts / diagrams
+    │   └─► MODE 3: ASCII Flowcharts
+    │       └─► Load: flowchart assets (decision_tree.txt, etc.)
+    │
+    └─► Quick reference / standards lookup
+        └─► Load: quick_reference.md
+```
+
+### Resource Router
 ```python
 def route_documentation_resources(task):
+    # ══════════════════════════════════════════════════════════════════════
     # MODE 1: Document Quality
+    # ══════════════════════════════════════════════════════════════════════
     if task.mode == "document_quality":
+        # ──────────────────────────────────────────────────────────────────
+        # Core Standards
+        # Purpose: Filename conventions, document types, structural violations
+        # Key Insight: Load for Phase 1 enforcement and violation detection
+        # ──────────────────────────────────────────────────────────────────
         if task.checking_structure:
-            return load("references/core_standards.md")  # filename, types, violations
+            return load("references/core_standards.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Optimization
+        # Purpose: C7score metrics and 16 transformation patterns
+        # Key Insight: Load for Phase 2 optimization and improvement suggestions
+        # ──────────────────────────────────────────────────────────────────
         if task.optimizing_content:
-            return load("references/optimization.md")  # c7score, 16 transformations
+            return load("references/optimization.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Validation
+        # Purpose: Quality scoring, gates, and improvement recommendations
+        # Key Insight: Load for Phase 3 validation and quality gates
+        # ──────────────────────────────────────────────────────────────────
         if task.validating_quality:
-            return load("references/validation.md")  # scoring, gates, recommendations
+            return load("references/validation.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Workflows
+        # Purpose: Four execution modes, hook integration, enforcement patterns
+        # Key Insight: Load for mode selection and workflow guidance
+        # ──────────────────────────────────────────────────────────────────
         if task.needs_workflow_guidance:
-            return load("references/workflows.md")  # 4 execution modes
+            return load("references/workflows.md")
 
+    # ══════════════════════════════════════════════════════════════════════
     # MODE 2: Skill Creation
+    # ══════════════════════════════════════════════════════════════════════
     if task.mode == "skill_creation":
+        # ──────────────────────────────────────────────────────────────────
+        # Skill Creation Workflow
+        # Purpose: Complete 6-step skill creation workflow with examples
+        # Key Insight: Load for MODE 2 skill creation/updates
+        # ──────────────────────────────────────────────────────────────────
         if task.creating_skill:
-            load("references/skill_creation.md")  # 6-step workflow
-            return execute("scripts/init_skill.py")  # scaffolding
-        if task.needs_skill_template:
-            return load("assets/skills/skill_md_template.md")  # SKILL.md template
-        if task.needs_asset_template:
-            return load("assets/skills/skill_asset_template.md")  # asset file template
-        if task.needs_reference_template:
-            return load("assets/skills/skill_reference_template.md")  # reference file template
-        if task.creating_command:
-            return load("assets/command_template.md")  # slash command templates
-        if task.packaging_skill:
-            return execute("scripts/package_skill.py")  # validation + packaging
-        if task.quick_validation:
-            return execute("scripts/quick_validate.py")  # fast validation
+            load("references/skill_creation.md")
+            return execute("scripts/init_skill.py")
 
+        # ──────────────────────────────────────────────────────────────────
+        # SKILL.md Template
+        # Purpose: Complete SKILL.md file templates
+        # Key Insight: Load for MODE 2 skill initialization
+        # ──────────────────────────────────────────────────────────────────
+        if task.needs_skill_template:
+            return load("assets/skills/skill_md_template.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Asset Template
+        # Purpose: Asset file creation templates
+        # Key Insight: Load for MODE 2 bundled asset files
+        # ──────────────────────────────────────────────────────────────────
+        if task.needs_asset_template:
+            return load("assets/skills/skill_asset_template.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Reference Template
+        # Purpose: Reference doc templates
+        # Key Insight: Load for MODE 2 bundled reference files
+        # ──────────────────────────────────────────────────────────────────
+        if task.needs_reference_template:
+            return load("assets/skills/skill_reference_template.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Command Template
+        # Purpose: Claude Code slash command templates (simple, workflow, mode-based, destructive)
+        # Key Insight: Load for command creation/alignment
+        # ──────────────────────────────────────────────────────────────────
+        if task.creating_command:
+            return load("assets/command_template.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Skill Packaging
+        # Purpose: Skill validation and packaging
+        # Key Insight: Execute for MODE 2 Step 5 packaging
+        # ──────────────────────────────────────────────────────────────────
+        if task.packaging_skill:
+            return execute("scripts/package_skill.py")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Quick Validation
+        # Purpose: Minimal skill validation
+        # Key Insight: Execute for fast validation checks
+        # ──────────────────────────────────────────────────────────────────
+        if task.quick_validation:
+            return execute("scripts/quick_validate.py")
+
+    # ══════════════════════════════════════════════════════════════════════
     # MODE 3: Flowchart Creation
+    # ══════════════════════════════════════════════════════════════════════
     if task.mode == "flowchart":
+        # ──────────────────────────────────────────────────────────────────
+        # Simple Workflow
+        # Purpose: Linear sequential flow example
+        # Key Insight: Load for basic top-to-bottom flows
+        # ──────────────────────────────────────────────────────────────────
         if task.is_linear_sequence:
             return load("assets/flowcharts/simple_workflow.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Decision Tree Flow
+        # Purpose: Multi-branch decision example
+        # Key Insight: Load for complex decision trees
+        # ──────────────────────────────────────────────────────────────────
         if task.has_decision_branches:
             return load("assets/flowcharts/decision_tree_flow.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Parallel Execution
+        # Purpose: Concurrent tasks example
+        # Key Insight: Load for sync points and parallel blocks
+        # ──────────────────────────────────────────────────────────────────
         if task.has_parallel_tasks:
             return load("assets/flowcharts/parallel_execution.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # User Onboarding (Nested)
+        # Purpose: Nested sub-process example
+        # Key Insight: Load for hierarchical workflows
+        # ──────────────────────────────────────────────────────────────────
         if task.has_nested_process:
             return load("assets/flowcharts/user_onboarding.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Approval Workflow Loops
+        # Purpose: Revision cycles example
+        # Key Insight: Load for approval gates and loops
+        # ──────────────────────────────────────────────────────────────────
         if task.has_approval_gate or task.has_loop_iteration:
             return load("assets/flowcharts/approval_workflow_loops.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # System Architecture Swimlane
+        # Purpose: Swimlane pattern example
+        # Key Insight: Load for layer separation diagrams
+        # ──────────────────────────────────────────────────────────────────
         if task.has_multi_stage or task.needs_swimlanes:
             return load("assets/flowcharts/system_architecture_swimlane.md")
+
+        # ──────────────────────────────────────────────────────────────────
+        # Flowchart Validation
+        # Purpose: Flowchart validation automation
+        # Key Insight: Execute for size, depth, and alignment checks
+        # ──────────────────────────────────────────────────────────────────
         if task.validating_flowchart:
             return execute("scripts/validate_flowchart.sh")
 
-    # frontmatter help
+    # ══════════════════════════════════════════════════════════════════════
+    # GENERAL UTILITIES (cross-mode)
+    # ══════════════════════════════════════════════════════════════════════
+
+    # ──────────────────────────────────────────────────────────────────
+    # Frontmatter Templates
+    # Purpose: YAML frontmatter templates by document type
+    # Key Insight: Load when creating/validating frontmatter
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_frontmatter:
-        return load("assets/frontmatter_templates.md")  # YAML by doc type
+        return load("assets/frontmatter_templates.md")
 
-    # llms.txt generation
+    # ──────────────────────────────────────────────────────────────────
+    # llms.txt Templates
+    # Purpose: Example llms.txt files
+    # Key Insight: Load when generating llms.txt
+    # ──────────────────────────────────────────────────────────────────
     if task.generating_llmstxt:
-        return load("assets/llmstxt_templates.md")  # llms.txt examples
+        return load("assets/llmstxt_templates.md")
 
-    # knowledge file creation
+    # ──────────────────────────────────────────────────────────────────
+    # Knowledge Base Template
+    # Purpose: Knowledge file creation guide
+    # Key Insight: Load when creating .claude/knowledge files
+    # ──────────────────────────────────────────────────────────────────
     if task.creating_knowledge_file:
-        return load("assets/knowledge_base_template.md")  # knowledge file guide
+        return load("assets/knowledge_base_template.md")
 
-    # batch analysis
+    # ──────────────────────────────────────────────────────────────────
+    # Document Analysis
+    # Purpose: Document quality analysis automation
+    # Key Insight: Execute for batch quality analysis
+    # ──────────────────────────────────────────────────────────────────
     if task.analyzing_docs:
-        return execute("scripts/analyze_docs.py")  # quality automation
+        return execute("scripts/analyze_docs.py")
 
-    # quick lookup
+    # ──────────────────────────────────────────────────────────────────
+    # Quick Reference
+    # Purpose: One-page cheat sheet for fast lookup
+    # Key Insight: Load for quick navigation and decision support
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_quick_reference:
-        return load("references/quick_reference.md")  # one-page cheat sheet
+        return load("references/quick_reference.md")
+
+# ══════════════════════════════════════════════════════════════════════
+# STATIC RESOURCES (always available, not conditionally loaded)
+# ══════════════════════════════════════════════════════════════════════
+# references/core_standards.md → Filename conventions, document types, structural violations
+# references/workflows.md → Four execution modes, hook integration, enforcement patterns
+# references/optimization.md → C7score metrics and 16 transformation patterns
+# references/validation.md → Quality scoring, gates, and improvement recommendations
+# references/skill_creation.md → Complete 6-step skill creation workflow with examples
+# references/quick_reference.md → One-page cheat sheet for fast lookup
+# assets/frontmatter_templates.md → YAML frontmatter templates by document type
+# assets/llmstxt_templates.md → Example llms.txt files
+# assets/knowledge_base_template.md → Knowledge file creation guide
+# assets/command_template.md → Claude Code slash command templates
+# assets/skills/skill_md_template.md → Complete SKILL.md file templates
+# assets/skills/skill_asset_template.md → Asset file creation templates
+# assets/skills/skill_reference_template.md → Reference doc templates
+# assets/flowcharts/simple_workflow.md → Linear sequential flow example
+# assets/flowcharts/decision_tree_flow.md → Multi-branch decision example
+# assets/flowcharts/parallel_execution.md → Concurrent tasks example
+# assets/flowcharts/user_onboarding.md → Nested sub-process example
+# assets/flowcharts/approval_workflow_loops.md → Revision cycles example
+# assets/flowcharts/system_architecture_swimlane.md → Swimlane pattern example
+# scripts/analyze_docs.py → Document quality analysis automation
+# scripts/init_skill.py → Skill scaffolding and template generation
+# scripts/package_skill.py → Skill validation and packaging
+# scripts/quick_validate.py → Minimal skill validation
+# scripts/validate_flowchart.sh → Flowchart validation automation
 ```
 
 ---
 
-## 3. 🗂️ REFERENCES
-
-### Core Framework
-| Document                                 | Purpose                               | Key Insight                                |
-| ---------------------------------------- | ------------------------------------- | ------------------------------------------ |
-| **Create Documentation - Main Workflow** | Core capability and execution pattern | **Specialized auxiliary tool integration** |
-
-### References
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **references/core_standards.md** | Filename conventions, document types, structural violations | Load for Phase 1 enforcement and violation detection |
-| **references/workflows.md** | Four execution modes, hook integration, enforcement patterns | Load for mode selection and workflow guidance |
-| **references/optimization.md** | C7score metrics and 16 transformation patterns | Load for Phase 2 optimization and improvement suggestions |
-| **references/validation.md** | Quality scoring, gates, and improvement recommendations | Load for Phase 3 validation and quality gates |
-| **references/skill_creation.md** | Complete 6-step skill creation workflow with examples | Load for MODE 2 skill creation/updates |
-| **references/quick_reference.md** | One-page cheat sheet for fast lookup | Load for quick navigation and decision support |
-
-### Assets
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **assets/frontmatter_templates.md** | YAML frontmatter templates by document type | Load when creating/validating frontmatter |
-| **assets/skills/skill_md_template.md** | Complete SKILL.md file templates | Load for MODE 2 skill initialization |
-| **assets/skills/skill_asset_template.md** | Asset file creation templates | Load for MODE 2 bundled asset files |
-| **assets/skills/skill_reference_template.md** | Reference doc templates | Load for MODE 2 bundled reference files |
-| **assets/command_template.md** | Claude Code slash command templates (simple, workflow, mode-based, destructive) | Load for command creation/alignment |
-| **assets/llmstxt_templates.md** | Example llms.txt files | Load when generating llms.txt |
-| **assets/knowledge_base_template.md** | Knowledge file creation guide | Load when creating .claude/knowledge files |
-
-### Flowchart Assets (Mode 3)
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **assets/flowcharts/simple_workflow.md** | Linear sequential flow example | Load for basic top-to-bottom flows |
-| **assets/flowcharts/decision_tree_flow.md** | Multi-branch decision example | Load for complex decision trees |
-| **assets/flowcharts/parallel_execution.md** | Concurrent tasks example | Load for sync points and parallel blocks |
-| **assets/flowcharts/user_onboarding.md** | Nested sub-process example | Load for hierarchical workflows |
-| **assets/flowcharts/approval_workflow_loops.md** | Revision cycles example | Load for approval gates and loops |
-| **assets/flowcharts/system_architecture_swimlane.md** | Swimlane pattern example | Load for layer separation diagrams |
-
-### Scripts
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **scripts/analyze_docs.py** | Document quality analysis automation | Execute for batch quality analysis |
-| **scripts/init_skill.py** | Skill scaffolding and template generation | Execute for MODE 2 Step 3 initialization |
-| **scripts/package_skill.py** | Skill validation and packaging | Execute for MODE 2 Step 5 packaging |
-| **scripts/quick_validate.py** | Minimal skill validation | Execute for fast validation checks |
-| **scripts/validate_flowchart.sh** | Flowchart validation automation | Execute for size, depth, and alignment checks |
-
----
-
-## 4. 🎯 WHEN TO USE
-
-### Navigation Guide
-
-**This file (SKILL.md)**: Essential overview and rules for using this skill
-
-**Reference Files** (detailed documentation):
-- [core_standards.md](./references/core_standards.md) - Filename conventions, document types, structural violations
-- [workflows.md](./references/workflows.md) - Four execution modes, hook integration, enforcement patterns
-- [optimization.md](./references/optimization.md) - C7score metrics and 16 transformation patterns
-- [validation.md](./references/validation.md) - Quality scoring, gates, and improvement recommendations
-- [skill_creation.md](./references/skill_creation.md) - Complete skill creation workflow (6 steps, examples, best practices)
-- [quick_reference.md](./references/quick_reference.md) - One-page cheat sheet
-
-**Assets** (templates and output resources):
-- [frontmatter_templates.md](./assets/frontmatter_templates.md) - YAML frontmatter templates
-- [knowledge_base_template.md](./assets/knowledge_base_template.md) - Knowledge file creation guide
-- [skill_md_template.md](./assets/skills/skill_md_template.md) - Complete SKILL.md file templates
-- [skill_asset_template.md](./assets/skills/skill_asset_template.md) - Asset file creation templates
-- [skill_reference_template.md](./assets/skills/skill_reference_template.md) - Reference doc templates
-- [command_template.md](./assets/command_template.md) - Claude Code slash command templates
-- [llmstxt_templates.md](./assets/llmstxt_templates.md) - Example llms.txt files
-
-**Scripts** (automation):
-- [analyze_docs.py](./scripts/analyze_docs.py) - Document quality analysis
-- [init_skill.py](./scripts/init_skill.py) - Skill scaffolding and template generation
-- [package_skill.py](./scripts/package_skill.py) - Skill validation and packaging
-- [quick_validate.py](./scripts/quick_validate.py) - Minimal skill validation
-- [validate_flowchart.sh](./scripts/validate_flowchart.sh) - Flowchart validation
-
-**Flowchart Assets** (Mode 3 patterns):
-- [assets/flowcharts/simple_workflow.md](./assets/flowcharts/simple_workflow.md) - Linear sequential flows
-- [assets/flowcharts/decision_tree_flow.md](./assets/flowcharts/decision_tree_flow.md) - Multi-branch decisions
-- [assets/flowcharts/parallel_execution.md](./assets/flowcharts/parallel_execution.md) - Concurrent tasks
-- [assets/flowcharts/user_onboarding.md](./assets/flowcharts/user_onboarding.md) - Nested sub-processes
-- [assets/flowcharts/approval_workflow_loops.md](./assets/flowcharts/approval_workflow_loops.md) - Approval gates and loops
-- [assets/flowcharts/system_architecture_swimlane.md](./assets/flowcharts/system_architecture_swimlane.md) - Swimlane diagrams
-
+## 3. 🎯 WHEN TO USE
 
 ### Mode 1: Document Quality Management
 
@@ -341,7 +440,7 @@ See [workflows.md](./references/workflows.md) for workflow examples.
 
 ---
 
-## 5. ⚙️ HOW TO USE
+## 4. ⚙️ HOW TO USE
 
 ### Mode 1: Document Quality
 
@@ -420,7 +519,7 @@ Standard Flow:      Branch:           Parallel:
 
 ---
 
-## 6. 📋 RULES
+## 5. 📋 RULES
 
 ### Mode 1: Document Quality
 
@@ -567,7 +666,7 @@ Semantic emojis (✅ ❌ ⚠️) are REQUIRED on H3 subsections within RULES sec
 
 ---
 
-## 7. 🏆 SUCCESS CRITERIA
+## 6. 🏆 SUCCESS CRITERIA
 
 ### Mode 1: Document Quality
 
@@ -716,7 +815,7 @@ When validating SKILL.md with Document Quality mode:
 
 ---
 
-## 8. 🔌 INTEGRATION POINTS
+## 7. 🔌 INTEGRATION POINTS
 
 ### Mode 1: Document Quality
 
@@ -859,85 +958,26 @@ markdown-document-specialist --full-pipeline .claude/skills/my-skill/SKILL.md
 
 ---
 
-## 9. 📚 ADDITIONAL RESOURCES
-
-### Skill Resources
-
-**Reference Documentation** (detailed guides):
-- `references/core_standards.md` - Filename conventions, document types, structural violations
-- `references/workflows.md` - Four execution modes, hook integration, enforcement patterns
-- `references/optimization.md` - C7score metrics and 16 transformation patterns
-- `references/validation.md` - Quality scoring, gates, and improvement recommendations
-- `references/quick_reference.md` - One-page cheat sheet for document quality
-- `references/skill_creation.md` - Complete skill creation workflow (6 steps, examples, best practices)
-
-**Assets** (templates and examples):
-- `assets/frontmatter_templates.md` - YAML frontmatter by document type
-- `assets/knowledge_base_template.md` - Knowledge file creation guide
-- `assets/skills/skill_md_template.md` - Complete SKILL.md file templates
-- `assets/skills/skill_asset_template.md` - Asset file creation templates
-- `assets/skills/skill_reference_template.md` - Reference doc templates
-- `assets/command_template.md` - Claude Code slash command templates (simple, workflow, mode-based, destructive)
-- `assets/llmstxt_templates.md` - Example llms.txt files
-
-**Scripts** (automation):
-- `scripts/analyze_docs.py` - Document quality analysis
-- `scripts/init_skill.py` - Skill scaffolding and template generation
-- `scripts/package_skill.py` - Skill validation and packaging
-- `scripts/quick_validate.py` - Minimal skill validation
-- `scripts/validate_flowchart.sh` - Flowchart validation (size, depth, alignment)
-
-**Flowchart Assets** (Mode 3 patterns):
-- `assets/flowcharts/simple_workflow.md` - Linear sequential flows
-- `assets/flowcharts/decision_tree_flow.md` - Multi-branch decisions
-- `assets/flowcharts/parallel_execution.md` - Concurrent tasks with sync points
-- `assets/flowcharts/user_onboarding.md` - Nested sub-processes
-- `assets/flowcharts/approval_workflow_loops.md` - Approval gates and revision cycles
-- `assets/flowcharts/system_architecture_swimlane.md` - Swimlane layer separation
-
-### External Documentation
+## 8. 📚 EXTERNAL RESOURCES
 
 - **llms.txt specification**: https://llmstxt.org/
 - **c7score benchmarking**: https://context7.ai/ (AI documentation quality)
-- **Code standards**: `.claude/knowledge/code_standards.md`
-
-### Related Standards
-
-- **Structural rules**: [core_standards.md](./references/core_standards.md)
-- **Execution workflows**: [workflows.md](./references/workflows.md)
-- **Content optimization**: [optimization.md](./references/optimization.md)
-- **Quality validation**: [validation.md](./references/validation.md)
-- **Skill creation workflow**: [skill_creation.md](./references/skill_creation.md)
-- **Knowledge file guide**: [knowledge_base_template.md](./assets/knowledge_base_template.md)
-- **SKILL.md templates**: [skill_md_template.md](./assets/skills/skill_md_template.md)
-- **Frontmatter formats**: [frontmatter_templates.md](./assets/frontmatter_templates.md)
-
-### Quick Navigation
-
-**Document Quality**:
-- Getting started: Read this SKILL.md, then [quick_reference.md](./references/quick_reference.md)
-- Execution modes and workflows: [workflows.md](./references/workflows.md)
-- Document types and rules: [core_standards.md](./references/core_standards.md)
-- Optimization patterns: [optimization.md](./references/optimization.md)
-
-**Skill Creation**:
-- Getting started: Read this SKILL.md Sections 2, 3, 4, 5, 6
-- Complete workflow: [skill_creation.md](./references/skill_creation.md)
-- Script usage: [skill_creation.md](./references/skill_creation.md) Section 11
+- **Anthropic documentation**: https://docs.anthropic.com/
+- **CommonMark specification**: https://spec.commonmark.org/
 
 ---
 
-## 10. 🚀 QUICK START
+## 9. 🚀 QUICK START
 
 ### For Document Quality
 
-1. **Read**: This SKILL.md Section 4 (When to Use), Section 5 (How to Use), Section 6 (Rules), Section 7 (Success Criteria)
+1. **Read**: This SKILL.md Section 3 (When to Use), Section 4 (How to Use), Section 5 (Rules), Section 6 (Success Criteria)
 2. **Navigate**: [workflows.md](./references/workflows.md) for execution modes
 3. **Use**: Run enforcement, optimization, or validation as needed
 
 ### For Skill Creation
 
-1. **Read**: This SKILL.md Section 4 (When to Use), Section 5 (How to Use), Section 6 (Rules), Section 7 (Success Criteria)
+1. **Read**: This SKILL.md Section 3 (When to Use), Section 4 (How to Use), Section 5 (Rules), Section 6 (Success Criteria)
 2. **Navigate**: [skill_creation.md](./references/skill_creation.md) for complete workflow
 3. **Use Scripts**: init_skill.py → edit → package_skill.py
 4. **Validate**: Run Document Quality mode on SKILL.md (target 90+)

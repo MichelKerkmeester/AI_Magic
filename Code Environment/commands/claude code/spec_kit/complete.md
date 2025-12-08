@@ -53,7 +53,7 @@ EXECUTE AFTER GATE 0 PASSES:
    │ A) Use existing spec folder: [suggest if related found]    │
    │ B) Create new spec folder: specs/[NNN]-[feature-slug]/     │
    │ C) Update related spec: [if partial match found]           │
-   │ D) Skip documentation (WARNING: complete workflow produces │
+   │ D) Skip documentation (WARNING: complete workflow produces  │
    │    many artifacts - not recommended)                       │
    └────────────────────────────────────────────────────────────┘
 
@@ -102,9 +102,9 @@ CHECK spec_choice value:
         │   ┌────────────────────────────────────────────────────┐
         │   │ "Load previous context from this spec folder?"     │
         │   │                                                    │
-        │   │ A) Load most recent memory file (quick refresh)    │
-        │   │ B) Load all recent files, up to 3 (comprehensive)  │
-        │   │ C) List all files and select specific              │
+        │   │ A) Load most recent memory file (quick refresh)     │
+        │   │ B) Load all recent files, up to 3 (comprehensive)   │
+        │   │ C) List all files and select specific                │
         │   │ D) Skip (start fresh, no context)                  │
         │   └────────────────────────────────────────────────────┘
         │
@@ -181,24 +181,24 @@ operating_mode:
 
 ---
 
-## Purpose
+## 1. 📋 PURPOSE
 
 Run the full 12-step SpecKit workflow: specification, clarification, planning, task breakdown, implementation, and context saving. This is the comprehensive workflow for feature development with full documentation trail.
 
 ---
 
-## Contract
+## 2. 📝 CONTRACT
 
 **Inputs:** `$ARGUMENTS` — Feature description with optional parameters (branch, scope, context)
 **Outputs:** Complete spec folder with all artifacts + `STATUS=<OK|FAIL|CANCELLED>`
 
-## User Input
+### User Input
 
 ```text
 $ARGUMENTS
 ```
 
-## Workflow Overview (12 Steps)
+## 3. 📊 WORKFLOW-OVERVIEW
 
 | Step | Name                 | Purpose                                                                      | Outputs                    |
 | ---- | -------------------- | ---------------------------------------------------------------------------- | -------------------------- |
@@ -217,7 +217,7 @@ $ARGUMENTS
 
 ---
 
-## Instructions
+## 4. ⚡ INSTRUCTIONS
 
 ### Phase 1: Mode Detection & Input Parsing
 
@@ -317,7 +317,7 @@ Execute the 12 steps defined in Workflow Overview. Each step produces artifacts 
 
 ---
 
-## Context Loading
+## 5. 📁 CONTEXT-LOADING
 
 When resuming work in an existing spec folder, the system will prompt to load prior session memory:
 - **A)** Load most recent memory file (quick context refresh)
@@ -325,9 +325,9 @@ When resuming work in an existing spec folder, the system will prompt to load pr
 - **C)** List all files and select specific (historical search)
 - **D)** Skip (start fresh, no context)
 
-See CLAUDE.md Section 2 for full memory file handling details.
+See AGENTS.md Section 2 for full memory file handling details.
 
-## Failure Recovery
+## 6. 🔧 FAILURE-RECOVERY
 
 | Failure Type                     | Recovery Action                                      |
 | -------------------------------- | ---------------------------------------------------- |
@@ -337,7 +337,7 @@ See CLAUDE.md Section 2 for full memory file handling details.
 | Prerequisites insufficient       | Return to prior workflow phase (planning)            |
 | Environment unavailable          | Skip browser testing, document limitation            |
 
-## Error Handling
+## 7. ⚠️ ERROR-HANDLING
 
 | Condition              | Action                                                     |
 | ---------------------- | ---------------------------------------------------------- |
@@ -346,7 +346,7 @@ See CLAUDE.md Section 2 for full memory file handling details.
 | Prerequisites missing  | Guide user to prerequisite commands                        |
 | Validation failure     | Log issue and attempt resolution or escalate               |
 
-## Documentation Levels (Progressive Enhancement)
+## 8. 📊 DOCUMENTATION-LEVELS
 
 | Level                      | Required Files               | LOC Guidance | Use Case                               |
 | -------------------------- | ---------------------------- | ------------ | -------------------------------------- |
@@ -358,7 +358,7 @@ See CLAUDE.md Section 2 for full memory file handling details.
 
 **Important:** For Level 2+, `checklist.md` is MANDATORY for verification before any completion claims. The AI must actively use it to verify work.
 
-## Templates Used
+## 9. 📁 TEMPLATES-USED
 
 **Core Templates:**
 - `.opencode/speckit/templates/spec.md` (Level 1+)
@@ -375,7 +375,7 @@ See CLAUDE.md Section 2 for full memory file handling details.
 - `.opencode/speckit/templates/handover.md` (any level)
 - `.opencode/speckit/templates/debug-delegation.md` (any level)
 
-## Completion Report
+## 10. 📊 COMPLETION-REPORT
 
 After workflow completion, report:
 
@@ -414,7 +414,7 @@ Next Steps:
 STATUS=OK PATH=specs/NNN-short-name/
 ```
 
-## Examples
+## 11. 🔍 EXAMPLES
 
 **Example 1: Simple Feature (autonomous)**
 ```
@@ -433,7 +433,7 @@ STATUS=OK PATH=specs/NNN-short-name/
 
 ---
 
-## Notes
+## 12. 📌 NOTES
 
 ### Checklist Verification Protocol (Level 2+ Mandatory)
 

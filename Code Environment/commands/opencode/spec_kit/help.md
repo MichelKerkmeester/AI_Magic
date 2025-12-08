@@ -134,6 +134,6 @@ specs/###-short-name/
 
 This auto-creates the folder with sensible defaults.
 
-**New to SpecKit?** See `.opencode/speckit/QUICKSTART.md`
+**New to SpecKit?** See `.opencode/speckit/README.md`
 
 **Full reference:** `.opencode/speckit/README.md`

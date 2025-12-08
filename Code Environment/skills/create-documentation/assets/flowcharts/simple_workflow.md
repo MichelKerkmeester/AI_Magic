@@ -41,14 +41,14 @@ A basic linear workflow demonstrating sequential steps without branching.
 │  Step 4: Create Account                  │
 │  • Store credentials (hashed)            │
 │  • Generate user ID                      │
-│  • Create profile entry                  │
+│  • Create profile entry                   │
 │  Duration: < 1 second                    │
 └──────────────────────────────────────────┘
                   │
                   ▼
 ┌──────────────────────────────────────────┐
-│  Step 5: Send Verification Email         │
-│  • Generate verification token           │
+│  Step 5: Send Verification Email          │
+│  • Generate verification token            │
 │  • Send email with link                  │
 │  • Token expires in 24 hours             │
 │  Duration: 2-5 seconds                   │
@@ -56,7 +56,7 @@ A basic linear workflow demonstrating sequential steps without branching.
                   │
                   ▼
 ┌──────────────────────────────────────────┐
-│  Step 6: Confirmation Screen             │
+│  Step 6: Confirmation Screen              │
 │  • Display success message               │
 │  • Prompt to check email                 │
 │  • Provide resend option                 │
@@ -65,7 +65,7 @@ A basic linear workflow demonstrating sequential steps without branching.
                   ▼
 ╭──────────────────────────────────────────╮
 │      Registration Complete               │
-│      (Pending Email Verification)        │
+│      (Pending Email Verification)         │
 ╰──────────────────────────────────────────╯
 ```
 

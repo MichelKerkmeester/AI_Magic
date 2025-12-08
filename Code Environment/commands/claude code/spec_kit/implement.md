@@ -40,7 +40,7 @@ EXECUTE THIS CHECK FIRST:
 
 ---
 
-## 🔒 GATE 1: Spec Folder Validation & Confirmation
+## 🔒 GATE 1: Spec Folder Validation and Confirmation
 
 **STATUS: ☐ BLOCKED**
 
@@ -65,16 +65,16 @@ EXECUTE AFTER GATE 0 PASSES:
 
 3. IF files exist, ASK user for confirmation:
    ┌────────────────────────────────────────────────────────────┐
-   │ "Confirm implementation of this spec folder?"              │
+   │ "Confirm implementation of this spec folder?"               │
    │                                                            │
    │ Folder: [spec_folder_input]                                │
    │ ├─ spec.md ✓                                               │
    │ ├─ plan.md ✓                                               │
-   │ └─ [other files status]                                    │
+   │ └─ [other files status]                                     │
    │                                                            │
    │ A) Yes, implement this spec folder                         │
    │ B) No, select a different spec folder                      │
-   │ C) Cancel - I need to plan first                           │
+   │ C) Cancel - I need to plan first                            │
    └────────────────────────────────────────────────────────────┘
 
 4. WAIT for explicit user confirmation
@@ -110,9 +110,9 @@ EXECUTE AFTER GATE 1 PASSES:
     │   ┌────────────────────────────────────────────────────┐
     │   │ "Load previous context from this spec folder?"     │
     │   │                                                    │
-    │   │ A) Load most recent memory file (quick refresh)    │
-    │   │ B) Load all recent files, up to 3 (comprehensive)  │
-    │   │ C) List all files and select specific              │
+    │   │ A) Load most recent memory file (quick refresh)     │
+    │   │ B) Load all recent files, up to 3 (comprehensive)   │
+    │   │ C) List all files and select specific                │
     │   │ D) Skip (start fresh, no context)                  │
     │   └────────────────────────────────────────────────────┘
     │
@@ -128,15 +128,15 @@ EXECUTE AFTER GATE 1 PASSES:
 
 ---
 
-## ✅ GATE STATUS VERIFICATION
+## ✅ Gate Status Verification
 
 **Before continuing to the workflow, verify ALL gates:**
 
-| Gate | Required Status | Your Status | Output Value |
-|------|-----------------|-------------|--------------|
-| GATE 0: Spec Input | ✅ PASSED | ______ | spec_folder_input: ______ |
-| GATE 1: Validation | ✅ PASSED | ______ | spec_path: ______ / valid: ______ |
-| GATE 2: Memory | ✅ PASSED or ⏭️ N/A | ______ | memory_loaded: ______ |
+| Gate               | Required Status   | Your Status | Output Value                      |
+| ------------------ | ----------------- | ----------- | --------------------------------- |
+| GATE 0: Spec Input | ✅ PASSED          | ______      | spec_folder_input: ______         |
+| GATE 1: Validation | ✅ PASSED          | ______      | spec_path: ______ / valid: ______ |
+| GATE 2: Memory     | ✅ PASSED or ⏭️ N/A | ______      | memory_loaded: ______             |
 
 ```
 VERIFICATION CHECK:
@@ -147,7 +147,7 @@ VERIFICATION CHECK:
 
 ---
 
-## ⚠️ VIOLATION SELF-DETECTION
+## ⚠️ Violation Self-Detection
 
 **You are IN VIOLATION if you:**
 - Started reading the workflow section before all gates passed
@@ -165,7 +165,6 @@ VERIFICATION CHECK:
 5. RESUME only after all gates pass verification
 ```
 
----
 ---
 
 # SpecKit Implement
@@ -193,13 +192,13 @@ operating_mode:
 
 ---
 
-## Purpose
+## 1. 📋 PURPOSE
 
 Run the 8-step implementation workflow: plan review, task breakdown, quality validation, development, and completion summary. Picks up where `/spec_kit:plan` left off to execute the actual code changes.
 
 ---
 
-## Contract
+## 2. 📝 CONTRACT
 
 **Inputs:** `$ARGUMENTS` — Spec folder path (REQUIRED) with optional parameters (environment, constraints)
 **Outputs:** Completed implementation + implementation-summary.md + `STATUS=<OK|FAIL|CANCELLED>`
@@ -227,20 +226,20 @@ If prerequisites are missing, guide user to run `/spec_kit:plan` first.
 
 ## Workflow Overview (8 Steps)
 
-| Step | Name | Purpose | Outputs |
-|------|------|---------|---------|
-| 1 | Review Plan & Spec | Understand requirements | requirements_summary |
-| 2 | Task Breakdown | Create/validate tasks.md | tasks.md |
-| 3 | Analysis | Verify consistency | consistency_report |
-| 4 | Quality Checklist | Validate checklists (ACTIVELY USED for verification at completion) | checklist_status |
-| 5 | Implementation Check | Verify prerequisites | greenlight |
-| 6 | Development | Execute implementation | code changes |
-| 7 | Completion | Generate summary | implementation-summary.md |
-| 8 | Save Context | Preserve conversation | memory/*.md |
+| Step | Name                 | Purpose                                                            | Outputs                   |
+| ---- | -------------------- | ------------------------------------------------------------------ | ------------------------- |
+| 1    | Review Plan & Spec   | Understand requirements                                            | requirements_summary      |
+| 2    | Task Breakdown       | Create/validate tasks.md                                           | tasks.md                  |
+| 3    | Analysis             | Verify consistency                                                 | consistency_report        |
+| 4    | Quality Checklist    | Validate checklists (ACTIVELY USED for verification at completion) | checklist_status          |
+| 5    | Implementation Check | Verify prerequisites                                               | greenlight                |
+| 6    | Development          | Execute implementation                                             | code changes              |
+| 7    | Completion           | Generate summary                                                   | implementation-summary.md |
+| 8    | Save Context         | Preserve conversation                                              | memory/*.md               |
 
 ---
 
-## Instructions
+## 3. ⚡ INSTRUCTIONS
 
 ### Phase 1: Mode Detection & Input Parsing
 
@@ -248,11 +247,11 @@ If prerequisites are missing, guide user to run `/spec_kit:plan` first.
 
 Detect execution mode from command invocation:
 
-| Pattern | Mode | Behavior |
-|---------|------|----------|
-| `/spec_kit:implement:auto` | AUTONOMOUS | Execute all steps without user approval gates |
-| `/spec_kit:implement:confirm` | INTERACTIVE | Pause at each step for user approval |
-| `/spec_kit:implement` (no suffix) | PROMPT | Ask user to choose mode |
+| Pattern                           | Mode        | Behavior                                      |
+| --------------------------------- | ----------- | --------------------------------------------- |
+| `/spec_kit:implement:auto`        | AUTONOMOUS  | Execute all steps without user approval gates |
+| `/spec_kit:implement:confirm`     | INTERACTIVE | Pause at each step for user approval          |
+| `/spec_kit:implement` (no suffix) | PROMPT      | Ask user to choose mode                       |
 
 #### Step 1.2: Mode Selection (when no suffix detected)
 
@@ -260,10 +259,10 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 **Question**: "How would you like to execute this implementation workflow?"
 
-| Option | Mode | Description |
-|--------|------|-------------|
-| **A** | Autonomous | Execute all 8 steps without approval gates. Best for straightforward implementation. |
-| **B** | Interactive | Pause at each step for approval. Best for complex code changes needing review. |
+| Option | Mode        | Description                                                                          |
+| ------ | ----------- | ------------------------------------------------------------------------------------ |
+| **A**  | Autonomous  | Execute all 8 steps without approval gates. Best for straightforward implementation. |
+| **B**  | Interactive | Pause at each step for approval. Best for complex code changes needing review.       |
 
 **Wait for user response before proceeding.**
 
@@ -284,15 +283,15 @@ Parse the spec_path (from GATE 1) and any additional arguments.
 
 **Field Extraction Rules**:
 
-| Field | Pattern Detection | Default If Empty |
-|-------|-------------------|------------------|
-| `git_branch` | "branch: X", "on branch X", "feature/X" | Use existing branch from spec folder |
-| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | **USE VALUE FROM GATE 1** (user's confirmed choice) |
-| `context` | "using X", "with Y", "constraints:" | Infer from spec folder |
-| `issues` | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Discover during workflow |
-| `request` | Additional instructions | "Conduct comprehensive review and implement" |
-| `environment` | URLs, "staging:", "production:" | Skip browser testing |
-| `scope` | File paths, glob patterns | Default to specs/** |
+| Field         | Pattern Detection                                               | Default If Empty                                    |
+| ------------- | --------------------------------------------------------------- | --------------------------------------------------- |
+| `git_branch`  | "branch: X", "on branch X", "feature/X"                         | Use existing branch from spec folder                |
+| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X"                      | **USE VALUE FROM GATE 1** (user's confirmed choice) |
+| `context`     | "using X", "with Y", "constraints:"                             | Infer from spec folder                              |
+| `issues`      | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Discover during workflow                            |
+| `request`     | Additional instructions                                         | "Conduct comprehensive review and implement"        |
+| `environment` | URLs, "staging:", "production:"                                 | Skip browser testing                                |
+| `scope`       | File paths, glob patterns                                       | Default to specs/**                                 |
 
 **IMPORTANT:** The `spec_folder` field MUST come from the user's confirmed choice in Step 1.3.
 Do NOT auto-detect or assume - the user MUST have explicitly confirmed.
@@ -310,7 +309,7 @@ Execute the 8 steps defined in Workflow Overview. Each step produces artifacts t
 
 ---
 
-## Key Differences from /spec_kit:complete
+## 4. 🔗 Key Differences from SpecKit Complete
 
 - **Requires existing plan** - Won't create spec.md or plan.md
 - **Starts at implementation** - Skips specification and planning phases
@@ -318,7 +317,7 @@ Execute the 8 steps defined in Workflow Overview. Each step produces artifacts t
 
 ---
 
-## Context Loading
+## 5. 📁 Context Loading
 
 When resuming work in an existing spec folder, the system will prompt to load prior session memory:
 - **A)** Load most recent memory file (quick context refresh)
@@ -326,19 +325,23 @@ When resuming work in an existing spec folder, the system will prompt to load pr
 - **C)** List all files and select specific (historical search)
 - **D)** Skip (start fresh, no context)
 
-See CLAUDE.md Section 2 for full memory file handling details.
+See AGENTS.md Section 2 for full memory file handling details.
 
-## Failure Recovery
+---
 
-| Failure Type | Recovery Action |
-|--------------|-----------------|
-| Step validation fails | Review requirements, ask clarifying questions, retry |
-| User rejects approach | Present alternatives, modify code, document decision |
-| Tests fail during implementation | Debug, fix, re-run before marking complete |
-| Prerequisites insufficient | Return to `/spec_kit:plan` workflow |
-| Environment unavailable | Skip browser testing, document limitation |
+## 6. 🔧 Failure Recovery
 
-## Prerequisite Check
+| Failure Type                     | Recovery Action                                      |
+| -------------------------------- | ---------------------------------------------------- |
+| Step validation fails            | Review requirements, ask clarifying questions, retry |
+| User rejects approach            | Present alternatives, modify code, document decision |
+| Tests fail during implementation | Debug, fix, re-run before marking complete           |
+| Prerequisites insufficient       | Return to `/spec_kit:plan` workflow                  |
+| Environment unavailable          | Skip browser testing, document limitation            |
+
+ ---
+
+## 7. 🔍 Prerequisite Check
 
 Before starting workflow, run:
 ```bash
@@ -363,27 +366,33 @@ Required artifacts not found:
 Please run /spec_kit:plan first to create planning artifacts.
 ```
 
-## Error Handling
+---
 
-| Condition | Action |
-|-----------|--------|
-| Missing spec.md | ERROR: Guide to /spec_kit:plan |
-| Missing plan.md | ERROR: Guide to /spec_kit:plan |
-| Missing tasks.md | Create tasks.md from plan.md |
-| Checklist failures | Prompt user to proceed or fix |
-| Test failures | Log and report, allow user decision |
+## 8. ⚠️ Error Handling
 
-## Documentation Levels (Progressive Enhancement)
+| Condition          | Action                              |
+| ------------------ | ----------------------------------- |
+| Missing spec.md    | ERROR: Guide to /spec_kit:plan      |
+| Missing plan.md    | ERROR: Guide to /spec_kit:plan      |
+| Missing tasks.md   | Create tasks.md from plan.md        |
+| Checklist failures | Prompt user to proceed or fix       |
+| Test failures      | Log and report, allow user decision |
 
-| Level | Required Files | LOC Guidance | Use Case |
-|-------|---------------|--------------|----------|
-| **Level 1 (Baseline)** | spec.md + plan.md + tasks.md | <100 LOC | Simple changes, bug fixes |
-| **Level 2 (Verification)** | Level 1 + checklist.md | 100-499 LOC | Medium features, refactoring |
-| **Level 3 (Full)** | Level 2 + decision-record.md | >=500 LOC | Complex features, architecture changes |
+---
+
+## 9. 📊 Documentation Levels
+
+| Level                      | Required Files               | LOC Guidance | Use Case                               |
+| -------------------------- | ---------------------------- | ------------ | -------------------------------------- |
+| **Level 1 (Baseline)**     | spec.md + plan.md + tasks.md | <100 LOC     | Simple changes, bug fixes              |
+| **Level 2 (Verification)** | Level 1 + checklist.md       | 100-499 LOC  | Medium features, refactoring           |
+| **Level 3 (Full)**         | Level 2 + decision-record.md | >=500 LOC    | Complex features, architecture changes |
 
 **Note:** LOC thresholds are soft guidance. Choose level based on complexity and risk.
 
-## Templates Used
+---
+
+## 10. 📁 Templates Used
 
 **Core Templates:**
 - `.opencode/speckit/templates/spec.md` (Level 1+)
@@ -400,7 +409,9 @@ Please run /spec_kit:plan first to create planning artifacts.
 - `.opencode/speckit/templates/handover.md` (any level)
 - `.opencode/speckit/templates/debug-delegation.md` (any level)
 
-## Completion Report
+---
+
+## 11. 📊 Completion Report
 
 After workflow completion, report:
 
@@ -440,7 +451,9 @@ Next Steps:
 STATUS=OK PATH=specs/NNN-short-name/
 ```
 
-## Examples
+---
+
+## 12. 🔍 EXAMPLES
 
 **Example 1: Execute Existing Plan (autonomous)**
 ```
@@ -459,7 +472,7 @@ STATUS=OK PATH=specs/NNN-short-name/
 
 ---
 
-## Notes
+## 13. 📌 NOTES
 
 ### Checklist Verification Protocol (Level 2+ Mandatory)
 

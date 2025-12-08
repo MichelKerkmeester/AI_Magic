@@ -684,6 +684,14 @@ sqlite3 ~/.claude/memory-index.sqlite \
   "SELECT embedding_status, COUNT(*) FROM memory_index GROUP BY embedding_status"
 ```
 
+**Rebuild index with batch indexer** (indexes all memory files recursively):
+```bash
+cd .claude/skills/workflows-save-context/scripts
+node index-all.js --scan /path/to/project
+```
+
+The `--scan` option recursively finds all memory files in nested specs structures like `specs/001-foo/002-bar/memory/`.
+
 ### Slow Performance
 
 **Problem**: Operations exceeding targets (triggers >50ms, search >500ms)

@@ -15,18 +15,6 @@ Enable Claude Code to effectively orchestrate Gemini CLI (v0.16.0+) with Gemini 
 
 ## 1. 🎯 WHEN TO USE
 
-### 📚 Navigation Guide
-
-**This file (SKILL.md)**: Core workflow and usage patterns
-
-**Reference Files** (detailed documentation):
-- [patterns.md](./references/patterns.md) – Advanced patterns for Gemini CLI orchestration
-- [reference.md](./references/reference.md) – Complete CLI command reference with all flags and options
-- [templates.md](./references/templates.md) – Prompt templates and examples for different use cases
-- [tools.md](./references/tools.md) – Gemini-specific tools documentation (google_web_search, codebase_investigator)
-
-### When to Use
-
 ### Ideal Use Cases
 
 **1. Second Opinion / Cross-Validation**
@@ -79,54 +67,75 @@ Enable Claude Code to effectively orchestrate Gemini CLI (v0.16.0+) with Gemini 
 
 ## 2. 🧭 SMART ROUTING
 
+### Activation Detection
+```
+TASK CONTEXT
+    │
+    ├─► User explicitly requests "Gemini", "Gemini CLI", "Google Gemini"
+    │   └─► ACTIVATE this skill
+    │
+    ├─► Task needs real-time web search (Google Search grounding)
+    │   └─► ACTIVATE this skill
+    │
+    ├─► Codebase architecture analysis needed
+    │   └─► ACTIVATE this skill
+    │
+    ├─► User wants second AI perspective / alternative approach
+    │   └─► ACTIVATE this skill
+    │
+    └─► Standard Claude Code task (no external search/opinion needed)
+        └─► Handle directly, skip this skill
+```
+
+### Resource Router
 ```python
 def route_gemini_resources(task):
-    # command syntax and flags
+    # ──────────────────────────────────────────────────────────────────
+    # CLI Reference
+    # Purpose: CLI flags and command syntax
+    # Key Insight: Load for command construction
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_command_help or task.first_time:
         return load("references/reference.md")  # CLI flags and syntax
-    
-    # web search / current info (Google Search grounding)
+
+    # ──────────────────────────────────────────────────────────────────
+    # Gemini Tools (Web Search)
+    # Purpose: Built-in tools (google_web_search, codebase_investigator)
+    # Key Insight: Load when using Gemini-specific tools
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_current_info or task.web_search:
         return load("references/tools.md")  # google_web_search tool docs
-    
-    # codebase architecture analysis
+
+    # ──────────────────────────────────────────────────────────────────
+    # Gemini Tools (Codebase Analysis)
+    # Purpose: Built-in tools (google_web_search, codebase_investigator)
+    # Key Insight: Load when using Gemini-specific tools
+    # ──────────────────────────────────────────────────────────────────
     if task.architecture_analysis:
         return load("references/tools.md")  # codebase_investigator tool
-    
-    # code review or generation tasks
+
+    # ──────────────────────────────────────────────────────────────────
+    # Prompt Templates
+    # Purpose: Prompt templates
+    # Key Insight: Load for copy-paste prompts
+    # ──────────────────────────────────────────────────────────────────
     if task.type in ["code_review", "test_generation", "doc_generation"]:
         return load("references/templates.md")  # prompt templates by use case
-    
-    # advanced orchestration patterns
+
+    # ──────────────────────────────────────────────────────────────────
+    # Orchestration Patterns
+    # Purpose: Advanced orchestration patterns
+    # Key Insight: Load for Generate-Review-Fix
+    # ──────────────────────────────────────────────────────────────────
     if task.multi_step or task.generate_review_fix:
         return load("references/patterns.md")  # Generate-Review-Fix pattern
-    
-    # simple tasks: skip Gemini, handle directly with Claude
-    # parallel tasks: run gemini in background with monitoring
+
+    # Default: SKILL.md has basics for common cases
 ```
 
 ---
 
-## 3. 🗂️ REFERENCES
-
-### Core Framework & Workflows
-| Document                         | Purpose                        | Key Insight                             |
-| -------------------------------- | ------------------------------ | --------------------------------------- |
-| **Gemini CLI - Main Workflow**   | Auxiliary tool integration     | **Specialized second AI perspective**   |
-| **Gemini CLI - Web Research**    | Google Search integration      | **Real-time web information access**    |
-| **Gemini CLI - Code Generation** | Alternative code generation    | **Cross-validation with Claude**        |
-
-### Bundled Resources
-| Document                     | Purpose                        | Key Insight                      |
-| ---------------------------- | ------------------------------ | -------------------------------- |
-| **references/patterns.md**   | Advanced orchestration patterns| Load for Generate-Review-Fix     |
-| **references/reference.md**  | CLI flags and command syntax   | Load for command construction    |
-| **references/templates.md**  | Prompt templates               | Load for copy-paste prompts      |
-| **references/tools.md**      | Built-in tools (google_web_search, codebase_investigator) | Load when using Gemini-specific tools |
-
----
-
-## 4. 🛠️ HOW TO USE
+## 3. 🛠️ HOW TO USE
 
 ### Verify Installation
 
@@ -286,7 +295,7 @@ Create `.gemini/GEMINI.md` in project root for persistent context that Gemini wi
 
 ---
 
-## 5. 📖 RULES
+## 4. 📖 RULES
 
 ### ✅ ALWAYS
 
@@ -388,7 +397,7 @@ Create `.gemini/GEMINI.md` in project root for persistent context that Gemini wi
 
 ---
 
-## 6. 🎓 SUCCESS CRITERIA
+## 5. 🎓 SUCCESS CRITERIA
 
 ### Task Completion Checklist
 
@@ -433,7 +442,7 @@ Create `.gemini/GEMINI.md` in project root for persistent context that Gemini wi
 
 ---
 
-## 7. 🔗 INTEGRATION POINTS
+## 6. 🔗 INTEGRATION POINTS
 
 ### Hook System Integration
 
@@ -503,7 +512,7 @@ Create `.gemini/GEMINI.md` in project root for persistent context that Gemini wi
 
 ---
 
-## 8. 🔧 TROUBLESHOOTING
+## 7. 🔧 TROUBLESHOOTING
 
 ### Rate Limits
 

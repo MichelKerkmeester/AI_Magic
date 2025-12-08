@@ -26,14 +26,14 @@ operating_mode:
 
 ---
 
-## Contract
+## 1. 📝 CONTRACT
 
 **Inputs:** `$ARGUMENTS` — Optional action keyword, search query, or options
 **Outputs:** `STATUS=<OK|FAIL|CANCELLED> ACTION=<action_performed> [additional_context]`
 
 ---
 
-## Routing Logic
+## 2. 🔀 ROUTING LOGIC
 
 Parse `$ARGUMENTS` and route using this decision tree:
 
@@ -65,7 +65,7 @@ $ARGUMENTS
 
 ---
 
-## MENU MODE (No Arguments)
+## 3. 📋 MENU MODE (NO ARGUMENTS)
 
 When called without arguments, provide a context-aware interactive menu.
 
@@ -141,7 +141,7 @@ Then route to HISTORY ACTION with the selected count.
 
 ---
 
-## START ACTION
+## 4. ⚡ START ACTION
 
 **Triggers:** `start`, `on`, `init`, or menu selection
 
@@ -191,7 +191,7 @@ STATUS=OK ACTION=start RESULT=started COLLECTION=codebase-xxxxx
 
 ---
 
-## STOP ACTION
+## 5. ⚡ STOP ACTION
 
 **Triggers:** `stop`, `off`, `kill`, or menu selection
 
@@ -233,7 +233,7 @@ STATUS=OK ACTION=stop RESULT=stopped
 
 ---
 
-## STATS ACTION
+## 6. 📊 STATS ACTION
 
 **Triggers:** `stats`, `status`, `info`, or menu selection
 
@@ -269,7 +269,7 @@ STATUS=OK ACTION=stats TRACKED_FILES=251 INDEXED_COMMITS=50 WATCHER=watching
 
 ---
 
-## SEARCH ACTION
+## 7. 🔍 SEARCH ACTION
 
 **Triggers:** `search`, `find`, `query`, natural language query, or menu selection
 
@@ -335,7 +335,7 @@ STATUS=OK ACTION=search RESULTS_COUNT=3 QUERY="authentication middleware"
 
 ---
 
-## RESET ACTION
+## 8. ⚠️ RESET ACTION
 
 **Triggers:** `reset`, `clear`, `wipe`, or menu selection
 
@@ -407,7 +407,7 @@ STATUS=OK ACTION=reset RESULT=completed
 
 ---
 
-## HISTORY ACTION
+## 9. 📚 HISTORY ACTION
 
 **Triggers:** `history`, `commits`, or menu selection
 
@@ -470,38 +470,38 @@ STATUS=OK ACTION=history INDEXED_COMMITS=50
 
 ---
 
-## Quick Reference
+## 10. 🔗 QUICK REFERENCE
 
-| Usage | Action |
-|-------|--------|
-| `/semantic_search` | Interactive menu based on current state |
-| `/semantic_search start` | Start the background file watcher |
-| `/semantic_search stop` | Stop the background file watcher |
-| `/semantic_search stats` | Show indexing statistics |
-| `/semantic_search <query>` | Semantic search (auto-detected) |
-| `/semantic_search search <query>` | Explicit semantic search |
-| `/semantic_search search <query> --refined` | Search with LLM analysis |
-| `/semantic_search history` | Index last 10 git commits |
-| `/semantic_search history 50` | Index last 50 git commits |
-| `/semantic_search reset` | Reset index (with confirmation) |
-| `/semantic_search reset --confirm` | Reset index (skip confirmation) |
-
----
-
-## Error Handling
-
-| Error | Response |
-|-------|----------|
-| `.codebase/.env` missing | Suggest running initial setup |
-| `codesql` not in PATH | Show installation instructions |
-| MCP server unavailable | Show MCP configuration help |
-| Not a git repository | Skip history-related features |
-| Empty search query | Prompt for query or show menu |
-| Indexer not running (for search) | Offer to start it first |
+| Usage                                       | Action                                  |
+| ------------------------------------------- | --------------------------------------- |
+| `/semantic_search`                          | Interactive menu based on current state |
+| `/semantic_search start`                    | Start the background file watcher       |
+| `/semantic_search stop`                     | Stop the background file watcher        |
+| `/semantic_search stats`                    | Show indexing statistics                |
+| `/semantic_search <query>`                  | Semantic search (auto-detected)         |
+| `/semantic_search search <query>`           | Explicit semantic search                |
+| `/semantic_search search <query> --refined` | Search with LLM analysis                |
+| `/semantic_search history`                  | Index last 10 git commits               |
+| `/semantic_search history 50`               | Index last 50 git commits               |
+| `/semantic_search reset`                    | Reset index (with confirmation)         |
+| `/semantic_search reset --confirm`          | Reset index (skip confirmation)         |
 
 ---
 
-## Troubleshooting
+## 11. 🔧 ERROR HANDLING
+
+| Error                            | Response                       |
+| -------------------------------- | ------------------------------ |
+| `.codebase/.env` missing         | Suggest running initial setup  |
+| `codesql` not in PATH            | Show installation instructions |
+| MCP server unavailable           | Show MCP configuration help    |
+| Not a git repository             | Skip history-related features  |
+| Empty search query               | Prompt for query or show menu  |
+| Indexer not running (for search) | Offer to start it first        |
+
+---
+
+## 12. 🔧 TROUBLESHOOTING
 
 - **"Unable to infer embedder provider"**: Environment not loaded. The command sources `.codebase/.env` automatically.
 - **"Invalid API key" (401)**: Update `EMBED_API_KEY` in `.codebase/.env`
@@ -511,7 +511,7 @@ STATUS=OK ACTION=history INDEXED_COMMITS=50
 
 ---
 
-## Notes
+## 13. 📌 NOTES
 
 - **Primary use case is search** - the command is optimized for this
 - **State-aware** - behavior adapts based on whether indexer is running

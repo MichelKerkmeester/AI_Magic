@@ -14,7 +14,7 @@ These gates are BLOCKING - you cannot proceed past any gate until its condition 
 
 ---
 
-## GATE 0: Input Validation ⛔ HARD STOP
+## 1. 🔒 GATE 0: INPUT VALIDATION - HARD STOP
 
 **Check `$ARGUMENTS` for task description:**
 
@@ -42,7 +42,7 @@ IF $ARGUMENTS contains a task description:
 
 ---
 
-## GATE 1: Spec Folder Selection ⛔ HARD STOP
+## 2. 🔒 GATE 1: SPEC FOLDER SELECTION - HARD STOP
 
 **You MUST ask user to select a spec folder option. DO NOT SKIP THIS QUESTION.**
 
@@ -70,7 +70,7 @@ ACTION REQUIRED:
 
 ---
 
-## GATE 2: Memory Context Loading (Conditional)
+## 3. 🔒 GATE 2: MEMORY CONTEXT LOADING (CONDITIONAL)
 
 **This gate only applies if user selected Option A or C in GATE 1.**
 
@@ -87,21 +87,21 @@ IF spec_folder_choice is B or D:
 
 ---
 
-## Gate Status Verification
+## 4. ✅ GATE STATUS VERIFICATION
 
 Before proceeding, verify all gates are passed:
 
-| Gate | Status | Required Output |
-|------|--------|-----------------|
-| GATE 0 | ⬜ | `task_description = ______` |
-| GATE 1 | ⬜ | `spec_folder_choice = ______`, `spec_folder_path = ______` |
-| GATE 2 | ⬜ | Memory loaded OR skipped (conditional) |
+| Gate   | Status | Required Output                                            |
+| ------ | ------ | ---------------------------------------------------------- |
+| GATE 0 | ⬜      | `task_description = ______`                                |
+| GATE 1 | ⬜      | `spec_folder_choice = ______`, `spec_folder_path = ______` |
+| GATE 2 | ⬜      | Memory loaded OR skipped (conditional)                     |
 
 **All gates must show ✅ before continuing to the workflow below.**
 
 ---
 
-## Violation Self-Detection
+## 5. ⚠️ VIOLATION SELF-DETECTION
 
 If you notice yourself:
 - Reading workflow steps before completing gates → ⛔ STOP, return to incomplete gate
@@ -124,7 +124,19 @@ If you notice yourself:
 
 ---
 
-## Purpose
+## 6. 🔀 WHEN TO USE WITH_GEMINI VS WITH_CLAUDE VS WITH_GPT
+
+| Command                | Orchestrator | Best For               | Unique Strength           |
+| ---------------------- | ------------ | ---------------------- | ------------------------- |
+| with_claude            | Claude       | Most planning tasks    | Claude's coding expertise |
+| with_gpt               | GPT          | GPT perspective needed | Alternative AI viewpoint  |
+| **with_gemini** (this) | Gemini       | Web research helpful   | Google Search integration |
+
+**Recommendation**: Use `with_gemini` when you need web research capabilities. Use `with_claude` for Claude's coding expertise, or `with_gpt` for GPT's perspective.
+
+---
+
+## 7. 📋 PURPOSE
 
 Enter PLANNING MODE to create detailed, verified SpecKit documentation. This command:
 1. Determines SpecKit documentation level (2 or 3) based on task complexity
@@ -159,7 +171,7 @@ Enter PLANNING MODE to create detailed, verified SpecKit documentation. This com
 
 ---
 
-## Contract
+## 8. 📝 CONTRACT
 
 **Inputs:** `$ARGUMENTS` — Task description (REQUIRED) + optional mode override
 **Outputs:** SpecKit documentation at `specs/###-name/`:
@@ -173,7 +185,7 @@ Enter PLANNING MODE to create detailed, verified SpecKit documentation. This com
 
 ---
 
-## Instructions
+## 9. ⚡ INSTRUCTIONS
 
 Execute the following workflow:
 
@@ -192,7 +204,8 @@ Execute the following workflow:
    - If found: Use specified mode, skip auto-detection
    - If not found: Continue to Step 2 for auto-detection
 
-### Step 1.3: Verify Gates Passed
+
+### Step 1.5: Verify Gates Passed
 
 Before continuing, confirm all gates are complete:
 
@@ -203,8 +216,6 @@ Before continuing, confirm all gates are complete:
 
 If ANY gate incomplete → STOP and return to that gate
 ```
-
----
 
 ### Step 2: Auto-Detect Planning Mode
 
@@ -293,6 +304,7 @@ If no mode override specified, analyze task complexity:
    - Level 2: Level 1 + `checklist.md`
    - Level 3: Level 2 + `decision-record.md` (+ optional `research-spike.md`)
 
+
 ### Step 4: Monitor Progress
 
 9. **Display phase progress to user:**
@@ -319,23 +331,23 @@ If no mode override specified, analyze task complexity:
 
 ---
 
-## Failure Recovery
+## 10. 🔧 FAILURE RECOVERY
 
-| Failure Type                | Recovery Action                                                |
-| --------------------------- | -------------------------------------------------------------- |
-| Copilot unavailable         | Fall back to with_claude command                               |
-| Gemini model not accessible | Fall back to with_claude or with_gpt command                   |
-| Sonnet agents unavailable   | Try Gemini agents → other models → self-exploration + research |
-| Task unclear                | Use AskUserQuestion to clarify (handled in YAML Phase 1)       |
-| Explore agents find nothing | Expand search scope, use web research (handled in YAML Phase 4)|
-| Conflicting findings        | Document both perspectives, ask user (YAML Phase 5)            |
-| User rejects plan           | Revise based on feedback, resubmit (YAML Phase 7)              |
-| Cannot create plan file     | Check permissions, use alternative path (YAML Phase 6)         |
-| YAML prompt not found       | Return error with installation suggestion                      |
+| Failure Type                | Recovery Action                                                 |
+| --------------------------- | --------------------------------------------------------------- |
+| Copilot unavailable         | Fall back to with_claude command                                |
+| Gemini model not accessible | Fall back to with_claude or with_gpt command                    |
+| Sonnet agents unavailable   | Try Gemini agents → other models → self-exploration + research  |
+| Task unclear                | Use AskUserQuestion to clarify (handled in YAML Phase 1)        |
+| Explore agents find nothing | Expand search scope, use web research (handled in YAML Phase 4) |
+| Conflicting findings        | Document both perspectives, ask user (YAML Phase 5)             |
+| User rejects plan           | Revise based on feedback, resubmit (YAML Phase 7)               |
+| Cannot create plan file     | Check permissions, use alternative path (YAML Phase 6)          |
+| YAML prompt not found       | Return error with installation suggestion                       |
 
 ---
 
-## Error Handling
+## 11. ⚠️ ERROR HANDLING
 
 | Condition              | Action                                                                                  |
 | ---------------------- | --------------------------------------------------------------------------------------- |
@@ -349,7 +361,7 @@ If no mode override specified, analyze task complexity:
 
 ---
 
-## Example Usage
+## 12. 🔍 EXAMPLE USAGE
 
 ### Basic Planning (Auto-Detect Mode)
 ```bash
@@ -371,7 +383,7 @@ If no mode override specified, analyze task complexity:
 
 ---
 
-## Example Output
+## 13. 📊 EXAMPLE OUTPUT
 
 ```
 Planning Mode Activated (Gemini Orchestrator + Sonnet Explorers + SpecKit)
@@ -439,7 +451,7 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.
 
 ---
 
-## Notes
+## 14. 📌 NOTES
 
 - **SpecKit Alignment:**
   - MANDATORY compliance with AGENTS.md Section 2 requirements

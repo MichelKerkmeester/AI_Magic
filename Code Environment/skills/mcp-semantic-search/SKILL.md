@@ -15,19 +15,6 @@ Semantic code search for CLI AI agents that enables AI-powered codebase explorat
 
 ## 1. 🎯 WHEN TO USE
 
-### 📚 Navigation Guide
-
-**This file (SKILL.md)**: Intent-based code discovery activation rules and core patterns
-
-**References** (detailed documentation):
-- [tool_comparison.md](./references/tool_comparison.md) – Semantic vs Grep vs Glob decision framework
-- [architecture.md](./references/architecture.md) – System components and data flow
-- [query_patterns.md](./references/query_patterns.md) – Effective query writing guide
-
-**Assets** (templates and examples):
-- [query_examples.md](./assets/query_examples.md) – Categorized example queries (9 categories)
-
-
 ### Primary Use Cases
 
 **Use this skill when:**
@@ -91,6 +78,8 @@ Semantic code search for CLI AI agents that enables AI-powered codebase explorat
    - IDE autocomplete (GitHub Copilot in VS Code) uses different systems
    - IDE-embedded chat (no MCP support as of 2025)
 
+**See Section 2 Smart Router Quick Reference for a decision flowchart on tool selection.**
+
 
 ### Activation Triggers
 
@@ -115,50 +104,66 @@ Semantic code search for CLI AI agents that enables AI-powered codebase explorat
 
 ## 2. 🧭 SMART ROUTING
 
+### Command Entry Points
+```
+/semantic_search [args]
+    │
+    ├─► No args
+    │   └─► Show usage help
+    │
+    ├─► Natural language query (2+ words, code terms, question words)
+    │   └─► SEARCH ACTION: Execute semantic search
+    │
+    ├─► "index" | "reindex" | "rebuild"
+    │   └─► INDEX ACTION: Rebuild vector index
+    │
+    ├─► "status" | "health"
+    │   └─► STATUS ACTION: Show index health
+    │
+    └─► Single ambiguous word
+        └─► SEARCH ACTION (assume search intent)
+```
+
+### Tool Selection Quick Reference
+```
+KNOWN file path      → Use Read tool directly
+KNOWN symbol/pattern → Use Grep tool
+FILE patterns needed → Use Glob tool
+UNKNOWN what code does → Use semantic_search
+```
+
+### Resource Router
 ```python
 def route_semantic_search_resources(task):
-    # tool selection guidance
+    # ──────────────────────────────────────────────────────────────────
+    # TOOL SELECTION GUIDANCE
+    # Purpose: Decision framework for semantic search vs grep vs glob
+    # Key Insight: When to use each tool based on knowledge and intent
+    # ──────────────────────────────────────────────────────────────────
     if task.unsure_which_tool:
         return load("references/tool_comparison.md")  # semantic vs grep vs glob decision
-    
-    # query writing help
+
+    # ──────────────────────────────────────────────────────────────────
+    # QUERY WRITING HELP
+    # Purpose: Effective query writing guide + Categorized example queries
+    # Key Insight: Describe behavior in natural language for best results
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_query_examples or task.query_not_working:
         load("references/query_patterns.md")  # effective query writing guide
         return load("assets/query_examples.md")  # 9 categories of real queries
-    
-    # architecture/system understanding
+
+    # ──────────────────────────────────────────────────────────────────
+    # ARCHITECTURE / SYSTEM UNDERSTANDING
+    # Purpose: System architecture and data flow
+    # Key Insight: Two-component system: Indexer + MCP Server + Vector DB
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_architecture_info:
         return load("references/architecture.md")  # indexer + MCP server + vector DB
-    
-    # tool decision:
-    # - know exact file path → use Read() tool directly
-    # - know exact symbol name → use Grep() tool directly
-    # - know file pattern → use Glob() tool directly
-    # - know what code DOES → use semantic_search() with natural language
 ```
 
 ---
 
-## 3. 🗂️ REFERENCES
-
-### Core Framework
-
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **MCP Semantic Search - Intent-Based Code Discovery** | Enable CLI AI agents to search codebases by intent using natural language queries | **Finds code by what it does, not what it's called** |
-
-### Bundled Resources
-
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **references/tool_comparison.md** | Decision framework for semantic search vs grep vs glob | When to use each tool based on knowledge and intent |
-| **references/architecture.md** | System architecture and data flow | Two-component system: Indexer + MCP Server + Vector DB |
-| **references/query_patterns.md** | Effective query writing guide | Describe behavior in natural language for best results |
-| **assets/query_examples.md** | Categorized example queries | 9 categories of real-world query patterns |
-
----
-
-## 4. 🛠️ HOW IT WORKS
+## 3. 🛠️ HOW IT WORKS
 
 ### Tool Overview
 
@@ -270,7 +275,7 @@ Read("src/components/hero_section.js")
 
 ---
 
-## 5. 📋 RULES
+## 4. 📋 RULES
 
 ### ✅ ALWAYS 
 
@@ -350,7 +355,7 @@ Read("src/components/hero_section.js")
 
 ---
 
-## 6. 🎓 SUCCESS CRITERIA
+## 5. 🎓 SUCCESS CRITERIA
 
 **Task complete when:**
 
@@ -364,7 +369,7 @@ Read("src/components/hero_section.js")
 
 ---
 
-## 7. 🔗 INTEGRATION POINTS
+## 6. 🔗 INTEGRATION POINTS
 
 ### MCP Dependency
 

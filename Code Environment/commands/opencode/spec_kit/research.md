@@ -101,9 +101,9 @@ CHECK spec_choice value:
         │   ┌────────────────────────────────────────────────────┐
         │   │ "Load previous context from this spec folder?"     │
         │   │                                                    │
-        │   │ A) Load most recent memory file (quick refresh)    │
-        │   │ B) Load all recent files, up to 3 (comprehensive)  │
-        │   │ C) List all files and select specific              │
+        │   │ A) Load most recent memory file (quick refresh)     │
+        │   │ B) Load all recent files, up to 3 (comprehensive)   │
+        │   │ C) List all files and select specific                │
         │   │ D) Skip (start fresh, no context)                  │
         │   └────────────────────────────────────────────────────┘
         │
@@ -123,11 +123,11 @@ CHECK spec_choice value:
 
 **Before continuing to the workflow, verify ALL gates:**
 
-| Gate | Required Status | Your Status | Output Value |
-|------|-----------------|-------------|--------------|
-| GATE 0: Input | ✅ PASSED | ______ | research_topic: ______ |
-| GATE 1: Spec Folder | ✅ PASSED | ______ | spec_choice: ___ / spec_path: ______ |
-| GATE 2: Memory | ✅ PASSED or ⏭️ N/A | ______ | memory_loaded: ______ |
+| Gate                | Required Status   | Your Status | Output Value                         |
+| ------------------- | ----------------- | ----------- | ------------------------------------ |
+| GATE 0: Input       | ✅ PASSED          | ______      | research_topic: ______               |
+| GATE 1: Spec Folder | ✅ PASSED          | ______      | spec_choice: ___ / spec_path: ______ |
+| GATE 2: Memory      | ✅ PASSED or ⏭️ N/A | ______      | memory_loaded: ______                |
 
 ```
 VERIFICATION CHECK:
@@ -157,7 +157,6 @@ VERIFICATION CHECK:
 ```
 
 ---
----
 
 # SpecKit Research
 
@@ -181,38 +180,42 @@ operating_mode:
 
 ---
 
-## Purpose
+## 1. 📋 PURPOSE
 
 Run the 9-step research workflow: codebase investigation, external research, technical analysis, and documentation. Creates research.md with comprehensive findings. Use when technical uncertainty exists before planning.
 
 ---
 
-## Contract
+## 2. 📝 CONTRACT
 
 **Inputs:** `$ARGUMENTS` — Research topic with optional parameters (focus, scope, constraints)
 **Outputs:** Spec folder with research.md (17 sections) + `STATUS=<OK|FAIL|CANCELLED>`
 
-## User Input
+### User Input
 
 ```text
 $ARGUMENTS
 ```
 
-## Workflow Overview (9 Steps)
+---
 
-| Step | Name | Purpose | Outputs |
-|------|------|---------|---------|
-| 1 | Request Analysis | Define research scope | feature_summary, research_objectives |
-| 2 | Pre-Work Review | Review AGENTS.md, standards | principles_established |
-| 3 | Codebase Investigation | Explore existing patterns | current_state_analysis |
-| 4 | External Research | Research docs, best practices | best_practices_summary |
-| 5 | Technical Analysis | Feasibility assessment | technical_specifications |
-| 6 | Quality Checklist | Generate validation checklist | quality_checklist |
-| 7 | Solution Design | Architecture and patterns | solution_architecture |
-| 8 | Research Compilation | Create research.md | research.md |
-| 9 | Save Context | Preserve conversation | memory/*.md |
+## 3. ⚡ WORKFLOW OVERVIEW (9 STEPS)
 
-## Research Document Sections (17 Sections)
+| Step | Name                   | Purpose                       | Outputs                              |
+| ---- | ---------------------- | ----------------------------- | ------------------------------------ |
+| 1    | Request Analysis       | Define research scope         | feature_summary, research_objectives |
+| 2    | Pre-Work Review        | Review AGENTS.md, standards   | principles_established               |
+| 3    | Codebase Investigation | Explore existing patterns     | current_state_analysis               |
+| 4    | External Research      | Research docs, best practices | best_practices_summary               |
+| 5    | Technical Analysis     | Feasibility assessment        | technical_specifications             |
+| 6    | Quality Checklist      | Generate validation checklist | quality_checklist                    |
+| 7    | Solution Design        | Architecture and patterns     | solution_architecture                |
+| 8    | Research Compilation   | Create research.md            | research.md                          |
+| 9    | Save Context           | Preserve conversation         | memory/*.md                          |
+
+---
+
+## 4. 📊 RESEARCH DOCUMENT SECTIONS (17 SECTIONS)
 
 The generated `research.md` includes:
 
@@ -236,7 +239,7 @@ The generated `research.md` includes:
 
 ---
 
-## Instructions
+## 5. ⚡ INSTRUCTIONS
 
 ### Phase 1: Mode Detection & Input Parsing
 
@@ -244,11 +247,11 @@ The generated `research.md` includes:
 
 Detect execution mode from command invocation:
 
-| Pattern | Mode | Behavior |
-|---------|------|----------|
-| `/spec_kit:research:auto` | AUTONOMOUS | Execute all steps without user approval gates |
-| `/spec_kit:research:confirm` | INTERACTIVE | Pause at each step for user approval |
-| `/spec_kit:research` (no suffix) | PROMPT | Ask user to choose mode |
+| Pattern                           | Mode        | Behavior                                      |
+| --------------------------------- | ----------- | --------------------------------------------- |
+| `/spec_kit:research:auto`         | AUTONOMOUS  | Execute all steps without user approval gates |
+| `/spec_kit:research:confirm`      | INTERACTIVE | Pause at each step for user approval          |
+| `/spec_kit:research` (no suffix)  | PROMPT      | Ask user to choose mode                       |
 
 #### Step 1.2: Mode Selection (when no suffix detected)
 
@@ -256,40 +259,39 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 **Question**: "How would you like to execute this research workflow?"
 
-| Option | Mode | Description |
-|--------|------|-------------|
-| **A** | Autonomous | Execute all 9 steps without approval gates. Best for focused research topics. |
-| **B** | Interactive | Pause at each step for approval. Best for exploratory research needing direction. |
+| Option | Mode        | Description                                                                       |
+| ------ | ----------- | --------------------------------------------------------------------------------- |
+| **A**  | Autonomous  | Execute all 9 steps without approval gates. Best for focused research topics.     |
+| **B**  | Interactive | Pause at each step for approval. Best for exploratory research needing direction. |
 
 **Wait for user response before proceeding.**
 
 #### Step 1.3: Verify Gates Passed
 
-**Confirm all mandatory gates from the header were completed:**
+**⚠️ CHECKPOINT: Confirm all gates from the enforcement section above are complete.**
 
-| Gate | Status |
-|------|--------|
-| GATE 0: Input Validation | ✅ research_topic captured |
-| GATE 1: Spec Folder Selection | ✅ spec_choice + spec_path set |
-| GATE 2: Memory Context | ✅ PASSED or ⏭️ N/A |
+Before proceeding, verify you have these values from the gates:
+- `research_topic` from GATE 0
+- `spec_choice` and `spec_path` from GATE 1
+- `memory_loaded` status from GATE 2
 
-**If any gate is incomplete, STOP and return to complete it before continuing.**
+**If ANY gate is incomplete, STOP and return to the MANDATORY GATES section.**
 
 #### Step 1.4: Transform Raw Input
 
-Parse the raw text from `$ARGUMENTS` and transform into structured user_inputs fields.
+Parse the research_topic (from GATE 0) and transform into structured user_inputs fields.
 
 **Field Extraction Rules**:
 
-| Field | Pattern Detection | Default If Empty |
-|-------|-------------------|------------------|
-| `git_branch` | "branch: X", "on branch X", "feature/X" | Auto-create feature-{NNN} |
-| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X" | **USE VALUE FROM STEP 1.3** (user's explicit choice) |
-| `context` | "using X", "with Y", "tech stack:", "investigating:" | Infer from request |
-| `issues` | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Topics to investigate |
-| `request` | Research topic description (REQUIRED) | ERROR if completely empty |
-| `environment` | URLs, "staging:", "example:" | Skip browser analysis |
-| `scope` | File paths, glob patterns, "focus:" | Default to specs/** |
+| Field         | Pattern Detection                                               | Default If Empty                                   |
+| ------------- | --------------------------------------------------------------- | -------------------------------------------------- |
+| `git_branch`  | "branch: X", "on branch X", "feature/X"                         | Auto-create feature-{NNN}                          |
+| `spec_folder` | "specs/NNN", "spec folder X", "in specs/X"                      | **USE VALUE FROM GATE 1** (user's explicit choice) |
+| `context`     | "using X", "with Y", "tech stack:", "investigating:"            | Infer from request                                 |
+| `issues`      | "issue:", "bug:", "problem:", "error:", "question:", "unknown:" | Topics to investigate                              |
+| `request`     | Research topic description (REQUIRED)                           | ERROR if completely empty                          |
+| `environment` | URLs, "staging:", "example:"                                    | Skip browser analysis                              |
+| `scope`       | File paths, glob patterns, "focus:"                             | Default to specs/**                                |
 
 **IMPORTANT:** The `spec_folder` field MUST come from the user's explicit choice in Step 1.3.
 Do NOT auto-create or infer - the user MUST have selected Option A, B, C, or D.
@@ -298,8 +300,8 @@ Do NOT auto-create or infer - the user MUST have selected Option A, B, C, or D.
 
 Based on detected/selected mode:
 
-- **AUTONOMOUS**: Load and execute `.claude/commands/spec_kit/assets/spec_kit_research_auto.yaml`
-- **INTERACTIVE**: Load and execute `.claude/commands/spec_kit/assets/spec_kit_research_confirm.yaml`
+- **AUTONOMOUS**: Load and execute `.opencode/command/spec_kit/assets/spec_kit_research_auto.yaml`
+- **INTERACTIVE**: Load and execute `.opencode/command/spec_kit/assets/spec_kit_research_confirm.yaml`
 
 ### Phase 2: Workflow Execution
 
@@ -307,7 +309,7 @@ Execute the 9 steps defined in Workflow Overview. Each step produces artifacts t
 
 ---
 
-## Key Differences from Other Commands
+## 6. 📌 KEY DIFFERENCES FROM OTHER COMMANDS
 
 - **Does NOT proceed to implementation** - Terminates after research.md
 - **Primary output is research.md** - Comprehensive technical documentation
@@ -316,7 +318,7 @@ Execute the 9 steps defined in Workflow Overview. Each step produces artifacts t
 
 ---
 
-## Context Loading
+## 7. 🔗 CONTEXT LOADING
 
 When resuming work in an existing spec folder, the system will prompt to load prior session memory:
 - **A)** Load most recent memory file (quick context refresh)
@@ -324,37 +326,45 @@ When resuming work in an existing spec folder, the system will prompt to load pr
 - **C)** List all files and select specific (historical search)
 - **D)** Skip (start fresh, no context)
 
-See CLAUDE.md Section 2 for full memory file handling details.
+See AGENTS.md Section 2 for full memory file handling details.
 
-## Failure Recovery
+---
 
-| Failure Type | Recovery Action |
-|--------------|-----------------|
-| Research scope unclear | Ask clarifying questions, narrow focus |
-| External sources unavailable | Document limitation, continue with available info |
-| Conflicting findings | Document both perspectives with analysis, flag for review |
-| Technical dead-end | Document findings, recommend alternative approach |
+## 8. 🔧 FAILURE RECOVERY
 
-## Error Handling
+| Failure Type                 | Recovery Action                                           |
+| ---------------------------- | --------------------------------------------------------- |
+| Research scope unclear       | Ask clarifying questions, narrow focus                    |
+| External sources unavailable | Document limitation, continue with available info         |
+| Conflicting findings         | Document both perspectives with analysis, flag for review |
+| Technical dead-end           | Document findings, recommend alternative approach         |
 
-| Condition | Action |
-|-----------|--------|
-| Empty `$ARGUMENTS` | Prompt user: "Please describe what you want to research" |
-| Unclear research scope | Ask clarifying questions |
-| External sources unavailable | Document limitation, continue with available info |
-| Conflicting findings | Document both perspectives with analysis |
+---
 
-## Documentation Levels (Progressive Enhancement)
+## 9. ⚠️ ERROR HANDLING
 
-| Level | Required Files | LOC Guidance | Use Case |
-|-------|---------------|--------------|----------|
-| **Level 1 (Baseline)** | spec.md + plan.md + tasks.md | <100 LOC | Simple changes, bug fixes |
-| **Level 2 (Verification)** | Level 1 + checklist.md | 100-499 LOC | Medium features, refactoring |
-| **Level 3 (Full)** | Level 2 + decision-record.md | >=500 LOC | Complex features, architecture changes |
+| Condition                    | Action                                                   |
+| ---------------------------- | -------------------------------------------------------- |
+| Empty `$ARGUMENTS`           | Prompt user: "Please describe what you want to research" |
+| Unclear research scope       | Ask clarifying questions                                 |
+| External sources unavailable | Document limitation, continue with available info        |
+| Conflicting findings         | Document both perspectives with analysis                 |
+
+---
+
+## 10. 📁 DOCUMENTATION LEVELS (PROGRESSIVE ENHANCEMENT)
+
+| Level                      | Required Files               | LOC Guidance | Use Case                               |
+| -------------------------- | ---------------------------- | ------------ | -------------------------------------- |
+| **Level 1 (Baseline)**     | spec.md + plan.md + tasks.md | <100 LOC     | Simple changes, bug fixes              |
+| **Level 2 (Verification)** | Level 1 + checklist.md       | 100-499 LOC  | Medium features, refactoring           |
+| **Level 3 (Full)**         | Level 2 + decision-record.md | >=500 LOC    | Complex features, architecture changes |
 
 **Note:** LOC thresholds are soft guidance. Choose level based on complexity and risk.
 
-## Templates Used
+---
+
+## 11. 📁 TEMPLATES USED
 
 **Core Templates:**
 - `.opencode/speckit/templates/spec.md` (Level 1+)
@@ -371,7 +381,9 @@ See CLAUDE.md Section 2 for full memory file handling details.
 - `.opencode/speckit/templates/handover.md` (any level)
 - `.opencode/speckit/templates/debug-delegation.md` (any level)
 
-## Completion Report
+---
+
+## 12. 📊 COMPLETION REPORT
 
 After workflow completion, report:
 
@@ -404,7 +416,9 @@ Next Steps:
 STATUS=OK PATH=specs/NNN-short-name/
 ```
 
-## Examples
+---
+
+## 13. 🔍 EXAMPLES
 
 **Example 1: Multi-Integration Feature**
 ```
@@ -421,9 +435,7 @@ STATUS=OK PATH=specs/NNN-short-name/
 /spec_kit:research "Video streaming optimization for mobile browsers"
 ```
 
----
-
-## Notes
+## 14. 📌 NOTES
 
 - **Mode Behaviors:**
   - **Autonomous (`:auto`)**: Executes all steps without user approval gates. Self-validates research completeness. Makes informed decisions on research depth. Documents all findings systematically.

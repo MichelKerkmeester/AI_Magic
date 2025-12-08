@@ -15,22 +15,6 @@ Execute TypeScript code with direct access to 200+ MCP tools through progressive
 
 ## 1. 🎯 WHEN TO USE
 
-### Navigation Guide
-
-**Start here if**:
-- Calling ANY MCP tools (ClickUp, Notion, Figma, Webflow, Chrome DevTools, etc.)
-- Need to orchestrate multiple external tools in one workflow
-- Working with external APIs through MCP servers
-- Managing tasks in project management tools
-- Need type-safe tool invocation with autocomplete
-
-**Go to**:
-- **First time using Code Mode?** → [Section 3: HOW IT WORKS](#3--how-it-works)
-- **Tool naming errors?** → [references/naming_convention.md](references/naming_convention.md) (addresses #1 most common error)
-- **Configuration issues?** → [references/configuration.md](references/configuration.md)
-- **Need examples?** → [references/workflows.md](references/workflows.md)
-- **Architecture questions?** → [references/architecture.md](references/architecture.md)
-
 ### Use Code Mode When
 
 **MANDATORY for ALL MCP tool calls**:
@@ -71,76 +55,89 @@ Execute TypeScript code with direct access to 200+ MCP tools through progressive
 
 ## 2. 🧭 SMART ROUTING
 
+### Activation Detection
+```
+TASK CONTEXT
+    │
+    ├─► Task involves MCP tool calls (ClickUp, Notion, Figma, etc.)
+    │   └─► ACTIVATE Code Mode for efficient orchestration
+    │
+    ├─► Multi-tool workflow needed (chaining MCP tools)
+    │   └─► ACTIVATE Code Mode
+    │
+    ├─► User mentions "Code Mode", "UTCP", "tool chain"
+    │   └─► ACTIVATE this skill
+    │
+    ├─► External API integration via MCP servers
+    │   └─► ACTIVATE Code Mode
+    │
+    └─► Single tool call or non-MCP task
+        └─► Use direct MCP tool call, skip Code Mode
+```
+
+### Resource Router
 ```python
 def route_code_mode_resources(task):
-    # CRITICAL: tool naming errors (most common issue)
+    # ──────────────────────────────────────────────────────────────────
+    # TOOL NAMING (CRITICAL)
+    # Purpose: Tool naming pattern and common mistakes
+    # Key Insight: ⚠️ CRITICAL: Tool naming errors (read first)
+    # ──────────────────────────────────────────────────────────────────
     if task.error_contains("tool not found") or task.error_contains("naming"):
         return load("references/naming_convention.md")  # priority: CRITICAL
-    
-    # configuration and setup
+
+    # ──────────────────────────────────────────────────────────────────
+    # CONFIGURATION AND SETUP
+    # Purpose: .utcp_config.json and .env setup
+    # Key Insight: Setting up Code Mode, adding MCP servers
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_setup or task.env_vars_not_loading:
         load("references/configuration.md")  # .utcp_config.json and .env setup
         load("assets/config_template.md")  # template file
         return load("assets/env_template.md")  # env template
-    
-    # validate config before deploying
+
+    # ──────────────────────────────────────────────────────────────────
+    # CONFIG VALIDATION
+    # Purpose: Validates .utcp_config.json structure
+    # Key Insight: Before deploying configuration, troubleshooting errors
+    # ──────────────────────────────────────────────────────────────────
     if task.validating_config:
         return execute("scripts/validate_config.py")  # syntax + env var checks
-    
-    # discover available tools
+
+    # ──────────────────────────────────────────────────────────────────
+    # TOOL DISCOVERY
+    # Purpose: Complete list of 200+ available tools
+    # Key Insight: Discovering available tools and capabilities
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_tool_list or "what tools" in task.query:
         return load("references/tool_catalog.md")  # 200+ available tools
-    
-    # multi-tool workflows and error handling
+
+    # ──────────────────────────────────────────────────────────────────
+    # WORKFLOWS AND ERROR HANDLING
+    # Purpose: 5 comprehensive workflow examples
+    # Key Insight: Multi-tool orchestration, error handling patterns
+    # ──────────────────────────────────────────────────────────────────
     if task.multi_tool_workflow or task.needs_error_handling:
-        return load("references/workflows.md")  # 4 workflow examples
-    
-    # architecture and token economics
+        return load("references/workflows.md")  # 5 workflow examples
+
+    # ──────────────────────────────────────────────────────────────────
+    # ARCHITECTURE
+    # Purpose: System architecture and token economics
+    # Key Insight: Understanding how Code Mode works internally
+    # ──────────────────────────────────────────────────────────────────
     if task.how_it_works or task.token_questions:
         return load("references/architecture.md")  # system internals
+
+    # ══════════════════════════════════════════════════════════════════════
+    # STATIC RESOURCES (always available, not conditionally loaded)
+    # ══════════════════════════════════════════════════════════════════════
+    # assets/config_template.md → Template .utcp_config.json file
+    # assets/env_template.md → Template .env file with placeholders
 ```
 
 ---
 
-## 3. 📖 REFERENCES
-
-### References (Deep-Dive Documentation)
-
-| File | Purpose | When to Load |
-|------|---------|--------------|
-| **[naming_convention.md](references/naming_convention.md)** | Tool naming pattern and common mistakes | ⚠️ **CRITICAL**: Tool naming errors (read first) |
-| **[configuration.md](references/configuration.md)** | .utcp_config.json and .env setup | Setting up Code Mode, adding MCP servers |
-| **[tool_catalog.md](references/tool_catalog.md)** | Complete list of 200+ available tools | Discovering available tools and capabilities |
-| **[workflows.md](references/workflows.md)** | 4 comprehensive workflow examples | Multi-tool orchestration, error handling patterns |
-| **[architecture.md](references/architecture.md)** | System architecture and token economics | Understanding how Code Mode works internally |
-
-### Assets (Templates and Examples)
-
-| File | Purpose | When to Use |
-|------|---------|-------------|
-| **[config_template.md](assets/config_template.md)** | Template .utcp_config.json file | Creating new configuration from scratch |
-| **[env_template.md](assets/env_template.md)** | Template .env file with placeholders | Setting up environment variables |
-
-### Scripts (Validation Tools)
-
-| File | Purpose | When to Use |
-|------|---------|-------------|
-| **[validate_config.py](scripts/validate_config.py)** | Validates .utcp_config.json structure | Before deploying configuration, troubleshooting errors |
-
-**Usage**: `python3 validate_config.py .utcp_config.json --check-env .env`
-
-**Validations performed:**
-- ✅ Valid JSON syntax
-- ✅ Required fields present (`manual_call_templates`)
-- ✅ Valid manual names (JavaScript identifiers, no hyphens/spaces)
-- ✅ No duplicate manual names
-- ✅ MCP server configuration completeness
-- ✅ Environment variable references (`${VAR}` syntax)
-- ✅ Missing `.env` variables (when `--check-env` flag used)
-
----
-
-## 4. 🛠️ HOW IT WORKS
+## 3. 🛠️ HOW IT WORKS
 
 ### Critical Naming Pattern
 
@@ -239,7 +236,7 @@ call_tool_chain({
 
 ---
 
-## 5. 🏗️ PROJECT CONFIGURATION
+## 4. 🏗️ PROJECT CONFIGURATION
 
 ### Two MCP Configuration Systems
 
@@ -300,20 +297,13 @@ const info = await tool_info({
 
 ### Critical Naming Convention (Code Mode Tools Only)
 
-**Code Mode tools** in `.utcp_config.json` follow this pattern: `{manual_name}.{manual_name}_{tool_name}`
+**See Section 3: Critical Naming Pattern for the complete guide.**
 
-**Examples (Code Mode)**:
-- Config has `"name": "webflow"` → Use `webflow.webflow_sites_list({})`
-- Config has `"name": "chrome_devtools_1"` → Use `chrome_devtools_1.chrome_devtools_1_navigate({})`
-
-**Common Mistakes**:
-- ❌ `webflow.sites_list()` - Missing manual prefix
-- ✅ `webflow.webflow_sites_list()` - Correct pattern
+**Quick reminder**: `{manual_name}.{manual_name}_{tool_name}` (e.g., `webflow.webflow_sites_list()`)
 
 **Sequential Thinking Exception**:
 - NOT in `.utcp_config.json` - uses native MCP tools
 - Call directly: `process_thought()`, `generate_summary()`
-- Does NOT use `{manual_name}.{manual_name}_{tool_name}` pattern
 - Does NOT use `call_tool_chain()`
 - **For Claude Code users**: Use native ultrathink instead - it's superior to Sequential Thinking MCP
 - **For VSCode/Copilot/OpenCode users**: Sequential Thinking MCP provides value those environments lack
@@ -407,7 +397,7 @@ call_tool_chain({
 
 ---
 
-## 6. 📋 RULES
+## 5. 📋 RULES
 
 ### ✅ ALWAYS 
 
@@ -441,7 +431,7 @@ call_tool_chain({
 
 ---
 
-## 7. 🎓 SUCCESS CRITERIA
+## 6. 🎓 SUCCESS CRITERIA
 
 **Code Mode implementation complete when**:
 
@@ -458,7 +448,7 @@ call_tool_chain({
 
 ---
 
-## 8. 🔗 INTEGRATION POINTS
+## 7. 🔗 INTEGRATION POINTS
 
 ### Cross-Skill Collaboration
 
@@ -501,7 +491,7 @@ call_tool_chain({
 
 ---
 
-## 9. 🎯 QUICK REFERENCE
+## 8. 🎯 QUICK REFERENCE
 
 ### Essential Commands
 
@@ -537,21 +527,9 @@ call_tool_chain({
 
 ### Critical Naming Pattern
 
-```typescript
-{manual_name}.{manual_name}_{tool_name}
+**See Section 3: Critical Naming Pattern for the complete guide with examples.**
 
-// Configuration defines manual name:
-"name": "webflow"  →  webflow.webflow_sites_list()
-"name": "clickup"  →  clickup.clickup_create_task()
-```
-
-### Common Mistakes
-
-| ❌ Wrong | ✅ Correct | Error |
-|---------|-----------|-------|
-| `webflow.sites_list()` | `webflow.webflow_sites_list()` | Missing manual prefix |
-| `webflow.webflow.sites_list()` | `webflow.webflow_sites_list()` | Double dot notation |
-| `webflow.webflowSitesList()` | `webflow.webflow_sites_list()` | camelCase vs snake_case |
+**Pattern**: `{manual_name}.{manual_name}_{tool_name}`
 
 ### Timeout Guidelines
 
@@ -561,7 +539,7 @@ call_tool_chain({
 
 ---
 
-## 10. 📚 ADDITIONAL RESOURCES
+## 9. 📚 ADDITIONAL RESOURCES
 
 ### Configuration Files
 
@@ -625,7 +603,7 @@ Validates `.utcp_config.json` structure, manual names, environment variables, an
 - **naming_convention.md** - Tool naming pattern and troubleshooting (CRITICAL)
 - **configuration.md** - .utcp_config.json and .env setup guide
 - **tool_catalog.md** - Complete catalog of 200+ available tools
-- **workflows.md** - 4 comprehensive workflow examples
+- **workflows.md** - 5 comprehensive workflow examples
 - **architecture.md** - Technical architecture and token economics
 
 ### assets/

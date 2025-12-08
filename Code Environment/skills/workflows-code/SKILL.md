@@ -17,32 +17,6 @@ Unified workflow guidance across 6 specialized code quality skills for frontend 
 
 ## 1. 🎯 WHEN TO USE
 
-### Navigation Guide
-
-**This file (SKILL.md)**: Essential overview and navigation to specialized workflows
-
-**Reference Files** (detailed documentation):
-- [implementation_workflows.md](./references/implementation_workflows.md) - Phase 1: condition-based waiting, defense-in-depth validation, CDN versioning
-- [animation_workflows.md](./references/animation_workflows.md) - Phase 1: CSS vs Motion.dev decision tree, animation patterns, performance, testing
-- [webflow_patterns.md](./references/webflow_patterns.md) - Phase 1/2: Platform limits, collection list patterns, async rendering solutions
-- [performance_patterns.md](./references/performance_patterns.md) - Phase 1: Performance optimization (animations, assets, requests)
-- [security_patterns.md](./references/security_patterns.md) - Phase 1: OWASP Top 10 security checklist (XSS, CSRF, injection prevention)
-- [debugging_workflows.md](./references/debugging_workflows.md) - Phase 2: systematic debugging, root cause tracing
-- [verification_workflows.md](./references/verification_workflows.md) - Phase 3: MANDATORY browser verification
-- [code_quality_standards.md](./references/code_quality_standards.md) - Cross-phase: Naming, initialization, file structure standards
-- [shared_patterns.md](./references/shared_patterns.md) - DevTools, logging, testing, error patterns
-- [devtools_guide.md](./references/devtools_guide.md) - Comprehensive DevTools reference
-- [quick_reference.md](./references/quick_reference.md) - One-page cheat sheet
-
-**Assets** (code templates and checklists):
-- [wait_patterns.js](./assets/wait_patterns.js) - Production-ready waiting code
-- [validation_patterns.js](./assets/validation_patterns.js) - Validation templates
-- [debugging_checklist.md](./assets/debugging_checklist.md) - Debugging workflow checklist
-- [verification_checklist.md](./assets/verification_checklist.md) - Browser testing checklist
-
-**Scripts**:
-- CDN versioning: Use manual workflow (see implementation_workflows.md Section 3)
-
 ### Capabilities Overview
 
 This orchestrator operates in three primary phases:
@@ -159,12 +133,12 @@ Fixing issues systematically using DevTools and evidence-based debugging.
 
 Browser testing across viewports before completion claims.
 
+**The Iron Law**: NO COMPLETION CLAIMS WITHOUT FRESH BROWSER VERIFICATION EVIDENCE
+
 **Use when**:
 - Before ANY completion claim ("works", "fixed", "done", "complete", "passing")
 - After implementing or debugging frontend code
 - Before claiming animations work, layouts are correct, or features are complete
-
-**The Iron Law**: NO COMPLETION CLAIMS WITHOUT FRESH BROWSER VERIFICATION EVIDENCE
 
 **Specific Use Cases:**
 
@@ -176,83 +150,109 @@ Browser testing across viewports before completion claims.
 - Form submission works
 - Any statement of completion or success
 
-**The Iron Law**: Evidence in browser before claims, always.
-
 **See**: [verification_workflows.md](./references/verification_workflows.md) for complete Phase 3 guidance
 
 ---
 
 ## 2. 🧭 SMART ROUTING
 
+### Phase Detection
+```
+TASK CONTEXT
+    │
+    ├─► Writing new code / implementing feature
+    │   └─► PHASE 1: Implementation
+    │       └─► Load: implementation_workflows.md, animation_workflows.md, webflow_patterns.md
+    │
+    ├─► Code not working / debugging issues
+    │   └─► PHASE 2: Debugging
+    │       └─► Load: debugging_workflows.md, devtools_guide.md
+    │
+    ├─► Code complete / needs verification
+    │   └─► PHASE 3: Verification (MANDATORY)
+    │       └─► Load: verification_workflows.md
+    │       └─► ⚠️ The Iron Law: NO COMPLETION CLAIMS WITHOUT BROWSER VERIFICATION
+    │
+    └─► Quick reference needed
+        └─► Load: quick_reference.md
+```
+
+### Resource Router
 ```python
 def route_frontend_resources(task):
+    # ──────────────────────────────────────────────────────────────────
     # Phase 1: Implementation
+    # Purpose: Phase 1: condition-based waiting, defense-in-depth validation, CDN versioning
+    # Key Insight: Load for async handling patterns and validation
+    # ──────────────────────────────────────────────────────────────────
     if task.phase == "implementation":
         if task.has_async_loading:
             load("assets/wait_patterns.js")  # async waiting patterns
         if task.needs_validation:
             load("assets/validation_patterns.js")  # validation templates
+        # ──────────────────────────────────────────────────────────────────
+        # Animation Workflows
+        # Purpose: Phase 1: CSS vs Motion.dev decision tree, animation patterns, performance, testing
+        # Key Insight: Load for animation implementation decisions
+        # ──────────────────────────────────────────────────────────────────
         if task.has_animations:
             return load("references/animation_workflows.md")  # CSS vs Motion.dev
+        # ──────────────────────────────────────────────────────────────────
+        # Webflow Patterns
+        # Purpose: Phase 1/2: Platform limits, collection list patterns, async rendering solutions
+        # Key Insight: Load for Webflow-specific constraints
+        # ──────────────────────────────────────────────────────────────────
         if task.webflow_specific:
             return load("references/webflow_patterns.md")  # platform limits
+        # ──────────────────────────────────────────────────────────────────
+        # Security Patterns
+        # Purpose: Phase 1: OWASP Top 10 security checklist (XSS, CSRF, injection prevention)
+        # Key Insight: Load for security validation
+        # ──────────────────────────────────────────────────────────────────
         if task.security_concerns:
             return load("references/security_patterns.md")  # OWASP Top 10
         return load("references/implementation_workflows.md")  # general patterns
-    
+
+    # ──────────────────────────────────────────────────────────────────
     # Phase 2: Debugging
+    # Purpose: Phase 2: systematic debugging, root cause tracing
+    # Key Insight: Load for Phase 2 debugging workflows
+    # ──────────────────────────────────────────────────────────────────
     if task.phase == "debugging":
         load("assets/debugging_checklist.md")  # step-by-step workflow
         load("references/devtools_guide.md")  # DevTools reference
         return load("references/debugging_workflows.md")  # root cause tracing
-    
+
+    # ──────────────────────────────────────────────────────────────────
     # Phase 3: Verification (MANDATORY)
+    # Purpose: Phase 3: MANDATORY browser verification
+    # Key Insight: Load for Phase 3 verification (always required)
+    # ──────────────────────────────────────────────────────────────────
     if task.phase == "verification" or task.claiming_complete:
         load("assets/verification_checklist.md")  # mandatory steps
         return load("references/verification_workflows.md")  # browser testing
-    
-    # quick lookup
+
+    # ──────────────────────────────────────────────────────────────────
+    # Quick Reference
+    # Purpose: One-page cheat sheet
+    # Key Insight: Load for quick navigation and decision support
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_quick_reference:
         return load("references/quick_reference.md")  # one-page cheat sheet
 
-# iron law: NO completion claims without loading verification_workflows.md
+# ══════════════════════════════════════════════════════════════════════
+# STATIC RESOURCES (always available, not conditionally loaded)
+# ══════════════════════════════════════════════════════════════════════
+# references/code_quality_standards.md → Cross-phase: Naming, initialization, file structure standards
+# references/shared_patterns.md → DevTools, logging, testing, error patterns
+# references/performance_patterns.md → Phase 1: Performance optimization (animations, assets, requests)
+
+# See "The Iron Law" in Section 1 - Phase 3: Verification
 ```
 
 ---
 
-## 3. 🗂️ REFERENCES
-
-### Core Framework & Workflows
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **Workflows Code - Main Workflow** | 3-phase development cycle | **Implementation → Debugging → Verification (MANDATORY)** |
-
-### Bundled Resources
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **references/implementation_workflows.md** | Phase 1: condition-based waiting, defense-in-depth validation, CDN versioning | Load for async handling patterns and validation |
-| **references/animation_workflows.md** | Phase 1: CSS vs Motion.dev decision tree, animation patterns, performance, testing | Load for animation implementation decisions |
-| **references/webflow_patterns.md** | Phase 1/2: Platform limits, collection list patterns, async rendering solutions | Load for Webflow-specific constraints |
-| **references/performance_patterns.md** | Phase 1: Performance optimization (animations, assets, requests) | Load for optimization strategies |
-| **references/security_patterns.md** | Phase 1: OWASP Top 10 security checklist (XSS, CSRF, injection prevention) | Load for security validation |
-| **references/debugging_workflows.md** | Phase 2: systematic debugging, root cause tracing | Load for Phase 2 debugging workflows |
-| **references/verification_workflows.md** | Phase 3: MANDATORY browser verification | Load for Phase 3 verification (always required) |
-| **references/code_quality_standards.md** | Cross-phase: Naming, initialization, file structure standards | Load for code quality checks across all phases |
-| **references/shared_patterns.md** | DevTools, logging, testing, error patterns | Load for common patterns and tools |
-| **references/devtools_guide.md** | Comprehensive DevTools reference | Load for DevTools usage guidance |
-| **references/quick_reference.md** | One-page cheat sheet | Load for quick navigation and decision support |
-
-### Assets
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **assets/wait_patterns.js** | Production-ready waiting code | Copy-paste async waiting patterns |
-| **assets/validation_patterns.js** | Validation templates | Copy-paste validation code |
-| **assets/debugging_checklist.md** | Debugging workflow checklist | Phase 2 step-by-step verification |
-| **assets/verification_checklist.md** | Browser testing checklist | Phase 3 mandatory verification steps |
-
----
-
-## 4. 🛠️ HOW IT WORKS
+## 3. 🛠️ HOW IT WORKS
 
 ### Development Lifecycle
 
@@ -379,7 +379,7 @@ When you need additional validation beyond browser testing:
 
 ---
 
-## 5. 📋 RULES
+## 4. 📋 RULES
 
 ### Phase 1: Implementation
 
@@ -487,7 +487,7 @@ See [verification_workflows.md](./references/verification_workflows.md) for deta
 
 ---
 
-## 6. 🏆 SUCCESS CRITERIA
+## 5. 🏆 SUCCESS CRITERIA
 
 ### Phase 1: Implementation
 
@@ -560,7 +560,7 @@ See [verification_workflows.md](./references/verification_workflows.md) for comp
 
 ---
 
-## 7. 🔌 INTEGRATION POINTS
+## 6. 🔌 INTEGRATION POINTS
 
 ### Code Quality Standards (INTEGRATED)
 
@@ -679,7 +679,7 @@ See [shared_patterns.md](./references/shared_patterns.md) for common patterns ac
 
 ---
 
-## 8. 🚀 QUICK START
+## 7. 🚀 QUICK START
 
 ### For Implementation
 
@@ -708,11 +708,9 @@ Need fast navigation? See [quick_reference.md](./references/quick_reference.md)
 
 **Remember**: This orchestrator navigates you to specialized workflows. Load reference files for detailed instructions.
 
-**The Iron Law**: EVIDENCE BEFORE ASSERTIONS | BROWSER TESTING IS MANDATORY | NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION
-
 ---
 
-## 9. 🧭 WHERE AM I? (Phase Detection Helper)
+## 8. 🧭 WHERE AM I? (Phase Detection Helper)
 
 If you're unsure which phase you're in, use this self-assessment:
 

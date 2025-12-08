@@ -16,7 +16,7 @@ Complex decision tree with multiple branches and conditional logic.
 │  Order Received                                              │
 │  • Order ID generated                                        │
 │  • Timestamp recorded                                        │
-│  • Customer notified                                         │
+│  • Customer notified                                          │
 └──────────────────────────────────────────────────────────────┘
                               │
                               ▼

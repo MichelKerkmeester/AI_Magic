@@ -15,18 +15,6 @@ Enable Claude Code to effectively orchestrate OpenAI Codex CLI (v0.58.0+) with G
 
 ## 1. 🎯 WHEN TO USE
 
-### 📚 Navigation Guide
-
-**This file (SKILL.md)**: Core workflow and usage patterns
-
-**Reference Files**:
-- [patterns.md](./references/patterns.md) - Common usage patterns and workflows
-- [reference.md](./references/reference.md) - Complete CLI command reference
-- [templates.md](./references/templates.md) - Prompt templates and examples
-- [tools.md](./references/tools.md) - Codex-specific tools and capabilities
-
-### When to Use
-
 ### Ideal Use Cases
 
 **1. Second Opinion / Cross-Validation**
@@ -79,53 +67,76 @@ Enable Claude Code to effectively orchestrate OpenAI Codex CLI (v0.58.0+) with G
 
 ## 2. 🧭 SMART ROUTING
 
+### Activation Detection
+```
+TASK CONTEXT
+    │
+    ├─► User explicitly requests "Codex", "codex CLI", "OpenAI Codex"
+    │   └─► ACTIVATE this skill
+    │
+    ├─► Task needs second AI perspective / alternative implementation
+    │   └─► ACTIVATE this skill
+    │
+    ├─► Deep reasoning required (complex algorithms, math)
+    │   └─► ACTIVATE this skill
+    │
+    ├─► User wants code review from different model
+    │   └─► ACTIVATE this skill
+    │
+    └─► Standard Claude Code task (no second opinion needed)
+        └─► Handle directly, skip this skill
+```
+
+### Resource Router
 ```python
 def route_codex_resources(task):
-    # command syntax and flags
+    # ──────────────────────────────────────────────────────────────────
+    # CLI Reference
+    # Purpose: Complete CLI command reference with all flags and options
+    # Key Insight: Load for command syntax and options
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_command_help or task.first_time:
         return load("references/reference.md")  # CLI flags and syntax
-    
-    # reasoning-heavy or deep analysis tasks
+
+    # ──────────────────────────────────────────────────────────────────
+    # Codex Tools
+    # Purpose: Codex-specific tools documentation (sandbox modes, session management)
+    # Key Insight: Load when using Codex's specialized features
+    # ──────────────────────────────────────────────────────────────────
     if task.needs_deep_reasoning or task.complex_algorithm:
         return load("references/tools.md")  # codex-reasoning model, sandbox modes
-    
-    # code review or architecture analysis
+
+    # ──────────────────────────────────────────────────────────────────
+    # Prompt Templates
+    # Purpose: Prompt templates and examples for different use cases
+    # Key Insight: Load for copy-paste prompt starters
+    # ──────────────────────────────────────────────────────────────────
     if task.type in ["code_review", "architecture_analysis"]:
         return load("references/templates.md")  # prompt templates
-    
-    # comparing implementations or alternative approaches
+
+    # ──────────────────────────────────────────────────────────────────
+    # Usage Patterns
+    # Purpose: Common Codex CLI usage patterns and workflows
+    # Key Insight: Load for standard workflow examples
+    # ──────────────────────────────────────────────────────────────────
     if task.wants_alternative or task.compare_solutions:
         return load("references/patterns.md")  # comparison workflows
-    
-    # specialized generation (tests, types, refactoring)
+
+    # ──────────────────────────────────────────────────────────────────
+    # Specialized Generation (tests, types, refactoring)
+    # Purpose: Templates + sandbox mode for code generation tasks
+    # Key Insight: Requires both templates and tools references
+    # ──────────────────────────────────────────────────────────────────
     if task.type in ["test_generation", "type_generation", "refactoring"]:
         load("references/templates.md")  # generation templates
         return load("references/tools.md")  # sandbox mode required
-    
-    # simple tasks: skip Codex, handle directly with Claude
-    # parallel tasks: run codex in background with monitoring
+
+    # Default: SKILL.md has basics for common cases
 ```
 
 ---
 
-## 3. 🗂️ REFERENCES
-
-### Core Framework
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **Cli Codex - Main Workflow** | Core capability and execution pattern | **Specialized auxiliary tool integration** |
-
-### References
-| Document | Purpose | Key Insight |
-|----------|---------|-------------|
-| **references/patterns.md** | Common Codex CLI usage patterns and workflows | Load for standard workflow examples |
-| **references/reference.md** | Complete CLI command reference with all flags and options | Load for command syntax and options |
-| **references/templates.md** | Prompt templates and examples for different use cases | Load for copy-paste prompt starters |
-| **references/tools.md** | Codex-specific tools documentation (sandbox modes, session management) | Load when using Codex's specialized features |
-
----
-
-## 4. 🛠️ HOW TO USE
+## 3. 🛠️ HOW TO USE
 
 ### Verify Installation
 
@@ -375,7 +386,7 @@ trust_level = "trusted"
 
 ---
 
-## 5. 📖 RULES
+## 4. 📖 RULES
 
 ### ✅ ALWAYS
 
@@ -483,7 +494,7 @@ trust_level = "trusted"
 
 ---
 
-## 6. 🎓 SUCCESS CRITERIA
+## 5. 🎓 SUCCESS CRITERIA
 
 ### Task Completion Checklist
 
@@ -527,7 +538,7 @@ trust_level = "trusted"
 
 ---
 
-## 7. 🔗 INTEGRATION POINTS
+## 6. 🔗 INTEGRATION POINTS
 
 ### Hook System Integration
 

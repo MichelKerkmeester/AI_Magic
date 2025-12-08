@@ -19,7 +19,7 @@ Generic onboarding flow integrating value propositions, celebrations, and multi-
 
 ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
 │ Email/Phone  │──▶│     Auth     │──▶│   Welcome    │
-│    Entry     │   │ Verification │   │   Screen     │
+│    Entry     │   │ Verification  │   │   Screen     │
 └──────────────┘   └──────────────┘   └──────────────┘
                                               │
                                               ▼
@@ -43,15 +43,14 @@ Generic onboarding flow integrating value propositions, celebrations, and multi-
 ┌──────────────────────────────────────────────────────────────┐
 │  📱 VALUE PROPOSITION PRESENTATION                           │
 │                                                              │
-│  Purpose: Explain product benefits, set context for effort   │
+│  Purpose: Explain product benefits, set context for effort    │
 │  Content:                                                    │
 │    • What is the product?                                    │
 │    • How the platform works                                  │
-│    • Benefits of creating a profile                          │
+│    • Benefits of creating a profile                            │
 │    • What you can accomplish                                 │
 │                                                              │
 │  Duration: 30-45 seconds reading                             │
-│  CTA: "Start Building Your Profile" [Button]                 │
 └──────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -62,9 +61,9 @@ Generic onboarding flow integrating value propositions, celebrations, and multi-
 │  │  Step 1: Basic Info                                    │  │
 │  │  ────────────────────                                  │  │
 │  │  Fields: [Required]                                    │  │
-│  │    • Profile Name/Title                                │  │
+│  │    • Profile Name/Title                                 │  │
 │  │    • Description (brief overview)                      │  │
-│  │    • Profile Picture                                   │  │
+│  │    • Profile Picture                                    │  │
 │  │    • Banner Image                                      │  │
 │  │    • Category/Industry                                 │  │
 │  │                                                        │  │
@@ -103,13 +102,13 @@ Generic onboarding flow integrating value propositions, celebrations, and multi-
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │  Step 4: Review                                        │  │
 │  │  ────────────────                                      │  │
-│  │  Preview Profile:                                      │  │
+│  │  Preview Profile:                                       │  │
 │  │    • All entered information displayed                 │  │
-│  │    • Visual preview of profile card                    │  │
+│  │    • Visual preview of profile card                     │  │
 │  │    • Edit buttons for each section                     │  │
 │  │                                                        │  │
 │  │  Actions:                                              │  │
-│  │    [◀ Back] [Create Profile ✓]                         │  │
+│  │    [◀ Back] [Create Profile ✓]                          │  │
 │  └────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────┘
                               │
@@ -138,9 +137,9 @@ Generic onboarding flow integrating value propositions, celebrations, and multi-
 │                                                              │
 │  Purpose: Celebrate success, introduce next step             │
 │  Content:                                                    │
-│    • "Congratulations! Your profile is created!"             │
-│    • Profile card preview                                    │
-│    • "Now let's create your first listing"                   │
+│    • "Congratulations! Your profile is created!"              │
+│    • Profile card preview                                     │
+│    • "Now let's create your first listing"                    │
 │    • Explain what listings are and why they matter           │
 │                                                              │
 │  Duration: 30-45 seconds reading                             │
@@ -164,19 +163,19 @@ Generic onboarding flow integrating value propositions, celebrations, and multi-
 │                          │                                   │
 │                          ▼                                   │
 │  ┌────────────────────────────────────────────────────────┐  │
-│  │  Step 2: Profile                                       │  │
+│  │  Step 2: Profile                                        │  │
 │  │  ───────────                                           │  │
-│  │  Assign to Profile:                                    │  │
-│  │    [Dropdown: Recently created profile selected]       │  │
+│  │  Assign to Profile:                                     │  │
+│  │    [Dropdown: Recently created profile selected]        │  │
 │  │                                                        │  │
-│  │  Note: Can select other profiles if user has multiple  │  │
+│  │  Note: Can select other profiles if user has multiple   │  │
 │  └────────────────────────────────────────────────────────┘  │
 │                          │                                   │
 │                          ▼                                   │
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │  Step 3: Pricing                                       │  │
 │  │  ───────────                                           │  │
-│  │  Define Your Pricing:                                  │  │
+│  │  Define Your Pricing:                                   │  │
 │  │    • Price ($amount or "Contact")                      │  │
 │  │    • Product/Service description                       │  │
 │  │    • Purchase/booking link                             │  │
@@ -191,7 +190,7 @@ Generic onboarding flow integrating value propositions, celebrations, and multi-
 │  │  Listing Details:                                      │  │
 │  │    • Title (catchy, brief)                             │  │
 │  │    • Description (detailed)                            │  │
-│  │    • Features & specifications                         │  │
+│  │    • Features & specifications                          │  │
 │  │    • Hashtags/Tags                                     │  │
 │  │    • Terms & Conditions                                │  │
 │  └────────────────────────────────────────────────────────┘  │
@@ -269,14 +268,14 @@ Generic onboarding flow integrating value propositions, celebrations, and multi-
 │  📊 DASHBOARD ENTRY (Full Access)                            │
 │                                                              │
 │  Onboarding Status:                                          │
-│    • Profile created ✅                                      │
+│    • Profile created ✅                                       │
 │    • Listing created ✅ (published or draft)                 │
 │    • User educated ✅                                        │
 │    • Ready for engagement ✅                                 │
 │                                                              │
 │  Features Unlocked:                                          │
 │    • Browse community                                        │
-│    • Manage profile                                          │
+│    • Manage profile                                           │
 │    • View/edit listings                                      │
 │    • Review inquiries                                        │
 │    • Analytics dashboard                                     │

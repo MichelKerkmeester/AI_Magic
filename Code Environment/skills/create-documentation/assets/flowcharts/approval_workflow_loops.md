@@ -42,7 +42,7 @@ Document approval flow with multiple reviewers, revision cycles, and escalation 
 │  • Grammar check                                             │
 │  • Style consistency                                         │
 │  • Brand voice alignment                                     │
-│  • Fact verification                                         │
+│  • Fact verification                                          │
 │  Reviewer: Senior Editor                                     │
 │  Duration: 2-3 hours                                         │
 └──────────────────────────────────────────────────────────────┘
@@ -68,7 +68,7 @@ Document approval flow with multiple reviewers, revision cycles, and escalation 
                        │           ▼
                        │     ┌───────────────────────┐
                        │     │  Return to Writer     │
-                       │     │  • Email notification │
+                       │     │  • Email notification  │
                        │     │  • Deadline: 24h      │
                        │     └───────────────────────┘
                        │           │
@@ -99,7 +99,7 @@ Document approval flow with multiple reviewers, revision cycles, and escalation 
 ┌──────────────────────────────────────────────────────────────┐
 │  Marketing Lead Review                                       │
 │  • Strategy alignment                                        │
-│  • Campaign fit                                              │
+│  • Campaign fit                                               │
 │  • Audience appropriateness                                  │
 │  • Call-to-action effectiveness                              │
 │  Reviewer: Marketing Director                                │
@@ -198,11 +198,11 @@ Document approval flow with multiple reviewers, revision cycles, and escalation 
 ┌────────────────────────────┐    │
 │  Legal Review              │    │
 │  • Compliance check        │    │
-│  • Claims verification     │    │
+│  • Claims verification      │    │
 │  • Risk assessment         │    │
 │  • Regulatory review       │    │
 │  Reviewer: Legal Team      │    │
-│  Duration: 1-3 hours       │   │
+│  Duration: 1-3 hours       │    │
 └────────────────────────────┘    │
            │                      │
            ▼                      │
@@ -215,12 +215,12 @@ Document approval flow with multiple reviewers, revision cycles, and escalation 
   Approved   Changes Required     │
      │           │                │
      │           ▼                │
-     │     ┌───────────────┐      │
-     │     │  Legal Issues │      │
+     │     ┌─────────────────┐    │
+     │     │  Legal Issues   │    │
      │     │  • Non-compliant│    │
-     │     │  • Risky claims│     │
-     │     │  • Must fix   │      │
-     │     └───────────────┘      │
+     │     │  • Risky claims │    │
+     │     │  • Must fix      │    │
+     │     └─────────────────┘    │
      │           │                │
      │           ▼                │
      │     ┌───────────────┐      │
@@ -279,7 +279,7 @@ Document approval flow with multiple reviewers, revision cycles, and escalation 
 │  Schedule Publication                                        │
 │  • Set publish date/time                                     │
 │  • Assign to publishing queue                                │
-│  • Configure distribution channels                           │
+│  • Configure distribution channels                            │
 │  • Set up tracking                                           │
 └──────────────────────────────────────────────────────────────┘
                │

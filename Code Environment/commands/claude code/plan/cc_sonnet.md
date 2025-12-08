@@ -14,7 +14,7 @@ These gates are BLOCKING - you cannot proceed past any gate until its condition 
 
 ---
 
-## GATE 0: Input Validation ⛔ HARD STOP
+## 1. 🔒 GATE 0: INPUT VALIDATION - HARD STOP
 
 **Check `$ARGUMENTS` for task description:**
 
@@ -42,7 +42,7 @@ IF $ARGUMENTS contains a task description:
 
 ---
 
-## GATE 1: Spec Folder Selection ⛔ HARD STOP
+## 2. 🔒 GATE 1: SPEC FOLDER SELECTION - HARD STOP
 
 **You MUST ask user to select a spec folder option. DO NOT SKIP THIS QUESTION.**
 
@@ -70,7 +70,7 @@ ACTION REQUIRED:
 
 ---
 
-## GATE 2: Memory Context Loading (Conditional)
+## 3. 🔒 GATE 2: MEMORY CONTEXT LOADING (CONDITIONAL)
 
 **This gate only applies if user selected Option A or C in GATE 1.**
 
@@ -87,21 +87,21 @@ IF spec_folder_choice is B or D:
 
 ---
 
-## Gate Status Verification
+## 4. ✅ GATE STATUS VERIFICATION
 
 Before proceeding, verify all gates are passed:
 
-| Gate | Status | Required Output |
-|------|--------|-----------------|
-| GATE 0 | ⬜ | `task_description = ______` |
-| GATE 1 | ⬜ | `spec_folder_choice = ______`, `spec_folder_path = ______` |
-| GATE 2 | ⬜ | Memory loaded OR skipped (conditional) |
+| Gate   | Status | Required Output                                            |
+| ------ | ------ | ---------------------------------------------------------- |
+| GATE 0 | ⬜      | `task_description = ______`                                |
+| GATE 1 | ⬜      | `spec_folder_choice = ______`, `spec_folder_path = ______` |
+| GATE 2 | ⬜      | Memory loaded OR skipped (conditional)                     |
 
 **All gates must show ✅ before continuing to the workflow below.**
 
 ---
 
-## Violation Self-Detection
+## 5. ⚠️ VIOLATION SELF-DETECTION
 
 If you notice yourself:
 - Reading workflow steps before completing gates → ⛔ STOP, return to incomplete gate
@@ -124,18 +124,18 @@ If you notice yourself:
 
 ---
 
-## When to Use cc_sonnet vs cc_opus
+## 6. 🔀 WHEN TO USE CC_SONNET VS CC_OPUS
 
-| Variant | Agent Model | Best For | Trade-off |
-|---------|-------------|----------|-----------|
-| **cc_sonnet** (this) | Sonnet | Most planning tasks, quick exploration | Fast & cheap, Opus verifies |
-| cc_opus | Opus 4.5 | Complex architecture, critical features | Thorough but slower & costlier |
+| Variant              | Agent Model | Best For                                | Trade-off                      |
+| -------------------- | ----------- | --------------------------------------- | ------------------------------ |
+| **cc_sonnet** (this) | Sonnet      | Most planning tasks, quick exploration  | Fast & cheap, Opus verifies    |
+| cc_opus              | Opus 4.5    | Complex architecture, critical features | Thorough but slower & costlier |
 
 **Recommendation**: Start with `cc_sonnet` (this command). Use `cc_opus` only when you need deeper reasoning during exploration itself.
 
 ---
 
-## Purpose
+## 7. 📋 PURPOSE
 
 Enter PLANNING MODE to create detailed, verified SpecKit documentation. This command:
 1. Determines SpecKit documentation level (2 or 3) based on task complexity
@@ -159,7 +159,7 @@ Enter PLANNING MODE to create detailed, verified SpecKit documentation. This com
 
 ---
 
-## Contract
+## 8. 📝 CONTRACT
 
 **Inputs:** `$ARGUMENTS` — Task description (REQUIRED) + optional mode override
 **Outputs:** SpecKit documentation at `specs/###-name/`:
@@ -173,7 +173,7 @@ Enter PLANNING MODE to create detailed, verified SpecKit documentation. This com
 
 ---
 
-## Instructions
+## 9. ⚡ INSTRUCTIONS
 
 Execute the following workflow:
 
@@ -192,7 +192,7 @@ Execute the following workflow:
    - If found: Use specified mode, skip auto-detection
    - If not found: Continue to Step 2 for auto-detection
 
-### Step 1.3: Verify Gates Passed
+### Step 1.5: Verify Gates Passed
 
 Before continuing, confirm all gates are complete:
 
@@ -292,7 +292,7 @@ If no mode override specified, analyze task complexity:
 
 ---
 
-## Failure Recovery
+## 10. 🔧 FAILURE RECOVERY
 
 | Failure Type                | Recovery Action                                          |
 | --------------------------- | -------------------------------------------------------- |
@@ -305,7 +305,7 @@ If no mode override specified, analyze task complexity:
 
 ---
 
-## Error Handling
+## 11. ⚠️ ERROR HANDLING
 
 | Condition              | Action                                                                                 |
 | ---------------------- | -------------------------------------------------------------------------------------- |
@@ -317,7 +317,7 @@ If no mode override specified, analyze task complexity:
 
 ---
 
-## Example Usage
+## 12. 🔍 EXAMPLE USAGE
 
 ### Basic Planning (Auto-Detect Mode)
 ```bash
@@ -339,7 +339,7 @@ If no mode override specified, analyze task complexity:
 
 ---
 
-## Example Output
+## 13. 📊 EXAMPLE OUTPUT
 
 ```
 Planning Mode Activated (Opus Orchestrator + Sonnet Agents)
@@ -402,7 +402,7 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.
 
 ---
 
-## Notes
+## 14. 📌 NOTES
 
 - **Model Hierarchy (Sonnet Variant):**
   - **Orchestrator**: Opus (claude-opus-4-5-20251101) - Task understanding, verification, synthesis

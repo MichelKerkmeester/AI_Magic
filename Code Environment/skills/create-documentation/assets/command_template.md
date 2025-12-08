@@ -2,7 +2,7 @@
 
 Templates and best practices for creating production-quality slash commands in Claude Code.
 
-> **⚠️ CRITICAL: Commands NEVER use emojis.** No emoji on H1, H2, H3, H4, or in body text. Plain section headers only (e.g., `## Purpose`, not `## 🎯 Purpose`). See Section 8 Validation Checklist for details.
+> **STYLE STANDARD:** Commands use numbered ALL-CAPS section headers with emoji prefix. Format: `## N. [EMOJI] SECTION-NAME`. See Section 8 Validation Checklist for details.
 
 ---
 
@@ -12,11 +12,11 @@ Templates and best practices for creating production-quality slash commands in C
 
 | Field | Required | Purpose | Format |
 |-------|----------|---------|--------|
-| `description` | ✅ Yes | Human-readable purpose | One sentence, action-verb start |
-| `argument-hint` | ⚠️ Recommended | Show expected arguments | `<required> [optional] [--flag]` |
-| `allowed-tools` | ⚠️ Recommended | Tools command can use | Comma-separated list |
-| `name` | ❌ No | Override command name | kebab-case (inferred from filename) |
-| `model` | ❌ No | Override default model (use sparingly) | `opus` for complex reasoning only |
+| `description` | Yes | Human-readable purpose | One sentence, action-verb start |
+| `argument-hint` | Recommended | Show expected arguments | `<required> [optional] [--flag]` |
+| `allowed-tools` | Recommended | Tools command can use | Comma-separated list |
+| `name` | No | Override command name | kebab-case (inferred from filename) |
+| `model` | No | Override default model (use sparingly) | `opus` for complex reasoning only |
 
 > **Note on `model` field**: Only use for commands requiring complex reasoning (e.g., `plan/with_claude` uses `opus` for parallel exploration). Most commands should NOT specify a model and use the default.
 
@@ -24,15 +24,16 @@ Templates and best practices for creating production-quality slash commands in C
 
 | Type | Complexity | Template |
 |------|------------|----------|
-| **Simple** | Single action, few args | Section 2 |
-| **Workflow** | Multi-step process | Section 3 |
-| **Mode-Based** | `:auto`/`:confirm` variants | Section 4 |
-| **Destructive** | Requires confirmation | Section 5 |
-| **Namespace** | Grouped commands (`/group:action`) | Section 6 |
+| **Simple** | Single action, few args | Section 3 |
+| **Workflow** | Multi-step process | Section 4 |
+| **Mode-Based** | `:auto`/`:confirm` variants | Section 5 |
+| **Argument Dispatch** | Multiple entry points/actions | Section 6 |
+| **Destructive** | Requires confirmation | Section 7 |
+| **Namespace** | Grouped commands (`/group:action`) | Section 8 |
 
 ---
 
-## 1.5. 🚨 MANDATORY GATE PATTERN (CRITICAL)
+## 2. 🚨 MANDATORY GATE PATTERN (CRITICAL)
 
 **For commands with REQUIRED arguments**, add a mandatory gate immediately after frontmatter to prevent context inference.
 
@@ -79,9 +80,9 @@ IF $ARGUMENTS contains [expected input]:
 
 | Argument Type | Use Mandatory Gate? | Example |
 |---------------|---------------------|---------|
-| `<required>` (angle brackets) | ✅ **YES** | `<task>`, `<query>`, `<spec-folder>` |
-| `[optional]` (square brackets) | ❌ No (has default) | `[count]`, `[--flag]` |
-| `[:auto\|:confirm]` mode flags | ❌ No (mode selection) | Mode suffixes only |
+| `<required>` (angle brackets) | **YES** | `<task>`, `<query>`, `<spec-folder>` |
+| `[optional]` (square brackets) | No (has default) | `[count]`, `[--flag]` |
+| `[:auto\|:confirm]` mode flags | No (mode selection) | Mode suffixes only |
 
 ### Example Questions by Command Type
 
@@ -94,27 +95,9 @@ IF $ARGUMENTS contains [expected input]:
 | Prompt enhancement | "What prompt would you like to improve?" |
 | Generic routing | "What request would you like to route?" |
 
-### Real Examples
-
-**Plan command:**
-```markdown
-question: "What would you like to plan?"
-options:
-  - label: "Describe my task"
-    description: "I'll provide a task description for planning"
-```
-
-**Implement command:**
-```markdown
-question: "Which spec folder would you like to implement?"
-options:
-  - label: "Specify the folder"
-    description: "I'll provide the spec folder path (e.g., specs/042-feature-name/)"
-```
-
 ---
 
-## 2. 📄 SIMPLE COMMAND TEMPLATE
+## 3. 📄 SIMPLE COMMAND TEMPLATE
 
 Use for: Single-action commands with straightforward execution.
 
@@ -132,14 +115,9 @@ allowed-tools: Tool1, Tool2
 \`\`\`
 IF $ARGUMENTS is empty, undefined, or contains only whitespace:
     → STOP IMMEDIATELY
-    → Use AskUserQuestion tool with this exact question:
-        question: "[What do you want to do?]"
-        options:
-          - label: "Describe my request"
-            description: "I'll provide the required information"
+    → Use AskUserQuestion tool
     → WAIT for user response
-    → Use their response as the input
-    → Only THEN continue with this workflow
+    → Only THEN continue
 
 IF $ARGUMENTS contains required input:
     → Continue reading this file
@@ -158,51 +136,56 @@ IF $ARGUMENTS contains required input:
 
 ---
 
-## Purpose
+## 1. 📋 PURPOSE
 
 [2-3 sentences explaining the command's purpose and primary use case.]
 
 ---
 
-## Contract
+## 2. 📝 CONTRACT
 
 **Inputs:** `$ARGUMENTS` — [Description of expected arguments]
 **Outputs:** `STATUS=<OK|FAIL> [ADDITIONAL_DATA=<value>]`
 
 ---
 
-## Instructions
+## 3. ⚡ INSTRUCTIONS
 
 Execute the following steps:
 
-1. **[Step name]:**
-   - [Sub-step or detail]
-   - [Sub-step or detail]
+### Step 1: [Step Name]
 
-2. **[Step name]:**
-   - [Sub-step or detail]
+- [Sub-step or detail]
+- [Sub-step or detail]
 
-3. **Return status:**
-   - If successful: `STATUS=OK [DATA=<value>]`
-   - If failed: `STATUS=FAIL ERROR="<message>"`
+### Step 2: [Step Name]
+
+- [Sub-step or detail]
+
+### Step 3: Return Status
+
+- If successful: `STATUS=OK [DATA=<value>]`
+- If failed: `STATUS=FAIL ERROR="<message>"`
 
 ---
 
-## Example Usage
+## 4. 🔍 EXAMPLE USAGE
 
 ### Basic Usage
+
 \`\`\`bash
 /command-name "argument"
 \`\`\`
 
 ### With Optional Args
+
 \`\`\`bash
 /command-name "argument" --flag
 \`\`\`
 
 ---
 
-## Example Output
+## 5. 📊 EXAMPLE OUTPUT
 
 \`\`\`
 [Formatted output example]
@@ -212,7 +195,7 @@ STATUS=OK DATA=<value>
 
 ---
 
-## Notes
+## 6. 📌 NOTES
 
 - **[Category]:** [Important note about usage]
 - **[Category]:** [Performance or limitation note]
@@ -231,7 +214,7 @@ allowed-tools: mcp__semantic-search__semantic_search
 
 ---
 
-## 3. 📊 WORKFLOW COMMAND TEMPLATE
+## 4. 📊 WORKFLOW COMMAND TEMPLATE
 
 Use for: Multi-step processes with defined phases and outputs.
 
@@ -244,28 +227,7 @@ allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 
 # 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
 
-**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
-
-\`\`\`
-IF $ARGUMENTS is empty, undefined, or contains only whitespace:
-    → STOP IMMEDIATELY
-    → Use AskUserQuestion tool with this exact question:
-        question: "[What would you like to accomplish?]"
-        options:
-          - label: "Describe my goal"
-            description: "I'll provide the workflow input"
-    → WAIT for user response
-    → Use their response as the topic
-    → Only THEN continue with this workflow
-
-IF $ARGUMENTS contains topic:
-    → Continue reading this file
-\`\`\`
-
-**CRITICAL RULES:**
-- **DO NOT** infer from context, screenshots, or conversation history
-- **DO NOT** assume what the user wants
-- **DO NOT** proceed without explicit input from the user
+[Include mandatory gate pattern from Section 2]
 
 ---
 
@@ -273,13 +235,17 @@ IF $ARGUMENTS contains topic:
 
 **Purpose**: [One sentence describing the workflow's goal and primary output.]
 
-## User Input
+---
+
+## 1. 📋 USER INPUT
 
 \`\`\`text
 $ARGUMENTS
 \`\`\`
 
-## Workflow Overview ([N] Steps)
+---
+
+## 2. 🔍 WORKFLOW OVERVIEW ([N] STEPS)
 
 | Step | Name | Purpose | Outputs |
 |------|------|---------|---------|
@@ -288,7 +254,9 @@ $ARGUMENTS
 | 3 | [Step Name] | [What it does] | [Artifacts created] |
 | N | Save Context | Preserve conversation | memory/*.md |
 
-## Instructions
+---
+
+## 3. ⚡ INSTRUCTIONS
 
 ### Step 1: [Step Name]
 
@@ -304,7 +272,7 @@ $ARGUMENTS
 
 ---
 
-## Failure Recovery
+## 4. 🔧 FAILURE RECOVERY
 
 | Failure Type | Recovery Action |
 |--------------|-----------------|
@@ -313,7 +281,7 @@ $ARGUMENTS
 
 ---
 
-## Error Handling
+## 5. ⚠️ ERROR HANDLING
 
 | Condition | Action |
 |-----------|--------|
@@ -322,14 +290,14 @@ $ARGUMENTS
 
 ---
 
-## Templates Used
+## 6. 📁 TEMPLATES USED
 
 - `.opencode/speckit/templates/[template].md`
 - [Other template references]
 
 ---
 
-## Completion Report
+## 7. 📊 COMPLETION REPORT
 
 After workflow completion, report:
 
@@ -348,7 +316,7 @@ Next Steps:
 
 ---
 
-## Examples
+## 8. 🎯 EXAMPLES
 
 **Example 1: [Use case]**
 \`\`\`
@@ -363,7 +331,7 @@ Next Steps:
 
 ---
 
-## 4. 🔀 MODE-BASED COMMAND TEMPLATE
+## 5. 🔀 MODE-BASED COMMAND TEMPLATE
 
 Use for: Commands supporting `:auto` and `:confirm` execution modes.
 
@@ -376,42 +344,25 @@ allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 
 # 🚨 MANDATORY FIRST ACTION - DO NOT SKIP
 
-**BEFORE READING ANYTHING ELSE IN THIS FILE, CHECK `$ARGUMENTS`:**
-
-\`\`\`
-IF $ARGUMENTS is empty, undefined, or contains only whitespace (ignoring mode flags):
-    → STOP IMMEDIATELY
-    → Use AskUserQuestion tool with this exact question:
-        question: "[What would you like to do?]"
-        options:
-          - label: "Describe my request"
-            description: "I'll provide the request details"
-    → WAIT for user response
-    → Use their response as the request
-    → Only THEN continue with this workflow
-
-IF $ARGUMENTS contains a request:
-    → Continue reading this file
-\`\`\`
-
-**CRITICAL RULES:**
-- **DO NOT** infer from context, screenshots, or conversation history
-- **DO NOT** assume what the user wants based on open files
-- **DO NOT** proceed without explicit request from the user
+[Include mandatory gate pattern from Section 2]
 
 ---
 
-## Smart Command: /[command-name]
+# [Command Title]
 
 **Purpose**: [Description of what this command accomplishes.]
 
-## User Input
+---
+
+## 1. 📋 USER INPUT
 
 \`\`\`text
 $ARGUMENTS
 \`\`\`
 
-## Mode Detection & Routing
+---
+
+## 2. 🔍 MODE DETECTION & ROUTING
 
 ### Step 1: Parse Mode Suffix
 
@@ -440,16 +391,9 @@ If no `:auto` or `:confirm` suffix is present, use AskUserQuestion:
 
 Parse the raw text from `$ARGUMENTS` and transform into structured fields.
 
-**Field Extraction Rules**:
-
-| Field | Pattern Detection | Default If Empty |
-|-------|-------------------|------------------|
-| `[field_name]` | "[pattern]", "[pattern]" | [Default value] |
-| `request` | Primary description (REQUIRED) | ERROR if empty |
-
 ---
 
-## Key Behaviors
+## 3. ⚡ KEY BEHAVIORS
 
 ### Autonomous Mode (`:auto`)
 - Executes all steps without user approval gates
@@ -465,7 +409,7 @@ Parse the raw text from `$ARGUMENTS` and transform into structured fields.
 
 ---
 
-## Context Loading
+## 4. 📁 CONTEXT LOADING
 
 When resuming work in an existing spec folder, prompt to load prior session memory:
 - **A)** Load most recent memory file (quick context refresh)
@@ -475,7 +419,7 @@ When resuming work in an existing spec folder, prompt to load prior session memo
 
 ---
 
-## Examples
+## 5. 🎯 EXAMPLES
 
 **Example 1: Autonomous execution**
 \`\`\`
@@ -495,7 +439,123 @@ When resuming work in an existing spec folder, prompt to load prior session memo
 
 ---
 
-## 5. ⚠️ DESTRUCTIVE COMMAND TEMPLATE
+## 6. 🧭 ARGUMENT DISPATCH PATTERN
+
+Use for: Commands that accept multiple argument types and need to route to different actions.
+
+### Pattern Overview
+
+When a single command handles multiple argument patterns (like `/semantic_search` accepting queries, actions, and flags), use an ASCII decision tree to document the routing logic clearly.
+
+### The Pattern
+
+```markdown
+---
+description: [Command] with multiple entry points
+argument-hint: "[action|query] [options]"
+allowed-tools: [Tools]
+---
+
+# [Command Title]
+
+---
+
+## 1. 📋 ARGUMENT DISPATCH
+
+```
+$ARGUMENTS
+    │
+    ├─► Empty (no args)
+    │   └─► DEFAULT ACTION: [What happens with no args]
+    │
+    ├─► First word matches ACTION KEYWORD (case-insensitive)
+    │   ├─► "start" | "on" | "init"       → START ACTION
+    │   ├─► "stop" | "off" | "kill"       → STOP ACTION
+    │   ├─► "status" | "info"             → STATUS ACTION
+    │   ├─► "search" | "find" | "query"   → SEARCH ACTION (remaining args = query)
+    │   └─► "reset" | "clear"             → RESET ACTION
+    │
+    ├─► Looks like NATURAL LANGUAGE QUERY
+    │   Detection: 2+ words, question words, code terms, quotes
+    │   └─► SEARCH ACTION (full args = query)
+    │
+    └─► Single ambiguous word
+        └─► [DEFAULT ACTION] (assume most common intent)
+```
+
+---
+
+## 2. ⚡ ACTION HANDLERS
+
+### START ACTION
+[Instructions for start]
+
+### STOP ACTION
+[Instructions for stop]
+
+### SEARCH ACTION
+[Instructions for search]
+
+---
+
+## 3. 📊 EXAMPLE ROUTING
+
+| Input | Detected As | Action |
+|-------|-------------|--------|
+| (empty) | No args | Show menu/help |
+| `start` | Keyword | START ACTION |
+| `how does auth work` | Natural language | SEARCH ACTION |
+| `oauth` | Single word | SEARCH ACTION (default) |
+```
+
+### When to Use Argument Dispatch
+
+| Scenario | Use Pattern? |
+|----------|--------------|
+| Command has multiple action keywords | **Yes** |
+| Command accepts both keywords AND queries | **Yes** |
+| Command has only one action | No (use simple template) |
+| Command uses `:auto`/`:confirm` modes only | No (use mode-based template) |
+
+### Real Example: `/semantic_search`
+
+```
+/semantic_search [args]
+    │
+    ├─► No args
+    │   └─► Show usage help
+    │
+    ├─► "index" | "reindex" | "rebuild"
+    │   └─► INDEX ACTION: Rebuild vector index
+    │
+    ├─► "status" | "health"
+    │   └─► STATUS ACTION: Show index health
+    │
+    ├─► Natural language query (2+ words)
+    │   └─► SEARCH ACTION: Execute semantic search
+    │
+    └─► Single ambiguous word
+        └─► SEARCH ACTION (assume search intent)
+```
+
+### Combining with Mode-Based Pattern
+
+For commands that need BOTH argument dispatch AND mode support:
+
+```
+$ARGUMENTS
+    │
+    ├─► Parse mode suffix (:auto | :confirm)
+    │
+    └─► After mode extraction, dispatch remaining args:
+        ├─► "action1" → ACTION 1
+        ├─► "action2" → ACTION 2
+        └─► Natural language → DEFAULT ACTION
+```
+
+---
+
+## 8. ⚠️ DESTRUCTIVE COMMAND TEMPLATE
 
 Use for: Commands that delete data or make irreversible changes.
 
@@ -508,67 +568,73 @@ allowed-tools: Bash, AskUserQuestion
 
 # [Command Title]
 
-⚠️ **DESTRUCTIVE OPERATION** - [Brief warning about what will be affected.]
+**DESTRUCTIVE OPERATION** - [Brief warning about what will be affected.]
 
 ---
 
-## Purpose
+## 1. 📋 PURPOSE
 
 [Explain the destructive action and why it might be needed.]
 
 ---
 
-## Contract
+## 2. 📝 CONTRACT
 
 **Inputs:** `$ARGUMENTS` — Must include `--confirm` flag to skip prompt
 **Outputs:** `STATUS=<OK|FAIL|CANCELLED> ACTION=<action|cancelled>`
 
 ---
 
-## Instructions
+## 3. ⚡ INSTRUCTIONS
 
-Execute the following steps:
+### Step 1: Safety Check - Require Confirmation
 
-1. **Safety check - Require confirmation:**
-   - Check if `--confirm` flag is present in `$ARGUMENTS`
-   - If NOT present:
-     - Use AskUserQuestion: "⚠️ [Warning message]. Are you sure?"
-     - Options: "Yes, proceed" / "No, cancel"
-     - If user cancels: `STATUS=CANCELLED ACTION=cancelled`
+- Check if `--confirm` flag is present in `$ARGUMENTS`
+- If NOT present:
+  - Use AskUserQuestion: "[Warning message]. Are you sure?"
+  - Options: "Yes, proceed" / "No, cancel"
+  - If user cancels: `STATUS=CANCELLED ACTION=cancelled`
 
-2. **Show what will be affected:**
-   - Display current state
-   - List items that will be deleted/changed
-   - Show size/count of affected data
+### Step 2: Show What Will Be Affected
 
-3. **Execute destructive action:**
-   - [Step-by-step execution]
-   - Log each action taken
+- Display current state
+- List items that will be deleted/changed
+- Show size/count of affected data
 
-4. **Verify completion:**
-   - Confirm action completed
-   - Show new state
+### Step 3: Execute Destructive Action
 
-5. **Provide recovery guidance:**
-   - Explain how to rebuild/restore if needed
-   - Link to relevant commands
+- [Step-by-step execution]
+- Log each action taken
 
-6. **Return status:**
-   - If completed: `STATUS=OK ACTION=[action]`
-   - If cancelled: `STATUS=CANCELLED ACTION=cancelled`
-   - If failed: `STATUS=FAIL ERROR="<message>"`
+### Step 4: Verify Completion
+
+- Confirm action completed
+- Show new state
+
+### Step 5: Provide Recovery Guidance
+
+- Explain how to rebuild/restore if needed
+- Link to relevant commands
+
+### Step 6: Return Status
+
+- If completed: `STATUS=OK ACTION=[action]`
+- If cancelled: `STATUS=CANCELLED ACTION=cancelled`
+- If failed: `STATUS=FAIL ERROR="<message>"`
 
 ---
 
-## Example Usage
+## 4. 🔍 EXAMPLE USAGE
 
 ### Without Confirmation (Safe Default)
+
 \`\`\`bash
 /command-name
 \`\`\`
 → Will prompt for confirmation before proceeding
 
 ### With Confirmation Flag (Skip Prompt)
+
 \`\`\`bash
 /command-name --confirm
 \`\`\`
@@ -576,17 +642,17 @@ Execute the following steps:
 
 ---
 
-## Notes
+## 5. 📌 NOTES
 
 - **When to Use:**
   - [Valid use case 1]
   - [Valid use case 2]
 
 - **Impact:**
-  - ❌ [What will be lost]
-  - ❌ [Other consequences]
-  - ✅ [What is preserved]
-  - ✅ [Recovery options]
+  - [What will be lost]
+  - [Other consequences]
+  - [What is preserved]
+  - [Recovery options]
 
 - **Alternatives to Consider:**
   - [Less destructive alternative]
@@ -594,7 +660,7 @@ Execute the following steps:
 
 ---
 
-## Safety Features
+## 6. 🛡️ SAFETY FEATURES
 
 - Requires explicit confirmation by default
 - Shows what will be affected before proceeding
@@ -604,7 +670,7 @@ Execute the following steps:
 
 ---
 
-## 6. 📁 NAMESPACE COMMAND PATTERN
+## 9. 📁 NAMESPACE COMMAND PATTERN
 
 Use for: Grouping related commands under a common prefix.
 
@@ -641,7 +707,7 @@ Use for: Grouping related commands under a common prefix.
 
 ---
 
-## 7. 📝 FRONTMATTER FIELD REFERENCE
+## 10. 📝 FRONTMATTER FIELD REFERENCE
 
 ### Required Fields
 
@@ -665,29 +731,10 @@ argument-hint: "<required> [optional] [--flag]"
 #   [square-brackets] = optional argument
 #   --flag = boolean flag
 #   [default: value] = argument with default
-# Examples:
-#   "<query>"
-#   "<query> [--refined]"
-#   "[spec-folder] [:auto|:confirm]"
-#   "[--confirm]"
 
 allowed-tools: Tool1, Tool2, Tool3
-# Common tools:
-#   Read, Write, Edit - File operations
-#   Bash - Shell commands
-#   Grep, Glob - Search operations
-#   Task - Sub-agent dispatch
-#   AskUserQuestion - User interaction
-#
-# Tool filtering syntax:
-#   Bash(git:*) - Allow only git commands
-#   Bash(codesql:*) - Allow only codesql commands
-#   Bash(npm:*) - Allow only npm commands
-#
-# MCP tool naming convention:
-#   mcp__[server-name]__[tool_function]
-#   Example: mcp__semantic-search__semantic_search
-#   Example: mcp__chrome-devtools__take_snapshot
+# Common tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
+# MCP tools: mcp__[server-name]__[tool_function]
 ---
 ```
 
@@ -697,27 +744,21 @@ allowed-tools: Tool1, Tool2, Tool3
 ---
 name: command-name
 # Override inferred name from filename
-# Usually not needed
 
 model: opus
 # Override default model (USE SPARINGLY)
-# Only for commands requiring complex reasoning
-# Example: plan/with_claude uses opus for parallel exploration
-# Most commands should NOT specify model
 
 version: 1.0.0
 # Track command version
-# Useful for deprecation management
 
 disable-model-invocation: true
 # Prevent Claude from invoking this command
-# Use for user-only commands
 ---
 ```
 
 ---
 
-## 8. ✅ VALIDATION CHECKLIST
+## 11. ✅ VALIDATION CHECKLIST
 
 Before publishing a command, verify:
 
@@ -732,58 +773,58 @@ Before publishing a command, verify:
 - [ ] Gate is **immediately after frontmatter**, before any other content
 - [ ] Gate uses `AskUserQuestion` tool with appropriate question
 - [ ] Gate includes all 4 CRITICAL RULES (DO NOT infer, assume, proceed)
-- [ ] Question is context-appropriate for the command purpose
 - [ ] Skip gate only if ALL arguments are `[optional]` with defaults
 
-> **Rationale**: Without the mandatory gate, AI agents infer from context instead of asking users. This caused the `/plan:cc_opus` bug where commands would execute based on visible spec folders rather than asking users what they want to plan.
-
 ### Structure
-- [ ] H1 title matches command purpose (no subtitle)
-- [ ] Purpose section explains "why"
-- [ ] Contract section defines inputs/outputs
+- [ ] H1 title matches command purpose (no emoji, no number)
+- [ ] H2 sections use format: `## N. [EMOJI] SECTION-NAME`
+- [ ] H3 subsections: `### Step N: Description` (no emoji)
+- [ ] Dividers (`---`) between major sections
 - [ ] Instructions are numbered and actionable
 - [ ] Example usage shows 2-3 scenarios
-- [ ] Example output shows expected format
 
-### Emoji Policy (CRITICAL)
-- [ ] **NO emoji on H1** (title)
-- [ ] **NO emoji on H2** (section headers)
-- [ ] **NO emoji on H3/H4** (subsections)
-- [ ] **NO emoji in body text** (unless displaying user data)
-- [ ] **NO numbered H2 sections** (use plain `## Section Name`)
+### Header Format (NEW STANDARD)
+- [ ] H1: Plain title only (`# Command Title`)
+- [ ] H2: Numbered + emoji + ALL-CAPS (`## 1. 📋 PURPOSE`)
+- [ ] H3/H4: Title case, no emoji (`### Step 1: Description`)
+- [ ] Consistent numbering (1, 2, 3...)
+- [ ] Appropriate emoji for section type
 
-> **Rationale**: Commands are machine-invoked operational documents. Plain text headers improve parsing reliability and maintain professional clarity. Emojis are reserved for human-facing documentation (SKILL, Knowledge, README).
+### Emoji Selection Guide
 
-### Content Quality
-- [ ] Status output follows standard format (see patterns below)
-- [ ] Error cases are handled
-- [ ] Empty arguments have sensible default or error
-- [ ] Destructive operations require confirmation
+| Section Type | Emoji | Example |
+|--------------|-------|---------|
+| Purpose/Overview | 📋 | `## 1. 📋 PURPOSE` |
+| Contract/Interface | 📝 | `## 2. 📝 CONTRACT` |
+| Instructions/Steps | ⚡ | `## 3. ⚡ INSTRUCTIONS` |
+| Usage/Examples | 🔍 | `## 4. 🔍 EXAMPLE USAGE` |
+| Output/Results | 📊 | `## 5. 📊 OUTPUT FORMAT` |
+| Notes/Info | 📌 | `## 6. 📌 NOTES` |
+| Success/Goals | 🎯 | `## 5. 🎯 SUCCESS CRITERIA` |
+| Related/Links | 🔗 | `## 6. 🔗 RELATED COMMANDS` |
+| Troubleshooting | 🔧 | `## 7. 🔧 TROUBLESHOOTING` |
+| Warning/Caution | ⚠️ | `## 4. ⚠️ ERROR HANDLING` |
+| Files/Templates | 📁 | `## 6. 📁 TEMPLATES USED` |
+| Safety/Security | 🛡️ | `## 6. 🛡️ SAFETY FEATURES` |
+| Quick Reference | 📋 | `## 1. 📋 QUICK REFERENCE` |
+| Mode/Routing | 🔀 | `## 2. 🔀 MODE DETECTION` |
 
 ### Status Output Patterns
-
-Use the appropriate pattern based on command type:
 
 | Pattern | Use Case | Example |
 |---------|----------|---------|
 | `STATUS=OK` | Simple success | Basic commands |
 | `STATUS=OK RESULTS_COUNT=N` | Search/query | `/index:search` |
-| `STATUS=OK ACTION=<action>` | State change | `/index:start`, `/index:stop` |
-| `STATUS=OK ACTION=<action> PATH=<path>` | File creation | `/plan:with_claude`, `/spec_kit:complete` |
+| `STATUS=OK ACTION=<action>` | State change | `/index:start` |
+| `STATUS=OK ACTION=<action> PATH=<path>` | File creation | `/spec_kit:complete` |
 | `STATUS=FAIL ERROR="<message>"` | All failures | Error handling |
 | `STATUS=CANCELLED ACTION=cancelled` | User abort | Interactive commands |
 
-### Integration
-- [ ] Filename uses snake_case or kebab-case
-- [ ] Namespace directory exists (for namespaced commands)
-- [ ] Referenced tools are available
-- [ ] Referenced templates exist
-
 ---
 
-## 9. 🧠 ORCHESTRATOR + WORKERS PATTERN
+## 12. 🧠 ORCHESTRATOR + WORKERS PATTERN
 
-Use for: Commands that spawn parallel sub-agents for exploration/analysis, with a primary model for synthesis and verification.
+Use for: Commands that spawn parallel sub-agents for exploration/analysis.
 
 ### Pattern Overview
 
@@ -797,90 +838,34 @@ Use for: Commands that spawn parallel sub-agents for exploration/analysis, with 
 │  - Creates final output                                     │
 └─────────────────────────────────────────────────────────────┘
               │
-              ├──────────────────┬──────────────────┬──────────────────┐
-              ▼                  ▼                  ▼                  ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ SONNET WORKER 1 │  │ SONNET WORKER 2 │  │ SONNET WORKER 3 │  │ SONNET WORKER N │
-│ Fast exploration│  │ Fast exploration│  │ Fast exploration│  │ Fast exploration│
-│ File discovery  │  │ Pattern finding │  │ Dependency map  │  │ Test analysis   │
-└─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘
+              ├──────────────────┬──────────────────┐
+              ▼                  ▼                  ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│ SONNET WORKER 1 │  │ SONNET WORKER 2 │  │ SONNET WORKER N │
+│ Fast exploration│  │ Fast exploration│  │ Fast exploration│
+└─────────────────┘  └─────────────────┘  └─────────────────┘
 ```
 
-### Implementation
-
-**1. Command Frontmatter**
-
-```yaml
----
-description: [Command purpose]
-model: opus  # Orchestrator uses Opus for complex reasoning
-argument-hint: "<task description>"
-allowed-tools: Read, Write, Edit, Glob, Grep, Task, AskUserQuestion
----
-```
-
-**2. Worker Dispatch (Task tool calls)**
-
-```typescript
-// All workers MUST specify model: "sonnet"
-{
-  "subagent_type": "Explore",
-  "model": "sonnet",  // REQUIRED
-  "description": "Worker description",
-  "prompt": "..."
-}
-```
-
-**3. Model Hierarchy Table**
-
-Include this table in the command's Notes section:
+### Model Hierarchy
 
 | Role | Model | Responsibility |
 |------|-------|----------------|
-| **Orchestrator** | `opus` | Task understanding, dispatch, verification, synthesis, final output |
+| **Orchestrator** | `opus` | Task understanding, dispatch, verification, synthesis |
 | **Workers** | `sonnet` | Fast parallel exploration, discovery, hypothesis generation |
 
-### When to Use This Pattern
+### When to Use
 
 | Scenario | Use Orchestrator Pattern? |
 |----------|--------------------------|
-| Parallel codebase exploration | ✅ Yes |
-| Multi-aspect analysis | ✅ Yes |
-| Complex planning with verification | ✅ Yes |
-| Simple single-action command | ❌ No |
-| Sequential workflow | ❌ No |
-
-### Example: plan/with_claude Command
-
-```markdown
-### Phase 2: Parallel Exploration (Sonnet Agents)
-
-| Agent | Focus | Model |
-|-------|-------|-------|
-| Architecture Explorer | Project structure | sonnet |
-| Feature Explorer | Similar patterns | sonnet |
-| Dependency Explorer | Import mapping | sonnet |
-| Test Explorer | Test infrastructure | sonnet |
-
-### Phase 3: Hypothesis Verification (Opus Review)
-
-Opus synthesizes and validates:
-- Cross-reference findings across agents
-- Verify or refute each hypothesis
-- Resolve conflicting findings
-- Build complete mental model
-```
-
-### Benefits
-
-- **Quality**: Opus provides deep reasoning for verification and synthesis
-- **Speed**: Sonnet workers explore in parallel (4x faster than sequential)
-- **Cost-effective**: Sonnet exploration is cheaper than Opus for discovery tasks
-- **Accuracy**: Cross-referencing multiple workers reduces blind spots
+| Parallel codebase exploration | Yes |
+| Multi-aspect analysis | Yes |
+| Complex planning with verification | Yes |
+| Simple single-action command | No |
+| Sequential workflow | No |
 
 ---
 
-## 10. 🔗 RELATED RESOURCES
+## 13. 🔗 RELATED RESOURCES
 
 ### Templates
 - [frontmatter_templates.md](./frontmatter_templates.md) - Frontmatter by document type
@@ -890,9 +875,7 @@ Opus synthesizes and validates:
 - [core_standards.md](../references/core_standards.md) - Document type rules
 - [validation.md](../references/validation.md) - Quality scoring
 
-### Examples
-- `.claude/commands/index/search.md` - Simple command with flags
-- `.claude/commands/index/reset.md` - Destructive operation pattern
-- `.claude/commands/speckit_complete.md` - Mode-based workflow
-- `.claude/commands/save_context.md` - Context-aware targeting
-- `.claude/commands/plan/with_claude.md` - File path (command: `/plan:with_claude`) - Orchestrator + Workers pattern (Opus + Sonnet)
+### Examples (Following New Standard)
+- `.claude/commands/spec_kit/resume.md` - Reference file for formatting
+- `.claude/commands/spec_kit/help.md` - Reference file for formatting
+- `.claude/commands/spec_kit/status.md` - Reference file for formatting
