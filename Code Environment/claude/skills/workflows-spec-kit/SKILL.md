@@ -307,7 +307,7 @@ ls -d specs/[0-9]*/ | sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n | tail -1
 
 ### Context Auto-Save
 
-**`save-context-trigger.sh` hook behavior:**
+**`workflows-memory-trigger.sh` hook behavior:**
 - Saves conversation context every 20 messages (20, 40, 60, 80...)
 - Parallel execution when available (non-blocking)
 - Target: `specs/###-folder/memory/` or sub-folder memory/ if active
@@ -384,7 +384,7 @@ specs/###-name/
 ```
 
 **Memory Context Routing:**
-- `save-context` reads `.spec-active` marker
+- `workflows-memory` reads `.spec-active` marker
 - Writes to active sub-folder's `memory/` directory
 - Each iteration has isolated conversation history
 - Root `memory/` preserved for legacy saves (backward compatibility)
@@ -696,7 +696,7 @@ rules=$(evaluate_rules "$context_json")
 
 **SpecKit-Specific CAPS Triggers:**
 - `enforce-spec-folder.sh` → Validates spec folder existence and template completeness
-- `save-context-trigger.sh` → Triggers context preservation at 20-message intervals
+- `workflows-memory-trigger.sh` → Triggers context preservation at 20-message intervals
 - Template validation → Checks placeholder removal and required field completion
 
 ### Related Skills
@@ -708,7 +708,7 @@ rules=$(evaluate_rules "$context_json")
 - **workflows-code** → Uses spec folders for implementation tracking
 - **workflows-git** → References spec folders in commit messages and PRs
 - **create-documentation** → Validates spec folder documentation quality
-- **save-context** → Saves conversation context to spec folder memory/
+- **workflows-memory** → Saves conversation context to spec folder memory/
 
 ### Cross-Skill Workflows
 
@@ -716,7 +716,7 @@ rules=$(evaluate_rules "$context_json")
 1. `workflows-spec-kit` creates spec folder
 2. `workflows-code` implements from spec + plan
 3. `workflows-git` commits with spec reference
-4. `save-context` preserves conversation to spec/memory/
+4. `workflows-memory` preserves conversation to spec/memory/
 
 **Documentation Quality Workflow:**
 1. `workflows-spec-kit` creates spec documentation
@@ -727,7 +727,7 @@ rules=$(evaluate_rules "$context_json")
 
 - `.opencode/speckit/templates/` - All template files
 - `.claude/hooks/UserPromptSubmit/enforce-spec-folder.sh` - Hook enforcement
-- `.claude/hooks/UserPromptSubmit/save-context-trigger.sh` - Context auto-save
+- `.claude/hooks/UserPromptSubmit/workflows-memory-trigger.sh` - Context auto-save
 - `/spec_kit:complete` - Level 3 auto-generation command
 
 ---

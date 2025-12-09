@@ -157,7 +157,7 @@ markdown-c7-optimizer --validate document.md
 - `UserPromptSubmit/enforce-markdown-strict.sh` - Structure validation
 
 **Skills**:
-- Pairs with: `git-commit`, `save-context`, `create-skill`
+- Pairs with: `git-commit`, `workflows-memory`, `create-skill`
 
 **External**:
 - llms.txt: https://llmstxt.org/

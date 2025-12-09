@@ -196,4 +196,4 @@ specs/{spec-folder}/memory/{timestamp}__{topic}.md
 ## 9. 📖 FULL DOCUMENTATION
 
 For comprehensive documentation:
-`.claude/skills/workflows-memory/SKILL.md`1
+`.claude/skills/workflows-memory/SKILL.md`

@@ -1,6 +1,6 @@
 # Alignment Scoring Reference
 
-> How memory determines the best spec folder match for conversation context.
+> How save-context determines the best spec folder match for conversation context.
 
 ---
 

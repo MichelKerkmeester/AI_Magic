@@ -127,7 +127,7 @@ get_skills_for_domain() {
       echo "create-documentation,workflows-spec-kit"
       ;;
     "git")
-      echo "workflows-git,workflows-save-context"
+      echo "workflows-git,workflows-memory"
       ;;
     "testing")
       echo "workflows-code,mcp-semantic-search"

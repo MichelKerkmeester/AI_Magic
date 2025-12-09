@@ -30,7 +30,7 @@
 // ─────────────────────────────────────────────────────────────
 // This file configures the content filtering pipeline that
 // removes noise, duplicates, and calculates quality scores
-// for memory files.
+// for save-context memory files.
 //
 // → pipeline.enabled (boolean, default: true)
 // ─────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 ---
 name: workflows-memory
-description: Saves expanded conversation context with full dialogue, decision rationale, visual flowcharts, and file changes. Auto-triggers on keywords or every 20 messages. Includes semantic vector search.
+description: Saves expanded conversation context with full dialogue, decision rationale, visual flowcharts, and file changes. Auto-triggers on keywords. Includes semantic vector search.
 allowed-tools: [Read, Write, Bash]
 version: 1.0.0
 ---
@@ -11,10 +11,33 @@ version: 1.0.0
 
 > **Related Documentation:**
 > - [README.md](./README.md) - Semantic Memory setup, MCP integration, API reference
-> - [/memory/save](../../commands/memory/save.md) - Save memory command
+> - [/memory/save](../../commands/memory/save.md) - Save context command
 > - [/memory/search](../../commands/memory/search.md) - Search, manage index, view recent
 
-> **TL;DR**: Use `/memory/save` to save context or let auto-save trigger every 20 messages. Use `/memory/search` for semantic search and index management. Creates `specs/###-feature/memory/{timestamp}.md` with full conversation, decisions, and diagrams.
+> **TL;DR**: Use `/memory/save` to save context or let keyword triggers auto-save. Use `/memory/search` for semantic search and index management. Creates `specs/###-feature/memory/{timestamp}.md` with full conversation, decisions, and diagrams.
+
+---
+
+## ⚠️ Platform Differences
+
+| Feature | Claude Code | Opencode |
+|---------|-------------|----------|
+| Auto-save on keywords | ✅ Automatic (hook) | ❌ Manual only |
+| Context surfacing | ✅ Automatic prompt | ❌ Manual `/memory/search` |
+| Session preferences | ✅ Detected by hook | ❌ Not available |
+| Commands | ✅ Full support | ✅ Full support |
+| MCP Tools | ✅ Full support | ✅ Full support |
+| Scripts | ✅ Full support | ✅ Full support |
+
+**Feature Parity: ~60%** — Core functionality (commands, MCP, scripts) works identically. Automation features require manual invocation in Opencode.
+
+### Opencode Users: Manual Workflows
+
+Since Opencode lacks hooks, these features require manual action:
+
+1. **Saving Context**: Run `/memory/save` explicitly (no auto-triggers)
+2. **Finding Context**: Run `/memory/search` at session start
+3. **Session Preferences**: Not available - use commands directly
 
 ---
 
@@ -24,13 +47,13 @@ version: 1.0.0
 
 | Phrase          | Also Works             |
 | --------------- | ---------------------- |
-| "save memory"   | "save conversation"    |
+| "save context"  | "save conversation"    |
 | "document this" | "preserve context"     |
 | "save session"  | "save this discussion" |
 
-### Auto-Save
+### Auto-Save (Claude Code Only)
 
-**Every 20 messages** the system automatically saves context. No action required.
+When trigger phrases are detected (e.g., "save context", "document this"), the system automatically saves. In Opencode, run `/memory/save` manually.
 
 ### When to Save
 
@@ -55,8 +78,8 @@ version: 1.0.0
 # Keyword search
 grep -r "anchor:.*keyword" specs/###-current-spec/memory/*.md
 
-# Semantic search
-claude-mem vector "your search query"
+# Semantic search (use MCP tool or command)
+# /memory/search "your search query"
 ```
 
 If found, load and acknowledge context before proceeding.
@@ -168,7 +191,7 @@ def route_save_context_resources(task):
     # ──────────────────────────────────────────────────────────────────
     # Main Context Generation
     # Purpose: 4 execution paths, anchor retrieval
-    # Key Insight: Running memory
+    # Key Insight: Running save-context
     # ──────────────────────────────────────────────────────────────────
     if task.generating_context:
         return execute("scripts/generate-context.js")
@@ -200,7 +223,7 @@ def route_save_context_resources(task):
     # ──────────────────────────────────────────────────────────────────
     # Execution Methods
     # Purpose: 4 execution paths, anchor retrieval
-    # Key Insight: Running memory
+    # Key Insight: Running save-context
     # ──────────────────────────────────────────────────────────────────
     if task.needs_execution_details:
         return load("references/execution_methods.md")
@@ -259,19 +282,19 @@ def route_save_context_resources(task):
 | --------------- | ---------------------------------- | -------------------------- |
 | Auto-save       | Say trigger phrase or wait 20 msgs | Normal workflow            |
 | Manual save     | `/memory/save` command             | Explicit control           |
-| Search/manage   | `/memory/search` command           | Find memory, manage index  |
+| Search/manage   | `/memory/search` command           | Find context, manage index |
 | Script          | `node generate-context.js`         | Testing/debugging          |
-| Semantic search | `claude-mem vector "query"`        | Find prior memory          |
+| Semantic search | `/memory/search "query"`           | Find prior context         |
 
 ### Execution Methods
 
-| Method              | Hooks | AI  | Effort | Use Case          |
-| ------------------- | ----- | --- | ------ | ----------------- |
-| **Keyword trigger** | No    | No  | Zero   | Type "save memory"|
-| **Save command**    | No    | Yes | Low    | `/memory/save`    |
-| **Search command**  | No    | Yes | Low    | `/memory/search`  |
-| **Direct script**   | No    | No  | Medium | Testing           |
-| **Helper script**   | No    | No  | Low    | Standalone        |
+| Method              | Hooks | AI  | Effort | Use Case            |
+| ------------------- | ----- | --- | ------ | ------------------- |
+| **Keyword trigger** | No    | No  | Zero   | Type "save context" |
+| **Save command**    | No    | Yes | Low    | `/memory/save`      |
+| **Search command**  | No    | Yes | Low    | `/memory/search`    |
+| **Direct script**   | No    | No  | Medium | Testing             |
+| **Helper script**   | No    | No  | Low    | Standalone          |
 
 For detailed examples, see [execution_methods.md](./references/execution_methods.md).
 
@@ -319,7 +342,7 @@ sed -n '/<!-- anchor: decision-jwt-049 -->/,/<!-- \/anchor: decision-jwt-049 -->
 
 ### Context Recovery Protocol
 
-**MANDATORY before implementing in folders with memory**: Search anchors (`grep -r "anchor:.*keyword"`) or semantic (`claude-mem vector "query"`), load relevant sections, acknowledge context. See [execution_methods.md](./references/execution_methods.md) for full protocol.
+**MANDATORY before implementing in folders with memory**: Search anchors (`grep -r "anchor:.*keyword"`) or semantic (`/memory/search "query"`), load relevant sections, acknowledge context. See [execution_methods.md](./references/execution_methods.md) for full protocol.
 
 ---
 
@@ -352,11 +375,14 @@ Sessions persist 1 hour (resume with `/memory/search resume`).
 
 ### MCP Tools (for AI agents)
 
-| Tool                    | Purpose                      |
-| ----------------------- | ---------------------------- |
-| `memory_search`         | Semantic vector search       |
-| `memory_load`           | Load memory by spec folder   |
-| `memory_match_triggers` | Fast trigger phrase matching |
+| Tool                    | Purpose                      | specFolder |
+| ----------------------- | ---------------------------- | ---------- |
+| `memory_search`         | Semantic vector search       | REQUIRED |
+| `memory_load`           | Load memory by spec folder   | REQUIRED |
+| `memory_match_triggers` | Fast trigger phrase matching | REQUIRED |
+| `memory_inject`         | Get recent context for spec  | REQUIRED |
+
+> **Important:** `specFolder` is a **REQUIRED** parameter for all MCP tools. MCP tools are stateless and cannot auto-detect the active spec folder. The AI must determine the spec folder from conversation context and pass it explicitly.
 
 See [semantic_memory.md](./references/semantic_memory.md) for complete documentation.
 
@@ -507,7 +533,7 @@ specs/015-auth-system/memory/
 
 ```bash
 # Search for authentication decisions
-claude-mem vector "how did we implement OAuth"
+/memory/search "how did we implement OAuth"
 
 # Result:
 # [92%] specs/049-auth/memory/28-11-25_14-30__oauth.md
@@ -522,7 +548,7 @@ claude-mem vector "how did we implement OAuth"
 > 1. **Missing spec folder**: `mkdir -p specs/###-feature/`
 > 2. **Wrong script path**: Use `.claude/skills/workflows-memory/scripts/generate-context.js`
 > 3. **Arg 2 format**: Full folder name like `122-skill-standardization`, not just `122`
-> 4. **Vector search empty**: Run `claude-mem rebuild` to generate embeddings
+> 4. **Vector search empty**: Run `/memory/search rebuild` to generate embeddings
 
 See [troubleshooting.md](./references/troubleshooting.md) for alignment scoring details and issue resolution.
 

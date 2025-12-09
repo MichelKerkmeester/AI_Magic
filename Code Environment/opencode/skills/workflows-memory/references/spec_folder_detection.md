@@ -1,6 +1,6 @@
 # Spec Folder Detection Reference
 
-> How memory determines and routes to the correct spec folder.
+> How save-context determines and routes to the correct spec folder.
 
 ---
 

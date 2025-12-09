@@ -565,7 +565,7 @@
         ]
       }
     },
-    "workflows-save-context": {
+    "workflows-memory": {
       "type": "workflow",
       "enforcement": "suggest",
       "priority": "high",
@@ -609,11 +609,11 @@
       },
       "fileTriggers": {
         "pathPatterns": [
-          ".claude/skills/workflows-save-context/**",
+          ".claude/skills/workflows-memory/**",
           "specs/**/memory/**"
         ],
         "contentPatterns": [
-          "workflows-save-context",
+          "workflows-memory",
           "generate-context.js",
           "conversation-flow.md",
           "decisions.md"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ───────────────────────────────────────────────────────────────
-# MANUAL SAVE-CONTEXT HELPER
+# MANUAL MEMORY HELPER
 # ───────────────────────────────────────────────────────────────
 # Standalone script for saving conversation context WITHOUT hooks
 #
@@ -40,7 +40,7 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 # Help message
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   cat << 'HELP'
-MANUAL SAVE-CONTEXT HELPER
+MANUAL MEMORY HELPER
 
 Save conversation context to spec folder without requiring hooks.
 

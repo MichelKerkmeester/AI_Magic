@@ -320,13 +320,13 @@ cd "$CWD" || {
   exit 0  # Silently exit
 }
 
-# Check if workflows-save-context skill exists
+# Check if workflows-memory skill exists
 # Calculate path relative to hooks directory for portability
-SAVE_CONTEXT_SCRIPT="${HOOKS_DIR}/../skills/workflows-save-context/scripts/generate-context.js"
+SAVE_CONTEXT_SCRIPT="${HOOKS_DIR}/../skills/workflows-memory/scripts/generate-context.js"
 
 if [ ! -f "$SAVE_CONTEXT_SCRIPT" ]; then
-  echo "   ⚠️  Cannot save: workflows-save-context script not found at: $SAVE_CONTEXT_SCRIPT"
-  echo "   Expected location: .claude/skills/workflows-save-context/scripts/generate-context.js"
+  echo "   ⚠️  Cannot save: workflows-memory script not found at: $SAVE_CONTEXT_SCRIPT"
+  echo "   Expected location: .claude/skills/workflows-memory/scripts/generate-context.js"
   rm -f "$TEMP_JSON"
   exit 0  # Graceful degradation
 fi
@@ -419,7 +419,7 @@ END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 # Ensure log directory exists
 [ -d "$HOOKS_DIR/logs" ] || mkdir -p "$HOOKS_DIR/logs" 2>/dev/null
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] save-context-trigger.sh ${DURATION}ms" >> "$HOOKS_DIR/logs/performance.log"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] workflows-memory-trigger.sh ${DURATION}ms" >> "$HOOKS_DIR/logs/performance.log"
 
 # Allow prompt to proceed to Claude (silently)
 exit 0

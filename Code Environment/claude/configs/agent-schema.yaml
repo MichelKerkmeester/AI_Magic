@@ -227,4 +227,4 @@ example:
   updated_at: "2025-01-15T14:35:22Z"
   metadata:
     task_count: 3
-    workspace_path: "/Users/YOUR_NAME/project"
+    workspace_path: "/Users/dev/project"

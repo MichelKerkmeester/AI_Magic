@@ -529,7 +529,7 @@ semantic-memory/
 | --------------- | ------------------------------------------------ | ------------------------- |
 | Install Guide   | `Install Guides/MCP - Semantic Memory.md`        | Step-by-step installation |
 | Spec 011        | `specs/011-semantic-memory-upgrade/`             | Full specification        |
-| Skills SKILL.md | `.claude/skills/workflows-memory/SKILL.md` | Save context workflow     |
+| Skills SKILL.md | `.claude/skills/workflows-memory/SKILL.md` | Memory workflow     |
 
 ### Verification Commands
 

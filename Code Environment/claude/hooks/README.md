@@ -91,7 +91,7 @@ User Action
 ┌─────────────────────────────────────────┐
 │  UserPromptSubmit Hooks                 │
 │  - inject-datetime.sh (0) 🕐            │
-│  - workflows-save-context-trigger.sh (0)│
+│  - workflows-memory-trigger.sh (0)│
 │  - validate-skill-activation.sh (0)     │
 │  - orchestrate-skill-validation.sh (0) 🆕│
 │  - suggest-semantic-search.sh (0) 🆕    │
@@ -200,7 +200,7 @@ User Action
 | Hook | Type | Purpose | Key Triggers | Exit | Perf |
 |------|------|---------|--------------|------|------|
 | inject-datetime | UserPromptSubmit | Inject current date/time into AI context | Every prompt | 0 | <5ms |
-| workflows-save-context-trigger | UserPromptSubmit | Auto-save conversation context | `save context`, Every 20 msgs | 0 | <100ms |
+| workflows-memory-trigger | UserPromptSubmit | Auto-save conversation context | `save context`, Every 20 msgs | 0 | <100ms |
 | validate-skill-activation | UserPromptSubmit | Match prompts to skills (v2.0.0 - pre-compiled cache) | Every prompt | 0 | 97-1200ms |
 | orchestrate-skill-validation | UserPromptSubmit | Calculate complexity, emit mandatory dispatch questions | Complexity ≥20% + 2+ domains | 0 | <100ms |
 | suggest-semantic-search | UserPromptSubmit | Semantic search MCP (v2.0.0 - contextual patterns) | `find code`, `locate` | 0 | ~13ms |
@@ -463,7 +463,7 @@ json_escape() {
 
 ### 3.4 Context & Performance Hooks
 
-#### workflows-save-context-trigger.sh (UserPromptSubmit)
+#### workflows-memory-trigger.sh (UserPromptSubmit)
 **Triggers**: Keywords (`save context`), Every 20 messages
 **V9 features**: Session-aware markers, anchor-based retrieval, sub-folder routing
 **V10 features (Spec 015)**: Interactive search mode with rich result cards, filtering, clustering, pagination, session persistence
@@ -695,7 +695,7 @@ json_escape() {
 - `validate-spec-final.sh` - Blocks on spec folder validation failures (SpecKit quality gate)
 
 ### Advisory Hooks (exit 0 only)
-- `workflows-save-context-trigger.sh` - Auto-save context (non-blocking)
+- `workflows-memory-trigger.sh` - Auto-save context (non-blocking)
 - `validate-skill-activation.sh` - Skill suggestions (non-blocking)
 - `orchestrate-skill-validation.sh` - Skill orchestration (non-blocking)
 - `suggest-semantic-search.sh` - Search reminders (non-blocking)
@@ -747,7 +747,7 @@ File reading, content analysis, git operations:
 
 ### Heavy Processing (2-5s)
 External tool execution, blocking by design:
-- `workflows-save-context-trigger.sh` - Node.js script execution: **2-5 seconds**
+- `workflows-memory-trigger.sh` - Node.js script execution: **2-5 seconds**
   - Manual save: 2-3 seconds
   - Auto-save (with analysis): 3-5 seconds
   - **Intentionally synchronous** for guaranteed completion
@@ -788,8 +788,8 @@ User Prompt
 ┌─────────────────────────────────────────────────────────────┐
 │ UserPromptSubmit Hooks (10)                                 │
 ├─────────────────────────────────────────────────────────────┤
-│ 1. workflows-save-context-trigger    → transform-transcript.js        │
-│                             → workflows-save-context skill            │
+│ 1. workflows-memory-trigger    → transform-transcript.js        │
+│                             → workflows-memory skill            │
 │                             → specs/###/memory/ OR memory/  │
 │                                                             │
 │ 2. validate-skill-activation → skill-rules.json (skills)    │
@@ -914,7 +914,7 @@ Tool Executes (Bash, Write, Edit, etc.)
 ├─────────────────────────────────────────────────────────────┤
 │ 1. save-context-before-compact → Backs up transcript        │
 │                                → lib/transform-transcript.js│
-│                                → workflows-save-context skill│
+│                                → workflows-memory skill│
 │                                → specs/###/memory/ OR        │
 │                                   ###-name/###-sub/memory/  │
 │                                → Always exits 0 (non-block) │
@@ -945,7 +945,7 @@ The configuration file `.claude/configs/skill-rules.json` is the **central conne
 ### Log Files Connection
 
 Most hooks write to `.claude/hooks/logs/`:
-- `workflows-save-context-trigger.sh` → `auto-workflows-save-context.log`
+- `workflows-memory-trigger.sh` → `auto-workflows-memory.log`
 - `validate-skill-activation.sh` → `skill-recommendations.log`
 - `enforce-markdown-naming.sh` → `quality-checks.log`
 - `enforce-markdown-strict.sh` → `quality-checks.log`
@@ -964,13 +964,13 @@ Most hooks write to `.claude/hooks/logs/`:
 |---------|---------|---------------|---------|-------------|
 | **output-helpers.sh** | Standardized hook output formatting | `log_info()`, `log_warn()`, `log_error()`, `log_success()` | All hooks | N/A (output only) |
 | **exit-codes.sh** | Exit code constants | `EXIT_SUCCESS=0`, `EXIT_BLOCK=1`, `EXIT_WARNING=3`, `EXIT_SKIP=4` | All hooks | N/A (constants) |
-| **transform-transcript.js** | JSONL → JSON conversion | `transformTranscript()`, content filtering | workflows-save-context-trigger.sh | ~500ms |
+| **transform-transcript.js** | JSONL → JSON conversion | `transformTranscript()`, content filtering | workflows-memory-trigger.sh | ~500ms |
 | **shared-state.sh** | Cross-hook state management (BSD-compatible v1.0.0) | `write_hook_state()`, `read_hook_state()`, `clear_hook_state()`, `get_state_dir()` | Multiple hooks | <5ms |
 | **agent-tracking.sh** | Agent lifecycle tracking | `track_dispatch()`, `track_completion()` | orchestrate-skill-validation.sh, announce-task-dispatch.sh | ~10ms |
 | **signal-output.sh** | JSON signal generation (v2.0.0 - systemMessage) | `emit_signal()`, `emit_mandatory_question()` | enforce-spec-folder.sh, check-pending-questions.sh, enforce-git-workspace-choice.sh | <5ms |
-| **spec-context.sh** | Spec folder state management | `get_spec_marker_path()`, `has_substantial_content()`, `create_spec_marker()` | enforce-spec-folder.sh, workflows-save-context | ~10ms |
+| **spec-context.sh** | Spec folder state management | `get_spec_marker_path()`, `has_substantial_content()`, `create_spec_marker()` | enforce-spec-folder.sh, workflows-memory | ~10ms |
 | **template-validation.sh** | Template placeholder detection | `validate_template()`, `check_placeholders()` | validate-post-response.sh | ~20ms |
-| **anchor-generator.js** | HTML anchor generation for memory files | `generateAnchorId()`, `categorizeSection()` | workflows-save-context (generate-context.js) | <50ms |
+| **anchor-generator.js** | HTML anchor generation for memory files | `generateAnchorId()`, `categorizeSection()` | workflows-memory (generate-context.js) | <50ms |
 | **load-related-context.sh** | Anchor-based context retrieval | `list`, `summary`, `search`, `extract`, `recent`, `smart`, `search_all` | enforce-spec-folder.sh (Option D) | <200ms core, <500ms smart |
 | **relevance-scorer.sh** | 4-dimension relevance scoring | `calculate_relevance()` (category, keywords, recency, proximity) | load-related-context.sh (smart/search_all) | ~10ms per anchor |
 | **file-scope-tracking.sh** | File modification tracking | `track_file()`, `get_modified_files()` | detect-scope-growth.sh, track-file-modifications.sh | <10ms |
@@ -981,7 +981,7 @@ Most hooks write to `.claude/hooks/logs/`:
 | **hook-init.sh** | Common initialization boilerplate (v1.0.0) | Sources common libraries, sets up logging | All hooks | <5ms |
 | **domain-detection.sh** | Complexity domain detection (v1.0.0) | `detect_domains()`, `count_domains()`, `get_domain_keywords()` | suggest-mcp-tools.sh, orchestrate-skill-validation.sh | <10ms |
 | **markdown-naming.sh** | Markdown naming conventions (v1.0.0) | `to_snake_case()`, `is_naming_violation()`, `atomic_rename()` | enforce-markdown-naming.sh | <10ms |
-| **spec-memory.sh** | Spec memory file management (v1.0.0) | `get_memory_files()`, `get_latest_memory()`, `create_memory_file()` | workflows-save-context, enforce-spec-folder | <10ms |
+| **spec-memory.sh** | Spec memory file management (v1.0.0) | `get_memory_files()`, `get_latest_memory()`, `create_memory_file()` | workflows-memory, enforce-spec-folder | <10ms |
 | **migrate-spec-folder.sh** | Spec folder versioning (v1.0.0) | `migrate_to_subfolder()`, `archive_root_content()` | enforce-spec-folder.sh | <100ms |
 | **mcp-auth-cache.sh** | MCP auth token caching (v1.0.0) | `mcp_auth_cached()`, `mcp_auth_store()`, `mcp_auth_clear()`, `mcp_auth_get()` | MCP tool integrations | <5ms |
 | **agent-state-handoff.sh** | Parallel agent state management (v1.0.0) | `agent_state_init()`, `agent_state_update()`, `agent_state_wait()`, `agent_state_read()` | Parallel dispatch orchestration | <10ms |
@@ -1197,7 +1197,7 @@ All hooks write to `.claude/hooks/logs/` for debugging and audit trail.
 
 **UserPromptSubmit Hooks**:
 - `inject-datetime.log` - (None - outputs only to performance.log)
-- `workflows-save-context-trigger.log` - Auto-save trigger events (keyword/threshold)
+- `workflows-memory-trigger.log` - Auto-save trigger events (keyword/threshold)
 - `validate-skill-activation.log` - Skill recommendations, matched patterns
 - `enforce-spec-folder.log` - Spec folder enforcement, block/allow outcomes
 - `enforce-verification.log` - Verification enforcement triggers
@@ -1212,7 +1212,7 @@ All hooks write to `.claude/hooks/logs/` for debugging and audit trail.
 ```bash
 # View recent entries from specific hooks
 tail -n 50 .claude/hooks/logs/validate-skill-activation.log
-tail -n 50 .claude/hooks/logs/workflows-save-context-trigger.log
+tail -n 50 .claude/hooks/logs/workflows-memory-trigger.log
 
 # Search for specific patterns
 grep "git-commit" .claude/hooks/logs/validate-skill-activation.log
@@ -1282,7 +1282,7 @@ ls -lh .claude/hooks/logs/*.log
 **Current Skills** (10 total):
 
 **Skills with directories** (6):
-- cli-gemini, cli-codex, create-documentation, workflows-save-context, workflows-code, workflows-git
+- cli-gemini, cli-codex, create-documentation, workflows-memory, workflows-code, workflows-git
 
 **Knowledge-based skills** (7):
 - animation-strategy, code-standards ⭐ (alwaysActive), conversation-documentation ⭐ (alwaysActive)
@@ -1603,7 +1603,7 @@ Subsequent messages after spec.md created:
 
 ### Auto-Save Context
 
-The `workflows-save-context-trigger.sh` hook automatically saves conversations:
+The `workflows-memory-trigger.sh` hook automatically saves conversations:
 - Triggered by keywords ("save context", "save conversation")
 - Auto-triggers every 20 messages
 - Saves to `specs/[###-name]/memory/`
@@ -1628,7 +1628,7 @@ The `validate-skill-activation.sh` hook suggests relevant skills based on prompt
 **Key Skills**:
 - `workflows-code` - Development workflow orchestration (implementation, debugging, verification)
 - `workflows-git` - Git workflow orchestration (worktrees, commits, PRs)
-- `workflows-save-context` - Conversation context preservation
+- `workflows-memory` - Conversation context preservation
 - `create-documentation` - Markdown optimization, validation, and ASCII flowchart creation
 - `cli-codex` - OpenAI Codex CLI integration
 - `cli-gemini` - Google Gemini CLI integration
@@ -1663,7 +1663,7 @@ The `validate-skill-activation.sh` hook suggests relevant skills based on prompt
 
 **Hooks → Skills**:
 - `validate-skill-activation.sh` → Reads skill-rules.json for recommendations
-- `workflows-save-context-trigger.sh` → Uses workflows-save-context skill's generate-context.js
+- `workflows-memory-trigger.sh` → Uses workflows-memory skill's generate-context.js
 - `enforce-markdown-strict.sh` → Uses create-documentation for validation
 - `skill-scaffold-trigger.sh` → Creates structure following create-documentation standards
 

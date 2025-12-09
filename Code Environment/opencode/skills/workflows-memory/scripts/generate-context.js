@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Save Context - Generate Expanded Conversation Documentation
+ * Memory - Generate Expanded Conversation Documentation
  *
  * This script generates comprehensive conversation context documentation
  * from conversation session data provided via JSON input file.
@@ -1327,11 +1327,11 @@ async function detectSpecFolder(collectedData = null) {
     }
     // specs directory doesn't exist - error and exit
     console.error('\n❌ Cannot save context: No spec folder found\n');
-    console.error('memory requires a spec folder to save memory documentation.');
+    console.error('save-context requires a spec folder to save memory documentation.');
     console.error('Every conversation with file changes must have a spec folder per conversation-documentation rules.\n');
     console.error('Please create a spec folder first:');
     console.error('  mkdir -p specs/###-feature-name/\n');
-    console.error('Then re-run memory.\n');
+    console.error('Then re-run save-context.\n');
     console.error('See: .claude/knowledge/conversation_documentation.md\n');
     process.exit(1);
   }

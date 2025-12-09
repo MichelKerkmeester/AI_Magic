@@ -1,6 +1,6 @@
 # Output Format Reference
 
-> Timestamp formats, file naming conventions, and output structure for memory.
+> Timestamp formats, file naming conventions, and output structure for save-context.
 
 ---
 

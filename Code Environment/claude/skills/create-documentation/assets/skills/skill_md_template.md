@@ -966,7 +966,7 @@ Quality:
 | **Total Lines**       | 400-800                      | 800-2000                     | 2000-5000                           |
 | **SKILL.md Lines**    | 400-800                      | 800-1000                     | <3000                               |
 | **Sections**          | 6 core                       | 6 core + navigation          | 6 core per mode + overview          |
-| **Example Skills**    | cli-gemini, cli-codex | save-context, workflows-code | create-documentation, workflows-git |
+| **Example Skills**    | cli-gemini, cli-codex | workflows-memory, workflows-code | create-documentation, workflows-git |
 
 ### Validation Command Reference
 

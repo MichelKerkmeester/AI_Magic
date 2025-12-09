@@ -1,6 +1,6 @@
 # Memory - Semantic Memory System
 
-A semantic intelligence layer for the memory memory system, enabling natural language search, multi-concept queries, and proactive memory surfacing with full backward compatibility with anchor-based retrieval.
+A semantic intelligence layer for the memory system, enabling natural language search, multi-concept queries, and proactive memory surfacing with full backward compatibility with anchor-based retrieval.
 
 ---
 
@@ -120,7 +120,7 @@ That's it! The system works automatically after installation.
 
 | Phrase          | Also Works             |
 | --------------- | ---------------------- |
-| "save memory"   | "save conversation"    |
+| "save context"  | "save conversation"    |
 | "document this" | "preserve context"     |
 | "save session"  | "save this discussion" |
 
@@ -233,12 +233,12 @@ Quick health check and system statistics:
 
 ### Execution Options
 
-| Method              | Hooks | AI  | Effort | Use Case          |
-| ------------------- | ----- | --- | ------ | ----------------- |
-| **Keyword trigger** | No    | No  | Zero   | Type "save memory"|
+| Method              | Hooks | AI  | Effort | Use Case            |
+| ------------------- | ----- | --- | ------ | ------------------- |
+| **Keyword trigger** | No    | No  | Zero   | Type "save context" |
 | **Slash command**   | No    | Yes | Low    | `/memory/save` or `/memory/search` |
-| **Direct script**   | No    | No  | Medium | Testing           |
-| **Helper script**   | No    | No  | Low    | Standalone        |
+| **Direct script**   | No    | No  | Medium | Testing             |
+| **Helper script**   | No    | No  | Low    | Standalone          |
 
 ### Script Usage
 
@@ -746,7 +746,7 @@ node .claude/skills/workflows-memory/scripts/index-all.js --scan .
 | ---------------- | ------------------------------------------------------- |
 | Hook performance | `.claude/hooks/logs/performance.log`                    |
 | Trigger matching | `.claude/hooks/logs/suggest-semantic-search.log`        |
-| Save context     | `.claude/hooks/logs/workflows-memory-trigger.log` |
+| Memory           | `.claude/hooks/logs/workflows-memory-trigger.log` |
 
 ---
 

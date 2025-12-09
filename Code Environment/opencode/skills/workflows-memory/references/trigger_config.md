@@ -69,7 +69,7 @@ When using hooks, trigger detection occurs in `UserPromptSubmit`:
 
 ```bash
 # Check for trigger phrase in user message
-if echo "$USER_MESSAGE" | grep -qi -E "(save context|save conversation|document this)"; then
+if echo "$USER_MESSAGE" | grep -qi -E "(save memory|save conversation|document this)"; then
   # Execute memory workflow
   node .opencode/skills/workflows-memory/scripts/generate-context.js
 fi

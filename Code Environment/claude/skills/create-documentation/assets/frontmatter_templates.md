@@ -22,7 +22,7 @@ allowed-tools: Read, Write, Edit, Bash, Grep
 **`name`**:
 - Format: `lowercase-with-hyphens`
 - Should match directory name
-- Example: `document-style-validator`, `git-commit`, `save-context`
+- Example: `document-style-validator`, `git-commit`, `workflows-memory`
 
 **`description`**:
 - One to two sentences maximum

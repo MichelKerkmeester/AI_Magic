@@ -247,8 +247,8 @@ This location is shared between Claude Code and OpenCode.
 
 ```bash
 # Create directory for the MCP server
-mkdir -p "/Users/YOUR_NAME/MCP-Servers/semantic-memory"
-cd "/Users/YOUR_NAME/MCP-Servers/semantic-memory"
+mkdir -p "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory"
+cd "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory"
 ```
 
 ### Step 2: Copy Server Files
@@ -322,7 +322,7 @@ Add to `.mcp.json` in your project root:
     "semantic_memory": {
       "command": "node",
       "args": [
-        "/Users/YOUR_NAME/MCP-Servers/semantic-memory/semantic-memory.js"
+        "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory/semantic-memory.js"
       ],
       "env": {},
       "disabled": false
@@ -352,7 +352,7 @@ Add to `opencode.json` in your project root:
       "type": "local",
       "command": [
         "node",
-        "/Users/YOUR_NAME/MCP-Servers/semantic-memory/semantic-memory.js"
+        "/Users/YOUR_NAME/MEGA/MCP Servers/semantic-memory/semantic-memory.js"
       ],
       "environment": {},
       "enabled": true
@@ -826,7 +826,7 @@ Slow operations are logged automatically:
 | Document        | Location                                         | Purpose                   |
 | --------------- | ------------------------------------------------ | ------------------------- |
 | Server README   | `semantic-memory/README.md`                      | Full server documentation |
-| Skills SKILL.md | Your project's `.claude/skills/` or `.opencode/skills/` | Save context workflow     |
+| Skills SKILL.md | Your project's `.claude/skills/` or `.opencode/skills/` | Memory workflow     |
 
 ---
 

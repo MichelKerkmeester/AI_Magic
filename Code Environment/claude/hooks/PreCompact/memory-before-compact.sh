@@ -249,10 +249,10 @@ cd "$CWD" || {
 }
 
 # Locate save-context script
-SAVE_CONTEXT_SCRIPT="$HOOKS_DIR/../skills/workflows-save-context/scripts/generate-context.js"
+SAVE_CONTEXT_SCRIPT="$HOOKS_DIR/../skills/workflows-memory/scripts/generate-context.js"
 
 if [ ! -f "$SAVE_CONTEXT_SCRIPT" ]; then
-  echo "   ⚠️  Cannot save: workflows-save-context script not found" >&2
+  echo "   ⚠️  Cannot save: workflows-memory script not found" >&2
   echo "   Expected: $SAVE_CONTEXT_SCRIPT" >&2
   rm -f "$TEMP_JSON"
   exit $EXIT_ALLOW

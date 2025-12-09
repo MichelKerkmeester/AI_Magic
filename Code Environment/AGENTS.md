@@ -57,14 +57,16 @@ Before ANY code/file changes or terminal commands:
 #### ⚡ Memory File Loading (After Spec Folder Selection)
 When user selects Option A (Use existing spec folder) or Option C (Update related spec), and memory files exist:
 
-1. **Auto-load the most recent memory file** (DEFAULT BEHAVIOR)
-   - Automatically load the newest file from `memory/` folder
-   - Briefly confirm: "Loaded context from [filename]"
-   - User can say "skip memory" or "fresh start" to bypass
-2. **On-demand options** (only if user requests):
-   - "load all memory" - Load all recent files (comprehensive context)
-   - "list memory" - Show available files for manual selection
-   - "skip memory" / "fresh start" - No context loading
+1. **Interactive selection prompt** (DEFAULT BEHAVIOR)
+   - Display numbered list of recent memories: `[1] [2] [3] [all] [skip]`
+   - User chooses which context to load
+   - `[skip]` continues without loading (instant, never blocks)
+2. **Session preference phrases** (remembered for ~1 hour):
+   - "auto-load memories" - Skip prompt, load most recent automatically
+   - "fresh start" / "skip memory" - Skip all context loading this session
+   - "ask about memories" - Revert to interactive selection (default)
+
+> **Opencode Users:** Hooks are not supported in Opencode. Instead, manually run `/memory/search` before starting work in a spec folder. Feature parity: ~60% (commands work, automation requires manual steps).
 
 #### ⚡ Git Workspace Choice (MANDATORY)
 
@@ -411,7 +413,7 @@ def recommend_action(confidence: int) -> str:
 ```
 Request Received → [Parse carefully: What is ACTUALLY requested?]
                     ↓
-         Gather Context → [Read files, check knowledge base]
+         Gather Context → [Read files, check skills folder]
                     ↓
   Identify Approach → [What's the SIMPLEST solution that works?]
                     ↓

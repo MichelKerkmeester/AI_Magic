@@ -23,7 +23,7 @@ The memory system supports **4 independent execution paths**. Hooks are suppleme
 **Requirement**: Hook enabled in `.opencode/settings.local.json`
 
 **User Action**:
-- Type trigger keywords: "save context", "save conversation", "document this", etc.
+- Type trigger keywords: "save memory", "save conversation", "document this", etc.
 - OR simply continue conversation (auto-saves every 20 messages)
 
 **What Happens Automatically**:
@@ -65,11 +65,11 @@ The memory system supports **4 independent execution paths**. Hooks are suppleme
 **Usage**:
 ```bash
 # Create minimal JSON data file
-cat > /tmp/test-memory.json << 'EOF'
+cat > /tmp/test-save-context.json << 'EOF'
 {
   "SPEC_FOLDER": "049-anchor-context-retrieval",
   "recent_context": [{
-    "request": "Test memory execution",
+    "request": "Test save-context execution",
     "completed": "Verified system works standalone",
     "learning": "Direct script execution requires minimal JSON",
     "duration": "5m",
@@ -84,7 +84,7 @@ cat > /tmp/test-memory.json << 'EOF'
     "facts": ["No hooks required", "Minimal data sufficient"]
   }],
   "user_prompts": [{
-    "prompt": "Test memory standalone",
+    "prompt": "Test save-context standalone",
     "timestamp": "2025-11-28T18:30:00Z"
   }]
 }

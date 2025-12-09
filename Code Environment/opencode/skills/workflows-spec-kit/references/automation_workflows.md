@@ -1,6 +1,6 @@
 # 🤖 Automation Workflows - Hook Enforcement & Context Auto-Save
 
-Hook-based **HARD enforcement**, context auto-save, and mandatory process workflows for AI agents. This document explains how the enforce-spec-folder.sh and save-context-trigger.sh hooks work and defines required AI agent behavior.
+Hook-based **HARD enforcement**, context auto-save, and mandatory process workflows for AI agents. This document explains how the enforce-spec-folder.sh and workflows-memory-trigger.sh hooks work and defines required AI agent behavior.
 
 **Key Point:** Enforcement is HARD - hooks block commits with missing required templates based on the progressive enhancement model.
 
@@ -163,7 +163,7 @@ rm .claude/.spec-skip
 
 ### Overview
 
-The `save-context-trigger.sh` hook automatically saves conversation context to preserve implementation history.
+The `workflows-memory-trigger.sh` hook automatically saves conversation context to preserve implementation history.
 
 ### Trigger Conditions
 
@@ -559,9 +559,9 @@ rm .claude/.spec-skip
 ### "Context not auto-saving"
 
 **Check:**
-1. Is save-context-trigger.sh hook enabled?
+1. Is workflows-memory-trigger.sh hook enabled?
 2. Are you past 20 message threshold?
-3. Check logs: `.claude/hooks/logs/save-context-trigger.log`
+3. Check logs: `.claude/hooks/logs/workflows-memory-trigger.log`
 
 **Manual trigger:**
 Say "save context" or "save conversation" to trigger manual save.

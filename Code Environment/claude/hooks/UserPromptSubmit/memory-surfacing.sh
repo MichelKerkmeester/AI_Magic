@@ -29,7 +29,7 @@
 # 3. Offer to load relevant context
 #
 # This is documented in:
-# .opencode/skills/workflows-save-context/SKILL.md
+# .opencode/skills/workflows-memory/SKILL.md
 # ═══════════════════════════════════════════════════════════════════════════════
 
 set -euo pipefail
@@ -39,7 +39,7 @@ set -euo pipefail
 # ───────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILL_DIR="${SCRIPT_DIR}/../../skills/workflows-save-context"
+SKILL_DIR="${SCRIPT_DIR}/../../skills/workflows-memory"
 MATCHER_SCRIPT="${SKILL_DIR}/scripts/lib/trigger-matcher.js"
 VECTOR_INDEX_SCRIPT="${SKILL_DIR}/scripts/lib/vector-index.js"
 LOG_FILE="${SCRIPT_DIR}/../logs/memory-surfacing.log"
