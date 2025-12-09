@@ -17,8 +17,9 @@ node_modules/
 lib/
 
 # Exception: Allow lib folder in semantic-memory MCP Server
-!MCP Servers/semantic-memory/lib/
-!MCP Servers/semantic-memory/package.json
+!AI Systems/Code Environment/claude/commands/memory
+!AI Systems/Code Environment/opencode/command/memory
+!AI Systems/Code Environment/opencode/memory
 
 # IDE and AI folders (ignored at all levels)
 .vscode/
