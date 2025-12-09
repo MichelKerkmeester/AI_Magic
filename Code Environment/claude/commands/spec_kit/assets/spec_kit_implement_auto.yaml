@@ -1,0 +1,450 @@
+# ───────────────────────────────────────────────────────────────────
+# SMART SPECKIT: IMPLEMENT WORKFLOW (AUTONOMOUS MODE)
+# ───────────────────────────────────────────────────────────────────
+role: Expert Developer using Smart SpecKit for fully autonomous implementation
+purpose: Spec-driven implementation with complete autonomous execution
+action: Execute from task breakdown to completion with self-validation
+
+operating_mode:
+  workflow: sequential
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none
+  tracking: progressive_task_checklists
+  validation: continuous_self_validation
+
+implementation_philosophy:
+  principle: "Correctness first, elegance second"
+  approach: "Systematic execution with continuous validation"
+  mandate: "Build incrementally, test thoroughly, deliver confidently"
+
+# ───────────────────────────────────────────────────────────────────
+# USER INPUTS (Transformed from raw text)
+# ───────────────────────────────────────────────────────────────────
+user_inputs:
+  git_branch: |
+    [GIT_BRANCH]
+    Git branch name. Leave empty to use existing branch from spec folder.
+
+  spec_folder: |
+    [SPEC_FOLDER]
+    Spec folder path. REQUIRED - must contain spec.md and plan.md.
+
+  context: |
+    [CONTEXT]
+    Additional context or constraints for implementation.
+
+  issues: |
+    [ISSUES]
+    Known issues from planning phase.
+
+  request: |
+    [REQUEST]
+    Additional implementation instructions. Default: "Conduct comprehensive review and implement"
+
+  environment: |
+    [STAGING LINK]
+    Staging URL for browser testing.
+
+  scope: |
+    [FILES]
+    Files or folders to work with.
+
+# ─────────────────────────────────────────────────────────────────
+# REQUEST HANDLING
+# ─────────────────────────────────────────────────────────────────
+request_handling:
+  default: "Conduct a comprehensive review of the spec folder and carry out its implementation fully autonomously."
+  override: "Use [REQUEST] if provided, else use default above"
+
+# ─────────────────────────────────────────────────────────────────
+# DOCUMENTATION LEVELS (Progressive Enhancement)
+# ─────────────────────────────────────────────────────────────────
+documentation_levels:
+  level_1_baseline:
+    name: "Level 1 (Baseline)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    loc_guidance: "<100 LOC"
+
+  level_2_verification:
+    name: "Level 2 (Verification)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    - checklist.md
+    loc_guidance: "100-499 LOC"
+
+  level_3_full:
+    name: "Level 3 (Full)"
+    required_files:
+    - spec.md
+    - plan.md
+    - tasks.md
+    - checklist.md
+    - decision-record.md
+    loc_guidance: ">=500 LOC"
+
+  level_selection:
+    note: "LOC thresholds are SOFT GUIDANCE - choose level based on complexity and risk"
+
+# ─────────────────────────────────────────────────────────────────
+# PREREQUISITES
+# ─────────────────────────────────────────────────────────────────
+prerequisites:
+  level_1_required:
+  - "[SPEC_FOLDER]/spec.md"
+  - "[SPEC_FOLDER]/plan.md"
+  - "[SPEC_FOLDER]/tasks.md"  # Will be created if missing
+  level_2_required:
+  - "[SPEC_FOLDER]/checklist.md"
+  level_3_required:
+  - "[SPEC_FOLDER]/decision-record.md"
+  optional_artifacts:
+  - "[SPEC_FOLDER]/planning-summary.md"
+  - "[SPEC_FOLDER]/research.md"
+  - "[SPEC_FOLDER]/research-spike-*.md"
+  verification: MUST EXIST BEFORE PROCEEDING
+  note: This workflow assumes planning completed via /spec_kit:plan
+
+# ─────────────────────────────────────────────────────────────────
+# AVAILABLE TEMPLATES
+# ─────────────────────────────────────────────────────────────────
+available_templates:
+  # Level 1+ (Baseline - required at all levels)
+  tasks: .opencode/speckit/templates/tasks.md
+  # Level 2+ (Verification)
+  checklist: .opencode/speckit/templates/checklist.md
+
+# ─────────────────────────────────────────────────────────────────
+# PARALLEL DISPATCH CONFIGURATION (AGENTS.md Compliant)
+# ─────────────────────────────────────────────────────────────────
+# Per AGENTS.md Section 1: ALWAYS ask before parallel dispatch (no auto-dispatch)
+parallel_dispatch_config:
+  enabled: true
+  version: "1.0.0"
+
+  complexity_scoring:
+    domain_count:
+      weight: 0.35
+      domains: [code, analysis, docs, git, testing, devops]
+      scoring: "1=0.0, 2=0.5, 3+=1.0"
+    file_count:
+      weight: 0.25
+      scoring: "1-2=0.0, 3-5=0.5, 6+=1.0"
+    loc_estimate:
+      weight: 0.15
+      scoring: "<50=0.0, 50-200=0.5, >200=1.0"
+    parallel_opportunity:
+      weight: 0.20
+      scoring: "sequential=0.0, some=0.5, high=1.0"
+    task_type:
+      weight: 0.05
+      scoring: "trivial=0.0, moderate=0.5, complex=1.0"
+
+  # Decision thresholds (AGENTS.md compliant - no auto-dispatch)
+  thresholds:
+    direct_max: 20
+    ask_min: 20
+    min_domains_for_ask: 2
+    # NOTE: auto_dispatch_min and min_domains_for_auto REMOVED per AGENTS.md Section 1
+    # Always ask user before parallel dispatch
+
+  session_preference:
+    persist_duration_seconds: 3600
+
+  override_phrases:
+    direct: ["proceed directly", "handle directly", "skip parallel", "skip agents"]
+    parallel: ["use parallel", "dispatch agents", "parallelize", "use agents"]
+    auto: ["auto-decide", "auto mode", "decide for me"]
+
+  question_template:
+    tool: AskUserQuestion
+    header: "Parallel Dispatch"
+    format: |
+      **Phase: {phase_name}**
+      Complexity: {complexity_score}% | Domains: {domain_count} ({domains_list})
+
+      This phase may benefit from parallel sub-agents for faster execution.
+    options:
+      - id: A
+        label: "Handle directly"
+        description: "Execute phase sequentially without parallel agents"
+      - id: B
+        label: "Use parallel agents"
+        description: "Dispatch specialized agents for faster parallel execution"
+      - id: C
+        label: "Auto-decide for session"
+        description: "Let system decide based on complexity thresholds (1 hour)"
+
+  eligible_phases:
+    - step_6_development
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW (8 STEPS - STANDALONE IMPLEMENTATION)
+# ─────────────────────────────────────────────────────────────────
+workflow:
+  step_1_review_plan_and_spec:
+    purpose: Review spec and planning artifacts
+    activities:
+    - Run check-prerequisites.sh --json --require-tasks
+    - Verify spec.md and plan.md exist
+    - Load and review all planning artifacts
+    - Understand feature requirements
+    - Analyze technical approach
+    - Identify dependencies
+    - Note implementation constraints
+    required_documents:
+    - "[SPEC_FOLDER]/spec.md"
+    - "[SPEC_FOLDER]/plan.md"
+    optional_documents:
+    - planning-summary.md
+    - research.md
+    - research-spike-*.md
+    - decision-record-*.md
+    deep_analysis:
+      focus: comprehensive_plan_review
+      outputs:
+      - requirements_summary
+      - technical_approach_understanding
+      - identified_dependencies
+      - potential_challenges
+    validation: planning_artifacts_understood
+
+  step_2_task_breakdown:
+    purpose: Create or validate tasks.md (Level 1+ requirement)
+    level_requirement: "Level 1+ (Baseline - required at all levels)"
+    activities:
+    - Load plan.md for tech stack and architecture
+    - Load spec.md for user stories and priorities
+    - Generate tasks organized by user story
+    - Create dependency graph
+    - Mark parallel-executable tasks with [P]
+    - Define task phases
+    - Generate time estimates
+    - Create/validate tasks.md (required at all levels)
+    outputs:
+    - tasks.md: implementation_breakdown
+    template: .opencode/speckit/templates/tasks.md
+    validation: tasks_documented
+
+  step_3_analysis:
+    purpose: Verify consistency across all artifacts
+    activities:
+    - Build requirements inventory
+    - Build task coverage mapping
+    - Run consistency checks
+    - Generate gap analysis
+    outputs:
+    - consistency_report
+    - coverage_verification
+    validation: consistency_verified
+
+  step_4_quality_checklist:
+    purpose: Validate checklists AND USE THEM FOR VERIFICATION (Level 2+ requirement)
+    level_requirement: "Level 2+ (Verification and Full)"
+    activities:
+    - Check documentation level - skip for Level 1, MANDATORY for Level 2+
+    - Load checklist.md file
+    - Parse all checklist items with priorities (P0/P1/P2)
+    - FOR EACH ITEM:
+      - Verify condition is met
+      - Mark as [x] with evidence link
+      - If not met: document blocker (P0/P1) or deferral reason (P2)
+    - Ensure ALL P0 items are complete (HARD BLOCKER)
+    - Ensure ALL P1 items are complete or user-approved deferral
+    - Document P2 deferrals with reasons
+    - Update checklist.md file with verification marks
+    verification_protocol:
+      p0_handling: "BLOCKER - Cannot proceed without completion"
+      p1_handling: "Required - Complete or get user approval to defer"
+      p2_handling: "Optional - Can defer with documented reason"
+    outputs:
+    - checklist_status: pass_or_fail
+    - verified_items_count: "X/Y items verified"
+    - p0_status: "all_complete or blocked"
+    - deferred_items: list_of_deferred_p2_items
+    validation: checklist_verified_and_marked
+
+  step_5_implementation_check:
+    purpose: Verify all prerequisites for implementation
+    activities:
+    - Verify environment ready
+    - Check API endpoints accessible
+    - Verify dependencies loaded
+    - Confirm no blockers
+    checks:
+      prerequisites: verified
+      blockers: none
+      environment: ready
+    validation: prerequisites_verified
+
+  step_6_development:
+    purpose: Execute implementation following task plan
+
+    # PRE-PHASE: Smart parallel dispatch check (AGENTS.md compliant)
+    pre_phase_parallel_check:
+      enabled: true
+      phase_domains: [code, testing]
+      complexity_boost: 15
+      decision_logic: |
+        BEFORE starting this phase, evaluate parallel dispatch (AGENTS.md compliant):
+        1. Check for override phrases in user request
+        2. Check for session preference (from previous "Auto-decide" selection)
+        3. Check for sequential dependencies (skip if detected)
+        4. Calculate phase complexity using parallel_dispatch_config
+        5. Apply thresholds:
+           - <20% → proceed directly (no parallel agents)
+           - ≥20% + 2 domains → ALWAYS ask user via AskUserQuestion
+           NOTE: No auto-dispatch - per AGENTS.md Section 1, always ask before parallel dispatch
+      on_parallel_dispatch:
+        agents:
+          - name: "implementation_agent"
+            focus: "Core implementation tasks from tasks.md"
+            model: "sonnet"
+          - name: "test_agent"
+            focus: "Test implementation and validation"
+            model: "sonnet"
+        dispatch_note: "Spawn agents in SINGLE message for parallel execution"
+        warning: "Development tasks may have dependencies - verify task order"
+      fallback: "Proceed with activities below if dispatch fails or user chooses direct"
+
+    activities:
+    - Parse tasks.md structure
+    - Execute phase by phase
+    - Setup first (structure, dependencies, config)
+    - Follow TDD approach where applicable
+    - Core development (models, services, endpoints)
+    - Integration work (database, middleware, logging)
+    - Update task checklist progressively (mark [X])
+    - Log progress after each task
+    approach: autonomous_implementation_with_checkpoints
+    requirements:
+    - follow: Check skills folder for coding standards
+    - update: task_checklist_progressively
+    - test: before_commit
+    - validate: continuously
+    checkpoints:
+      major_changes:
+        action: log_progress
+        validation: self_verify
+      issues_found:
+        action: document_resolution
+        validation: verify_fix
+    validation: development_complete
+
+  step_7_completion:
+    purpose: Generate implementation summary
+    activities:
+    - Verify all tasks completed
+    - Validate tests pass
+    - Confirm implementation follows plan
+    - Generate implementation-summary.md
+    - Update all task status
+    summary_document:
+      location: "[SPEC_FOLDER]/implementation-summary.md"
+      required_sections:
+      - feature_branch_name
+      - files_modified_created
+      - verification_steps_taken
+      - deviations_from_plan
+      - recommended_next_steps
+    verification_summary:
+      checklist_verification:
+        required: true  # for Level 2+
+        must_include:
+        - Total items verified count
+        - P0 items status (all must be complete)
+        - P1 items status (all complete or deferred with approval)
+        - Deferred P2 items with reasons
+        - Link to updated checklist.md
+    validation: implementation_complete
+
+  step_8_save_context:
+    purpose: Save conversation context
+    activities:
+    - Invoke workflows-memory skill using Skill tool
+    - Preserve development decisions
+    - Preserve debugging insights
+    - Preserve code changes
+    tool_invocation:
+      tool: Skill
+      parameter: skill="workflows-memory"
+      note: "Use the Skill tool with skill parameter to activate context saving"
+    outputs:
+    - context_file: "[SPEC_FOLDER]/memory/[DD-MM-YY_HH-MM]__implementation_session.md"
+    validation: context_saved_successfully
+
+# ─────────────────────────────────────────────────────────────────
+# WORKFLOW TERMINATION
+# ─────────────────────────────────────────────────────────────────
+termination:
+  after_step: 8
+  message: "Implementation phase completed successfully. Workflow terminated after step 8 (save context)."
+  next_steps:
+  - Review implementation-summary.md
+  - Verify all changes in staging environment
+  - Prepare for code review and PR submission
+
+# ─────────────────────────────────────────────────────────────────
+# AUTONOMOUS EXECUTION GUIDANCE
+# ─────────────────────────────────────────────────────────────────
+autonomous_execution:
+  principle: "Execute implementation autonomously with self-validation at each checkpoint"
+
+  decision_making:
+  - Follow technical plan from planning phase
+  - Make informed implementation decisions
+  - Document reasoning for deviations
+  - Proceed with best judgment
+
+  validation_approach:
+  - Self-validate after each code change
+  - Test incrementally before proceeding
+  - Verify against acceptance criteria
+  - Ensure quality standards met
+
+# ─────────────────────────────────────────────────────────────────
+# ERROR RECOVERY
+# ─────────────────────────────────────────────────────────────────
+error_recovery:
+  step_validation_fails:
+    action: "Review requirements, ask clarifying questions, retry step"
+  tests_fail:
+    action: "Debug, fix, re-run before marking complete"
+  prerequisites_insufficient:
+    action: "Return to /spec_kit:plan workflow or ask user for guidance"
+  environment_unavailable:
+    action: "Skip browser testing, document limitation"
+  unexpected_error:
+    action: "Log error, document state, attempt graceful recovery"
+
+# ─────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────
+rules:
+  ALWAYS:
+  - follow_workflow_sequence
+  - document_all_changes
+  - validate_before_completion
+  - update_task_checklist_progressively
+  - self_validate_and_proceed
+  - do_not_prompt_for_user_approval
+  - test_incrementally
+  - use_checklist_for_verification_level_2_plus
+  - mark_checklist_items_with_evidence
+  - complete_all_p0_items_before_done
+  - get_user_approval_for_p1_deferrals
+
+  NEVER:
+  - skip_workflow_steps
+  - ignore_blockers
+  - submit_without_validation
+  - expand_scope_beyond_spec
+  - proceed_without_self_validation
+  - claim_completion_without_checklist_verification_level_2_plus
+  - skip_p0_checklist_items
+  - defer_p1_items_without_user_approval

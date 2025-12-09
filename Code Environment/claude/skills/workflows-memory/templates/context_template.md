@@ -1,0 +1,290 @@
+# SESSION SUMMARY
+
+| **Meta Data** | **Value** |
+|:---------------|:----------|
+| Session Date | {{DATE}} |
+| Spec Folder | {{SPEC_FOLDER}} |
+| Total Messages | {{MESSAGE_COUNT}} |
+| Tool Executions | {{TOOL_COUNT}} |
+| Decisions Made | {{DECISION_COUNT}} |
+| Follow-up Items Recorded | {{FOLLOWUP_COUNT}} |
+{{#HAS_SPEC_FILES}}
+
+**Related Documentation:**
+{{#SPEC_FILES}}- [`{{FILE_NAME}}`]({{FILE_PATH}})
+{{/SPEC_FILES}}
+{{/HAS_SPEC_FILES}}
+
+---
+
+{{#HAS_IMPLEMENTATION_GUIDE}}
+<!-- anchor: task-guide-{{TOPIC}}-{{SPEC_FOLDER}} -->
+## 1. IMPLEMENTATION GUIDE
+
+**What Was Built**:
+{{#IMPLEMENTATIONS}}
+- **{{FEATURE_NAME}}** - {{DESCRIPTION}}
+{{/IMPLEMENTATIONS}}
+{{^IMPLEMENTATIONS}}
+- No specific implementations recorded
+{{/IMPLEMENTATIONS}}
+
+**Key Files and Their Roles**:
+{{#KEY_FILES}}
+- `{{FILE_PATH}}` - {{ROLE}}
+{{/KEY_FILES}}
+{{^KEY_FILES}}
+- No key files identified
+{{/KEY_FILES}}
+
+**How to Extend**:
+{{#EXTENSION_GUIDES}}
+- {{GUIDE_TEXT}}
+{{/EXTENSION_GUIDES}}
+{{^EXTENSION_GUIDES}}
+- No extension guides available
+{{/EXTENSION_GUIDES}}
+
+**Common Patterns**:
+{{#PATTERNS}}
+- **{{PATTERN_NAME}}**: {{USAGE}}
+{{/PATTERNS}}
+{{^PATTERNS}}
+- No patterns identified
+{{/PATTERNS}}
+<!-- /anchor: task-guide-{{TOPIC}}-{{SPEC_FOLDER}} -->
+
+---
+{{/HAS_IMPLEMENTATION_GUIDE}}
+
+<!-- anchor: summary-{{SPEC_FOLDER}} -->
+## {{#HAS_IMPLEMENTATION_GUIDE}}2{{/HAS_IMPLEMENTATION_GUIDE}}{{^HAS_IMPLEMENTATION_GUIDE}}1{{/HAS_IMPLEMENTATION_GUIDE}}. OVERVIEW
+
+{{SUMMARY}}
+
+**Key Outcomes**:
+{{#OUTCOMES}}- {{OUTCOME}}
+{{/OUTCOMES}}
+{{^OUTCOMES}}
+- No specific outcomes recorded.
+{{/OUTCOMES}}
+{{#HAS_FILES}}
+
+**Key Files:**
+
+| **File** | **Description** |
+|:---------|:----------------|
+{{#FILES}}| `{{FILE_PATH}}` | {{DESCRIPTION}} |
+{{/FILES}}
+{{/HAS_FILES}}
+<!-- /anchor: summary-{{SPEC_FOLDER}} -->
+
+---
+{{#HAS_OBSERVATIONS}}
+
+<!-- anchor: detailed-changes-{{SPEC_FOLDER}} -->
+## {{#HAS_IMPLEMENTATION_GUIDE}}3{{/HAS_IMPLEMENTATION_GUIDE}}{{^HAS_IMPLEMENTATION_GUIDE}}2{{/HAS_IMPLEMENTATION_GUIDE}}. DETAILED CHANGES
+
+{{#OBSERVATIONS}}
+<!-- anchor: {{ANCHOR_ID}} -->
+### {{TYPE}}: {{TITLE}}
+
+{{NARRATIVE}}
+
+{{#HAS_FILES}}**Files:** {{FILES_LIST}}{{/HAS_FILES}}
+{{#HAS_FACTS}}**Details:** {{FACTS_LIST}}{{/HAS_FACTS}}
+<!-- /anchor: {{ANCHOR_ID}} -->
+
+{{/OBSERVATIONS}}
+<!-- /anchor: detailed-changes-{{SPEC_FOLDER}} -->
+
+---
+{{/HAS_OBSERVATIONS}}
+{{#HAS_WORKFLOW_DIAGRAM}}
+
+## {{#HAS_IMPLEMENTATION_GUIDE}}{{#HAS_OBSERVATIONS}}4{{/HAS_OBSERVATIONS}}{{^HAS_OBSERVATIONS}}3{{/HAS_OBSERVATIONS}}{{/HAS_IMPLEMENTATION_GUIDE}}{{^HAS_IMPLEMENTATION_GUIDE}}{{#HAS_OBSERVATIONS}}3{{/HAS_OBSERVATIONS}}{{^HAS_OBSERVATIONS}}2{{/HAS_OBSERVATIONS}}{{/HAS_IMPLEMENTATION_GUIDE}}. WORKFLOW VISUALIZATION
+
+**Pattern Type**: {{PATTERN_TYPE}}
+
+**Use Case**: {{USE_CASE_TITLE}}
+
+```
+{{WORKFLOW_FLOWCHART}}
+```
+
+{{#HAS_PHASES}}
+### Phase Breakdown
+
+{{#PHASES}}
+**Phase {{INDEX}}: {{PHASE_NAME}}** — Duration: {{DURATION}}
+{{#ACTIVITIES}}
+- {{.}}
+{{/ACTIVITIES}}
+
+{{/PHASES}}
+{{/HAS_PHASES}}
+
+### Key Features Demonstrated
+
+{{#FEATURES}}
+- **{{FEATURE_NAME}}**: {{FEATURE_DESC}}
+{{/FEATURES}}
+
+### When to Use This Pattern
+
+{{#USE_CASES}}
+- {{.}}
+{{/USE_CASES}}
+
+**Reading Guide**:
+- ╭─────╮ Rounded boxes = Start/End points
+- ┌─────┐ Standard boxes = Process steps
+- │ ▼ Arrows = Flow direction (top to bottom)
+
+> **Pattern Reference**: This workflow uses the **{{PATTERN_TYPE}}** pattern.
+>
+> **Workflow Pattern Guide**:
+> - **Linear workflows**: Sequential phase execution, ideal for ≤4 phases
+> - **Parallel workflows**: Concurrent phase execution, ideal for >4 phases
+> - **This session**: {{PATTERN_TYPE}} pattern with {{PHASE_COUNT}} phases
+>
+> For detailed pattern examples, see:
+> `.claude/skills/workflows-memory/references/`
+
+---
+{{/HAS_WORKFLOW_DIAGRAM}}
+
+## {{#HAS_IMPLEMENTATION_GUIDE}}{{#HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}5{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{^HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}3{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{/HAS_IMPLEMENTATION_GUIDE}}{{^HAS_IMPLEMENTATION_GUIDE}}{{#HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}3{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{^HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}3{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}2{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{/HAS_IMPLEMENTATION_GUIDE}}. DECISIONS
+{{#DECISIONS}}
+
+<!-- anchor: {{DECISION_ANCHOR_ID}} -->
+### Decision {{INDEX}}: {{TITLE}}
+
+**Context**: {{CONTEXT}}
+
+**Timestamp**: {{TIMESTAMP}}
+{{#HAS_DECISION_TREE}}
+
+#### Visual Decision Tree
+
+```
+{{DECISION_TREE}}
+```
+{{/HAS_DECISION_TREE}}
+
+#### Options Considered
+{{#OPTIONS}}
+
+{{OPTION_NUMBER}}. **{{LABEL}}**
+   {{DESCRIPTION}}
+{{/OPTIONS}}
+
+#### Chosen Approach
+
+**Selected**: {{CHOSEN}}
+
+**Rationale**: {{RATIONALE}}
+
+#### Trade-offs
+{{#HAS_PROS}}
+
+**Advantages**:
+{{#PROS}}- {{PRO}}
+{{/PROS}}
+{{/HAS_PROS}}
+{{#HAS_CONS}}
+
+**Disadvantages**:
+{{#CONS}}- {{CON}}
+{{/CONS}}
+{{/HAS_CONS}}
+{{#HAS_EVIDENCE}}
+
+**Supporting Evidence**:
+{{#EVIDENCE}}- {{EVIDENCE_ITEM}}
+{{/EVIDENCE}}
+{{/HAS_EVIDENCE}}
+{{#HAS_CAVEATS}}
+
+**Caveats**:
+{{#CAVEATS}}- {{CAVEAT_ITEM}}
+{{/CAVEATS}}
+{{/HAS_CAVEATS}}
+{{#HAS_FOLLOWUP}}
+
+**Follow-up Actions**:
+{{#FOLLOWUP}}- {{FOLLOWUP_ITEM}}
+{{/FOLLOWUP}}
+{{/HAS_FOLLOWUP}}
+
+**Confidence**: {{CONFIDENCE}}%
+<!-- /anchor: {{DECISION_ANCHOR_ID}} -->
+
+---
+{{/DECISIONS}}
+{{^DECISIONS}}
+
+This session did not involve significant architectural or technical decisions. The work was primarily implementation, bug fixes, documentation, or research.
+
+---
+{{/DECISIONS}}
+
+<!-- anchor: session-history-{{DATE}}-{{SPEC_FOLDER}} -->
+## {{#HAS_IMPLEMENTATION_GUIDE}}{{#HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}6{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}5{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{^HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}5{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{/HAS_IMPLEMENTATION_GUIDE}}{{^HAS_IMPLEMENTATION_GUIDE}}{{#HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}5{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{^HAS_OBSERVATIONS}}{{#HAS_WORKFLOW_DIAGRAM}}4{{/HAS_WORKFLOW_DIAGRAM}}{{^HAS_WORKFLOW_DIAGRAM}}3{{/HAS_WORKFLOW_DIAGRAM}}{{/HAS_OBSERVATIONS}}{{/HAS_IMPLEMENTATION_GUIDE}}. CONVERSATION
+
+Complete timestamped dialogue capturing all user interactions, AI responses, tool executions, and code changes during the session.
+
+This session followed a **{{FLOW_PATTERN}}** conversation pattern with **{{PHASE_COUNT}}** distinct phases.
+
+##### Conversation Phases
+{{#PHASES}}- **{{PHASE_NAME}}** - {{DURATION}}
+{{/PHASES}}
+{{^PHASES}}
+- Single continuous phase
+{{/PHASES}}
+
+---
+
+### Message Timeline
+{{#MESSAGES}}
+
+> **{{ROLE}}** | {{TIMESTAMP}}
+
+{{CONTENT}}
+{{#TOOL_CALLS}}
+
+**Tool: {{TOOL_NAME}}**
+{{DESCRIPTION}}
+{{#HAS_RESULT}}
+
+<details>
+<summary>Result Preview</summary>
+
+```
+{{RESULT_PREVIEW}}
+```
+
+</details>
+{{/HAS_RESULT}}
+{{/TOOL_CALLS}}
+
+---
+{{/MESSAGES}}
+{{^MESSAGES}}
+
+No conversation messages were captured. This may indicate an issue with data collection or the session has just started.
+
+---
+{{/MESSAGES}}
+<!-- /anchor: session-history-{{DATE}}-{{SPEC_FOLDER}} -->
+
+*Generated by memory skill v{{SKILL_VERSION}}*
+
+<!--
+  SESSION CONTEXT DOCUMENTATION
+  - Comprehensive overview with decisions, diagrams, and full conversation transcript
+  - Session summary appears first for quick reference
+  - Complete message timeline available below for detailed review
+  - Auto-generated by memory skill
+  - Template contains placeholders which will be replaced in output
+-->

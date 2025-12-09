@@ -1,0 +1,300 @@
+# ───────────────────────────────────────────────────────────────────
+# PLAN: EXPLORATION PHASES - OPUS VARIANT (REUSABLE COMPONENT)
+# ───────────────────────────────────────────────────────────────────
+role: Expert Code Explorer using Full Opus Stack (Opus orchestration + Opus agents)
+purpose: Thorough, deep-reasoning codebase exploration with parallel Opus 4.5 agents
+action: Discover architecture, patterns, dependencies, and test infrastructure with comprehensive analysis
+
+operating_mode:
+  workflow: parallel_exploration_then_cross_validation
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none_returns_to_orchestrator
+  tracking: agent_findings_with_reasoning
+  validation: cross_reference_verification
+
+exploration_philosophy:
+  principle: "Explore deeply, reason thoroughly, cross-validate comprehensively"
+  approach: "Full Opus stack - Opus explores, Opus cross-validates"
+  mandate: "Never assume - verify by reading files. Report findings WITH REASONING."
+  agent_model: opus
+  estimated_duration: "60-100 seconds"
+
+# For Sonnet agent variant (faster), see exploration.yaml
+
+variant_selection:
+  exploration_yaml: "Sonnet agents - fast, cost-effective"
+  exploration_opus_yaml: "Opus agents - thorough, deep reasoning"
+  choose_opus_when:
+    - "Complex architecture decisions"
+    - "Critical features (auth, payments, security)"
+    - "Large-scale refactors"
+    - "Security-sensitive changes"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 4: PARALLEL EXPLORATION (OPUS 4.5 AGENTS)
+# ───────────────────────────────────────────────────────────────────
+phase_4_parallel_exploration:
+  phase_name: "Parallel Exploration (Opus 4.5 Agents)"
+  emoji: "📊"
+  purpose: "Spawn 4 Opus 4.5 agents in parallel for thorough codebase analysis"
+  orchestrator_model: "opus"
+  agent_model: "opus"
+
+  steps:
+    step_13_spawn_explore_agents:
+      action: "Spawn multiple Explore agents in parallel using Task tool"
+      tool: "Task"
+      parameters:
+        subagent_type: "explore"
+        model: "opus"  # OPUS AGENTS - deep reasoning during exploration
+
+      agents:
+        architecture_explorer:
+          focus: "Project structure, entry points, component connections"
+          purpose: "Deep understanding of system architecture"
+          model: "opus"
+          prompt_template: |
+            Thoroughly explore the codebase to understand the system architecture.
+
+            Return:
+            1. Your hypothesis about the architecture WITH REASONING
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Patterns you noticed (component structure, module organization, etc.)
+            4. Potential concerns or edge cases you identified
+            5. Cross-cutting concerns (logging, error handling, auth patterns)
+
+            Provide deep analysis - you are an Opus 4.5 agent with strong reasoning capabilities.
+            Do NOT draw final conclusions - report findings with your reasoning for the orchestrator to verify.
+
+        feature_explorer:
+          focus: "Similar features, related patterns, implementation approaches"
+          purpose: "Find reusable patterns with deep analysis"
+          model: "opus"
+          prompt_template: |
+            Thoroughly explore the codebase to find similar features or related patterns for: {task_description}
+
+            Return:
+            1. Your hypothesis about existing similar features WITH REASONING
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Implementation patterns you noticed (naming conventions, design patterns, etc.)
+            4. Quality assessment of existing implementations
+            5. Recommendations for consistency with existing patterns
+
+            Provide deep analysis - you are an Opus 4.5 agent with strong reasoning capabilities.
+            Do NOT draw final conclusions - report findings with your reasoning for the orchestrator to verify.
+
+        dependency_explorer:
+          focus: "Imports, modules, affected areas, coupling analysis"
+          purpose: "Thorough dependency and impact analysis"
+          model: "opus"
+          prompt_template: |
+            Thoroughly explore the codebase to analyze dependencies and integration points for: {task_description}
+
+            Return:
+            1. Your hypothesis about which modules/files will be affected WITH REASONING
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Dependency chains and coupling analysis
+            4. Breaking change risks and migration concerns
+            5. Circular dependency warnings (if any)
+
+            Provide deep analysis - you are an Opus 4.5 agent with strong reasoning capabilities.
+            Do NOT draw final conclusions - report findings with your reasoning for the orchestrator to verify.
+
+        test_explorer:
+          focus: "Test patterns, testing infrastructure, coverage gaps"
+          purpose: "Deep understanding of verification approach"
+          model: "opus"
+          prompt_template: |
+            Thoroughly explore the codebase to understand test patterns and testing infrastructure.
+
+            Return:
+            1. Your hypothesis about how testing works in this project WITH REASONING
+            2. Full paths to all relevant test files (e.g., /path/to/file.test.ts:lineNumber)
+            3. Testing patterns (frameworks, mocking, fixtures, coverage expectations)
+            4. Coverage gaps and areas needing more tests
+            5. Integration test patterns and E2E approach
+
+            Provide deep analysis - you are an Opus 4.5 agent with strong reasoning capabilities.
+            Do NOT draw final conclusions - report findings with your reasoning for the orchestrator to verify.
+
+        skills_explorer:
+          focus: "Skills folder, coding standards, project conventions"
+          purpose: "Deep analysis of coding standards and patterns from skills"
+          model: "opus"
+          prompt_template: |
+            Thoroughly explore the skills folder (.claude/skills/ or .opencode/skills/) for coding standards.
+
+            Return:
+            1. List of available skills (SKILL.md files found) WITH REASONING about relevance
+            2. Coding standards and conventions extracted from relevant skills
+            3. Patterns to follow during implementation WITH JUSTIFICATION
+            4. Project-specific guidelines or requirements
+            5. Quality assessment of existing skill documentation
+
+            Provide deep analysis - you are an Opus 4.5 agent with strong reasoning capabilities.
+            Do NOT draw final conclusions - report findings with your reasoning for the orchestrator to verify.
+
+    step_14_agent_spawn_requirements:
+      important: "Claude Code: Use model: 'opus' for full Opus stack"
+      rationale: "Thorough, deep-reasoning exploration with Opus agents"
+      trade_off: "Slower than Sonnet (~45-60s vs ~15-20s) but more thorough"
+      pattern: |
+        Task({
+          subagent_type: "explore",
+          model: "opus",  // OPUS - deep reasoning
+          description: "Architecture exploration",
+          prompt: "[exploration prompt from agent template]"
+        })
+
+  outputs:
+  - architecture_findings # From Architecture Explorer (with reasoning)
+  - feature_findings # From Feature Explorer (with reasoning)
+  - dependency_findings # From Dependency Explorer (with reasoning)
+  - test_findings # From Test Explorer (with reasoning)
+  - skills_findings # From Skills Explorer (with reasoning)
+  - total_files_identified # Count across all agents
+  - hypothesis_list # Hypotheses with reasoning from all agents
+
+  success_metrics:
+  - "5 Opus agents spawn successfully"
+  - "All agents complete within timeout (~60s each)"
+  - "At least 15-50 files identified total (deeper coverage)"
+  - "Clear hypotheses WITH REASONING from each agent"
+  - "Quality assessment included in findings"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 5: HYPOTHESIS VERIFICATION (OPUS CROSS-CHECK)
+# ───────────────────────────────────────────────────────────────────
+phase_5_hypothesis_verification:
+  phase_name: "Hypothesis Verification (Opus Cross-Check)"
+  emoji: "🔬"
+  purpose: "Opus orchestrator cross-checks and validates Opus agent findings"
+  model: "opus"
+  note: "With Opus agents, verification focuses on cross-checking rather than basic validation"
+
+  steps:
+    step_15_verify_findings:
+      action: "Opus orchestrator cross-checks agent hypotheses and reasoning"
+      model: "opus"
+      verification_process:
+        read_files:
+          action: "Read files to spot-check agent reasoning"
+          tool: "Read"
+          paths: "Focus on files with conflicting or uncertain findings"
+          note: "Opus agents already provide reasoning, so focus on cross-validation"
+
+        verify_hypotheses:
+          action: "Cross-validate agent hypotheses"
+          approach:
+          - "Check consistency between agent findings"
+          - "Identify any contradictions in reasoning"
+          - "Validate architectural assumptions across agents"
+          - "Confirm integration point agreements"
+          note: "Opus agents provide higher quality hypotheses, so verification is lighter"
+
+        cross_reference:
+          action: "Cross-reference findings across agents for consistency"
+          checks:
+          - "Do dependency findings match architecture findings?"
+          - "Do test patterns align with implementation patterns?"
+          - "Are there conflicting hypotheses between agents?"
+          - "Do quality assessments agree across agents?"
+
+        build_mental_model:
+          action: "Build complete mental model from high-quality agent findings"
+          components:
+          - current_architecture:
+              description: "How the system is currently structured"
+              verified_patterns: "Patterns confirmed by multiple agents"
+          - affected_components:
+              description: "Which parts will be modified for this task"
+              impact_assessment: "Combined impact analysis from all agents"
+          - integration_points:
+              description: "Where new code connects to existing code"
+              dependency_verification: "Cross-validated dependency analysis"
+          - potential_risks:
+              description: "Risks identified by any agent"
+              risk_mitigation: "Combined risk mitigation strategies"
+
+        resolve_conflicts:
+          action: "Resolve any conflicting hypotheses from different Opus agents"
+          approach:
+          - "Compare reasoning quality between conflicting agents"
+          - "Read additional files if needed to resolve"
+          - "Prioritize evidence over assumptions"
+          - "Document unresolved ambiguities for user clarification"
+
+  outputs:
+  - verified_architecture # Cross-validated architectural understanding
+  - verified_patterns # Cross-validated reusable patterns
+  - verified_dependencies # Cross-validated integration points
+  - verified_test_approach # Cross-validated testing strategy
+  - conflicting_hypotheses # Unresolved conflicts needing clarification
+  - mental_model_complete # Complete understanding of task context
+  - risk_assessment # Combined risk assessment from all agents
+
+  success_metrics:
+  - "Agent hypotheses cross-validated for consistency"
+  - "Mental model includes all 4 components (architecture, affected, integration, risks)"
+  - "Conflicting hypotheses resolved or documented"
+  - "High confidence in findings due to Opus agent quality"
+
+# ───────────────────────────────────────────────────────────────────
+# REUSABILITY NOTES
+# ───────────────────────────────────────────────────────────────────
+reusability:
+  purpose: "This Opus exploration workflow can be reused by commands needing thorough analysis"
+  variant: "OPUS - Use for complex/critical tasks. See exploration.yaml for Sonnet variant."
+
+  use_cases:
+  - "Complex architecture decisions requiring deep reasoning"
+  - "Security-sensitive features needing thorough analysis"
+  - "Large-scale refactors with many interconnected changes"
+  - "Critical features (auth, payments, data migration)"
+
+  integration_pattern:
+  - "Include this YAML in your command's workflow for thorough exploration"
+  - "Phases 4-5 execute as a unit"
+  - "Outputs feed into your command's specific logic"
+  - "Use exploration.yaml for faster, cost-effective exploration"
+
+  customization_options:
+  - "Modify agent focus areas for specific domains"
+  - "Adjust agent count (add domain-specific explorers)"
+  - "Change thoroughness level (quick/medium/thorough)"
+
+# ───────────────────────────────────────────────────────────────────
+# ERROR HANDLING
+# ───────────────────────────────────────────────────────────────────
+error_handling:
+  agent_timeout:
+    action: "Continue with available results from successful agents"
+    notification: "Note gaps in exploration findings"
+    recovery: "Document missing exploration areas"
+
+  no_files_found:
+    action: "Expand search scope, try different patterns"
+    fallback: "Ask user for file path hints"
+
+  conflicting_findings:
+    action: "Compare reasoning quality, read additional files to clarify"
+    escalation: "Document both perspectives with reasoning, ask user to decide"
+
+  verification_fails:
+    action: "Re-read suspicious files"
+    clarification: "Ask user if uncertain about interpretation"
+
+# ───────────────────────────────────────────────────────────────────
+# PERFORMANCE TARGETS (OPUS VARIANT)
+# ───────────────────────────────────────────────────────────────────
+performance:
+  note: "Opus agents are slower but more thorough than Sonnet"
+  phase_4_target: "45-60 seconds for agent dispatch and completion"
+  phase_5_target: "20-40 seconds for cross-validation (lighter than Sonnet variant)"
+  total_exploration: "60-100 seconds for complete exploration workflow"
+  file_reading_limit: "Read up to 50 files during verification (prioritize most relevant)"
+  comparison:
+    sonnet_variant: "30-60 seconds total (exploration.yaml)"
+    opus_variant: "60-100 seconds total (exploration_opus.yaml)"
+    recommendation: "Use Opus for critical/complex, Sonnet for standard tasks"

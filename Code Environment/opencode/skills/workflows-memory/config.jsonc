@@ -1,0 +1,163 @@
+{
+  "maxResultPreview": 500,
+  "maxConversationMessages": 100,
+  "maxToolOutputLines": 100,
+  "messageTimeWindow": 300000,
+  "contextPreviewHeadLines": 50,
+  "contextPreviewTailLines": 20,
+  "timezoneOffsetHours": 1,
+
+  "semanticSearch": {
+    "enabled": true,
+    "minSimilarityScore": 50,
+    "maxResults": 10,
+    "embeddingModel": "nomic-embed-text-v1.5"
+  },
+
+  "memoryIndex": {
+    "databasePath": ".opencode/memory/memory-index.sqlite",
+    "autoRebuildOnSave": true,
+    "verifyOnStartup": false
+  },
+
+  "triggerSurfacing": {
+    "enabled": true,
+    "minSimilarity": 70,
+    "maxResults": 3,
+    "performanceTargetMs": 50
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// v10.0 SEMANTIC SEARCH CONFIGURATION
+// ─────────────────────────────────────────────────────────────
+
+// → semanticSearch (object)
+// ─────────────────────────────────────────────────────────────
+// Configuration for semantic vector search functionality.
+//
+// • enabled (boolean, default: true)
+//   Enable/disable semantic search features
+//
+// • minSimilarityScore (number, default: 50)
+//   Minimum similarity score (0-100) for search results
+//   Lower = more results, higher = stricter matching
+//
+// • maxResults (number, default: 10)
+//   Maximum number of results to return from vector search
+//
+// • embeddingModel (string, default: "nomic-embed-text-v1.5")
+//   Embedding model to use. Options:
+//   - "nomic-embed-text-v1.5": 768 dimensions, 8k context, excellent quality
+//   - Upgrade from minilm-l6-v2 (384 dim) requires migration
+
+// → memoryIndex (object)
+// ─────────────────────────────────────────────────────────────
+// Configuration for the SQLite vector database.
+//
+// • databasePath (string, default: ".opencode/memory/memory-index.sqlite")
+//   Location of the sqlite-vec database file (project-local)
+//   Relative to project root - same location for Claude Code and Opencode
+//
+// • autoRebuildOnSave (boolean, default: true)
+//   Automatically update embeddings when context is saved
+//   Set to false if you prefer manual rebuilds
+//
+// • verifyOnStartup (boolean, default: false)
+//   Run integrity check on database when Claude starts
+//   Useful for debugging, adds ~100ms startup time
+
+// → triggerSurfacing (object)
+// ─────────────────────────────────────────────────────────────
+// Configuration for automatic memory surfacing via hooks.
+//
+// • enabled (boolean, default: true)
+//   Enable/disable automatic trigger phrase detection
+//
+// • minSimilarity (number, default: 70)
+//   Minimum similarity score for surfaced results
+//   Higher than search default for quality over quantity
+//
+// • maxResults (number, default: 3)
+//   Maximum context snippets to surface per prompt
+//   Keep low to avoid overwhelming responses
+//
+// • performanceTargetMs (number, default: 50)
+//   Target execution time in milliseconds
+//   Hook will optimize to meet this target
+
+// ─────────────────────────────────────────────────────────────
+// LEGACY CONFIGURATION (v9.x and earlier)
+// ─────────────────────────────────────────────────────────────
+
+// → maxResultPreview (number, default: 500)
+// ─────────────────────────────────────────────────────────────
+// Maximum characters to show when previewing tool results/outputs
+// in the context documentation.
+
+// • Higher values = more detail but larger files
+// • Lower values = more concise but less context
+// • Affects: Tool call previews, bash output, file reads
+//
+// → maxConversationMessages (number, default: 100)
+// ─────────────────────────────────────────────────────────────
+// Maximum number of conversation messages to include in the full
+// conversation section. Prevents extremely long conversations from
+// creating massive documentation files.
+//
+// • Messages beyond this limit are truncated
+// • Most recent messages are always kept
+// • Affects: Size of generated markdown files
+//
+// → maxToolOutputLines (number, default: 100)
+// ─────────────────────────────────────────────────────────────
+// Maximum lines to show from tool output (like bash commands,
+// file reads, grep results, etc.). Long outputs are truncated to
+// this many lines to keep documentation readable.
+//
+// • Prevents huge code dumps in documentation
+// • Shows beginning of output
+// • Adds "... truncated" message when limit exceeded
+//
+// → messageTimeWindow (number, default: 300000)
+// ─────────────────────────────────────────────────────────────
+// Time window in milliseconds for grouping related messages into
+// conversation phases. Messages within this time window are
+// considered part of the same workflow step.
+//
+// • 300000ms = 5 minutes
+// • Gaps longer than this create new phases in workflow diagram
+// • Affects: How conversation is structured in phases
+// • Lower values = more granular phases
+// • Higher values = fewer, broader phases
+//
+// → contextPreviewHeadLines (number, default: 50)
+// ─────────────────────────────────────────────────────────────
+// Number of lines to show from the HEAD (beginning) of truncated
+// file content. When files are too long, show this many lines from
+// the start.
+//
+// • Used for file preview truncation
+// • Shows the beginning of long files
+// • Works together with contextPreviewTailLines
+//
+// → contextPreviewTailLines (number, default: 20)
+// ─────────────────────────────────────────────────────────────
+// Number of lines to show from the TAIL (end) of truncated file
+// content. When files are too long, show this many lines from the end.
+//
+// • Used for file preview truncation
+// • Shows the ending of long files
+// • Combined with HEAD lines gives context from both ends
+//
+// → timezoneOffsetHours (number, default: 0)
+// ─────────────────────────────────────────────────────────────
+// Timezone offset in hours to add to UTC timestamps.
+// Adjusts all generated timestamps to match your local timezone.
+//
+// • Positive values = ahead of UTC (e.g., +1 for CET)
+// • Negative values = behind UTC (e.g., -5 for EST)
+// • 0 = UTC (no adjustment)
+// • Affects: All timestamps in generated documentation
+//
+// ─────────────────────────────────────────────────────────────

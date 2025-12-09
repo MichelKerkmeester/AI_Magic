@@ -27,7 +27,7 @@
 - Before **research tasks**: Use semantic memory MCP to find prior work, saved context, and related memories (MANDATORY)
 - Before **complex multi-domain tasks**: ALWAYS ask user before parallel sub-agent dispatch (2+ domains triggers mandatory question)
 - Before **spec folder creation**: Use workflows-spec-kit skill for template structure and sub-folder organization (if available)
-- Before **conversation milestones**: workflows-save-context auto-triggers every 20 messages for context preservation (if available)
+- Before **conversation milestones**: workflows-memory auto-triggers every 20 messages for context preservation (if available)
 - **If conflict exists**: Code quality standards override general practices
 
 **Violation handling:** If proposed solution contradicts code quality standards, STOP and ask for clarification or revise approach.
@@ -600,6 +600,7 @@ Review response for:
 - **Sequential Thinking (OPTIONAL):** Claude Code: use ultrathink instead; VSCode/Copilot/OpenCode: useful when configured - **Native MCP** - call directly, NOT through Code Mode
 - **Parallel Sub-Agents (Task tool):** ALWAYS ask user when 2+ domains detected (mandatory question before dispatch)
 - **Chrome DevTools (cli-chrome-devtools):** Browser debugging via terminal (bdg CLI tool) - through Code Mode
+- **Skills:** On-demand workflow orchestration for complex tasks (see Section 6)
 - **Native Tools:** Read/Grep/Glob/Bash for file operations and simple tasks
 
 ### Tool Routing (Quick Decision)
@@ -612,6 +613,7 @@ File structure? → Glob()
 Complex reasoning? → ultrathink (Claude Code) | process_thought() (Sequential Thinking MCP) (VSCode/OpenCode)
 Browser debugging? → cli-chrome-devtools skill [bdg CLI tool, through Code Mode]
 External MCP tools? → call_tool_chain() [Code Mode - Webflow, Figma, ClickUp, etc.]
+Multi-step workflow? → Skill() or openskills read [see Section 6]
 2+ domains detected? → Ask user: parallel sub-agents or direct handling? (MANDATORY question)
 
 NATIVE MCP (call directly - NEVER through Code Mode):
@@ -629,6 +631,10 @@ NATIVE MCP (call directly - NEVER through Code Mode):
 
 CODE MODE (call_tool_chain):
   - Webflow, Figma, ClickUp, Chrome DevTools, Notion, etc.
+
+SKILLS (Section 6):
+  - Skill("skill-name") [Claude Code]
+  - openskills read <skill-name> [Other agents]
 ```
 
 **User Override Phrases:**
@@ -647,7 +653,7 @@ CODE MODE (call_tool_chain):
 
 ```python
 # ──────────────────────────────────────────────────────────────────────────────
-# SKILL DISPATCH (Executable Logic)
+# TASK DISPATCH (Parallel Agent Logic)
 # ──────────────────────────────────────────────────────────────────────────────
 COMPLEXITY_FORMULA = {"domains": 35, "files": 25, "loc": 15, "parallel": 20, "task_type": 5}
 
@@ -738,3 +744,131 @@ All Code Mode tool calls follow the pattern: `{manual_name}.{manual_name}_{tool_
   ]
 }
 ```
+
+---
+
+## 6. 🧩 SKILLS SYSTEM
+
+Skills are specialized, on-demand capabilities that extend AI agents with domain expertise. Unlike hooks (automated triggers) or knowledge files (passive references), skills are explicitly invoked to handle complex, multi-step workflows.
+
+### Skills vs Hooks vs Knowledge vs MCP Tools
+
+| Type | Purpose | Execution | Examples |
+|------|---------|-----------|----------|
+| **Skills** | Multi-step workflow orchestration | AI-invoked when needed | `workflows-code`, `create-documentation` |
+| **Hooks** | Automated quality checks | System-triggered (before/after operations) | `enforce-spec-folder`, `validate-bash` |
+| **Knowledge** | Reference documentation | Passive context during responses | Code standards, MCP patterns |
+| **MCP Tools** | External integrations | Direct API/protocol calls | Webflow, Figma, ClickUp, Semantic Search |
+
+### How Skills Work
+
+```
+Task Received → Agent scans <available_skills>
+                    ↓
+         Match Found → Invoke skill via CLI or Skill tool
+                    ↓
+    Instructions Load → SKILL.md content + resource paths
+                    ↓
+      Agent Follows → Complete task using skill guidance
+```
+
+**Invocation Methods:**
+- **Claude Code**: `Skill("skill-name")` tool (native)
+- **Other Agents**: `openskills read <skill-name>` CLI command
+
+### Skill Loading Protocol
+
+1. Check `<available_skills>` for matching skill
+2. Invoke using appropriate method for your environment
+3. Read bundled resources from `references/`, `scripts/`, `assets/` paths
+4. Follow skill instructions to completion
+5. Do NOT re-invoke a skill already in context
+
+<skills_system priority="1">
+
+### Available Skills
+
+<!-- SKILLS_TABLE_START -->
+<usage>
+When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge.
+
+How to use skills:
+- Claude Code: Skill("skill-name") tool
+- Other agents: Bash("openskills read <skill-name>")
+- The skill content will load with detailed instructions on how to complete the task
+- Base directory provided in output for resolving bundled resources (references/, scripts/, assets/)
+
+Usage notes:
+- Only use skills listed in <available_skills> below
+- Do not invoke a skill that is already loaded in your context
+- Each skill invocation is stateless
+</usage>
+
+<available_skills>
+
+<skill>
+<name>cli-chrome-devtools</name>
+<description>Direct Chrome DevTools Protocol access via browser-debugger-cli (bdg) terminal commands. Lightweight alternative to MCP servers for browser debugging, automation, and testing with significant token efficiency through self-documenting tool discovery (--list, --describe, --search).</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>cli-codex</name>
+<description>Wield OpenAI's Codex CLI as a powerful auxiliary tool for code generation, review, analysis, and parallel processing. Use when tasks benefit from a second AI perspective, alternative implementation approaches, or specialized code generation. Also use when user explicitly requests Codex operations.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>cli-gemini</name>
+<description>Wield Google's Gemini CLI as a powerful auxiliary tool for code generation, review, analysis, and web research. Use when tasks benefit from a second AI perspective, current web information via Google Search, codebase architecture analysis, or parallel code generation. Also use when user explicitly requests Gemini operations.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>create-documentation</name>
+<description>Unified markdown and skill management specialist providing document quality enforcement (structure, c7score, style), content optimization for AI assistants, complete skill creation workflow (scaffolding, validation, packaging), and ASCII flowchart creation for visualizing complex workflows, user journeys, and decision trees.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>mcp-code-mode</name>
+<description>MCP orchestration via TypeScript execution for efficient multi-tool workflows. Use Code Mode for ALL MCP tool calls (ClickUp, Notion, Figma, Webflow, Chrome DevTools, etc.). Provides 98.7% context reduction, 60% faster execution, and type-safe invocation. Mandatory for external tool integration.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>mcp-semantic-search</name>
+<description>Intent-based code discovery for CLI AI agents using semantic search MCP tools. Use when finding code by what it does (not what it's called), exploring unfamiliar areas, or understanding feature implementations. Mandatory for code discovery tasks when you have MCP access.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>workflows-code</name>
+<description>Orchestrator guiding developers through implementation, debugging, and verification phases across specialized code quality skills (project)</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>workflows-git</name>
+<description>Git workflow orchestrator guiding developers through workspace setup, clean commits, and work completion across git-worktrees, git-commit, and git-finish skills</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>workflows-memory</name>
+<description>Saves expanded conversation context with full dialogue, decision rationale, visual flowcharts, and file changes. Auto-triggers on keywords or every 20 messages. Includes semantic vector search.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>workflows-spec-kit</name>
+<description>Mandatory spec folder workflow orchestrating documentation level selection (1-3), template selection, and folder creation for all file modifications through hook-assisted enforcement and context auto-save.</description>
+<location>project</location>
+</skill>
+
+</available_skills>
+<!-- SKILLS_TABLE_END -->
+
+</skills_system>
+
+<!-- END AGENTS.md -->

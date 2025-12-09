@@ -1,0 +1,261 @@
+# ───────────────────────────────────────────────────────────────────
+# PLAN: EXPLORATION PHASES - SONNET VARIANT (REUSABLE COMPONENT)
+# ───────────────────────────────────────────────────────────────────
+role: Expert Code Explorer using Opus orchestration + Sonnet agents
+purpose: Fast, cost-effective codebase exploration with parallel Sonnet agents
+action: Discover architecture, patterns, dependencies, and test infrastructure
+
+operating_mode:
+  workflow: parallel_exploration_then_verification
+  workflow_compliance: MANDATORY
+  workflow_execution: autonomous
+  approvals: none_returns_to_orchestrator
+  tracking: agent_findings_aggregation
+  validation: hypothesis_cross_checking
+
+exploration_philosophy:
+  principle: "Explore quickly, verify thoroughly"
+  approach: "Sonnet explores in parallel, Opus verifies and synthesizes"
+  mandate: "Never assume - verify by reading files. Report findings, not conclusions."
+  agent_model: sonnet
+  estimated_duration: "30-60 seconds"
+
+# For Opus agent variant, see exploration_opus.yaml
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 4: PARALLEL EXPLORATION (SONNET AGENTS)
+# ───────────────────────────────────────────────────────────────────
+phase_4_parallel_exploration:
+  phase_name: "Parallel Exploration (Sonnet Agents)"
+  emoji: "📊"
+  purpose: "Spawn 4 Explore agents in parallel to discover codebase patterns"
+  orchestrator_model: "opus"
+  agent_model: "sonnet"
+
+  steps:
+    step_13_spawn_explore_agents:
+      action: "Spawn multiple Explore agents in parallel using Task tool"
+      tool: "Task"
+      parameters:
+        subagent_type: "explore"
+        model: "sonnet"  # Claude Code supports model parameter for Opus+Sonnet hierarchy
+
+      agents:
+        architecture_explorer:
+          focus: "Project structure, entry points, component connections"
+          purpose: "Understand system architecture"
+          model: "sonnet"
+          prompt_template: |
+            Explore the codebase to find how the system architecture works.
+
+            Return:
+            1. Your hypothesis about the architecture
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Any patterns you noticed (component structure, module organization, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        feature_explorer:
+          focus: "Similar features, related patterns"
+          purpose: "Find reusable patterns"
+          model: "sonnet"
+          prompt_template: |
+            Explore the codebase to find similar features or related patterns for: {task_description}
+
+            Return:
+            1. Your hypothesis about existing similar features
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Any patterns you noticed (naming conventions, implementation patterns, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        dependency_explorer:
+          focus: "Imports, modules, affected areas"
+          purpose: "Identify integration points"
+          model: "sonnet"
+          prompt_template: |
+            Explore the codebase to find dependencies and integration points for: {task_description}
+
+            Return:
+            1. Your hypothesis about which modules/files will be affected
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Any patterns you noticed (dependency chains, coupling points, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        test_explorer:
+          focus: "Test patterns, testing infrastructure"
+          purpose: "Understand verification approach"
+          model: "sonnet"
+          prompt_template: |
+            Explore the codebase to find test patterns and testing infrastructure.
+
+            Return:
+            1. Your hypothesis about how testing works in this project
+            2. Full paths to all relevant test files (e.g., /path/to/file.test.ts:lineNumber)
+            3. Any patterns you noticed (test frameworks, mocking patterns, coverage expectations, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        skills_explorer:
+          focus: "Skills folder, coding standards, project conventions"
+          purpose: "Extract coding standards and patterns from skills"
+          model: "sonnet"
+          prompt_template: |
+            Explore the skills folder (.claude/skills/ or .opencode/skills/) for coding standards.
+
+            Return:
+            1. List of available skills (SKILL.md files found)
+            2. Coding standards and conventions extracted from relevant skills
+            3. Patterns to follow during implementation
+            4. Any project-specific guidelines or requirements
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+    step_14_agent_spawn_requirements:
+      important: "Claude Code: Use model: 'sonnet' for Opus+Sonnet hierarchy"
+      rationale: "Fast, cost-effective exploration while Opus orchestrates and synthesizes"
+      pattern: |
+        Task({
+          subagent_type: "explore",
+          model: "sonnet",  // Claude Code supports this parameter
+          description: "Architecture exploration",
+          prompt: "[exploration prompt from agent template]"
+        })
+
+  outputs:
+  - architecture_findings # From Architecture Explorer
+  - feature_findings # From Feature Explorer
+  - dependency_findings # From Dependency Explorer
+  - test_findings # From Test Explorer
+  - skills_findings # From Skills Explorer
+  - total_files_identified # Count across all agents
+  - hypothesis_list # Unverified hypotheses from all agents
+
+  success_metrics:
+  - "5 agents spawn successfully"
+  - "All agents complete within timeout"
+  - "At least 10-30 files identified total"
+  - "Clear hypotheses from each agent"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 5: HYPOTHESIS VERIFICATION (OPUS REVIEW)
+# ───────────────────────────────────────────────────────────────────
+phase_5_hypothesis_verification:
+  phase_name: "Hypothesis Verification (Opus Review)"
+  emoji: "🔬"
+  purpose: "Opus synthesizes and validates agent findings with deep reasoning"
+  model: "opus"
+
+  steps:
+    step_15_verify_findings:
+      action: "Opus reads files and verifies/refutes each hypothesis"
+      model: "opus"
+      verification_process:
+        read_files:
+          action: "Read each file identified by Sonnet Explore agents"
+          tool: "Read"
+          paths: "Use file paths from agent findings (with line numbers)"
+
+        verify_hypotheses:
+          action: "Verify or refute each hypothesis with deep reasoning"
+          approach:
+          - "Cross-check agent findings against actual code"
+          - "Identify contradictions or gaps in agent hypotheses"
+          - "Validate architectural assumptions"
+          - "Confirm integration points"
+
+        cross_reference:
+          action: "Cross-reference findings across agents for consistency"
+          checks:
+          - "Do dependency findings match architecture findings?"
+          - "Do test patterns align with implementation patterns?"
+          - "Are there conflicting hypotheses between agents?"
+
+        build_mental_model:
+          action: "Build complete mental model of:"
+          components:
+          - current_architecture:
+              description: "How the system is currently structured"
+              verified_patterns: "Architectural patterns confirmed by file reading"
+          - affected_components:
+              description: "Which parts will be modified for this task"
+              impact_assessment: "Extent of changes required"
+          - integration_points:
+              description: "Where new code connects to existing code"
+              dependency_verification: "Confirmed dependencies and imports"
+          - potential_risks:
+              description: "Risks identified during verification"
+              risk_mitigation: "How to mitigate identified risks"
+
+        resolve_conflicts:
+          action: "Resolve any conflicting hypotheses from different agents"
+          approach:
+          - "Read additional files if needed to clarify"
+          - "Prioritize evidence over assumptions"
+          - "Document unresolved ambiguities for user clarification"
+
+  outputs:
+  - verified_architecture # Confirmed architectural understanding
+  - verified_patterns # Confirmed reusable patterns
+  - verified_dependencies # Confirmed integration points
+  - verified_test_approach # Confirmed testing strategy
+  - conflicting_hypotheses # Unresolved conflicts needing clarification
+  - mental_model_complete # Complete understanding of task context
+  - risk_assessment # Identified risks and mitigations
+
+  success_metrics:
+  - "All agent hypotheses verified or refuted"
+  - "Mental model includes all 4 components (architecture, affected, integration, risks)"
+  - "Conflicting hypotheses resolved or documented"
+  - "At least 80% of identified files actually read for verification"
+
+# ───────────────────────────────────────────────────────────────────
+# REUSABILITY NOTES
+# ───────────────────────────────────────────────────────────────────
+reusability:
+  purpose: "This exploration workflow can be reused by other commands"
+  use_cases:
+  - "Code refactoring commands needing codebase understanding"
+  - "Documentation generation needing architecture discovery"
+  - "Testing commands needing test infrastructure understanding"
+
+  integration_pattern:
+  - "Include this YAML in your command's workflow"
+  - "Phases 4-5 execute as a unit"
+  - "Outputs feed into your command's specific logic"
+
+  customization_options:
+  - "Modify agent focus areas for specific domains"
+  - "Adjust agent count (add domain-specific explorers)"
+  - "Change thoroughness level (quick/medium/thorough)"
+
+# ───────────────────────────────────────────────────────────────────
+# ERROR HANDLING
+# ───────────────────────────────────────────────────────────────────
+error_handling:
+  agent_timeout:
+    action: "Continue with available results from successful agents"
+    notification: "Note gaps in exploration findings"
+    recovery: "Document missing exploration areas"
+
+  no_files_found:
+    action: "Expand search scope, try different patterns"
+    fallback: "Ask user for file path hints"
+
+  conflicting_findings:
+    action: "Read additional files to clarify"
+    escalation: "Document both perspectives, ask user to decide"
+
+  verification_fails:
+    action: "Re-read suspicious files"
+    clarification: "Ask user if uncertain about interpretation"
+
+# ───────────────────────────────────────────────────────────────────
+# PERFORMANCE TARGETS
+# ───────────────────────────────────────────────────────────────────
+performance:
+  phase_4_target: "10-20 seconds for agent dispatch and completion"
+  phase_5_target: "20-40 seconds for verification (depends on file count)"
+  total_exploration: "30-60 seconds for complete exploration workflow"
+  file_reading_limit: "Read up to 50 files during verification (prioritize most relevant)"

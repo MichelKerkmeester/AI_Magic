@@ -1,0 +1,729 @@
+# ───────────────────────────────────────────────────────────────────
+# PLAN_CLAUDE: COMPLEX MODE WORKFLOW (STUB - FUTURE IMPLEMENTATION)
+# ───────────────────────────────────────────────────────────────────
+# Complete 9-phase planning workflow for features ≥500 LOC
+# Generates SpecKit Level 3 documentation: spec.md + plan/ directory + tasks.md
+# ───────────────────────────────────────────────────────────────────
+
+role: Expert Planning Orchestrator (Opus) for Complex Features
+purpose: Create comprehensive SpecKit Level 3 documentation with multi-file plan
+action: Execute 9-phase planning workflow with full Level 3 documentation
+status: STUB - To be implemented in Phase 5 of upgrade
+speckit_alignment: "MANDATORY - creates Level 3 documentation per AGENTS.md Section 2"
+level_structure: "Progressive Enhancement - Level 3 includes all Level 1 and 2 files"
+
+# ───────────────────────────────────────────────────────────────────
+# WORKFLOW METADATA
+# ───────────────────────────────────────────────────────────────────
+workflow_metadata:
+  name: "Complex Mode Planning"
+  mode: "complex"
+  target_features: "Features ≥500 LOC, multiple iterations, high complexity"
+  output: "SpecKit Level 3: spec.md + plan.md + tasks.md + checklist.md + decision-record.md + plan/ directory"
+  phases: 9
+  estimated_duration: "60-120 seconds"
+  implementation_status: "STUB - Future enhancement"
+  speckit_level: 3
+  level_structure: |
+    Progressive Enhancement Model:
+    - Level 1 (Baseline): spec.md + plan.md + tasks.md
+    - Level 2 (Verification): Level 1 + checklist.md
+    - Level 3 (Full): Level 2 + decision-record.md + optional research-spike.md
+    Complex mode ALWAYS creates Level 3 (includes all files from Level 1 and 2)
+
+# ───────────────────────────────────────────────────────────────────
+# INCLUDED WORKFLOWS
+# ───────────────────────────────────────────────────────────────────
+includes:
+  - base_phases.yaml       # Phases 1-3, 7-8
+  - exploration.yaml       # Phases 4-5
+
+execution_order:
+  - phase_0: "Documentation Level Detection (SpecKit alignment)"
+  - phase_1: "Task Understanding & Session Initialization (base_phases)"
+  - phase_2: "Spec Folder Setup (base_phases)"
+  - phase_3: "Context Loading (base_phases)"
+  - phase_4: "Parallel Exploration (exploration)"
+  - phase_5: "Hypothesis Verification (exploration)"
+  - phase_6: "Document Creation - spec.md + plan/ + tasks.md (complex_mode - STUB)"
+  - phase_7: "User Review & Confirmation (base_phases)"
+  - phase_8: "Context Persistence (base_phases)"
+
+
+# ───────────────────────────────────────────────────────────────────
+# NOTE: This is a self-contained workflow file merging:
+# - Phase 0: Documentation Level Detection (SpecKit)
+# - base_phases.yaml (Phases 1-3, 7-8)
+# - exploration.yaml (Phases 4-5)
+# - Phase 6: Complex mode document creation (STUB - Future implementation)
+# ───────────────────────────────────────────────────────────────────
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 1: TASK UNDERSTANDING & SESSION INITIALIZATION
+# ───────────────────────────────────────────────────────────────────
+phase_1_task_understanding:
+  phase_name: "Task Understanding & Session Initialization"
+  emoji: "📋"
+  purpose: "Parse input, validate task description, extract SESSION_ID"
+
+  steps:
+    step_1_parse_input:
+      action: "Extract task description from user input"
+      validation: "Task description must not be empty"
+      on_failure: "Use AskUserQuestion to clarify task"
+      error_message: "STATUS=FAIL ERROR='Task description required'"
+
+    step_2_state_understanding:
+      action: "Clearly articulate what the task requires"
+      outputs:
+        - "Task summary in your own words"
+        - "Identified ambiguities needing clarification"
+        - "Initial scope assessment"
+
+    step_3_extract_session_id:
+      action: "Parse SESSION_ID from input JSON (if available)"
+      sanitization: "tr -cd 'a-zA-Z0-9_-'"
+      storage: "Store for .spec-active marker usage"
+      fallback: "Continue without session isolation (use legacy .spec-active)"
+
+  outputs:
+    - task_description
+    - task_summary
+    - ambiguities_list
+    - session_id
+    - scope_initial
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 2: SPEC FOLDER SETUP
+# ───────────────────────────────────────────────────────────────────
+phase_2_spec_folder_setup:
+  phase_name: "Spec Folder Setup"
+  emoji: "📁"
+  purpose: "Determine which spec folder to use for planning session"
+  integration: "Works with workflows-conversation system"
+
+  steps:
+    step_4_check_active_folder:
+      action: "Look for active spec folder marker"
+      markers:
+        - ".spec-active.{SESSION_ID} (session-isolated)"
+        - ".spec-active (legacy backward compatibility)"
+      read_marker: "Get active spec folder path from marker content"
+
+    step_5_if_active_exists:
+      condition: "Active spec folder marker found"
+      action: "Use the folder path from marker"
+      notification: "Continuing in active spec folder: specs/###-name/"
+      next_step: "Proceed to step 6 to confirm or create new"
+
+    step_6_if_no_active:
+      condition: "No active spec folder marker found"
+      action: "This is a new planning session"
+      hook_interaction: "The enforce-spec-folder.sh hook will present options (A/B/C/D)"
+      wait_for_hook: "Wait for hook to provide spec folder path"
+      next_step: "Proceed to step 7 with chosen folder"
+
+    step_7_process_hook_response:
+      options:
+        option_a:
+          name: "Use existing"
+          action: "Verify folder exists, confirm to user"
+        option_b:
+          name: "Create new"
+          action: "Execute folder creation, copy templates"
+        option_c:
+          name: "Update related"
+          action: "Navigate to related spec, create subfolder"
+        option_d:
+          name: "Skip documentation"
+          action: "Create .claude/.spec-skip marker, output plan to .claude/plans/ (legacy mode)"
+
+    step_8_store_active_path:
+      action: "Write chosen spec folder path to marker"
+      markers:
+        primary: ".spec-active.{SESSION_ID}"
+        fallback: ".spec-active (if SESSION_ID missing)"
+      path_format:
+        simple: "specs/###-short-name/"
+        subfolder: "specs/###-parent/###-subfolder/"
+
+    step_9_verify_readiness:
+      checks:
+        - "Confirm spec folder directory exists"
+        - "Verify write permissions"
+        - "Note folder path for Phase 6 plan output"
+        - "If Option D: Confirm .claude/plans/ directory exists instead"
+
+  outputs:
+    - spec_folder_path
+    - spec_folder_type  # existing/new/related/skip
+    - session_marker_written
+    - ready_for_planning
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 3: CONTEXT LOADING
+# ───────────────────────────────────────────────────────────────────
+phase_3_context_loading:
+  phase_name: "Context Loading"
+  emoji: "🧠"
+  purpose: "Load previous planning session context when continuing in existing spec folder"
+
+  steps:
+    step_10_detect_memory:
+      action: "Check for memory/ directory in active spec folder"
+      path: "{spec_folder_path}/memory/"
+      if_not_found: "Skip to Phase 4 (no previous context)"
+      if_found: "List recent memory files (up to 3) with relative timestamps"
+
+    step_11_ask_user_preference:
+      tool: "AskUserQuestion"
+      question: "Previous planning sessions found. How would you like to proceed?"
+      options:
+        option_a:
+          label: "Load most recent file only"
+          description: "Quick context refresh from last session"
+          action: "Read most recent memory file"
+        option_b:
+          label: "Load all recent files (up to 3)"
+          description: "Comprehensive context from multiple sessions"
+          action: "Read up to 3 recent files (parallel Read calls)"
+        option_c:
+          label: "List all files and select specific"
+          description: "Browse all memory files and choose"
+          action: "List up to 10 files, wait for user selection, then read"
+        option_d:
+          label: "Skip (start fresh without context)"
+          description: "Ignore previous sessions and start new"
+          action: "Proceed to Phase 4 without loading context"
+
+    step_12_load_memory_files:
+      action: "Use Read tool to load selected files"
+      optimization: "For Option B: Make parallel Read calls for efficiency"
+      integration: "Integrate loaded context into planning session"
+      outputs:
+        - previous_decisions
+        - previous_findings
+        - user_feedback_history
+        - context_summary
+
+    step_13_check_skills_folder:
+      action: "Check skills folder for relevant coding standards and conventions"
+      paths:
+        primary: ".claude/skills/"
+        alternate: ".opencode/skills/"
+      process:
+        - "Check if skills folder exists at either path"
+        - "List available SKILL.md files"
+        - "Read relevant SKILL.md files based on task context"
+        - "Extract coding standards, conventions, and patterns"
+      outputs:
+        - skills_found  # true/false
+        - relevant_skills  # List of relevant skill names
+        - coding_standards  # Extracted standards and conventions
+        - skill_patterns  # Patterns to follow during implementation
+      integration: "Make skills context available for Phase 4 exploration agents"
+      on_not_found: "Skip skills check, proceed with standard exploration"
+
+  outputs:
+    - memory_loaded  # true/false
+    - memory_file_count
+    - context_integrated
+    - previous_session_summary
+    - skills_context_loaded  # true/false
+
+exploration_philosophy:
+  approach: "Hypothesis-driven exploration with verification"
+  pattern: "Explore (Sonnet agents) → Verify (Opus reasoning)"
+  mandate: "Never assume - verify by reading files. Report findings, not conclusions."
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 4: PARALLEL EXPLORATION (SONNET AGENTS)
+# ───────────────────────────────────────────────────────────────────
+phase_4_parallel_exploration:
+  phase_name: "Parallel Exploration (Sonnet Agents)"
+  emoji: "📊"
+  purpose: "Spawn 4 Explore agents in parallel to discover codebase patterns"
+  orchestrator_model: "opus"
+  agent_model: "sonnet"
+
+  steps:
+    step_13_spawn_explore_agents:
+      action: "Spawn multiple Explore agents in parallel using Task tool"
+      tool: "Task"
+      parameters:
+        subagent_type: "Explore"
+        model: "sonnet"  # REQUIRED - fast, cost-effective exploration
+
+      agents:
+        architecture_explorer:
+          focus: "Project structure, entry points, component connections"
+          purpose: "Understand system architecture"
+          model: "sonnet"
+          prompt_template: |
+            Explore the codebase to find how the system architecture works.
+
+            Return:
+            1. Your hypothesis about the architecture
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Any patterns you noticed (component structure, module organization, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        feature_explorer:
+          focus: "Similar features, related patterns"
+          purpose: "Find reusable patterns"
+          model: "sonnet"
+          prompt_template: |
+            Explore the codebase to find similar features or related patterns for: {task_description}
+
+            Return:
+            1. Your hypothesis about existing similar features
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Any patterns you noticed (naming conventions, implementation patterns, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        dependency_explorer:
+          focus: "Imports, modules, affected areas"
+          purpose: "Identify integration points"
+          model: "sonnet"
+          prompt_template: |
+            Explore the codebase to find dependencies and integration points for: {task_description}
+
+            Return:
+            1. Your hypothesis about which modules/files will be affected
+            2. Full paths to all relevant files (e.g., /path/to/file.ts:lineNumber)
+            3. Any patterns you noticed (dependency chains, coupling points, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+        test_explorer:
+          focus: "Test patterns, testing infrastructure"
+          purpose: "Understand verification approach"
+          model: "sonnet"
+          prompt_template: |
+            Explore the codebase to find test patterns and testing infrastructure.
+
+            Return:
+            1. Your hypothesis about how testing works in this project
+            2. Full paths to all relevant test files (e.g., /path/to/file.test.ts:lineNumber)
+            3. Any patterns you noticed (test frameworks, mocking patterns, coverage expectations, etc.)
+
+            Do NOT draw conclusions - just report findings. The main agent will verify.
+
+    step_14_agent_spawn_requirements:
+      important: "All Explore agents MUST specify model: 'sonnet' in Task tool call"
+      rationale: "Fast, cost-effective exploration while Opus orchestrates and synthesizes"
+      pattern: |
+        Task({
+          subagent_type: "Explore",
+          model: "sonnet",  // REQUIRED
+          description: "Architecture exploration",
+          prompt: "[exploration prompt from agent template]"
+        })
+
+  outputs:
+    - architecture_findings  # From Architecture Explorer
+    - feature_findings       # From Feature Explorer
+    - dependency_findings    # From Dependency Explorer
+    - test_findings          # From Test Explorer
+    - total_files_identified # Count across all agents
+    - hypothesis_list        # Unverified hypotheses from all agents
+
+  success_metrics:
+    - "4 agents spawn successfully"
+    - "All agents complete within timeout"
+    - "At least 10-30 files identified total"
+    - "Clear hypotheses from each agent"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 5: HYPOTHESIS VERIFICATION (OPUS REVIEW)
+# ───────────────────────────────────────────────────────────────────
+phase_5_hypothesis_verification:
+  phase_name: "Hypothesis Verification (Opus Review)"
+  emoji: "🔬"
+  purpose: "Opus synthesizes and validates agent findings with deep reasoning"
+  model: "opus"
+
+  steps:
+    step_15_verify_findings:
+      action: "Opus reads files and verifies/refutes each hypothesis"
+      model: "opus"
+      verification_process:
+        read_files:
+          action: "Read each file identified by Sonnet Explore agents"
+          tool: "Read"
+          paths: "Use file paths from agent findings (with line numbers)"
+
+        verify_hypotheses:
+          action: "Verify or refute each hypothesis with deep reasoning"
+          approach:
+            - "Cross-check agent findings against actual code"
+            - "Identify contradictions or gaps in agent hypotheses"
+            - "Validate architectural assumptions"
+            - "Confirm integration points"
+
+        cross_reference:
+          action: "Cross-reference findings across agents for consistency"
+          checks:
+            - "Do dependency findings match architecture findings?"
+            - "Do test patterns align with implementation patterns?"
+            - "Are there conflicting hypotheses between agents?"
+
+        build_mental_model:
+          action: "Build complete mental model of:"
+          components:
+            - current_architecture:
+                description: "How the system is currently structured"
+                verified_patterns: "Architectural patterns confirmed by file reading"
+            - affected_components:
+                description: "Which parts will be modified for this task"
+                impact_assessment: "Extent of changes required"
+            - integration_points:
+                description: "Where new code connects to existing code"
+                dependency_verification: "Confirmed dependencies and imports"
+            - potential_risks:
+                description: "Risks identified during verification"
+                risk_mitigation: "How to mitigate identified risks"
+
+        resolve_conflicts:
+          action: "Resolve any conflicting hypotheses from different agents"
+          approach:
+            - "Read additional files if needed to clarify"
+            - "Prioritize evidence over assumptions"
+            - "Document unresolved ambiguities for user clarification"
+
+  outputs:
+    - verified_architecture    # Confirmed architectural understanding
+    - verified_patterns        # Confirmed reusable patterns
+    - verified_dependencies    # Confirmed integration points
+    - verified_test_approach   # Confirmed testing strategy
+    - conflicting_hypotheses   # Unresolved conflicts needing clarification
+    - mental_model_complete    # Complete understanding of task context
+    - risk_assessment          # Identified risks and mitigations
+
+  success_metrics:
+    - "All agent hypotheses verified or refuted"
+    - "Mental model includes all 4 components (architecture, affected, integration, risks)"
+    - "Conflicting hypotheses resolved or documented"
+    - "At least 80% of identified files actually read for verification"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 6: PLAN CREATION (COMPLEX MODE - STUB)
+# ───────────────────────────────────────────────────────────────────
+phase_6_document_creation_complex:
+  phase_name: "Document Creation (Complex Mode - SpecKit Level 3)"
+  emoji: "📝"
+  purpose: "Generate spec.md + multi-file plan/ directory + tasks.md per SpecKit Level 3"
+  mode: "complex"
+  output: "spec.md + plan/ directory + tasks.md + plan_manifest.json"
+  status: "STUB - To be implemented"
+  speckit_compliance: "MANDATORY - creates ALL Level 3 required files"
+
+  planned_structure:
+    speckit_files:
+      note: "Level 3 includes ALL files from Level 1 and Level 2 (progressive enhancement)"
+      spec_md:
+        path: "{spec_folder_path}/spec.md"
+        template: ".opencode/speckit/templates/spec.md"
+        purpose: "Requirements and user stories (MANDATORY - created FIRST)"
+        level: "ALL (baseline)"
+      plan_md:
+        path: "{spec_folder_path}/plan.md"
+        template: ".opencode/speckit/templates/plan.md"
+        purpose: "Technical implementation plan (MANDATORY)"
+        level: "ALL (baseline)"
+      tasks_md:
+        path: "{spec_folder_path}/tasks.md"
+        template: ".opencode/speckit/templates/tasks.md"
+        purpose: "Task breakdown organized by user story (MANDATORY)"
+        level: "ALL (baseline)"
+      checklist_md:
+        path: "{spec_folder_path}/checklist.md"
+        template: ".opencode/speckit/templates/checklist.md"
+        purpose: "Verification checklist for QA (MANDATORY for Level 2+)"
+        level: "Level 2+"
+      decision_record_md:
+        path: "{spec_folder_path}/decision-record.md"
+        template: ".opencode/speckit/templates/decision-record.md"
+        purpose: "Architecture Decision Record (MANDATORY for Level 3)"
+        level: "Level 3"
+      research_spike_md:
+        path: "{spec_folder_path}/research-spike.md"
+        template: ".opencode/speckit/templates/research-spike.md"
+        purpose: "Research documentation (OPTIONAL for Level 3)"
+        level: "Level 3 (optional)"
+
+    plan_directory: "{spec_folder_path}/plan/"
+    plan_files:
+      - "01_overview.md (200-500 lines) - Project overview, architecture, context, quality gates"
+      - "02_iteration_001.md (200-400 lines per iteration) - First iteration details"
+      - "02_iteration_002.md - Second iteration details"
+      - "02_iteration_NNN.md - Additional iterations as needed"
+      - "03_verification.md (300-600 lines) - Testing strategy, rollback, glossary"
+      - "plan_manifest.json (1-10 KB) - Machine-readable index with 20-100 anchor locations"
+
+  planned_features:
+    anchors:
+      type: "Granular anchors at section + task level"
+      count: "20-50 anchors total"
+      format: "<!-- anchor: key -->"
+      purpose: "Enable direct section navigation for agents"
+
+    manifest:
+      format: "JSON"
+      schema_version: "1.0"
+      contents:
+        - locations_array: "Array of {key, file, start_anchor, description} objects"
+        - metadata: "Workflow info, creation timestamp, mode"
+
+    file_organization:
+      overview:
+        sections:
+          - "Project Overview"
+          - "Core Architecture"
+          - "Technical Context"
+          - "Quality Gates"
+
+      iteration_files:
+        naming: "02_iteration_NNN.md (3-digit padded)"
+        sections:
+          - "Iteration Goal"
+          - "Deliverables"
+          - "Tasks (with individual task anchors)"
+
+      verification:
+        sections:
+          - "Verification Strategy"
+          - "Testing Pyramid"
+          - "Rollback Plan"
+          - "Glossary"
+
+  implementation_note: |
+    This complex mode will be fully implemented in Phase 5 of the /plan command upgrade.
+    For now, if complex mode is selected, fall back to simple mode with a notification:
+
+    "Complex mode (multi-file plan/ directory) is not yet implemented.
+     Falling back to simple mode (single plan.md file).
+     This will be available in a future update."
+
+# ───────────────────────────────────────────────────────────────────
+# TEMPORARY FALLBACK LOGIC
+# ───────────────────────────────────────────────────────────────────
+fallback_to_simple_mode:
+  trigger: "When complex mode is selected but not yet implemented"
+  action:
+    - "Notify user: Complex mode coming soon, using simple mode"
+    - "Execute simple_mode.yaml workflow instead"
+    - "Add note to plan.md: This feature qualifies for complex mode (multi-file)"
+    - "Log: complex_mode_requested_but_unavailable"
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 7: USER REVIEW & CONFIRMATION
+# ───────────────────────────────────────────────────────────────────
+phase_7_user_review:
+  phase_name: "User Review & Confirmation"
+  emoji: "👤"
+  purpose: "Request approval, wait for edits, re-read plan after user confirmation"
+
+  steps:
+    step_17_request_approval:
+      action: "Inform user plan has been created"
+      notification_format: |
+        Plan created at: {spec_folder_path}/plan.md
+
+        Please review the plan and confirm to proceed.
+        Options:
+          - Review and edit the file directly
+          - Reply "confirm" to proceed with implementation
+          - Reply "cancel" to abort
+      wait_for: "Explicit confirmation (confirm or cancel)"
+      blocking: "DO NOT write implementation files until confirmed"
+
+    step_18_handle_response:
+      on_confirm:
+        action: "Proceed to step 19 (re-read plan)"
+      on_reject:
+        action: "Set STATUS=CANCELLED ACTION=user_rejected"
+        capture: "REASON=[reason from user]"
+
+    step_19_reread_plan:
+      purpose: "User may have edited the plan file"
+      action: "Re-read the plan file completely"
+      tool: "Read"
+      path: "{spec_folder_path}/plan.md"
+      analysis:
+        - "Note any changes the user made"
+        - "Acknowledge the changes before proceeding"
+        - "Begin implementation following the plan exactly"
+
+    step_20_return_status:
+      on_awaiting_review:
+        status: "STATUS=OK ACTION=plan_created PATH={spec_folder_path}/plan.md"
+      on_rejected:
+        status: "STATUS=CANCELLED ACTION=user_rejected REASON=[reason]"
+
+  outputs:
+    - user_decision  # confirmed/rejected
+    - plan_edited    # true/false
+    - plan_final_content
+    - ready_for_implementation
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 8: CONTEXT PERSISTENCE
+# ───────────────────────────────────────────────────────────────────
+phase_8_context_persistence:
+  phase_name: "Context Persistence"
+  emoji: "💾"
+  purpose: "Save planning session context to memory/ for future sessions"
+
+  steps:
+    step_21_invoke_save_context_skill:
+      description: "Invoke workflows-memory skill for anchor-based memory"
+      action: "Use Skill tool to create memory file with anchor tags"
+
+      skill_invocation:
+        tool: Skill
+        parameter: skill="workflows-memory"
+        note: |
+          The workflows-memory skill will:
+          - Read context_template.md (includes anchor tag structure)
+          - Auto-generate anchor IDs from section titles
+          - Create task-forward structure (Implementation Guide first)
+          - Save to {spec_folder_path}/memory/DD-MM-YY_HH-MM__topic.md
+          - Enable grep-based retrieval: grep -r "anchor:.*keyword" memory/
+
+        benefits:
+        - "Anchor tags enable task-oriented context retrieval"
+        - "Consistent format with spec_kit workflows"
+        - "Single source of truth (context_template.md)"
+        - "Grep-able sections for future sessions"
+
+        fallback:
+          on_failure: "Use legacy inline template (step_22_legacy_template)"
+          reason: "Graceful degradation if skill unavailable"
+
+    step_22_legacy_template:
+      description: "FALLBACK ONLY - Legacy memory file format (no anchors)"
+      condition: "Only execute if skill invocation fails"
+
+      action: "Create memory file using inline template"
+      path: "{spec_folder_path}/memory/DD-MM-YY_HH-MM__topic.md"
+
+      template: |
+        # Planning Session: {task_description}
+        **Date**: {timestamp}
+        **Spec Folder**: {spec_folder_path}
+
+        ⚠️ Note: Created with legacy template (no anchor tags)
+
+        ## Session Summary
+        {planning_summary}
+
+        ## Key Decisions
+        - Mode: {selected_mode}
+        - Architectural choices: {arch_decisions}
+        - Technology decisions: {tech_decisions}
+
+        ## Exploration Findings
+
+        **Architecture Explorer**:
+        {architecture_findings}
+
+        **Feature Explorer**:
+        {feature_findings}
+
+        **Dependency Explorer**:
+        {dependency_findings}
+
+        **Test Explorer**:
+        {test_findings}
+
+        ## User Feedback
+        {user_feedback}
+
+  outputs:
+    - memory_file_created
+    - memory_file_path
+    - context_saved
+    - anchors_generated  # true if skill used, false if fallback
+
+# FUTURE IMPLEMENTATION CHECKLIST
+# ───────────────────────────────────────────────────────────────────
+future_implementation:
+  phase_5_tasks:
+    - "Create 01_overview.md template structure"
+    - "Create 02_iteration_NNN.md template structure"
+    - "Create 03_verification.md template structure"
+    - "Implement manifest generation logic"
+    - "Implement granular anchor insertion (sections + tasks)"
+    - "Add file size validation (≤500 lines each)"
+    - "Add manifest JSON schema validation"
+    - "Test multi-file navigation"
+    - "Update documentation"
+
+  dependencies:
+    - "Anchor system (Phase 3 of upgrade)"
+    - "Mode selection logic (Phase 4 of upgrade)"
+    - "Template validation integration (Phase 6 of upgrade)"
+
+# ───────────────────────────────────────────────────────────────────
+# COMPLEX MODE CHARACTERISTICS (PLANNED)
+# ───────────────────────────────────────────────────────────────────
+complex_mode_features:
+  file_output:
+    type: "Multi-file directory with full Level 3 documentation"
+    path: "{spec_folder_path}/plan/"
+    size: "600-1500 lines total across multiple files"
+    level: "Level 3 (Full) - includes all Level 1 and Level 2 files"
+
+  structure:
+    level_3_files:
+      baseline: "spec.md + plan.md + tasks.md (from Level 1)"
+      verification: "checklist.md (from Level 2)"
+      full: "decision-record.md + optional research-spike.md (Level 3)"
+    plan_directory:
+      overview_file: "01_overview.md"
+      iteration_files: "02_iteration_NNN.md (one per iteration)"
+      verification_file: "03_verification.md"
+      manifest: "plan_manifest.json"
+      anchors: "20-50 granular anchors"
+
+  loc_threshold:
+    suggestion: ">=500 LOC suggests Level 3"
+    note: "LOC is SOFT guidance; complexity factors can override"
+
+  target_features:
+    loc: ">=500 LOC (soft threshold)"
+    iterations: ">=4"
+    complexity: "High"
+    file_count: "10+ files"
+    risk: "Architecture changes, security, data migration"
+
+  advantages:
+    - "Full Level 3 documentation with progressive enhancement"
+    - "Manageable file sizes (<=500 lines each)"
+    - "Easy iteration navigation"
+    - "Machine-readable manifest for agents"
+    - "Granular section anchors"
+    - "Scalable to 20+ iterations"
+    - "Complete decision documentation for architectural choices"
+    - "Verification checklist for quality assurance"
+
+  when_to_use:
+    - "Major features with multiple iterations"
+    - "System redesigns"
+    - "Large refactorings"
+    - "Multi-module changes"
+    - "Features requiring extensive documentation"
+    - "Architecture changes requiring decision records"
+    - "High-risk modifications needing verification tracking"
+
+# ───────────────────────────────────────────────────────────────────
+# STATUS SUMMARY
+# ───────────────────────────────────────────────────────────────────
+status:
+  current: "STUB - Placeholder for future implementation"
+  available_modes: "simple_mode only (as of Phase 1.5)"
+  planned_release: "Phase 5 of /plan command upgrade"
+  workaround: "All features use simple mode until complex mode implemented"
