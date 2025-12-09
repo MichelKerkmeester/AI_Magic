@@ -16,11 +16,6 @@ tsconfig.json
 node_modules/
 lib/
 
-# Exception: Allow lib folder in semantic-memory MCP Server
-!AI Systems/Code Environment/claude/commands/memory/
-!AI Systems/Code Environment/opencode/command/memory/
-!AI Systems/Code Environment/opencode/memory/
-
 # IDE and AI folders (ignored at all levels)
 .vscode/
 .claude/
@@ -42,6 +37,19 @@ context/
 export/
 memory/
 specs/
+
+# Exception: Allow memory command folders in Code Environment
+!Code Environment/
+!Code Environment/claude/
+!Code Environment/claude/commands/
+!Code Environment/claude/commands/memory/
+!Code Environment/claude/commands/memory/**
+!Code Environment/opencode/
+!Code Environment/opencode/command/
+!Code Environment/opencode/command/memory/
+!Code Environment/opencode/command/memory/**
+!Code Environment/opencode/memory/
+!Code Environment/opencode/memory/**
 
 # Working prompts (ignored at all levels)
 z__request_to_user_input.yaml
