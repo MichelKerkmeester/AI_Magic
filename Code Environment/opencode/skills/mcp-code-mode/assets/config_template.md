@@ -377,7 +377,7 @@ NOTION_TOKEN=ntn_your_token_here
 
 Then add to `.env`:
 ```bash
-GITHUB_TOKEN=ghp_your_token_here
+GITHUB_TOKEN=your-github-token
 ```
 
 ### Removing an MCP Server

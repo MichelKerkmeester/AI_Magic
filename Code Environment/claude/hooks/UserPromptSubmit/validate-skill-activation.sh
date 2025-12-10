@@ -205,16 +205,57 @@ MATCHED_SKILLS=()
 
 # Check if prompt is a question (no modification intent)
 # PRIORITY-BASED DETECTION:
-# 0. Explanatory phrases override implementation keywords (explanation request)
+# 0. Read-only tool operations (mnemo, offload, cache) - NOT implementation
+# 0.1. Explanatory phrases override implementation keywords (explanation request)
+# 0.2. Read-only analysis of EXISTING content (specs, files) - NOT implementation
+# 0.5. Analysis+issue patterns (likely leads to fixes) - IS implementation
 # 1. Implementation keywords override question patterns (implementation request)
 # 2. Pure question patterns without implementation keywords (read-only question)
 is_question_prompt() {
   local text="$1"
 
-  # Priority 0: Check for explanatory intent phrases
+  # Priority 0: Check for tool-only operations (read-only by nature)
+  # These are tool invocations, NOT implementation requests
+  # Include common typos: menmo/memno for mnemo
+  if echo "$text" | grep -qiE "(use (mnemo|menmo|memno)|offload.*(context|to)|load.*(into|to).*(cache|mnemo|menmo)|context.*(load|query|list)|query.*(mnemo|menmo|cache))"; then
+    return 0  # Is read-only (tool operation)
+  fi
+
+  # Priority 0.05: Check for verification/checking of documentation or skills
+  # "double check", "verify", "check" + readme/skill/docs/hook = read-only review
+  if echo "$text" | grep -qiE "(double[[:space:]]*check|verify|check).*(readme|skill|documentation|hook|docs|opencode|claude)"; then
+    return 0  # Is read-only (documentation review)
+  fi
+
+  # Priority 0.06: "verify" at start without implementation context = read-only
+  if echo "$text" | grep -qiE "^(double[[:space:]]*check|verify)"; then
+    if ! echo "$text" | grep -qiE "(and (fix|update|implement|create|change|modify)|then (fix|update|implement|create|change|modify)|issue|bug|problem|error)"; then
+      return 0  # Is read-only (pure verification)
+    fi
+  fi
+
+  # Priority 0.1: Check for explanatory intent phrases
   # These override implementation keywords - user wants to UNDERSTAND, not DO
   if echo "$text" | grep -qiE "(help me understand|explain (how|why|what|the)|tell me about|describe (how|the|what)|can you explain|what does.*mean|how does.*work)"; then
     return 0  # Is a question (explanation request)
+  fi
+
+  # Priority 0.2: Check for read-only analysis of EXISTING content
+  # Pattern: "analyze/review/examine" + path to existing specs/files (no issue keywords)
+  # This is research/review, NOT implementation
+  if echo "$text" | grep -qiE "(analyze|review|examine|look at|check|inspect|read|study|summarize).*/specs/"; then
+    # Only if NOT accompanied by issue/fix intent
+    if ! echo "$text" | grep -qiE "(issue|bug|problem|error|broken|not working|failing|fix|then)"; then
+      return 0  # Is read-only (analysis of existing content)
+    fi
+  fi
+
+  # Priority 0.3: Check for pure research/exploration patterns
+  if echo "$text" | grep -qiE "^(analyze|review|examine|summarize|check|inspect|look at|read through|study)\\s"; then
+    # Only if NOT accompanied by modification intent
+    if ! echo "$text" | grep -qiE "(and (fix|update|implement|create|change|modify)|then (fix|update|implement|create|change|modify)|issue|bug|problem|error)"; then
+      return 0  # Is read-only (pure research)
+    fi
   fi
 
   # Priority 0.5: Check for analysis+issue patterns (likely leads to fixes)

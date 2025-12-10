@@ -133,7 +133,7 @@ get_skills_for_domain() {
       echo "workflows-code,mcp-semantic-search"
       ;;
     "devops")
-      echo "mcp-code-mode,cli-gemini"
+      echo "mcp-code-mode"
       ;;
     *)
       echo "workflows-code"

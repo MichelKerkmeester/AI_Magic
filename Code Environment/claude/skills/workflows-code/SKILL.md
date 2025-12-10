@@ -358,29 +358,6 @@ See [debugging_workflows.md](./references/debugging_workflows.md) for complete w
 
 See [verification_workflows.md](./references/verification_workflows.md) for complete requirements.
 
-**Alternative Verification: Gemini CLI** (Optional second opinion)
-
-When you need additional validation beyond browser testing:
-
-**When to Use:**
-- Code review for security vulnerabilities
-- Architecture validation before finalizing
-- Performance optimization suggestions
-- Cross-checking implementation approach
-- Complex algorithm verification
-
-**Example Workflow:**
-1. Complete implementation (Phase 1)
-2. Fix any issues found during debugging (Phase 2)
-3. **Before Phase 3 browser verification**, optionally invoke `cli-gemini` skill
-4. Request: "Review this code for security issues and performance"
-5. Compare Gemini feedback with your analysis
-6. Address any critical issues discovered
-7. Proceed to Phase 3 browser verification (MANDATORY)
-
-**Integration:** Use **after** debugging, **before** browser verification. See [cli-gemini](../cli-gemini/SKILL.md) skill for detailed usage.
-
-**Important**: Gemini CLI is supplementary. Browser verification is MANDATORY.
 
 ---
 
@@ -639,13 +616,13 @@ Platform limits enforced by Webflow that affect architecture decisions:
 - **Integration**: Phase 2 (Debugging) + Phase 3 (Verification)
 - **See**: [verification_workflows.md Section 2.5](./references/verification_workflows.md) for complete MCP tool reference and automation patterns
 
-**Option 2: cli-chrome-devtools (Automated, Terminal-based)**
+**Option 2: workflows-chrome-devtools (Browser debugging orchestrator - CLI priority, MCP fallback)**
 - **Recommended for**: CLI users, no MCP setup, token efficiency priority
 - **Tool**: browser-debugger-cli (bdg) via Bash execution
 - **Benefits**: Self-documenting, Unix composability, minimal setup
 - **Installation**: `npm install -g browser-debugger-cli@alpha`
 - **Usage**: Direct CDP access via terminal (644 methods across 53 domains)
-- **See**: .claude/skills/cli-chrome-devtools/SKILL.md (complete CLI skill reference)
+- **See**: .claude/skills/workflows-chrome-devtools/SKILL.md (complete CLI skill reference)
 
 **Option 3: Manual Browser Testing**
 - **Recommended for**: Visual quality checks, accessibility testing, animation feel
@@ -665,7 +642,7 @@ All three options satisfy "The Iron Law" browser verification requirement:
 ```
 Need browser verification? → Choose approach:
 ├─ Automated + MCP infrastructure available → Chrome DevTools MCP (Option 1)
-├─ Automated + terminal-first workflow → cli-chrome-devtools (Option 2)
+├─ Automated + terminal-first workflow → workflows-chrome-devtools (Option 2)
 └─ Visual quality / accessibility focus → Manual browser (Option 3)
 ```
 

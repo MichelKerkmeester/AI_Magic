@@ -73,7 +73,12 @@ CLICKUP_COUNT=$(echo "$PROMPT_LOWER" | grep -o "clickup" | wc -l | tr -d ' ')
 CHROME_COUNT=$(echo "$PROMPT_LOWER" | grep -o -E "chrome|devtools|screenshot|browser automation" | wc -l | tr -d ' ')
 SEMANTIC_COUNT=$(echo "$PROMPT_LOWER" | grep -o -E "semantic search|code search|find.*implementation|search.*codebase" | wc -l | tr -d ' ')
 
-# Calculate total platforms (Bash 3.2 compatible - avoid ((var++)) edge case)
+# NATIVE MCP tools (NOT routed through Code Mode)
+# These tools use mcp__toolname__ prefix and are called directly
+MNEMO_COUNT=$(echo "$PROMPT_LOWER" | grep -o -E "mnemo|gemini cache|context cache|load.*repo|query.*repo|external.*memory" | wc -l | tr -d ' ')
+
+# Calculate CODE MODE platforms only (Bash 3.2 compatible)
+# NOTE: Mnemo and Semantic Search are NATIVE MCP - NOT counted here
 TOTAL_PLATFORMS=0
 [ "$WEBFLOW_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
 [ "$FIGMA_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
@@ -81,9 +86,15 @@ TOTAL_PLATFORMS=0
 [ "$GITHUB_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
 [ "$CLICKUP_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
 [ "$CHROME_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
-[ "$SEMANTIC_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
+# SEMANTIC_COUNT intentionally NOT added - it's native MCP
 
-# Build detected platforms list
+# Track native MCP tools separately (they bypass Code Mode)
+NATIVE_MCP_TOOLS=""
+[ "$MNEMO_COUNT" -gt 0 ] && NATIVE_MCP_TOOLS="${NATIVE_MCP_TOOLS}mnemo,"
+[ "$SEMANTIC_COUNT" -gt 0 ] && NATIVE_MCP_TOOLS="${NATIVE_MCP_TOOLS}semantic-search,"
+NATIVE_MCP_TOOLS=$(echo "$NATIVE_MCP_TOOLS" | sed 's/,$//')
+
+# Build detected CODE MODE platforms list (excludes native MCP tools)
 DETECTED_PLATFORMS=""
 [ "$WEBFLOW_COUNT" -gt 0 ] && DETECTED_PLATFORMS="${DETECTED_PLATFORMS}Webflow, "
 [ "$FIGMA_COUNT" -gt 0 ] && DETECTED_PLATFORMS="${DETECTED_PLATFORMS}Figma, "
@@ -91,7 +102,7 @@ DETECTED_PLATFORMS=""
 [ "$GITHUB_COUNT" -gt 0 ] && DETECTED_PLATFORMS="${DETECTED_PLATFORMS}GitHub, "
 [ "$CLICKUP_COUNT" -gt 0 ] && DETECTED_PLATFORMS="${DETECTED_PLATFORMS}ClickUp, "
 [ "$CHROME_COUNT" -gt 0 ] && DETECTED_PLATFORMS="${DETECTED_PLATFORMS}Chrome DevTools, "
-[ "$SEMANTIC_COUNT" -gt 0 ] && DETECTED_PLATFORMS="${DETECTED_PLATFORMS}Semantic Search, "
+# Semantic Search intentionally NOT added - it's native MCP
 DETECTED_PLATFORMS=$(echo "$DETECTED_PLATFORMS" | sed 's/, $//')
 
 # ───────────────────────────────────────────────────────────────
@@ -172,40 +183,76 @@ elif [ "$TOTAL_PLATFORMS" -ge 1 ]; then
     elif [ "$CHROME_COUNT" -gt 0 ]; then
         SUGGESTION_TYPE="chrome"
         DETECTED_CATEGORY="Browser Automation (Chrome DevTools)"
-    elif [ "$SEMANTIC_COUNT" -gt 0 ]; then
-        SUGGESTION_TYPE="semantic"
-        DETECTED_CATEGORY="Semantic Code Search"
     fi
+    # NOTE: Semantic search removed - it's native MCP, not Code Mode
 fi
 
 # ───────────────────────────────────────────────────────────────
-# OUTPUT UNIFIED SUGGESTION
+# BUILD COMBINED OUTPUT (Single JSON - Native MCP + Code Mode)
 # ───────────────────────────────────────────────────────────────
 
+COMBINED_MSG=""
+HAS_NATIVE_MCP=false
+HAS_CODE_MODE=false
+
+# Part 1: Build native MCP section (if detected)
+if [ -n "$NATIVE_MCP_TOOLS" ]; then
+    HAS_NATIVE_MCP=true
+    COMBINED_MSG="🧠 NATIVE MCP TOOLS (call directly, NOT Code Mode):\\n"
+
+    if echo "$NATIVE_MCP_TOOLS" | grep -q "mnemo"; then
+        COMBINED_MSG="${COMBINED_MSG}\\n  📦 Mnemo: mcp__mnemo__context_load/query/list\\n"
+    fi
+
+    if echo "$NATIVE_MCP_TOOLS" | grep -q "semantic-search"; then
+        COMBINED_MSG="${COMBINED_MSG}\\n  🔍 Semantic: mcp__semantic_search__semantic_search\\n"
+    fi
+fi
+
+# Part 2: Build Code Mode section (if detected)
 if [ "$SHOULD_SUGGEST" = true ]; then
-    # Build systemMessage for visible output
-    MCP_MSG=""
-    
+    HAS_CODE_MODE=true
+
+    # Add separator if both types detected
+    if [ "$HAS_NATIVE_MCP" = true ]; then
+        COMBINED_MSG="${COMBINED_MSG}\\n───────────────────────────────────\\n"
+    fi
+
     # Header based on type
     if [ "$SUGGESTION_TYPE" = "multi_platform" ] || [ "$SUGGESTION_TYPE" = "sequential" ]; then
-        MCP_MSG="🔧 MCP WORKFLOW DETECTED:\\n"
+        COMBINED_MSG="${COMBINED_MSG}🔧 MCP WORKFLOW (use Code Mode):\\n"
     else
-        MCP_MSG="🔧 MCP TOOL USAGE DETECTED:\\n"
+        COMBINED_MSG="${COMBINED_MSG}🔧 MCP TOOL (use Code Mode):\\n"
     fi
 
     # Show detected platforms
     if [ -n "$DETECTED_PLATFORMS" ]; then
-        MCP_MSG="${MCP_MSG}  Platforms: [$DETECTED_PLATFORMS]\\n"
+        COMBINED_MSG="${COMBINED_MSG}  Platforms: [$DETECTED_PLATFORMS]\\n"
     fi
-    MCP_MSG="${MCP_MSG}  Category: $DETECTED_CATEGORY\\n"
-    MCP_MSG="${MCP_MSG}  Use Code Mode for 68% fewer tokens, 60% faster execution.\\n"
-    MCP_MSG="${MCP_MSG}  Reference: .claude/skills/mcp-code-mode/SKILL.md"
-    
-    # Output as systemMessage JSON for Claude Code visibility
-    echo "{\"systemMessage\": \"${MCP_MSG}\"}"
-    
-    # Also output detailed info to stdout for context
+    COMBINED_MSG="${COMBINED_MSG}  Category: $DETECTED_CATEGORY\\n"
+    COMBINED_MSG="${COMBINED_MSG}  Use Code Mode for 68% fewer tokens, 60% faster.\\n"
+    COMBINED_MSG="${COMBINED_MSG}  Ref: .claude/skills/mcp-code-mode/SKILL.md"
+fi
+
+# Output single JSON (only if something was detected)
+if [ "$HAS_NATIVE_MCP" = true ] || [ "$HAS_CODE_MODE" = true ]; then
+    echo "{\"systemMessage\": \"${COMBINED_MSG}\"}"
     echo ""
+fi
+
+# Exit early if only native MCP (no examples needed)
+if [ "$HAS_NATIVE_MCP" = true ] && [ "$HAS_CODE_MODE" = false ]; then
+    END_TIME=$(_get_nano_time)
+    DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] suggest-mcp-tools.sh ${DURATION}ms - Native MCP only: $NATIVE_MCP_TOOLS" >> "$HOOKS_DIR/logs/performance.log" 2>/dev/null
+    exit 0
+fi
+
+# ───────────────────────────────────────────────────────────────
+# OUTPUT CODE MODE EXAMPLES (plain text, not JSON)
+# ───────────────────────────────────────────────────────────────
+
+if [ "$SHOULD_SUGGEST" = true ]; then
 
     # Context-specific examples
     case "$SUGGESTION_TYPE" in
@@ -292,17 +339,7 @@ if [ "$SHOULD_SUGGEST" = true ]; then
             echo "  });"
             ;;
 
-        "semantic")
-            echo "  Example: Semantic Code Search"
-            echo "  search_tools({ task_description: 'find authentication logic', limit: 10 });"
-            echo ""
-            echo "  call_tool_chain({"
-            echo "    code: \`"
-            echo "      const results = await semantic.semantic_search({ query: '...' });"
-            echo "      return results;"
-            echo "    \`"
-            echo "  });"
-            ;;
+        # NOTE: "semantic" case removed - semantic search is now native MCP
 
         "sequential")
             echo "  Example: Sequential Operations"

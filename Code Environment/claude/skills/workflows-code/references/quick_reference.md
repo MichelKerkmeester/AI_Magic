@@ -182,7 +182,7 @@ debugger;
 
 ### Browser Verification (CLI Alternative)
 
-**Automated browser testing via cli-chrome-devtools skill:**
+**Automated browser testing via workflows-chrome-devtools skill:**
 
 ```bash
 # Console error checking
@@ -222,7 +222,7 @@ bdg stop 2>&1
 npm install -g browser-debugger-cli@alpha
 ```
 
-**See:** `.claude/skills/cli-chrome-devtools/SKILL.md` for complete CLI workflows
+**See:** `.claude/skills/workflows-chrome-devtools/SKILL.md` for complete CLI workflows
 
 ---
 

@@ -141,7 +141,7 @@ def route_documentation_resources(task):
         # Key Insight: Load for MODE 2 skill initialization
         # ──────────────────────────────────────────────────────────────────
         if task.needs_skill_template:
-            return load("assets/skills/skill_md_template.md")
+            return load("assets/skill_md_template.md")
 
         # ──────────────────────────────────────────────────────────────────
         # Asset Template
@@ -149,7 +149,7 @@ def route_documentation_resources(task):
         # Key Insight: Load for MODE 2 bundled asset files
         # ──────────────────────────────────────────────────────────────────
         if task.needs_asset_template:
-            return load("assets/skills/skill_asset_template.md")
+            return load("assets/skill_asset_template.md")
 
         # ──────────────────────────────────────────────────────────────────
         # Reference Template
@@ -157,7 +157,7 @@ def route_documentation_resources(task):
         # Key Insight: Load for MODE 2 bundled reference files
         # ──────────────────────────────────────────────────────────────────
         if task.needs_reference_template:
-            return load("assets/skills/skill_reference_template.md")
+            return load("assets/skill_reference_template.md")
 
         # ──────────────────────────────────────────────────────────────────
         # Command Template
@@ -291,9 +291,9 @@ def route_documentation_resources(task):
 # assets/frontmatter_templates.md → YAML frontmatter templates by document type
 # assets/llmstxt_templates.md → Example llms.txt files
 # assets/command_template.md → Claude Code slash command templates
-# assets/skills/skill_md_template.md → Complete SKILL.md file templates
-# assets/skills/skill_asset_template.md → Asset file creation templates
-# assets/skills/skill_reference_template.md → Reference doc templates
+# assets/skill_md_template.md → Complete SKILL.md file templates
+# assets/skill_asset_template.md → Asset file creation templates
+# assets/skill_reference_template.md → Reference doc templates
 # assets/flowcharts/simple_workflow.md → Linear sequential flow example
 # assets/flowcharts/decision_tree_flow.md → Multi-branch decision example
 # assets/flowcharts/parallel_execution.md → Concurrent tasks example
@@ -463,7 +463,9 @@ Run manual optimization when:
 
 **Integration with Document Quality**: After packaging, validate SKILL.md with full pipeline (target: 90+ overall score).
 
-See [skill_creation.md](./references/skill_creation.md) for detailed workflow and [skill_md_template.md](./assets/skills/skill_md_template.md) for templates.
+**Platform Compatibility (CRITICAL)**: Skills sync to both `.claude/` and `.opencode/`. Opencode does NOT support hooks. When documenting hook-dependent features, add notes like "In Claude Code, this runs automatically via hooks. In Opencode, follow manually." See Pitfall 6 in skill_creation.md.
+
+See [skill_creation.md](./references/skill_creation.md) for detailed workflow and [skill_md_template.md](./assets/skill_md_template.md) for templates.
 
 
 ### Mode 3: Flowchart Creation

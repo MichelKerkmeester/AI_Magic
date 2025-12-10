@@ -563,6 +563,7 @@ Iteration 3:
 3. Required fields: name, description
 4. Name format: hyphen-case
 5. No angle brackets in description
+6. **Platform compatibility** - No hook-dependent features without Opencode notes
 
 **Output**: Pass/fail with error messages
 
@@ -808,6 +809,43 @@ Validate the file before processing.
 ```
 
 **Fix**: Use imperative/infinitive form throughout.
+
+
+### Pitfall 6: Platform Compatibility (Opencode)
+
+**Problem**: Skill references hooks or automatic triggers that only work in Claude Code, not Opencode.
+
+**Context**: Skills are synced to both `.claude/skills/` and `.opencode/skills/`. Opencode does NOT support hooks (UserPromptSubmit, PreToolUse, PostToolUse).
+
+**Example**:
+```markdown
+# Bad - Claims automatic behavior that requires hooks
+#### Automatic Enforcement
+Enforcement runs automatically via hooks:
+**PostToolUse Hook** - After Write/Edit operations
+**UserPromptSubmit Hook** - Before AI processes prompts
+
+# Good - Platform-aware documentation
+#### Validation Workflow
+> **Note:** In Claude Code, validation runs automatically via hooks.
+> In Opencode, apply these checks manually.
+
+**Filename Validation** (after Write/Edit operations):
+- Purpose: Filename enforcement
+- Apply: After creating or editing files
+```
+
+**Fix**: When documenting hook-dependent features:
+1. Add a note: "In Claude Code, this runs automatically via hooks. In Opencode, follow manually."
+2. Replace "hooks block commits" with "verify before commits"
+3. Replace "Automatic activation" with "Use this skill when"
+4. Replace "hook_interaction" with "ai_workflow" in YAML configs
+5. Never reference `.claude/hooks/` paths without noting Opencode limitation
+
+**Validation Check**: Search for these patterns before packaging:
+```bash
+grep -E "hooks block|hook_interaction|\.claude/hooks/|Automatic.*via hooks" SKILL.md
+```
 
 ---
 

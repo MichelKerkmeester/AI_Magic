@@ -1,8 +1,10 @@
-# 🤖 Automation Workflows - Hook Enforcement & Context Auto-Save
+# 🤖 Automation Workflows - Enforcement & Context Auto-Save
 
-Hook-based **HARD enforcement**, context auto-save, and mandatory process workflows for AI agents. This document explains how the enforce-spec-folder.sh and workflows-memory-trigger.sh hooks work and defines required AI agent behavior.
+> **⚠️ Note:** This document describes Claude Code hook behavior. In Opencode, hooks are not available. Follow the AI workflow patterns manually instead of relying on automated enforcement.
 
-**Key Point:** Enforcement is HARD - hooks block commits with missing required templates based on the progressive enhancement model.
+Enforcement workflows and context auto-save patterns for AI agents. In Claude Code, this runs automatically via hooks. In Opencode, the AI must follow these patterns manually.
+
+**Key Point:** Enforcement is manual in Opencode - verify templates exist before commits.
 
 ---
 

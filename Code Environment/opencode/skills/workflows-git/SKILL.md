@@ -28,7 +28,7 @@ Use this orchestrator when:
 - **git-commit** - Professional commit workflow with Conventional Commits
 - **git-finish** - Complete work with merge, PR, or cleanup options
 
-**Architecture Note**: These are conceptual workflow phases, not separate skill directories. The hook system routes users to this skill based on intent keywords. Each phase has detailed documentation in `references/`:
+**Architecture Note**: These are conceptual workflow phases, not separate skill directories. The AI activates this skill based on intent keywords. Each phase has detailed documentation in `references/`:
 - Phase 1 (Setup): `references/worktree_workflows.md`
 - Phase 2 (Commit): `references/commit_workflows.md`  
 - Phase 3 (Finish): `references/finish_workflows.md`
@@ -39,9 +39,11 @@ Use this orchestrator when:
 
 **MANDATORY**: The AI must NEVER autonomously decide between creating a branch or worktree.
 
-### Hook Enforcement
+### Enforcement (Manual)
 
-Git workspace strategy is enforced by the `enforce-git-workspace-choice.sh` UserPromptSubmit hook. When git workspace triggers are detected (new feature, create branch, worktree, etc.), the user MUST explicitly choose:
+> **Note:** In Claude Code, workspace choice is enforced via hooks. In Opencode, the AI must follow this workflow manually.
+
+When git workspace triggers are detected (new feature, create branch, worktree, etc.), the **AI MUST ask** the user to explicitly choose:
 
 | Option | Description | Best For |
 |--------|-------------|----------|
@@ -51,24 +53,24 @@ Git workspace strategy is enforced by the `enforce-git-workspace-choice.sh` User
 
 ### AI Behavior Requirements
 
-1. **WAIT** for user to answer the workspace question before proceeding
-2. **NEVER** assume which workspace strategy the user wants
-3. **RESPECT** the user's choice throughout the workflow
-4. If user has already answered this session, reuse their preference
+1. **ASK** user for workspace choice before proceeding with git work
+2. **WAIT** for explicit user selection (A/B/C)
+3. **NEVER** assume which workspace strategy the user wants
+4. **RESPECT** the user's choice throughout the workflow
+5. If user has already answered this session, reuse their preference
 
 ### Override Phrases
 
-Power users can bypass the question with explicit phrases:
+Power users can state preference explicitly:
 - `"use branch"` / `"create branch"` → Branch selected
 - `"use worktree"` / `"in a worktree"` → Worktree selected
 - `"current branch"` / `"on this branch"` → Current branch selected
 
 ### Session Persistence
 
-Once user chooses, their preference is stored for 1 hour. The hook won't re-ask unless:
-- Session expires (1 hour)
-- User explicitly overrides with a different phrase
-- User starts a new Claude Code session
+Once user chooses, reuse their preference for the session unless:
+- User explicitly requests a different strategy
+- User starts a new conversation
 
 ---
 

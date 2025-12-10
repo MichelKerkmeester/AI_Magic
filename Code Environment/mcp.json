@@ -28,15 +28,28 @@
         "MCP_CODEBASE_WORKSPACE": "/path/to/project",
         "MCP_CODEBASE_DB_PATH": "/path/to/project/.codebase/vectors.db",
         "MCP_CODEBASE_EMBEDDER_PROVIDER": "openai-compatible",
-        "MCP_CODEBASE_EMBEDDER_API_KEY": "YOUR_VOYAGE_API_KEY",
+        "MCP_CODEBASE_EMBEDDER_API_KEY": "your-api-key-here",
         "MCP_CODEBASE_EMBEDDER_BASE_URL": "https://api.voyageai.com/v1",
         "MCP_CODEBASE_EMBEDDER_MODEL_ID": "voyage-code-3",
         "MCP_CODEBASE_JUDGE_PROVIDER": "openai-compatible",
-        "MCP_CODEBASE_JUDGE_API_KEY": "YOUR_VOYAGE_API_KEY",
+        "MCP_CODEBASE_JUDGE_API_KEY": "your-api-key-here",
         "MCP_CODEBASE_JUDGE_BASE_URL": "https://api.voyageai.com/v1",
         "MCP_CODEBASE_JUDGE_MODEL_ID": "voyage-3",
         "MCP_CODEBASE_JUDGE_MAX_TOKENS": "1024",
         "MCP_CODEBASE_JUDGE_TEMPERATURE": "0"
+      },
+      "disabled": false
+    },
+    "mnemo": {
+      "command": "/path/to/.bun/bin/bun",
+      "args": [
+        "run",
+        "/path/to/mcp-servers/mnemo/packages/local/src/stdio.ts"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "your-api-key-here",
+        "MNEMO_PORT": "8080",
+        "MNEMO_DIR": "~/.mnemo"
       },
       "disabled": false
     }

@@ -33,7 +33,7 @@ NOTION_TOKEN=ntn_your_token_here
 
 # GitHub Configuration (Optional - add GitHub MCP to .utcp_config.json if needed)
 # See config_template.md Section 5 for GitHub MCP setup
-GITHUB_TOKEN=ghp_your_token_here
+GITHUB_TOKEN=your-github-token
 
 # Webflow Configuration (if using direct API, not remote MCP)
 WEBFLOW_API_TOKEN=your_webflow_token_here
@@ -119,7 +119,7 @@ NOTION_TOKEN=ntn_1234567890abcdefghijklmnopqrstuvwxyz
 
 **Format:**
 ```bash
-GITHUB_TOKEN=ghp_1234567890abcdefghijklmnopqrstuvwxyz
+GITHUB_TOKEN=your-github-token
 ```
 
 **Scopes**: Select based on needed permissions (read/write repos, issues, PRs, etc.)

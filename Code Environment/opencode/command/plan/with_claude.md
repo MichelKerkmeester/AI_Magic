@@ -423,7 +423,7 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.
   - Level 3 adds decision-record.md (required) + research-spike.md (optional)
   - All templates from `.opencode/speckit/templates/`
   - Documentation level detection in Phase 0
-  - LOC thresholds are SOFT guidance; hooks enforce HARD requirements
+  - LOC thresholds are SOFT guidance; manual discipline enforces requirements
 
 - **YAML Architecture:**
   - Command file (~150 lines): Mode detection + model parameter setting
@@ -435,7 +435,7 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.
   - Works with spec folder system (Phase 2)
   - Memory context enables session continuity (Phases 3 & 8)
   - SpecKit documents feed into `/spec_kit:implement` workflow
-  - Enforced by workflows-spec-kit hooks
+  - Guided by workflows-spec-kit workflow
 
 - **Memory System (Phase 8):**
   - Invokes `workflows-memory` skill for memory file creation

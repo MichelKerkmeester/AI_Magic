@@ -262,7 +262,7 @@ document.querySelectorAll('img[data-src]').forEach(img => {
    - Total Blocking Time (TBT)
 ```
 
-#### Option 2: cli-chrome-devtools (Terminal-based)
+#### Option 2: workflows-chrome-devtools (Terminal-based)
 
 **Performance Budget Assertion Script:**
 ```bash
@@ -404,7 +404,7 @@ echo "🔍 Running performance checks..."
 echo "✅ All performance checks passed"
 ```
 
-**See:** `.claude/skills/cli-chrome-devtools/` for complete CLI automation patterns
+**See:** `.claude/skills/workflows-chrome-devtools/` for complete CLI automation patterns
 
 ---
 

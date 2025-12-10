@@ -84,7 +84,7 @@ Instead of manually opening DevTools, capture console output programmatically:
 
 **CLI Alternative (browser-debugger-cli):**
 
-For terminal-first workflows, use bdg CLI tool (cli-chrome-devtools skill):
+For terminal-first workflows, use bdg CLI tool (workflows-chrome-devtools skill):
 
 ```bash
 # Capture console errors
@@ -93,7 +93,7 @@ bdg console logs 2>&1 | jq '.[] | select(.level=="error")'
 bdg stop 2>&1
 ```
 
-See: .claude/skills/cli-chrome-devtools/ for complete CLI automation patterns
+See: .claude/skills/workflows-chrome-devtools/ for complete CLI automation patterns
 
 **Step 2: Reproduce Consistently**
 - Can you trigger it reliably?
@@ -231,7 +231,7 @@ bdg stop 2>&1
 jq '.log.entries[] | select(.response.status >= 400 or .response.status == 0)' network.har
 ```
 
-See: .claude/skills/cli-chrome-devtools/ for complete CLI automation patterns
+See: .claude/skills/workflows-chrome-devtools/ for complete CLI automation patterns
 
 **Step 5: Trace Data Flow**
 
@@ -382,7 +382,7 @@ bdg Runtime.evaluate --expression "typeof Hls" 2>&1
 bdg stop 2>&1
 ```
 
-See: .claude/skills/cli-chrome-devtools/ for complete CLI automation patterns
+See: .claude/skills/workflows-chrome-devtools/ for complete CLI automation patterns
 
 **Step 3: Verify Before Continuing**
 - Did it work? Yes → Phase 4
@@ -995,7 +995,7 @@ Solutions:
    - Failed/slow requests (>500ms)
 ```
 
-#### Option 2: cli-chrome-devtools (Terminal-based)
+#### Option 2: workflows-chrome-devtools (Terminal-based)
 
 **Performance Metrics Capture:**
 ```bash
@@ -1096,7 +1096,7 @@ bdg stop 2>&1
 echo "✅ Baseline captured: $OUTPUT_DIR/"
 ```
 
-**See:** `.claude/skills/cli-chrome-devtools/` for complete CLI automation patterns
+**See:** `.claude/skills/workflows-chrome-devtools/` for complete CLI automation patterns
 
 ---
 

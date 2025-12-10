@@ -11,7 +11,7 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research
 
 **Key Points:**
 - LOC thresholds are **SOFT GUIDANCE** (not enforcement)
-- **Enforcement is HARD** - hooks block commits with missing required templates
+- **Enforcement is manual** - verify templates exist before commits
 
 ---
 
@@ -88,7 +88,7 @@ mkdir -p specs/###-short-name/
 - Hyphen-separated
 - Action-noun structure
 
-**Good examples:** `fix-typo`, `add-auth`, `mcp-code-mode`, `cli-codex`
+**Good examples:** `fix-typo`, `add-auth`, `mcp-code-mode`
 
 ### Remove Skip Marker
 

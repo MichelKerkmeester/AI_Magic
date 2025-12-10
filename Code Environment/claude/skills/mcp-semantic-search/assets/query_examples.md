@@ -397,7 +397,7 @@ Aspects:
 - `src/2_javascript/` - All JavaScript components
 - `src/1_css/` - Styling and animations
 - `src/0_html/` - HTML templates
-- `.claude/` - Knowledge base and skills
+- `.opencode/` - Knowledge base and skills
 
 ---
 

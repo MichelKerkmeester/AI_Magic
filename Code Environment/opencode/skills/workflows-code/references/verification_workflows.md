@@ -294,7 +294,7 @@ Both agents can navigate, screenshot, and test without conflicts.
 
 ---
 
-### Option 2: cli-chrome-devtools (CLI-based)
+### Option 2: workflows-chrome-devtools (CLI-based)
 
 **Lightweight terminal-based verification using browser-debugger-cli (bdg):**
 
@@ -331,11 +331,11 @@ bdg cdp Emulation.clearDeviceMetricsOverride 2>&1
 bdg stop 2>&1
 ```
 
-**See**: .claude/skills/cli-chrome-devtools/SKILL.md for complete CLI automation workflows
+**See**: .claude/skills/workflows-chrome-devtools/SKILL.md for complete CLI automation workflows
 
 **Decision: MCP vs CLI**:
 
-| Factor | Chrome DevTools MCP | cli-chrome-devtools (bdg) |
+| Factor | Chrome DevTools MCP | workflows-chrome-devtools (bdg) |
 |--------|-------------------|--------------------------|
 | Setup | MCP server required | npm install -g bdg |
 | Execution | Via Code Mode (mcp-code-mode skill) | Direct Bash commands |
@@ -384,7 +384,7 @@ bdg stop 2>&1
 □ Performance acceptable (no jank, smooth animations)
 ```
 
-**Note:** Testing can be done via automated tools (Chrome DevTools MCP or cli-chrome-devtools) or manual browser testing. Cross-browser testing beyond Chrome is out of scope for automated tools.
+**Note:** Testing can be done via automated tools (Chrome DevTools MCP or workflows-chrome-devtools) or manual browser testing. Cross-browser testing beyond Chrome is out of scope for automated tools.
 
 **Critical fixes require:**
 ```markdown

@@ -132,6 +132,51 @@
         "contentPatterns": ["puppeteer", "browser\\.", "page\\."]
       }
     },
+    "mcp-mnemo": {
+      "type": "tool",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Extended AI memory via Gemini context caching. Call mnemo tools DIRECTLY (NOT through Code Mode). Use for external content: GitHub repos, documentation URLs, PDFs, JSON APIs (.claude/skills/mcp-mnemo/)",
+      "nativeToolConfig": {
+        "bypassCodeMode": true,
+        "toolPrefix": "mcp__mnemo__",
+        "availableTools": [
+          "context_load",
+          "context_query",
+          "context_list",
+          "context_stats",
+          "context_refresh",
+          "context_evict"
+        ]
+      },
+      "promptTriggers": {
+        "keywords": [
+          "mnemo",
+          "gemini cache",
+          "context cache",
+          "load github repo",
+          "query repo",
+          "external documentation",
+          "pdf query",
+          "github analysis",
+          "external memory",
+          "cross-project",
+          "load repo"
+        ],
+        "intentPatterns": [
+          "(load|query|analyze).*(github|repo|repository)",
+          "(query|search).*(documentation|docs|external)",
+          "(analyze|load).*(pdf|paper|document)",
+          "context.*(cache|caching)",
+          "gemini.*cache",
+          "mnemo.*(load|query|list)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [".claude/skills/mcp-mnemo/**"],
+        "contentPatterns": ["mcp__mnemo__", "context_load", "context_query"]
+      }
+    },
     "mcp-semantic-search": {
       "type": "tool",
       "enforcement": "strict",
@@ -933,55 +978,7 @@
         "contentPatterns": []
       }
     },
-    "cli-gemini": {
-      "type": "tool",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "Google Gemini CLI integration for code generation, review, analysis, and web research. Use when tasks benefit from a second AI perspective, current web information via Google Search, codebase architecture analysis, or parallel code generation (.claude/skills/cli-gemini/)",
-      "promptTriggers": {
-        "keywords": [
-          "gemini",
-          "gemini cli",
-          "use gemini",
-          "second opinion",
-          "cross-validate",
-          "google search",
-          "web search",
-          "current information",
-          "latest version",
-          "codebase investigator",
-          "architecture analysis",
-          "parallel generation",
-          "second ai",
-          "alternative perspective",
-          "gemini review",
-          "gemini generate"
-        ],
-        "intentPatterns": [
-          "(use|try|run|invoke).*?(gemini|second ai|another ai)",
-          "(second|alternative|different).*?(opinion|perspective|view|review)",
-          "(cross|double).*?(check|validate|verify|review)",
-          "(google|web).*?(search|look up|find|research)",
-          "(latest|current|recent).*?(version|information|docs|news)",
-          "(what's new|check for updates|find current).*?(version|release|documentation)",
-          "(analyze|investigate|map).*?(architecture|codebase|structure)",
-          "(parallel|concurrent).*?(generate|create|build)",
-          "gemini.*?(review|generate|create|analyze|search)"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [".claude/skills/cli-gemini/**"],
-        "contentPatterns": [
-          "gemini \"",
-          "--yolo",
-          "-o text",
-          "-o json",
-          "google_web_search",
-          "codebase_investigator"
-        ]
-      }
-    },
-    "cli-chrome-devtools": {
+    "workflows-chrome-devtools": {
       "type": "cli-tool",
       "version": "1.0.0",
       "enforcement": "suggest",
@@ -1009,48 +1006,8 @@
         ]
       },
       "fileTriggers": {
-        "pathPatterns": [".claude/skills/cli-chrome-devtools/**"],
+        "pathPatterns": [".claude/skills/workflows-chrome-devtools/**"],
         "contentPatterns": ["bdg ", "browser-debugger-cli"]
-      }
-    },
-    "cli-codex": {
-      "type": "tool",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "OpenAI Codex CLI integration for code generation, review, analysis, and parallel processing. Use when tasks benefit from a second AI perspective, alternative implementation approaches, or specialized code generation (.claude/skills/cli-codex/)",
-      "promptTriggers": {
-        "keywords": [
-          "codex",
-          "codex cli",
-          "use codex",
-          "second opinion",
-          "cross-validate",
-          "alternative approach",
-          "parallel generation",
-          "second ai",
-          "alternative perspective",
-          "codex review",
-          "codex generate",
-          "reasoning display"
-        ],
-        "intentPatterns": [
-          "(use|try|run|invoke).*?(codex|second ai|another ai)",
-          "(second|alternative|different).*?(opinion|perspective|view|review)",
-          "(cross|double).*?(check|validate|verify|review)",
-          "(parallel|concurrent).*?(generate|create|build)",
-          "codex.*?(review|generate|create|analyze)",
-          "(show|see|display).*?(reasoning|thinking|process)"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [".claude/skills/cli-codex/**"],
-        "contentPatterns": [
-          "codex exec",
-          "codex resume",
-          "--full-auto",
-          "gpt-5.1-codex",
-          "thinking section"
-        ]
       }
     }
   },

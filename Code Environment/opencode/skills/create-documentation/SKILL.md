@@ -25,7 +25,7 @@ Enforce markdown structure, optimize content for AI assistants, and validate qua
 
 **Use when**:
 - Writing or optimizing markdown documentation
-- Enforcing structural standards automatically (via hooks)
+- Enforcing structural standards through validation
 - Improving AI-friendliness of documentation (c7score optimization)
 - Validating document quality before release
 
@@ -141,7 +141,7 @@ def route_documentation_resources(task):
         # Key Insight: Load for MODE 2 skill initialization
         # ──────────────────────────────────────────────────────────────────
         if task.needs_skill_template:
-            return load("assets/skills/skill_md_template.md")
+            return load("assets/skill_md_template.md")
 
         # ──────────────────────────────────────────────────────────────────
         # Asset Template
@@ -149,7 +149,7 @@ def route_documentation_resources(task):
         # Key Insight: Load for MODE 2 bundled asset files
         # ──────────────────────────────────────────────────────────────────
         if task.needs_asset_template:
-            return load("assets/skills/skill_asset_template.md")
+            return load("assets/skill_asset_template.md")
 
         # ──────────────────────────────────────────────────────────────────
         # Reference Template
@@ -157,7 +157,7 @@ def route_documentation_resources(task):
         # Key Insight: Load for MODE 2 bundled reference files
         # ──────────────────────────────────────────────────────────────────
         if task.needs_reference_template:
-            return load("assets/skills/skill_reference_template.md")
+            return load("assets/skill_reference_template.md")
 
         # ──────────────────────────────────────────────────────────────────
         # Command Template
@@ -291,9 +291,9 @@ def route_documentation_resources(task):
 # assets/frontmatter_templates.md → YAML frontmatter templates by document type
 # assets/llmstxt_templates.md → Example llms.txt files
 # assets/command_template.md → Claude Code slash command templates
-# assets/skills/skill_md_template.md → Complete SKILL.md file templates
-# assets/skills/skill_asset_template.md → Asset file creation templates
-# assets/skills/skill_reference_template.md → Reference doc templates
+# assets/skill_md_template.md → Complete SKILL.md file templates
+# assets/skill_asset_template.md → Asset file creation templates
+# assets/skill_reference_template.md → Reference doc templates
 # assets/flowcharts/simple_workflow.md → Linear sequential flow example
 # assets/flowcharts/decision_tree_flow.md → Multi-branch decision example
 # assets/flowcharts/parallel_execution.md → Concurrent tasks example
@@ -313,21 +313,18 @@ def route_documentation_resources(task):
 
 ### Mode 1: Document Quality Management
 
-#### Automatic Enforcement
+#### Validation Workflow
 
-Enforcement runs automatically via hooks:
+> **Note:** In Claude Code, enforcement runs automatically via hooks. In Opencode, apply these standards manually.
 
-**PostToolUse Hook** - After Write/Edit/NotebookEdit operations:
-- Auto-corrects filename violations (ALL CAPS → lowercase, hyphens → underscores)
-- Logs corrections, never blocks execution
-- Preserves exceptions (README.md, SKILL.md)
+**Filename Standards** - Apply after Write/Edit operations:
+- Auto-correct filename violations (ALL CAPS → lowercase, hyphens → underscores)
+- Preserve exceptions (README.md, SKILL.md)
 
-**UserPromptSubmit Hook** - Before AI processes prompts:
-- Auto-fixes safe violations (separators, H2 case, emoji per "Emoji Usage Rules")
-- Blocks execution on critical violations (missing frontmatter, wrong section order)
-- Provides specific fix suggestions with line numbers
-
-See [workflows.md](./references/workflows.md) for complete hook integration details.
+**Structure Validation** - Apply before finalizing:
+- Fix safe violations (separators, H2 case, emoji per "Emoji Usage Rules")
+- Check for critical violations (missing frontmatter, wrong section order)
+- Provide specific fix suggestions with line numbers
 
 #### Manual Optimization
 
@@ -343,8 +340,6 @@ Run manual optimization when:
 - Pre-release quality checks
 - Compliance audits across structure, content, and style
 - Documentation review (target: 85+ overall score)
-
-See [workflows.md](./references/workflows.md) for workflow examples.
 
 #### When NOT to Use
 
@@ -437,12 +432,10 @@ See [workflows.md](./references/workflows.md) for workflow examples.
 
 **Three-Phase Pipeline**: Enforcement (structure validation) → Optimization (content enhancement) → Validation (quality scoring). Each phase runs independently or chains sequentially.
 
-**Execution Modes**: See [workflows.md](./references/workflows.md) for mode selection guidance.
-
 | Mode              | Purpose         | Result                                    |
 | ----------------- | --------------- | ----------------------------------------- |
 | Full Pipeline     | Critical docs   | 85+ overall (structure + c7score + style) |
-| Enforcement Only  | Auto via hooks  | Structurally valid markdown               |
+| Enforcement Only  | Structure checks | Structurally valid markdown               |
 | Optimization Only | Content quality | 80+ c7score (AI-friendly)                 |
 | Validation Only   | Quality audit   | Triple scoring report                     |
 
@@ -457,8 +450,6 @@ See [workflows.md](./references/workflows.md) for workflow examples.
 | Spec      | Loose       | Optional    | N/A            |
 | Generic   | Flexible    | Optional    | N/A            |
 
-See [core_standards.md](./references/core_standards.md) for complete type system and [optimization.md](./references/optimization.md) for 16 transformation patterns.
-
 
 ### Mode 2: Skill Creation
 
@@ -471,7 +462,9 @@ See [core_standards.md](./references/core_standards.md) for complete type system
 
 **Integration with Document Quality**: After packaging, validate SKILL.md with full pipeline (target: 90+ overall score).
 
-See [skill_creation.md](./references/skill_creation.md) for detailed workflow and [skill_md_template.md](./assets/skills/skill_md_template.md) for templates.
+**Platform Compatibility (CRITICAL)**: Skills sync to both `.claude/` and `.opencode/`. Opencode does NOT support hooks. When documenting hook-dependent features, add notes like "In Claude Code, this runs automatically via hooks. In Opencode, follow manually." See Pitfall 6 in skill_creation.md.
+
+See [skill_creation.md](./references/skill_creation.md) for detailed workflow and [skill_md_template.md](./assets/skill_md_template.md) for templates.
 
 
 ### Mode 3: Flowchart Creation
@@ -729,8 +722,6 @@ Semantic emojis (✅ ❌ ⚠️) are REQUIRED on H3 subsections within RULES sec
 - Overall: 85+/100
 - Required: Numbered H2 sections, concept → implementation → examples
 
-See [validation.md](./references/validation.md) for complete scoring details.
-
 
 ### Mode 2: Skill Creation
 
@@ -810,22 +801,19 @@ When validating SKILL.md with Document Quality mode:
 
 ### Mode 1: Document Quality
 
-#### Hook System Integration
+#### Quality Integration
 
-**PostToolUse Hook** (`enforce-markdown-post.sh`):
-- Triggers after Write/Edit/NotebookEdit operations
-- Purpose: Filename enforcement (automatic corrections)
-- Execution: <50ms per file (non-blocking)
-- Logging: `.claude/hooks/logs/quality-checks.log`
+> **Note:** In Claude Code, validation runs automatically via hooks. In Opencode, apply these checks manually.
 
-**UserPromptSubmit Hook** (`enforce-markdown-strict.sh`):
-- Triggers before AI processes user prompts
-- Purpose: Structure validation and safe auto-fixes
-- Execution: <200ms per file
-- Blocking: Only on critical violations
-- Logging: `.claude/hooks/logs/quality-checks.log`
+**Filename Validation** (after Write/Edit operations):
+- Purpose: Filename enforcement (corrections as needed)
+- Apply: After creating or editing markdown files
+- Check: ALL CAPS → lowercase, hyphens → underscores
 
-See [workflows.md](./references/workflows.md) for hook integration details.
+**Structure Validation** (before finalizing):
+- Purpose: Structure validation and corrections
+- Apply: Before completing documentation tasks
+- Check: Frontmatter, section order, formatting
 
 #### Tool Usage Guidelines
 

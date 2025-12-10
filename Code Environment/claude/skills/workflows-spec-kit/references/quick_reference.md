@@ -88,7 +88,7 @@ mkdir -p specs/###-short-name/
 - Hyphen-separated
 - Action-noun structure
 
-**Good examples:** `fix-typo`, `add-auth`, `mcp-code-mode`, `cli-codex`
+**Good examples:** `fix-typo`, `add-auth`, `mcp-code-mode`, `workflows-git`
 
 ### Remove Skip Marker
 

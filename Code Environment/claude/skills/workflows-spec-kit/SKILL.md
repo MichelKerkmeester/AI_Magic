@@ -273,7 +273,7 @@ LOC thresholds are **SOFT GUIDANCE** - these factors can push to higher level:
 - Action-noun structure
 - 3-digit padding: `001`, `042`, `099` (no padding past 999)
 
-**Good examples**: `fix-typo`, `add-auth`, `mcp-code-mode`, `cli-codex`
+**Good examples**: `fix-typo`, `add-auth`, `mcp-code-mode`
 
 **Find next number**:
 ```bash
@@ -396,11 +396,11 @@ Scenario: Working on skill standardization across multiple skills
 Initial work: specs/122-skill-standardization/
   └── (root files: spec.md, plan.md, etc.)
 
-User: "Work on cli-codex alignment"
-System: Creates → 001-cli-codex-alignment/ sub-folder
+User: "Work on devtools alignment"
+System: Creates → 001-devtools-alignment/ sub-folder
 
 User: "Now work on workflows-spec-kit alignment"
-System: Archives to 002-cli-codex-alignment/
+System: Archives to 002-devtools-alignment/
 System: Creates → 003-workflows-spec-kit-alignment/ sub-folder
 
 Result: Clean separation of work, independent memory contexts

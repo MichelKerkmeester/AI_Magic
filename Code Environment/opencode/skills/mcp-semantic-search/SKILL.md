@@ -413,7 +413,7 @@ Read("src/components/hero_section.js")
 - Semantic search is a **NATIVE MCP tool** - call directly, NOT through Code Mode
 - Use `mcp__semantic_search__semantic_search()`, `mcp__semantic_search__visit_other_project()` directly
 - Code Mode is for external tools (Webflow, Figma, ClickUp, etc.)
-- See [.claude/skills/mcp-code-mode/SKILL.md](../mcp-code-mode/SKILL.md) for external tool patterns
+- See [mcp-code-mode/SKILL.md](../mcp-code-mode/SKILL.md) for external tool patterns
 
 
 ### External Dependencies

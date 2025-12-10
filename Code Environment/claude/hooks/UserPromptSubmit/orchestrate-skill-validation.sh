@@ -122,6 +122,78 @@ if echo "$PROMPT_LOWER" | grep -qE "(proceed anyway|skip dispatch|handle directl
 fi
 
 # ───────────────────────────────────────────────────────────────
+# READ-ONLY DETECTION - Skip parallel dispatch for non-implementation
+# ───────────────────────────────────────────────────────────────
+# Exit early for prompts that are read-only: questions, analysis,
+# verification, tool operations (mnemo), documentation review.
+# These don't benefit from parallel dispatch complexity calculation.
+
+is_read_only_prompt() {
+  local text="$1"
+
+  # Tool-only operations (mnemo, cache, etc.) - include typos
+  if echo "$text" | grep -qiE "(use (mnemo|menmo|memno)|offload.*(context|to)|load.*(into|to).*(cache|mnemo)|context.*(load|query|list)|query.*(mnemo|cache))"; then
+    return 0
+  fi
+
+  # Verification/checking of documentation or skills
+  if echo "$text" | grep -qiE "(double[[:space:]]*check|verify|check).*(readme|skill|documentation|hook|docs|opencode|claude)"; then
+    return 0
+  fi
+
+  # "verify" or "double check" at start without fix intent
+  if echo "$text" | grep -qiE "^(double[[:space:]]*check|verify)"; then
+    if ! echo "$text" | grep -qiE "(and (fix|update|implement)|then (fix|update|implement)|issue|bug|problem|error)"; then
+      return 0
+    fi
+  fi
+
+  # Explanatory intent phrases
+  if echo "$text" | grep -qiE "(help me understand|explain (how|why|what|the)|tell me about|describe (how|the|what)|can you explain|what does.*mean|how does.*work)"; then
+    return 0
+  fi
+
+  # Read-only analysis of existing content (specs/files)
+  if echo "$text" | grep -qiE "(analyze|review|examine|look at|check|inspect|read|study|summarize).*/specs/"; then
+    if ! echo "$text" | grep -qiE "(issue|bug|problem|error|broken|not working|failing|fix|then)"; then
+      return 0
+    fi
+  fi
+
+  # Pure research/exploration patterns at start
+  if echo "$text" | grep -qiE "^(analyze|review|examine|summarize|check|inspect|look at|read through|study)[[:space:]]"; then
+    if ! echo "$text" | grep -qiE "(and (fix|update|implement|create|change|modify)|then (fix|update|implement)|issue|bug|problem|error)"; then
+      return 0
+    fi
+  fi
+
+  # Question patterns at start
+  if echo "$text" | grep -qiE "^(what|how|why|when|where|who|which|explain|tell me|show me|help me understand|describe)"; then
+    return 0
+  fi
+
+  # Question mark at end without implementation keywords
+  if echo "$text" | grep -qE '\?$'; then
+    if ! echo "$text" | grep -qiE "(implement|create|add|build|fix|refactor|write|update|change|modify|remove|delete)"; then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+# Exit early for read-only prompts - no parallel dispatch needed
+if is_read_only_prompt "$PROMPT_LOWER"; then
+  {
+    echo "─────────────────────────────────────────────────────────────"
+    echo "READ-ONLY PROMPT DETECTED - $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    echo "Skipping parallel dispatch complexity calculation"
+    echo "─────────────────────────────────────────────────────────────"
+  } >> "$PROJECT_ROOT/.claude/hooks/logs/orchestrator.log" 2>/dev/null || true
+  exit 0
+fi
+
+# ───────────────────────────────────────────────────────────────
 # PARALLEL DISPATCH OVERRIDE DETECTION
 # ───────────────────────────────────────────────────────────────
 # Detect all three override phrases: proceed directly, use parallel, auto-decide
@@ -542,7 +614,7 @@ get_skills_for_domain() {
       echo "workflows-code,mcp-semantic-search"
       ;;
     "devops")
-      echo "mcp-code-mode,cli-gemini"
+      echo "mcp-code-mode"
       ;;
     *)
       echo "workflows-code"

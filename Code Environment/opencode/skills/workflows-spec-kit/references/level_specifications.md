@@ -13,7 +13,7 @@ Level 3 (Full):         Level 2 + decision-record.md + optional research-spike.m
 
 **Key Points:**
 - LOC thresholds are **SOFT GUIDANCE** (not enforcement)
-- **Enforcement is HARD** - hooks block commits with missing required templates
+- **Enforcement is manual** - verify templates exist before commits
 - When in doubt, choose higher level
 
 **Note:** Single typo/whitespace fixes (<5 characters in one file) are exempt from spec folder requirements.

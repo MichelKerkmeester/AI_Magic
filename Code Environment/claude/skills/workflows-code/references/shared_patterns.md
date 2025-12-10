@@ -162,7 +162,7 @@ console.groupEnd();
 
 ```markdown
 BROWSER TESTING:
-□ Chrome (automated: MCP or cli-chrome-devtools, manual: DevTools)
+□ Chrome (automated: MCP or workflows-chrome-devtools, manual: DevTools)
 
 VIEWPORT TESTING:
 □ Mobile (375px)
@@ -350,14 +350,14 @@ Both can navigate, test, and screenshot without conflicts.
 
 ### CLI Alternatives (browser-debugger-cli)
 
-**For terminal-first workflows, cli-chrome-devtools skill provides equivalent patterns via bdg tool:**
+**For terminal-first workflows, workflows-chrome-devtools skill provides equivalent patterns via bdg tool:**
 
 - Console errors: `bdg console logs | jq '.[] | select(.level=="error")'`
 - Screenshots: `bdg screenshot output.png --width 375 --height 667`
 - Performance: `bdg performance trace` (Core Web Vitals)
 - Network: `bdg har export network.har`
 
-**See**: .claude/skills/cli-chrome-devtools/SKILL.md for complete CLI automation workflows
+**See**: .claude/skills/workflows-chrome-devtools/SKILL.md for complete CLI automation workflows
 
 ### When to Use Automated vs. Manual
 

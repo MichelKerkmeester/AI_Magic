@@ -554,7 +554,7 @@ if (prefersReducedMotion) {
 5. Compare screenshots visually
 ```
 
-**Option 2: cli-chrome-devtools (Terminal-based)**
+**Option 2: workflows-chrome-devtools (Terminal-based)**
 ```bash
 # Visual regression testing workflow
 bdg https://example.com 2>&1
@@ -704,7 +704,7 @@ bdg screenshot animation-reduced-motion.png 2>&1
 bdg stop 2>&1
 ```
 
-**See:** `.claude/skills/cli-chrome-devtools/` for complete CLI automation patterns
+**See:** `.claude/skills/workflows-chrome-devtools/` for complete CLI automation patterns
 
 ---
 

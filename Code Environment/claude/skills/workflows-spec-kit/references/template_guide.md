@@ -745,7 +745,7 @@ mkdir -p specs/122-skill-standardization/spec-enforcement-improvements
 
 ### Sub-Folder Naming Conventions
 
-- **Lowercase with hyphens:** `spec-enforcement-improvements`, `cli-codex-alignment`
+- **Lowercase with hyphens:** `spec-enforcement-improvements`, `api-integration-analysis`
 - **Descriptive:** Clearly indicates the sub-folder's purpose
 - **Consistent with sibling folders:** Follow established patterns in the parent spec
 - **Avoid generic names:** `analysis`, `work` (too vague)
@@ -759,18 +759,6 @@ mkdir -p specs/122-skill-standardization/spec-enforcement-improvements
 **Sub-Folders:**
 ```
 specs/122-skill-standardization/
-  cli-codex-alignment/
-    README.md           # Purpose: Align cli-codex skill with standards
-    analysis.md         # Current state analysis
-    changes_summary.md  # Changes needed
-    validation_report.md # Post-change validation
-
-  cli-gemini-alignment/
-    README.md           # Purpose: Align cli-gemini skill with standards
-    analysis.md
-    changes_summary.md
-    validation_report.md
-
   spec-enforcement-improvements/
     README.md           # Purpose: Improve spec folder template enforcement
     spec.md             # Feature specification (Level 2)

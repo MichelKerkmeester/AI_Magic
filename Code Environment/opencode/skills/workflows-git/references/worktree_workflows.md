@@ -8,8 +8,11 @@ Complete workflow documentation for creating isolated git workspaces with minima
 
 **This workflow only applies when user has explicitly chosen "Create a git worktree" (Option B).**
 
-Git workspace strategy is enforced by the `enforce-git-workspace-choice.sh` hook. The AI:
-- **MUST WAIT** for user to answer the workspace question before executing any commands
+> **Note:** In Claude Code, workspace choice is enforced via hooks. In Opencode, the AI must enforce this manually.
+
+The AI:
+- **MUST ASK** user for workspace choice before executing any commands
+- **MUST WAIT** for explicit user selection (A/B/C)
 - **NEVER** autonomously decides between branch and worktree
 - Only proceeds with worktree creation after user selects Option B
 

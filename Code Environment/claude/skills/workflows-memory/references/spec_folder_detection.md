@@ -87,9 +87,9 @@ Uses root `specs/###/memory/` if:
 
 ```
 specs/122-skill-standardization/
-├── 001-cli-codex-alignment/
+├── 001-api-integration/
 │   └── memory/
-│       └── 23-11-25_10-03__cli-codex.md
+│       └── 23-11-25_10-03__api-integration.md
 ├── 002-workflows-spec-kit/
 │   └── memory/
 │       └── 23-11-25_10-06__workflows.md

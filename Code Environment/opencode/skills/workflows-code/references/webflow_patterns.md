@@ -215,7 +215,7 @@ fi
 exit $FAIL
 ```
 
-**See also:** `.claude/skills/cli-chrome-devtools/SKILL.md` for complete CLI debugging patterns
+**See also:** `.claude/skills/workflows-chrome-devtools/SKILL.md` for complete CLI debugging patterns
 
 ---
 

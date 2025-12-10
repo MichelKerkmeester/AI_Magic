@@ -52,6 +52,7 @@ This directory contains hooks that automatically trigger during Claude Code oper
 - Suggest relevant skills based on prompt content
 - Semantic search MCP tool reminders for code exploration
 - Debug trace output for semantic search hook (visible execution with timing)
+- Read-only detection: Skips skill/dispatch prompts for questions, verification, analysis, and tool operations (mnemo, etc.)
 
 **Markdown & Quality**
 - Auto-fix markdown filenames to lowercase snake_case with condensed output
@@ -91,7 +92,8 @@ User Action
 ┌─────────────────────────────────────────┐
 │  UserPromptSubmit Hooks                 │
 │  - inject-datetime.sh (0) 🕐            │
-│  - workflows-memory-trigger.sh (0)│
+│  - workflows-memory-trigger.sh (0)      │
+│  - memory-surfacing.sh (0) 🧠           │
 │  - validate-skill-activation.sh (0)     │
 │  - orchestrate-skill-validation.sh (0) 🆕│
 │  - suggest-semantic-search.sh (0) 🆕    │
@@ -104,6 +106,7 @@ User Action
 │        (1)  = blocking                  │
 │        (0)  = non-blocking              │
 │        🕐   = Datetime context injection │
+│        🧠   = Memory surfacing          │
 │        🆕   = Parallel agents / Code Mode │
 └────────┬────────────────────────────────┘
          │
@@ -459,7 +462,7 @@ json_escape() {
 **Detects**: Frontend file changes (HTML/CSS/JS)
 **Suggests**: CLI verification via browser-debugger-cli (bdg)
 **Purpose**: Remind about browser-based testing for visual changes
-**References**: `cli-chrome-devtools` skill
+**References**: `workflows-chrome-devtools` skill
 
 ### 3.4 Context & Performance Hooks
 
@@ -1281,8 +1284,8 @@ ls -lh .claude/hooks/logs/*.log
 
 **Current Skills** (10 total):
 
-**Skills with directories** (6):
-- cli-gemini, cli-codex, create-documentation, workflows-memory, workflows-code, workflows-git
+**Skills with directories** (4):
+- create-documentation, workflows-memory, workflows-code, workflows-git
 
 **Knowledge-based skills** (7):
 - animation-strategy, code-standards ⭐ (alwaysActive), conversation-documentation ⭐ (alwaysActive)
@@ -1630,8 +1633,6 @@ The `validate-skill-activation.sh` hook suggests relevant skills based on prompt
 - `workflows-git` - Git workflow orchestration (worktrees, commits, PRs)
 - `workflows-memory` - Conversation context preservation
 - `create-documentation` - Markdown optimization, validation, and ASCII flowchart creation
-- `cli-codex` - OpenAI Codex CLI integration
-- `cli-gemini` - Google Gemini CLI integration
 
 ### Knowledge Base
 
@@ -1688,15 +1689,13 @@ The `validate-skill-activation.sh` hook suggests relevant skills based on prompt
 **CLI Tools**:
 - **browser-debugger-cli (bdg)** - Direct CDP access via terminal for browser debugging, automation, and testing
   - Installation: `npm install -g browser-debugger-cli@alpha`
-  - Skill: `.claude/skills/cli-chrome-devtools/SKILL.md` (complete documentation)
+  - Skill: `.claude/skills/workflows-chrome-devtools/SKILL.md` (complete documentation)
   - Use Cases: Screenshots, console logs, HAR files, performance metrics, DOM inspection
   - Workflows Integration:
     - `.claude/skills/workflows-code/references/debugging_workflows.md` (automated performance metrics)
     - `.claude/skills/workflows-code/references/animation_workflows.md` (visual regression testing)
     - `.claude/skills/workflows-code/references/performance_patterns.md` (performance budgets)
     - `.claude/skills/workflows-code/references/quick_reference.md` (quick examples)
-- **OpenAI Codex CLI** - Alternative code generation perspective (skill: cli-codex)
-- **Google Gemini CLI** - Web research and current information (skill: cli-gemini)
 - **GitHub CLI (gh)** - PR creation and repository operations
 
 ### Support

@@ -460,7 +460,7 @@ STATUS=OK ACTION=documentation_created FILES=spec.md,plan.md,tasks.md,checklist.
   - Level 3 adds decision-record.md (required) + research-spike.md (optional)
   - All templates from `.opencode/speckit/templates/`
   - Documentation level detection in Phase 0
-  - LOC thresholds are SOFT guidance; hooks enforce HARD requirements
+  - LOC thresholds are SOFT guidance; manual discipline enforces requirements
 
 - **Gemini Orchestration:**
   - Gemini 3.0 pro handles task understanding, agent coordination, verification, synthesis
