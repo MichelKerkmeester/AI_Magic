@@ -455,7 +455,7 @@ context_query({
 - Version 1.0+ recommended
 
 **Installation Path:**
-- Server: `/Users/USERNAME/path/to/mcp-servers/mnemo`
+- Server: `/Users/michelkerkmeester/MEGA/MCP Servers/mnemo`
 - Entry point: `packages/local/src/stdio.ts` (stdio) or `packages/local/src/index.ts` (HTTP)
 
 
