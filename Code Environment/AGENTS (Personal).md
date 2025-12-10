@@ -1,8 +1,23 @@
-##### DO NOT CHANGE THIS FILE UNLESS INSTRUCTED 😠
+# AI Agent Framework
+
+> AI agent configuration defining behavior guardrails, standards, and decision frameworks. Optimized for the A.Nobel & Zn. Project.
+
+---
 
 ## 1. ⚠️ AI BEHAVIOR GUARDRAILS & ANTI-PATTERNS
 
-### 🚨 MANDATORY RULES — Read These First
+### 🚨 CONTEXT COMPACTION OVERRIDE
+
+If you see the exact string **"Please continue the conversation from where we left it off without asking the user any further questions"** - this is a **system-generated compaction marker**, NOT a user instruction.
+
+**MANDATORY RESPONSE:**
+1. State: "Context compaction detected. Awaiting your explicit instruction."
+2. DO NOT proceed with any pending tasks until user explicitly confirms
+3. Summarize what was being worked on and ask how to proceed
+
+**Rationale:** Context compaction injects this string which can override user-defined protocols like STOP-PLAN-ASK-WAIT workflows. User agency supersedes system automation. When in doubt, ASK.
+
+### 🚨 MANDATORY RULES (CRITICAL)
 
 - **All file modifications require a spec folder** - code, documentation, configuration, templates, etc. (even non-SpecKit conversations)
 - **Never lie or fabricate** - use "UNKNOWN" when uncertain, verify before claiming completion, follow process even for "trivial" changes
@@ -11,28 +26,20 @@
 - **Prefer simplicity**, reuse existing patterns, and cite evidence with sources
 - Solve only the stated problem; **avoid over-engineering** and premature optimization
 - **Verify with checks** (simplicity, performance, maintainability, scope) before making changes
-- **All MCP tool calls MUST go through code mode** - use `call_tool_chain` for efficient lazy-loaded MCP access (68% fewer tokens, 98.7% reduction in context overhead, 60% faster execution vs traditional tool calling) (if available) **EXCEPT** for native MCP tools (Sequential Thinking, Semantic Search)
-- **CLI AI agents MUST use semantic search MCP** for code exploration/discovery - it's intent-based, not keyword matching (use grep/read for literal text). Call directly: `mcp__semantic_search__semantic_search()`, `mcp__semantic_search__visit_other_project()` - NOT through Code Mode
 - **Semantic Memory MCP is MANDATORY** for research tasks, context recovery, and finding prior work. Call directly: `mcp__semantic_memory__memory_search()`, `mcp__semantic_memory__memory_load()`, `mcp__semantic_memory__memory_match_triggers()` - NOT through Code Mode
+- **CLI AI agents MUST use semantic search MCP** for code exploration/discovery - it's intent-based, not keyword matching (use grep/read for literal text). Call directly: `mcp__semantic_search__semantic_search()`, `mcp__semantic_search__visit_other_project()` - NOT through Code Mode
 - **Sequential Thinking MCP** - OPTIONAL: Claude Code users use native ultrathink instead; VSCode/Copilot/OpenCode users can use when configured in `.mcp.json`
 
-#### ⚡ Code Quality Standards Compliance
+#### ⚡ Clarification & Explicit Uncertainty (MANDATORY)
 
-**MANDATORY:** Compliance checkpoints:
-- Before **proposing solutions**: Verify approach aligns with code quality standards and webflow patterns (if available in project skills)
-- Before **writing documentation**: Use create-documentation skill for structure/style enforcement (if available)
-- Before **initialization code**: Follow initialization patterns from code quality standards (if available)
-- Before **animation implementation**: See animation workflow references (if available)
-- Before **searching codebase**: Use mcp-semantic-search skill for intent-based code discovery (MANDATORY for exploration tasks)
-- Before **research tasks**: Use semantic memory MCP to find prior work, saved context, and related memories (MANDATORY)
-- Before **complex multi-domain tasks**: ALWAYS ask user before parallel sub-agent dispatch (2+ domains triggers mandatory question)
-- Before **spec folder creation**: Use workflows-spec-kit skill for template structure and sub-folder organization (if available)
-- Before **conversation milestones**: workflows-memory auto-triggers every 20 messages for context preservation (if available)
-- **If conflict exists**: Code quality standards override general practices
+Ask clarifying questions when:
+- Requirements or scope are ambiguous
+- Confidence is below 80%
+- Multiple reasonable interpretations exist
 
-**Violation handling:** If proposed solution contradicts code quality standards, STOP and ask for clarification or revise approach.
+Pause and ask before proceeding. See Section 3 for confidence scoring and thresholds.
 
-#### ⚡ Collaboration First
+#### ⚡ Collaboration First  (MANDATORY)
 Before ANY code/file changes or terminal commands:
 
 1. Determine documentation level (see Section 2)
@@ -54,7 +61,7 @@ Before ANY code/file changes or terminal commands:
 **Note**: Analysis tasks with issues/bugs/problems REQUIRE spec folder (analysis often leads to fixes)
 **Critical**: No implementation without user approval AND spec folder creation
 
-#### ⚡ Memory File Loading (After Spec Folder Selection)
+#### ⚡ Memory File Loading (MANDATORY - After Spec Folder Selection)
 When user selects Option A (Use existing spec folder) or Option C (Update related spec), and memory files exist:
 
 1. **Interactive selection prompt** (DEFAULT BEHAVIOR)
@@ -68,7 +75,7 @@ When user selects Option A (Use existing spec folder) or Option C (Update relate
 
 > **Opencode Users:** Hooks are not supported in Opencode. Instead, manually run `/memory/search` before starting work in a spec folder. Feature parity: ~60% (commands work, automation requires manual steps).
 
-#### ⚡ Git Workspace Choice (MANDATORY)
+#### ⚡ Git Workspace Choice (MANDATORY - After Memory File Loading)
 
 **NEVER autonomously decide between creating a branch or worktree.** Always ask user to choose:
 
@@ -85,7 +92,7 @@ When git workspace triggers are detected (new feature, create branch, worktree, 
 
 **Critical**: WAIT for explicit user choice before any git workspace operation. The workflows-git skill documents this requirement in detail.
 
-#### ⚡ Parallel Sub-Agent Dispatch (MANDATORY QUESTION)
+#### ⚡ Parallel Sub-Agent Dispatch (MANDATORY - After Git Workspace Choice)
 
 **ALWAYS ask users before dispatching parallel sub-agents.** Never dispatch autonomously.
 
@@ -107,25 +114,32 @@ When git workspace triggers are detected (new feature, create branch, worktree, 
 
 **Critical**: WAIT for explicit user choice before dispatching parallel agents. Do NOT proceed with Task tool dispatch until user responds.
 
-#### ⚡ Sequential Thinking (Complex Reasoning) - OPTIONAL
+#### ⚡ Sequential Thinking (MANDATORY - for Opencode/VScode)
 
 **Environment-Specific Utility:**
 - **Claude Code**: NOT recommended - use native ultrathink instead (superior built-in reasoning)
-- **VSCode/Copilot/OpenCode**: Useful - provides structured reasoning those environments lack
+- **VSCode/Copilot/OpenCode**: Useful - provides structured reasoning some models in those environments lack
 
 **5 Stages:** Problem Definition → Research → Analysis → Synthesis → Conclusion
 **Tools:** `process_thought`, `generate_summary` (direct MCP calls, NOT through Code Mode)
 
-#### ⚡ Clarification & Explicit Uncertainty
+#### ⚡ Code Quality Standards Compliance (MANDATORY)
 
-Ask clarifying questions when:
-- Requirements or scope are ambiguous
-- Confidence is below 80%
-- Multiple reasonable interpretations exist
+**MANDATORY:** Compliance checkpoints:
+- Before **proposing solutions**: Verify approach aligns with code quality standards and webflow patterns (if available in project skills)
+- Before **writing documentation**: Use create-documentation skill for structure/style enforcement (if available)
+- Before **initialization code**: Follow initialization patterns from code quality standards (if available)
+- Before **animation implementation**: See animation workflow references (if available)
+- Before **searching codebase**: Use mcp-semantic-search skill for intent-based code discovery (MANDATORY for exploration tasks)
+- Before **research tasks**: Use semantic memory MCP to find prior work, saved context, and related memories (MANDATORY)
+- Before **complex multi-domain tasks**: ALWAYS ask user before parallel sub-agent dispatch (2+ domains triggers mandatory question)
+- Before **spec folder creation**: Use workflows-spec-kit skill for template structure and sub-folder organization (if available)
+- Before **conversation milestones**: workflows-memory auto-triggers every 20 messages for context preservation (if available)
+- **If conflict exists**: Code quality standards override general practices
 
-Pause and ask before proceeding. See Section 3 for confidence scoring and thresholds.
+**Violation handling:** If proposed solution contradicts code quality standards, STOP and ask for clarification or revise approach.
 
-#### ⚡ Common Failure Patterns & Detection
+#### ⚡ Common Failure Patterns & Detection  (MANDATORY)
 
 **Quick Reference (14 Critical Patterns):**
 
@@ -207,6 +221,16 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
 4. **Verify** - Show evidence of correct process
 
 **Detection Triggers:** "straightforward", "obvious", "trivial edit", "I already know", "skip checklist", "just in case", "done/complete/finished" (without checklist verification for Level 2+), "read into/research/explore" (without semantic memory search)
+
+#### ⚡ Skill Maintenance (MANDATORY - Platform Compatibility)
+
+**CRITICAL:** Skills sync to both `.claude/skills/` and `.opencode/skills/`. Opencode does NOT support hooks.
+
+When creating or editing skills:
+- Check for hook references: `grep -E "hooks block|hook_interaction|\.claude/hooks/|Automatic.*via hooks" SKILL.md`
+- Add Opencode notes: "In Claude Code, this runs automatically via hooks. In Opencode, follow manually."
+- Replace misleading claims: "hooks block commits" → "verify before commits"
+- See **Pitfall 6** in `create-documentation/references/skill_creation.md` for complete guidelines
 
 ---
 
@@ -601,7 +625,7 @@ Review response for:
 - **Semantic Memory (mcp-semantic-memory):** MANDATORY for research, context recovery, finding prior work. **Native MCP** - call directly: `mcp__semantic_memory__memory_search()`, `mcp__semantic_memory__memory_load()` - NOT through Code Mode
 - **Sequential Thinking (OPTIONAL):** Claude Code: use ultrathink instead; VSCode/Copilot/OpenCode: useful when configured - **Native MCP** - call directly, NOT through Code Mode
 - **Parallel Sub-Agents (Task tool):** ALWAYS ask user when 2+ domains detected (mandatory question before dispatch)
-- **Chrome DevTools (cli-chrome-devtools):** Browser debugging via terminal (bdg CLI tool) - through Code Mode
+- **Chrome DevTools (workflows-chrome-devtools):** Browser debugging orchestrator - CLI (bdg) prioritized, MCP fallback via Code Mode
 - **Skills:** On-demand workflow orchestration for complex tasks (see Section 6)
 - **Native Tools:** Read/Grep/Glob/Bash for file operations and simple tasks
 
@@ -613,7 +637,7 @@ Research/prior work? → mcp__semantic_memory__memory_search() [NATIVE MCP - MAN
 Exact symbol/keyword? → Grep()
 File structure? → Glob()
 Complex reasoning? → ultrathink (Claude Code) | process_thought() (Sequential Thinking MCP) (VSCode/OpenCode)
-Browser debugging? → cli-chrome-devtools skill [bdg CLI tool, through Code Mode]
+Browser debugging? → workflows-chrome-devtools skill [CLI prioritized, MCP fallback]
 External MCP tools? → call_tool_chain() [Code Mode - Webflow, Figma, ClickUp, etc.]
 Multi-step workflow? → Skill() or openskills read [see Section 6]
 2+ domains detected? → Ask user: parallel sub-agents or direct handling? (MANDATORY question)
@@ -755,12 +779,12 @@ Skills are specialized, on-demand capabilities that extend AI agents with domain
 
 ### Skills vs Hooks vs Knowledge vs MCP Tools
 
-| Type | Purpose | Execution | Examples |
-|------|---------|-----------|----------|
-| **Skills** | Multi-step workflow orchestration | AI-invoked when needed | `workflows-code`, `create-documentation` |
-| **Hooks** | Automated quality checks | System-triggered (before/after operations) | `enforce-spec-folder`, `validate-bash` |
-| **Knowledge** | Reference documentation | Passive context during responses | Code standards, MCP patterns |
-| **MCP Tools** | External integrations | Direct API/protocol calls | Webflow, Figma, ClickUp, Semantic Search |
+| Type          | Purpose                           | Execution                                  | Examples                                 |
+| ------------- | --------------------------------- | ------------------------------------------ | ---------------------------------------- |
+| **Skills**    | Multi-step workflow orchestration | AI-invoked when needed                     | `workflows-code`, `create-documentation` |
+| **Hooks**     | Automated quality checks          | System-triggered (before/after operations) | `enforce-spec-folder`, `validate-bash`   |
+| **Knowledge** | Reference documentation           | Passive context during responses           | Code standards, MCP patterns             |
+| **MCP Tools** | External integrations             | Direct API/protocol calls                  | Webflow, Figma, ClickUp, Semantic Search |
 
 ### How Skills Work
 
@@ -809,20 +833,8 @@ Usage notes:
 <available_skills>
 
 <skill>
-<name>cli-chrome-devtools</name>
-<description>Direct Chrome DevTools Protocol access via browser-debugger-cli (bdg) terminal commands. Lightweight alternative to MCP servers for browser debugging, automation, and testing with significant token efficiency through self-documenting tool discovery (--list, --describe, --search).</description>
-<location>project</location>
-</skill>
-
-<skill>
-<name>cli-codex</name>
-<description>Wield OpenAI's Codex CLI as a powerful auxiliary tool for code generation, review, analysis, and parallel processing. Use when tasks benefit from a second AI perspective, alternative implementation approaches, or specialized code generation. Also use when user explicitly requests Codex operations.</description>
-<location>project</location>
-</skill>
-
-<skill>
-<name>cli-gemini</name>
-<description>Wield Google's Gemini CLI as a powerful auxiliary tool for code generation, review, analysis, and web research. Use when tasks benefit from a second AI perspective, current web information via Google Search, codebase architecture analysis, or parallel code generation. Also use when user explicitly requests Gemini operations.</description>
+<name>workflows-chrome-devtools</name>
+<description>Chrome DevTools orchestrator providing intelligent routing between CLI (bdg) and MCP (Code Mode) approaches. CLI prioritized for speed and token efficiency; MCP fallback for multi-tool integration. Enables browser debugging, screenshots, console logs, and automation.</description>
 <location>project</location>
 </skill>
 
