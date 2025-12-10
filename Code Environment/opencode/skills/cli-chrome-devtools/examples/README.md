@@ -64,7 +64,7 @@ command -v bc >/dev/null || echo "Install bc for calculations"
 
 **Usage:**
 ```bash
-# Default URL (https://anobel.com)
+# Default URL (https://example.com)
 ./performance-baseline.sh
 
 # Custom URL
@@ -114,7 +114,7 @@ performance-baselines/
 ./animation-testing.sh
 
 # Custom selector and trigger class
-./animation-testing.sh https://anobel.com ".hero" "animate-in"
+./animation-testing.sh https://example.com ".hero" "animate-in"
 
 # Test without triggering animation (visual only)
 ./animation-testing.sh https://example.com ".element" ""
@@ -162,7 +162,7 @@ animation-tests/
 ./multi-viewport-test.sh
 
 # With animation testing
-./multi-viewport-test.sh https://anobel.com ".hero" "animate-in"
+./multi-viewport-test.sh https://example.com ".hero" "animate-in"
 
 # Visual testing only (no animation)
 ./multi-viewport-test.sh https://example.com "" "none"

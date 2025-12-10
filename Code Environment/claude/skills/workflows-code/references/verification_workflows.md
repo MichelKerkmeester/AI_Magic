@@ -111,7 +111,7 @@ Skip any step = lying, not verifying.
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://anobel.com"
+   - url: "https://example.com"
 
 2. List console messages:
    [Use tool: mcp__chrome_devtools_2__list_console_messages]
@@ -135,7 +135,7 @@ Expected result: Empty error array = no console errors ✅
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://anobel.com"
+   - url: "https://example.com"
 
 2. Mobile viewport (375px):
    [Use tool: mcp__chrome_devtools_2__resize_page]
@@ -173,7 +173,7 @@ Expected result: Empty error array = no console errors ✅
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://anobel.com"
+   - url: "https://example.com"
 
 2. Start performance trace:
    [Use tool: mcp__chrome_devtools_2__performance_start_trace]
@@ -199,7 +199,7 @@ Expected result: Empty error array = no console errors ✅
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://anobel.com"
+   - url: "https://example.com"
 
 2. List network requests:
    [Use tool: mcp__chrome_devtools_2__list_network_requests]
@@ -224,7 +224,7 @@ Expected result: No failed requests ✅
 ```markdown
 1. Navigate once:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://anobel.com"
+   - url: "https://example.com"
 
 2. Check console errors:
    [Use tool: mcp__chrome_devtools_2__list_console_messages]
@@ -308,7 +308,7 @@ Both agents can navigate, screenshot, and test without conflicts.
 **Example Workflow - Console Error Checking**:
 ```bash
 # Navigate and capture console
-bdg https://anobel.com 2>&1
+bdg https://example.com 2>&1
 bdg console logs 2>&1 | jq '.[] | select(.level=="error")' > errors.json
 bdg stop 2>&1
 
@@ -319,7 +319,7 @@ cat errors.json
 **Example Workflow - Multi-Viewport Screenshots**:
 ```bash
 # Desktop screenshot (default viewport ~1920x1080)
-bdg https://anobel.com 2>&1
+bdg https://example.com 2>&1
 bdg screenshot desktop.png 2>&1
 
 # Mobile screenshot (set viewport first)
