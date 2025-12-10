@@ -16,6 +16,9 @@ tsconfig.json
 node_modules/
 lib/
 
+# Exception: Allow semantic-memory lib in Code Environment
+
+
 # IDE and AI folders (ignored at all levels)
 .vscode/
 .claude/
@@ -26,11 +29,13 @@ lib/
 mcp_servers.json
 settings.local.json
 
-# Exception: Allow specific config files in Code Environment
+# Exception: Allow specific files in Code Environment
 !Code Environment/mcp.json
 !Code Environment/utcp_config.json
 !Code Environment/opencode.json
 !Code Environment/settings.local.json
+!Code Environment/z — MCP Servers/semantic-memory/lib/
+!Code Environment/z — MCP Servers/semantic-memory/lib/**
 
 # Working directories (ignored at all levels)
 context/
