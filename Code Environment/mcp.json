@@ -16,7 +16,10 @@
       "args": [
         "/path/to/mcp-servers/semantic-memory/semantic-memory.js"
       ],
-      "env": {},
+      "env": {
+        "_NOTE_DATABASE": "Stores vectors in: {cwd}/.opencode/memory/memory-index.sqlite",
+        "_NOTE_MODEL": "Uses nomic-embed-text-v1.5 (768-dim embeddings)"
+      },
       "disabled": false
     },
     "semantic_search": {

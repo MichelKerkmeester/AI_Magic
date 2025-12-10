@@ -34,7 +34,10 @@
         "node",
         "/path/to/semantic-memory/semantic-memory.js"
       ],
-      "environment": {},
+      "environment": {
+        "_NOTE_DATABASE": "Stores vectors in: {cwd}/.opencode/memory/memory-index.sqlite",
+        "_NOTE_MODEL": "Uses nomic-embed-text-v1.5 (768-dim embeddings)"
+      },
       "enabled": true
     },
     "semantic_search": {
