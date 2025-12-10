@@ -246,8 +246,8 @@ Before installing Mnemo, ensure you have:
 
 ```bash
 # Create directory for MCP servers (if not exists)
-mkdir -p "/Users/YOUR_NAME/MEGA/MCP Servers"
-cd "/Users/YOUR_NAME/MEGA/MCP Servers"
+mkdir -p "/Users/developer/projects/mcp-servers"
+cd "/Users/developer/projects/mcp-servers"
 ```
 
 ### Step 2: Clone Mnemo Repository
@@ -312,7 +312,7 @@ Add to `.mcp.json` in your project root:
       "command": "/Users/YOUR_NAME/.bun/bin/bun",
       "args": [
         "run",
-        "/Users/YOUR_NAME/MEGA/MCP Servers/mnemo/packages/local/src/stdio.ts"
+        "/Users/developer/projects/mcp-servers/mnemo/packages/local/src/stdio.ts"
       ],
       "env": {
         "GEMINI_API_KEY": "your-gemini-api-key-here",
@@ -341,7 +341,7 @@ Add to `opencode.json` in your project root:
       "command": [
         "/Users/YOUR_NAME/.bun/bin/bun",
         "run",
-        "/Users/YOUR_NAME/MEGA/MCP Servers/mnemo/packages/local/src/stdio.ts"
+        "/Users/developer/projects/mcp-servers/mnemo/packages/local/src/stdio.ts"
       ],
       "environment": {
         "GEMINI_API_KEY": "your-gemini-api-key-here",
@@ -966,7 +966,7 @@ context_evict({ alias: "project" })
       "command": "/Users/YOUR_NAME/.bun/bin/bun",
       "args": [
         "run",
-        "/Users/YOUR_NAME/MEGA/MCP Servers/mnemo/packages/local/src/stdio.ts"
+        "/Users/developer/projects/mcp-servers/mnemo/packages/local/src/stdio.ts"
       ],
       "env": {
         "GEMINI_API_KEY": "your-gemini-api-key-here",
@@ -988,7 +988,7 @@ context_evict({ alias: "project" })
       "command": [
         "/Users/YOUR_NAME/.bun/bin/bun",
         "run",
-        "/Users/YOUR_NAME/MEGA/MCP Servers/mnemo/packages/local/src/stdio.ts"
+        "/Users/developer/projects/mcp-servers/mnemo/packages/local/src/stdio.ts"
       ],
       "environment": {
         "GEMINI_API_KEY": "your-gemini-api-key-here"

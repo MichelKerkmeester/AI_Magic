@@ -1,17 +1,55 @@
 #!/usr/bin/env bash
+#
+# create-documentation.sh - SpecKit Spec Folder & Documentation Creation Script
+#
+# Creates a new spec folder with appropriate templates based on documentation level.
+# Aligns with workflows-spec-kit SKILL.md progressive enhancement model:
+#   - Level 1 (Baseline):     spec.md + plan.md + tasks.md
+#   - Level 2 (Verification): Level 1 + checklist.md
+#   - Level 3 (Full):         Level 2 + decision-record.md
+#
+# Also creates:
+#   - scratch/  : Temporary working files (git-ignored except .gitkeep)
+#   - memory/   : Context preservation folder (populated by auto-save hooks)
+#
+# VERSION: 2.0.0
+# UPDATED: 2025-12-10
+#
 
-set -e
+set -euo pipefail
 
 JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
+DOC_LEVEL=1  # Default to Level 1 (Baseline)
+SKIP_BRANCH=false
 ARGS=()
 i=1
 while [ $i -le $# ]; do
     arg="${!i}"
     case "$arg" in
-        --json) 
-            JSON_MODE=true 
+        --json)
+            JSON_MODE=true
+            ;;
+        --level)
+            if [ $((i + 1)) -gt $# ]; then
+                echo 'Error: --level requires a value (1, 2, or 3)' >&2
+                exit 1
+            fi
+            i=$((i + 1))
+            next_arg="${!i}"
+            if [[ "$next_arg" == --* ]]; then
+                echo 'Error: --level requires a value (1, 2, or 3)' >&2
+                exit 1
+            fi
+            if [[ ! "$next_arg" =~ ^[123]$ ]]; then
+                echo 'Error: --level must be 1, 2, or 3' >&2
+                exit 1
+            fi
+            DOC_LEVEL="$next_arg"
+            ;;
+        --skip-branch)
+            SKIP_BRANCH=true
             ;;
         --short-name)
             if [ $((i + 1)) -gt $# ]; then
@@ -40,28 +78,41 @@ while [ $i -le $# ]; do
             fi
             BRANCH_NUMBER="$next_arg"
             ;;
-        --help|-h) 
-            echo "Usage: $0 [--json] [--short-name <name>] [--number N] <feature_description>"
+        --help|-h)
+            echo "Usage: $0 [options] <feature_description>"
+            echo ""
+            echo "Creates a new spec folder with templates based on documentation level."
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
+            echo "  --level N           Documentation level: 1 (baseline), 2 (verification), 3 (full)"
+            echo "                      Default: 1"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
+            echo "  --skip-branch       Create spec folder only, don't create git branch"
             echo "  --help, -h          Show this help message"
+            echo ""
+            echo "Documentation Levels:"
+            echo "  Level 1 (Baseline):     spec.md + plan.md + tasks.md"
+            echo "  Level 2 (Verification): Level 1 + checklist.md"
+            echo "  Level 3 (Full):         Level 2 + decision-record.md"
+            echo ""
+            echo "All levels include: scratch/ (git-ignored) + memory/ (context preservation)"
             echo ""
             echo "Examples:"
             echo "  $0 'Add user authentication system' --short-name 'user-auth'"
-            echo "  $0 'Implement OAuth2 integration for API' --number 5"
+            echo "  $0 'Implement complex OAuth2 flow' --level 2"
+            echo "  $0 'Major architecture redesign' --level 3 --number 50"
             exit 0
             ;;
-        *) 
-            ARGS+=("$arg") 
+        *)
+            ARGS+=("$arg")
             ;;
     esac
     i=$((i + 1))
 done
 
-FEATURE_DESCRIPTION="${ARGS[*]}"
+FEATURE_DESCRIPTION="${ARGS[*]:-}"
 if [ -z "$FEATURE_DESCRIPTION" ]; then
     echo "Usage: $0 [--json] [--short-name <name>] [--number N] <feature_description>" >&2
     exit 1
@@ -222,7 +273,8 @@ if [ -z "$BRANCH_NUMBER" ]; then
     fi
 fi
 
-FEATURE_NUM=$(printf "%03d" "$BRANCH_NUMBER")
+# Force base-10 interpretation (prevents octal issues with leading zeros like 053)
+FEATURE_NUM=$(printf "%03d" "$((10#$BRANCH_NUMBER))")
 BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
 
 # GitHub enforces a 244-byte limit on branch names
@@ -246,27 +298,123 @@ if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
     >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
 fi
 
-if [ "$HAS_GIT" = true ]; then
+# Create git branch (unless skipped or no git)
+if [ "$SKIP_BRANCH" = true ]; then
+    >&2 echo "[speckit] Skipping branch creation (--skip-branch)"
+elif [ "$HAS_GIT" = true ]; then
     git checkout -b "$BRANCH_NAME"
 else
-    >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
+    >&2 echo "[speckit] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
 fi
 
+# ============================================================================
+# CREATE SPEC FOLDER STRUCTURE
+# ============================================================================
 FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
-mkdir -p "$FEATURE_DIR"
+TEMPLATES_DIR="$REPO_ROOT/.opencode/speckit/templates"
+CREATED_FILES=()
 
-TEMPLATE="$REPO_ROOT/.opencode/speckit/templates/spec.md"
+# Validate templates directory exists
+if [ ! -d "$TEMPLATES_DIR" ]; then
+    echo "Error: Templates directory not found at $TEMPLATES_DIR" >&2
+    echo "Please ensure SpecKit is properly installed." >&2
+    exit 1
+fi
+
+# Create directories
+mkdir -p "$FEATURE_DIR"
+mkdir -p "$FEATURE_DIR/scratch"
+mkdir -p "$FEATURE_DIR/memory"
+touch "$FEATURE_DIR/scratch/.gitkeep"
+touch "$FEATURE_DIR/memory/.gitkeep"
+
+# ============================================================================
+# COPY TEMPLATES BASED ON DOCUMENTATION LEVEL
+# Progressive Enhancement: Each level includes all files from previous levels
+# ============================================================================
+
+# Helper function to copy template
+copy_template() {
+    local template_name="$1"
+    local dest_name="${2:-$template_name}"  # Use template name if dest not specified
+    local template_path="$TEMPLATES_DIR/$template_name"
+    local dest_path="$FEATURE_DIR/$dest_name"
+
+    if [ -f "$template_path" ]; then
+        cp "$template_path" "$dest_path"
+        CREATED_FILES+=("$dest_name")
+    else
+        touch "$dest_path"
+        CREATED_FILES+=("$dest_name (empty - template not found)")
+    fi
+}
+
+# Level 1 (Baseline): spec.md + plan.md + tasks.md
+copy_template "spec.md"
+copy_template "plan.md"
+copy_template "tasks.md"
+
+# Level 2 (Verification): Level 1 + checklist.md
+if [ "$DOC_LEVEL" -ge 2 ]; then
+    copy_template "checklist.md"
+fi
+
+# Level 3 (Full): Level 2 + decision-record.md
+if [ "$DOC_LEVEL" -ge 3 ]; then
+    copy_template "decision-record.md"
+fi
+
+# Set paths for output
 SPEC_FILE="$FEATURE_DIR/spec.md"
-if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
 
 # Set the SPECIFY_FEATURE environment variable for the current session
 export SPECIFY_FEATURE="$BRANCH_NAME"
 
+# ============================================================================
+# OUTPUT
+# ============================================================================
 if $JSON_MODE; then
-    printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s"}\n' "$BRANCH_NAME" "$SPEC_FILE" "$FEATURE_NUM"
+    # Build JSON array of created files
+    files_json=$(printf '"%s",' "${CREATED_FILES[@]}" | sed 's/,$//')
+    printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s","DOC_LEVEL":%d,"CREATED_FILES":[%s]}\n' \
+        "$BRANCH_NAME" "$SPEC_FILE" "$FEATURE_NUM" "$DOC_LEVEL" "$files_json"
 else
-    echo "BRANCH_NAME: $BRANCH_NAME"
-    echo "SPEC_FILE: $SPEC_FILE"
-    echo "FEATURE_NUM: $FEATURE_NUM"
-    echo "SPECIFY_FEATURE environment variable set to: $BRANCH_NAME"
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════════"
+    echo "  SpecKit: Spec Folder Created Successfully"
+    echo "═══════════════════════════════════════════════════════════════════"
+    echo ""
+    echo "  BRANCH_NAME:  $BRANCH_NAME"
+    echo "  FEATURE_NUM:  $FEATURE_NUM"
+    echo "  DOC_LEVEL:    Level $DOC_LEVEL"
+    echo "  SPEC_FOLDER:  $FEATURE_DIR"
+    echo ""
+    echo "  Created Structure:"
+    echo "  └── $BRANCH_NAME/"
+    for file in "${CREATED_FILES[@]}"; do
+        echo "      ├── $file"
+    done
+    echo "      ├── scratch/          (git-ignored working files)"
+    echo "      │   └── .gitkeep"
+    echo "      └── memory/           (context preservation)"
+    echo "          └── .gitkeep"
+    echo ""
+    echo "  Level $DOC_LEVEL Documentation:"
+    case $DOC_LEVEL in
+        1) echo "    ✓ Baseline: spec.md + plan.md + tasks.md" ;;
+        2) echo "    ✓ Baseline: spec.md + plan.md + tasks.md"
+           echo "    ✓ Verification: checklist.md" ;;
+        3) echo "    ✓ Baseline: spec.md + plan.md + tasks.md"
+           echo "    ✓ Verification: checklist.md"
+           echo "    ✓ Full: decision-record.md" ;;
+    esac
+    echo ""
+    echo "  Next steps:"
+    echo "    1. Fill out spec.md with requirements"
+    echo "    2. Create implementation plan in plan.md"
+    echo "    3. Break down tasks in tasks.md"
+    [ "$DOC_LEVEL" -ge 2 ] && echo "    4. Add verification items to checklist.md"
+    [ "$DOC_LEVEL" -ge 3 ] && echo "    5. Document decisions in decision-record.md"
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════════"
 fi

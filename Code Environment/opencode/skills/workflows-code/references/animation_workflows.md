@@ -539,7 +539,7 @@ if (prefersReducedMotion) {
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://example-project.com"
 
 2. Capture before state:
    [Use tool: mcp__chrome_devtools_2__take_screenshot]
@@ -557,7 +557,7 @@ if (prefersReducedMotion) {
 **Option 2: workflows-chrome-devtools (Terminal-based)**
 ```bash
 # Visual regression testing workflow
-bdg https://example.com 2>&1
+bdg https://example-project.com 2>&1
 
 # Capture initial state
 bdg screenshot animation-before.png 2>&1
@@ -580,7 +580,7 @@ compare animation-before.png animation-after.png animation-diff.png
 **CLI Performance Profiling:**
 ```bash
 # Navigate to page
-bdg https://example.com 2>&1
+bdg https://example-project.com 2>&1
 
 # Trigger animation and capture metrics immediately after
 bdg js "document.querySelector('.animated-element').classList.add('animate')" 2>&1
@@ -620,7 +620,7 @@ bdg stop 2>&1
 #!/bin/bash
 # Assert animation performance meets targets
 
-bdg https://example.com 2>&1
+bdg https://example-project.com 2>&1
 
 # Trigger animation
 bdg js "document.querySelector('.hero').classList.add('animate-in')" 2>&1
@@ -650,7 +650,7 @@ fi
 # Test animations at all viewports
 
 VIEWPORTS=("1920:1080:desktop" "768:1024:tablet" "375:667:mobile")
-URL="https://example.com"
+URL="https://example-project.com"
 
 for viewport in "${VIEWPORTS[@]}"; do
   IFS=':' read -r width height name <<< "$viewport"
@@ -688,7 +688,7 @@ echo "✅ All viewport tests complete"
 **Automated prefers-reduced-motion verification:**
 ```bash
 # Test with reduced motion preference
-bdg https://example.com 2>&1
+bdg https://example-project.com 2>&1
 
 # Enable reduced motion emulation
 bdg cdp Emulation.setEmulatedMedia '{"features":[{"name":"prefers-reduced-motion","value":"reduce"}]}' 2>&1

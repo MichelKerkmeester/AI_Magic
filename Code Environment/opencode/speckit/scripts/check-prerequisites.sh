@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-
-# Consolidated prerequisite checking script
 #
-# This script provides unified prerequisite checking for Spec-Driven Development workflow.
-# It replaces the functionality previously spread across multiple scripts.
+# check-prerequisites.sh - SpecKit Prerequisite Validation
 #
-# Usage: ./check-prerequisites.sh [OPTIONS]
+# Validates that a spec folder exists and contains required files before
+# proceeding with implementation phases. Provides unified prerequisite
+# checking for the Spec-Driven Development workflow.
+#
+# VERSION: 2.0.0
+# UPDATED: 2025-12-10
+#
+# USAGE: ./check-prerequisites.sh [OPTIONS]
 #
 # OPTIONS:
 #   --json              Output in JSON format
@@ -18,8 +22,9 @@
 #   JSON mode: {"FEATURE_DIR":"...", "AVAILABLE_DOCS":["..."]}
 #   Text mode: FEATURE_DIR:... \n AVAILABLE_DOCS: \n ✓/✗ file.md
 #   Paths only: REPO_ROOT: ... \n BRANCH: ... \n FEATURE_DIR: ... etc.
+#
 
-set -e
+set -euo pipefail
 
 # Parse command line arguments
 JSON_MODE=false
@@ -102,20 +107,20 @@ fi
 # Validate required directories and files
 if [[ ! -d "$FEATURE_DIR" ]]; then
     echo "ERROR: Feature directory not found: $FEATURE_DIR" >&2
-    echo "Run /spec_kit:specify first to create the feature structure." >&2
+    echo "Run /spec_kit:complete or /spec_kit:plan first to create the feature structure." >&2
     exit 1
 fi
 
 if [[ ! -f "$IMPL_PLAN" ]]; then
     echo "ERROR: plan.md not found in $FEATURE_DIR" >&2
-    echo "Run /spec_kit:plan first to create the implementation plan." >&2
+    echo "Run /spec_kit:plan or /spec_kit:complete first to create the implementation plan." >&2
     exit 1
 fi
 
 # Check for tasks.md if required
 if $REQUIRE_TASKS && [[ ! -f "$TASKS" ]]; then
     echo "ERROR: tasks.md not found in $FEATURE_DIR" >&2
-    echo "Run /spec_kit:tasks first to create the task list." >&2
+    echo "Create tasks.md manually or ensure spec folder has complete documentation." >&2
     exit 1
 fi
 

@@ -118,6 +118,9 @@ available_templates:
   tasks: .opencode/speckit/templates/tasks.md
   # Level 2+ (Verification)
   checklist: .opencode/speckit/templates/checklist.md
+  # Utility (any level)
+  handover: .opencode/speckit/templates/handover.md
+  debug_delegation: .opencode/speckit/templates/debug-delegation.md
 
 # ─────────────────────────────────────────────────────────────────
 # PARALLEL DISPATCH CONFIGURATION

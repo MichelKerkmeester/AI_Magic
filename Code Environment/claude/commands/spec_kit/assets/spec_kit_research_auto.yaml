@@ -123,6 +123,9 @@ available_templates:
   checklist: .opencode/speckit/templates/checklist.md
   # Level 1+ (Baseline)
   spec: .opencode/speckit/templates/spec.md
+  # Utility (any level)
+  handover: .opencode/speckit/templates/handover.md
+  debug_delegation: .opencode/speckit/templates/debug-delegation.md
 
 # ─────────────────────────────────────────────────────────────────
 # PARALLEL DISPATCH CONFIGURATION (AGENTS.md Compliant)

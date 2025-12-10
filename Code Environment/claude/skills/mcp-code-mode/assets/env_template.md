@@ -119,7 +119,7 @@ NOTION_TOKEN=ntn_1234567890abcdefghijklmnopqrstuvwxyz
 
 **Format:**
 ```bash
-GITHUB_TOKEN=your-github-token
+GITHUB_TOKEN=ghp_1234567890abcdefghijklmnopqrstuvwxyz
 ```
 
 **Scopes**: Select based on needed permissions (read/write repos, issues, PRs, etc.)

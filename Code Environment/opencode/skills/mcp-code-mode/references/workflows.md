@@ -70,8 +70,8 @@ call_tool_chain({
   result: {
     site: {
       id: "...",
-      name: "Example Project",
-      domains: ["example.com", "www.example.com"]
+      name: "A. Nobel & Zn",
+      domains: ["example-project.com", "www.example-project.com"]
     },
     collectionsCount: 21,
     collections: [
@@ -84,7 +84,7 @@ call_tool_chain({
   logs: [
     "Fetching Webflow sites...",
     "Found 1 site(s)",
-    "Getting collections for: Example Project"
+    "Getting collections for: A. Nobel & Zn"
   ]
 }
 ```

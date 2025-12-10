@@ -156,6 +156,9 @@ available_templates:
   # Optional (any level)
   research: .opencode/speckit/templates/research.md
   research_spike: .opencode/speckit/templates/research-spike.md
+  # Utility (any level)
+  handover: .opencode/speckit/templates/handover.md
+  debug_delegation: .opencode/speckit/templates/debug-delegation.md
 
 # ─────────────────────────────────────────────────────────────────
 # PARALLEL DISPATCH CONFIGURATION (AGENTS.md Compliant)
@@ -326,7 +329,7 @@ workflow:
     - Check for existing branches before creating new one
     - Fetch all remote branches for latest information
     - Find highest feature number across all sources
-    - Run create-new-feature.sh script with calculated number
+    - Run create-documentation.sh script with calculated number
     - Estimate complexity and select documentation level using progressive enhancement:
       - "Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md"
       - "Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md"
@@ -542,7 +545,7 @@ workflow:
 
     # FALLBACK: Inline planning if exploration fails
     activities:
-    - Run setup-plan.sh --json and parse FEATURE_SPEC, IMPL_PLAN, etc.
+    - Run check-prerequisites.sh --json --paths-only to get feature paths
     - Load FEATURE_SPEC and AGENTS.md
     - Load plan.md and preserve exact structure
     - Fill Technical Context (mark unknowns as NEEDS CLARIFICATION)

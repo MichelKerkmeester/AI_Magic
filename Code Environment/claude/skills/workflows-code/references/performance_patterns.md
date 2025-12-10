@@ -245,7 +245,7 @@ document.querySelectorAll('img[data-src]').forEach(img => {
 ```markdown
 1. Navigate to page:
    [Use tool: mcp__chrome_devtools_2__navigate_page]
-   - url: "https://example.com"
+   - url: "https://example-project.com"
 
 2. Start performance trace:
    [Use tool: mcp__chrome_devtools_2__performance_start_trace]
@@ -269,7 +269,7 @@ document.querySelectorAll('img[data-src]').forEach(img => {
 #!/bin/bash
 # Enforce performance budgets with assertions
 
-URL="https://example.com"
+URL="https://example-project.com"
 
 echo "Testing performance for: $URL"
 
@@ -319,7 +319,7 @@ fi
 **Network Performance Analysis:**
 ```bash
 # Capture HAR file
-bdg https://example.com 2>&1
+bdg https://example-project.com 2>&1
 bdg har export performance.har 2>&1
 bdg stop 2>&1
 
@@ -352,7 +352,7 @@ echo "✅ PASS: Network performance budgets met"
 **Animation Performance Check:**
 ```bash
 # Check animation performance (from animation_workflows.md)
-bdg https://example.com 2>&1
+bdg https://example-project.com 2>&1
 
 # Trigger animation
 bdg js "document.querySelector('.animated-element').classList.add('animate')" 2>&1

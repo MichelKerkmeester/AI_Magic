@@ -303,8 +303,8 @@ FIGMA_TOKEN=figd_your_token_here  # Alias for convenience
 NOTION_TOKEN=ntn_your_token_here
 
 # GitHub Configuration
-GITHUB_TOKEN=your-github-token
-GITHUB_PERSONAL_ACCESS_TOKEN=your-github-token  # Alias
+GITHUB_TOKEN=ghp_your_token_here
+GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here  # Alias
 
 # Webflow (if using direct API, not remote MCP)
 WEBFLOW_API_TOKEN=your_webflow_token_here
@@ -397,7 +397,7 @@ npm search @modelcontextprotocol/server-
 
 ```bash
 # GitHub Configuration
-GITHUB_TOKEN=your-github-token
+GITHUB_TOKEN=ghp_your_personal_access_token_here
 ```
 
 **Step 4:** Restart Code Mode MCP server

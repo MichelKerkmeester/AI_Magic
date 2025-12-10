@@ -308,9 +308,11 @@ The hook presents 4 options to the user via AI:
 ```
 specs/122-skill-standardization/
 ├── 001-original-work/
+│   ├── scratch/          # Temporary working files (git-ignored)
 │   └── memory/
 │       └── 23-11-25_10-10__original.md  (archived)
 └── 002-api-refactor/       (.spec-active points here)
+    ├── scratch/          # Temporary working files (git-ignored)
     └── memory/
         └── 23-11-25_11-30__api-refactor.md  ← This is shown
 ```

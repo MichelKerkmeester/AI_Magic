@@ -247,8 +247,8 @@ This location is shared between Claude Code and OpenCode.
 
 ```bash
 # Create directory for the MCP server
-mkdir -p "/Users/USERNAME/path/to/mcp-servers/semantic-memory"
-cd "/Users/USERNAME/path/to/mcp-servers/semantic-memory"
+mkdir -p "/Users/developer/projects/mcp-servers/semantic-memory"
+cd "/Users/developer/projects/mcp-servers/semantic-memory"
 ```
 
 ### Step 2: Copy Server Files
@@ -322,7 +322,7 @@ Add to `.mcp.json` in your project root:
     "semantic_memory": {
       "command": "node",
       "args": [
-        "/Users/USERNAME/path/to/mcp-servers/semantic-memory/semantic-memory.js"
+        "/Users/developer/projects/mcp-servers/semantic-memory/semantic-memory.js"
       ],
       "env": {},
       "disabled": false
@@ -352,7 +352,7 @@ Add to `opencode.json` in your project root:
       "type": "local",
       "command": [
         "node",
-        "/Users/USERNAME/path/to/mcp-servers/semantic-memory/semantic-memory.js"
+        "/Users/developer/projects/mcp-servers/semantic-memory/semantic-memory.js"
       ],
       "environment": {},
       "enabled": true
@@ -862,7 +862,7 @@ sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
   "mcpServers": {
     "semantic_memory": {
       "command": "node",
-      "args": ["/Users/USERNAME/path/to/mcp-servers/semantic-memory/semantic-memory.js"],
+      "args": ["/path/to/semantic-memory/semantic-memory.js"],
       "env": {},
       "disabled": false
     }
@@ -876,7 +876,7 @@ sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
   "mcp": {
     "semantic_memory": {
       "type": "local",
-      "command": ["node", "/Users/USERNAME/path/to/mcp-servers/semantic-memory/semantic-memory.js"],
+      "command": ["node", "/path/to/semantic-memory/semantic-memory.js"],
       "environment": {},
       "enabled": true
     }

@@ -1,33 +1,58 @@
 #!/usr/bin/env bash
-# Common functions and variables for all scripts
+#
+# common.sh - SpecKit Shared Utility Functions
+#
+# This file is sourced by other SpecKit scripts to provide consistent
+# functionality for repository detection, branch management, and path resolution.
+#
+# VERSION: 2.0.0
+# UPDATED: 2025-12-10
+#
+# USAGE: source "$SCRIPT_DIR/common.sh"
+#
 
-# Get repository root, with fallback for non-git repositories
+# ============================================================================
+# REPOSITORY ROOT DETECTION
+# ============================================================================
+
+# get_repo_root()
+# Find the repository root directory, with fallback for non-git repositories.
+# Returns: Absolute path to repository root
 get_repo_root() {
     if git rev-parse --show-toplevel >/dev/null 2>&1; then
         git rev-parse --show-toplevel
     else
         # Fall back to script location for non-git repos
-        local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        local script_dir
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         (cd "$script_dir/../../.." && pwd)
     fi
 }
 
-# Get current branch, with fallback for non-git repositories
+# ============================================================================
+# BRANCH DETECTION
+# ============================================================================
+
+# get_current_branch()
+# Determine the current feature branch/folder using multiple fallback sources.
+# Priority: 1) SPECIFY_FEATURE env var, 2) git branch, 3) latest specs/ folder
+# Returns: Branch/feature name string
 get_current_branch() {
-    # First check if SPECIFY_FEATURE environment variable is set
+    # Priority 1: Environment variable (highest priority, set by create-documentation.sh)
     if [[ -n "${SPECIFY_FEATURE:-}" ]]; then
         echo "$SPECIFY_FEATURE"
         return
     fi
 
-    # Then check git if available
+    # Priority 2: Git branch name
     if git rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then
         git rev-parse --abbrev-ref HEAD
         return
     fi
 
-    # For non-git repos, try to find the latest feature directory
-    local repo_root=$(get_repo_root)
+    # Priority 3: Latest numbered folder in specs/ (for non-git repos)
+    local repo_root
+    repo_root="$(get_repo_root)"
     local specs_dir="$repo_root/specs"
 
     if [[ -d "$specs_dir" ]]; then
@@ -36,13 +61,14 @@ get_current_branch() {
 
         for dir in "$specs_dir"/*; do
             if [[ -d "$dir" ]]; then
-                local dirname=$(basename "$dir")
+                local dirname
+                dirname="$(basename "$dir")"
                 if [[ "$dirname" =~ ^([0-9]{3})- ]]; then
-                    local number=${BASH_REMATCH[1]}
+                    local number="${BASH_REMATCH[1]}"
                     number=$((10#$number))
                     if [[ "$number" -gt "$highest" ]]; then
-                        highest=$number
-                        latest_feature=$dirname
+                        highest="$number"
+                        latest_feature="$dirname"
                     fi
                 fi
             fi
@@ -54,21 +80,32 @@ get_current_branch() {
         fi
     fi
 
-    echo "main"  # Final fallback
+    # Final fallback
+    echo "main"
 }
 
-# Check if we have git available
+# has_git()
+# Check if we're in a git repository.
+# Returns: Exit code 0 if git available, 1 otherwise
 has_git() {
     git rev-parse --show-toplevel >/dev/null 2>&1
 }
 
+# ============================================================================
+# BRANCH VALIDATION
+# ============================================================================
+
+# check_feature_branch()
+# Validate that the branch follows the NNN-name naming convention.
+# Args: $1 - branch name, $2 - has_git flag ("true" or "false")
+# Returns: Exit code 0 if valid, 1 if invalid
 check_feature_branch() {
     local branch="$1"
-    local has_git_repo="$2"
+    local has_git_repo="${2:-false}"
 
     # For non-git repos, we can't enforce branch naming but still provide output
     if [[ "$has_git_repo" != "true" ]]; then
-        echo "[specify] Warning: Git repository not detected; skipped branch validation" >&2
+        echo "[speckit] Warning: Git repository not detected; skipped branch validation" >&2
         return 0
     fi
 
@@ -81,10 +118,23 @@ check_feature_branch() {
     return 0
 }
 
-get_feature_dir() { echo "$1/specs/$2"; }
+# ============================================================================
+# PATH RESOLUTION
+# ============================================================================
 
-# Find feature directory by numeric prefix instead of exact branch match
-# This allows multiple branches to work on the same spec (e.g., 004-fix-bug, 004-add-feature)
+# get_feature_dir()
+# Build the feature directory path from repo root and branch name.
+# Args: $1 - repo root, $2 - branch name
+# Returns: Feature directory path
+get_feature_dir() {
+    echo "$1/specs/$2"
+}
+
+# find_feature_dir_by_prefix()
+# Find specs/ folder by numeric prefix, allowing multiple branches per spec.
+# This enables branches like 004-fix-bug and 004-add-feature to share specs/004-xxx/.
+# Args: $1 - repo root, $2 - branch name
+# Returns: Feature directory path (or error message to stderr)
 find_feature_dir_by_prefix() {
     local repo_root="$1"
     local branch_name="$2"
@@ -124,9 +174,15 @@ find_feature_dir_by_prefix() {
     fi
 }
 
+# get_feature_paths()
+# Export all feature-related paths as eval-able shell variables.
+# Usage: eval "$(get_feature_paths)"
+# Sets: REPO_ROOT, CURRENT_BRANCH, HAS_GIT, FEATURE_DIR, FEATURE_SPEC, IMPL_PLAN, etc.
 get_feature_paths() {
-    local repo_root=$(get_repo_root)
-    local current_branch=$(get_current_branch)
+    local repo_root
+    repo_root="$(get_repo_root)"
+    local current_branch
+    current_branch="$(get_current_branch)"
     local has_git_repo="false"
 
     if has_git; then
@@ -134,7 +190,8 @@ get_feature_paths() {
     fi
 
     # Use prefix-based lookup to support multiple branches per spec
-    local feature_dir=$(find_feature_dir_by_prefix "$repo_root" "$current_branch")
+    local feature_dir
+    feature_dir="$(find_feature_dir_by_prefix "$repo_root" "$current_branch")"
 
     cat <<EOF
 REPO_ROOT='$repo_root'
@@ -154,6 +211,28 @@ RESEARCH_SPIKES_DIR='$feature_dir/research-spikes'
 EOF
 }
 
-check_file() { [[ -f "$1" ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
-check_dir() { [[ -d "$1" && -n $(ls -A "$1" 2>/dev/null) ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
+# ============================================================================
+# DISPLAY HELPERS
+# ============================================================================
 
+# check_file()
+# Display file existence status with checkmark.
+# Args: $1 - file path, $2 - display name
+check_file() {
+    if [[ -f "$1" ]]; then
+        echo "  ✓ $2"
+    else
+        echo "  ✗ $2"
+    fi
+}
+
+# check_dir()
+# Display directory existence status with checkmark (must have contents).
+# Args: $1 - directory path, $2 - display name
+check_dir() {
+    if [[ -d "$1" ]] && [[ -n "$(ls -A "$1" 2>/dev/null)" ]]; then
+        echo "  ✓ $2"
+    else
+        echo "  ✗ $2"
+    fi
+}

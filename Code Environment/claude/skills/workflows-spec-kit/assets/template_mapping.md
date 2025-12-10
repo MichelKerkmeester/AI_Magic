@@ -76,7 +76,9 @@ These templates are OPTIONAL and only apply to Level 3 documentation:
 specs/043-add-email-validation/
 ├── spec.md                      (REQUIRED - from spec.md)
 ├── plan.md                      (REQUIRED - from plan.md)
-└── tasks.md                     (REQUIRED - from tasks.md)
+├── tasks.md                     (REQUIRED - from tasks.md)
+├── memory/                      (auto-created - context preservation)
+└── scratch/                     (git-ignored - temporary work files)
 ```
 
 **Content expectations:**
@@ -95,7 +97,9 @@ specs/044-modal-component/
 ├── spec.md                      (REQUIRED - from Level 1)
 ├── plan.md                      (REQUIRED - from Level 1)
 ├── tasks.md                     (REQUIRED - from Level 1)
-└── checklist.md                 (REQUIRED - adds QA validation)
+├── checklist.md                 (REQUIRED - adds QA validation)
+├── memory/                      (auto-created - context preservation)
+└── scratch/                     (git-ignored - temporary work files)
 ```
 
 **Additional expectations:**
@@ -115,7 +119,9 @@ specs/045-user-dashboard/
 ├── checklist.md                 (REQUIRED - from Level 2)
 ├── decision-record-[topic].md   (REQUIRED - architecture decisions)
 ├── research-spike-[topic].md    (OPTIONAL - if research needed)
-└── research.md                  (OPTIONAL - comprehensive research)
+├── research.md                  (OPTIONAL - comprehensive research)
+├── memory/                      (auto-created - context preservation)
+└── scratch/                     (git-ignored - temporary work files)
 ```
 
 **Additional expectations:**

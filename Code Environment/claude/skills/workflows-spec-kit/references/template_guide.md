@@ -677,12 +677,14 @@ There are **two distinct sub-folder systems**:
 specs/122-skill-standardization/
 ├── 001-original-work/  (auto-archived)
 │   ├── spec.md
-│   └── plan.md
+│   ├── plan.md
+│   └── scratch/        # Temporary working files (git-ignored)
 ├── 002-api-refactor/   (completed)
 │   └── ...
 └── 003-bug-fixes/      (active via .spec-active)
     ├── spec.md
     ├── plan.md
+    ├── scratch/        # Temporary working files (git-ignored)
     └── memory/
 ```
 
@@ -703,16 +705,19 @@ specs/###-parent-feature/
   spec.md              # Parent feature specification
   plan.md              # Overall implementation plan
   README.md            # Optional: Parent overview (if sub-folders exist)
+  scratch/             # Temporary working files (git-ignored)
 
   sub-analysis-1/
     README.md          # Sub-folder purpose and organization
     analysis.md        # Specific analysis work
     findings.md        # Results and conclusions
+    scratch/           # Temporary working files (git-ignored)
 
   sub-implementation-2/
     README.md          # Sub-folder purpose and organization
     component-spec.md  # Component-specific specification
     testing-plan.md    # Component-specific testing
+    scratch/           # Temporary working files (git-ignored)
 
   memory/              # Auto-created by save-context hook
     YYYY-MM-DD_HH-MM__context-name.md

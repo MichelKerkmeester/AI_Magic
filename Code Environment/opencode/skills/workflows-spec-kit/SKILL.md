@@ -1,15 +1,15 @@
 ---
 name: workflows-spec-kit
-description: Mandatory spec folder workflow orchestrating documentation level selection (1-3), template selection, and folder creation for all file modifications through best practices and context auto-save.
+description: Mandatory spec folder workflow orchestrating documentation level selection (1-3), template selection, and folder creation for all file modifications through hook-assisted enforcement and context auto-save.
 allowed-tools: ["*"]
-version: 1.0.2
+version: 1.0.1
 ---
 
-<!-- Keywords: spec-kit, speckit, documentation-workflow, spec-folder, template-enforcement, context-preservation, progressive-documentation -->
+<!-- Keywords: spec-kit, speckit, documentation-workflow, spec-folder, template-enforcement, context-preservation, hook-automation, progressive-documentation -->
 
 # 🗂️ Conversation Documentation Workflow - Mandatory Spec Folder System & Template Enforcement
 
-Orchestrates mandatory spec folder creation for all conversations involving file modifications. This skill ensures proper documentation level selection (1-3), template usage, and context preservation through documented workflows and manual discipline.
+Orchestrates mandatory spec folder creation for all conversations involving file modifications. This skill ensures proper documentation level selection (1-3), template usage, and context preservation through automated workflows and hook-assisted enforcement.
 
 ---
 
@@ -29,7 +29,7 @@ Orchestrates mandatory spec folder creation for all conversations involving file
 - "Add/implement/create [feature]"
 - "Fix/update/refactor [code]"
 - "Modify/change [configuration]"
-- Modification keywords: add, implement, fix, update, refactor, etc.
+- Hook detection: modification keywords (add, implement, fix, update, etc.)
 
 ### When NOT to Use
 
@@ -97,7 +97,7 @@ def route_conversation_resources(task):
     - 100-499 LOC suggests Level 2
     - ≥500 LOC suggests Level 3
 
-    Enforcement relies on manual discipline - always check templates before commits.
+    Enforcement is HARD - hooks block commits with missing required templates.
     """
 
     # ══════════════════════════════════════════════════════════════════════
@@ -180,8 +180,8 @@ def route_conversation_resources(task):
 
     # ──────────────────────────────────────────────────────────────────
     # Automation Workflows
-    # Purpose: Workflow guidance and context auto-save
-    # Key Insight: Manual enforcement - verify templates before commits
+    # Purpose: Hook enforcement and context auto-save
+    # Key Insight: Hard enforcement - hooks block commits with missing files
     # ──────────────────────────────────────────────────────────────────
     load("references/automation_workflows.md")
 
@@ -193,7 +193,7 @@ def route_conversation_resources(task):
     load("references/quick_reference.md")
 
     # Overrides: High risk OR arch impact OR >5 files → bump to higher level
-    # Enforcement: Manual discipline - verify templates before commits
+    # Enforcement: Hard block - hooks prevent commits with missing files
     # Rule: When in doubt → choose higher level
 
 # ══════════════════════════════════════════════════════════════════════
@@ -219,14 +219,14 @@ The documentation system uses progressive enhancement where each level builds on
 - **Required Files**: `spec.md` + `plan.md` + `tasks.md`
 - **Optional Files**: None (baseline is complete)
 - **Use When**: All features - this is the minimum documentation for any work
-- **Enforcement**: Verify all required files exist before proceeding
+- **Enforcement**: Hard block if any required file missing
 - **Example**: Add email validation, fix bug, loading spinner, typo fix
 
 **Level 2: Verification Added** (LOC guidance: 100-499)
 - **Required Files**: Level 1 + `checklist.md`
 - **Optional Files**: None
 - **Use When**: Features needing systematic QA validation
-- **Enforcement**: Verify `checklist.md` exists before proceeding
+- **Enforcement**: Hard block if `checklist.md` missing
 - **Example**: Modal component, auth flow, library migration
 
 > **CRITICAL: Checklist as Active Verification Tool**
@@ -242,7 +242,7 @@ The documentation system uses progressive enhancement where each level builds on
 - **Required Files**: Level 2 + `decision-record.md`
 - **Optional Files**: `research-spike.md`, `research.md`
 - **Use When**: Complex features, architecture changes, major decisions
-- **Enforcement**: Verify `decision-record.md` exists before proceeding
+- **Enforcement**: Hard block if `decision-record.md` missing
 - **Example**: Major feature, system redesign, multi-team projects
 
 
@@ -259,7 +259,7 @@ LOC thresholds are **SOFT GUIDANCE** - these factors can push to higher level:
 - **When in doubt → choose higher level** (better to over-document than under-document)
 - **Risk/complexity can override LOC** (e.g., 50 LOC security change = Level 2+)
 - **Multi-file changes often need higher level** than LOC alone suggests
-- **Enforcement is manual** - always verify templates exist before commits
+- **Enforcement is HARD** - hooks block commits with missing required templates
 
 
 ### Folder Naming Convention
@@ -280,37 +280,96 @@ LOC thresholds are **SOFT GUIDANCE** - these factors can push to higher level:
 ls -d specs/[0-9]*/ | sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n | tail -1
 ```
 
-### Recommended Workflow (Manual Enforcement)
+### Hook-Assisted Enforcement
 
-> **Note:** In Claude Code, these behaviors are automated via hooks. In Opencode, follow this workflow manually.
+**`enforce-spec-folder.sh` hook behavior:**
 
 **Start of conversation** (empty/minimal spec folder):
-- AI detects modification keywords (add, implement, fix, etc.)
-- AI searches for related existing specs
-- AI presents options: A) Use existing, B) Create new, C) Update related, D) Skip (technical debt)
-- AI asks user for choice (A/B/C/D)
-- Wait for explicit user selection before proceeding
+- Detects modification keywords (add, implement, fix, etc.)
+- Searches for related existing specs
+- Presents options: A) Use existing, B) Create new, C) Update related, D) Skip (technical debt)
+- Does NOT block - allows conversation to continue
+- AI agent asks user for choice (A/B/C/D)
 
 **Mid-conversation** (substantial content exists):
-- When real work starts (>2 files OR files >1000 bytes)
-- **AI prompts for spec folder confirmation** (two-stage flow):
+- Detects real work started (>2 files OR files >1000 bytes)
+- **Prompts for spec folder confirmation** (two-stage flow):
   1. Stage 1: "Continue in this spec folder?" (A/B/D)
   2. Stage 2: "Load memory files?" (A/B/C/D) - only if A chosen in Stage 1
 - See "Two-Stage Question Flow" section for details
 
 **Option D (Skip):**
-- User explicitly chooses to skip documentation
+- Creates `.claude/.spec-skip` marker file
+- Subsequent prompts skip validation
+- Logs skip events to audit trail
 - **WARNING**: Creates technical debt - use sparingly
-- Document the skip decision for future reference
 
 
 ### Context Auto-Save
 
-**Manual save workflow (Opencode):**
-- Use `/memory:save` command to save conversation context
-- Save at natural breakpoints (every ~20 messages recommended)
+**`workflows-memory-trigger.sh` hook behavior:**
+- Saves conversation context every 20 messages (20, 40, 60, 80...)
+- Parallel execution when available (non-blocking)
 - Target: `specs/###-folder/memory/` or sub-folder memory/ if active
-- Manual trigger: Use `/memory:save` or "save context" command
+- Manual trigger: Keywords "save context", "save conversation"
+
+
+### Scratch Directory (`scratch/`)
+
+Every spec folder includes a `scratch/` directory for **temporary, exploratory, and work-in-progress files**.
+
+**Key Characteristics:**
+| Aspect | Behavior |
+|--------|----------|
+| **Git Status** | Contents ignored (except `.gitkeep`) |
+| **Purpose** | Temporary working files, drafts, experiments |
+| **Lifecycle** | Safe to delete anytime without git impact |
+| **Created By** | `create-documentation.sh` script automatically |
+
+**Intended Use Cases:**
+- **Exploration**: Test queries, code snippets, API responses
+- **Drafts**: Work-in-progress documentation before formalizing
+- **Debugging**: Temporary logs, stack traces, reproduction steps
+- **Experiments**: Configuration variants, prototype code
+
+**Scratch vs Memory vs Spec Folder:**
+| Location | Git Status | Purpose | Lifecycle |
+|----------|-----------|---------|-----------|
+| scratch/ | Ignored | Temporary working files | Delete when done |
+| memory/ | Tracked | Session context preservation | Keep for continuity |
+| spec.md/plan.md | Tracked | Permanent documentation | Keep forever |
+
+**Decision Flowchart:**
+```
+Creating a file? Ask yourself:
+│
+├─ Is this a draft/test/experiment?
+│   YES → scratch/
+│   NO  ↓
+│
+├─ Is this context for future sessions?
+│   YES → memory/
+│   NO  ↓
+│
+└─ Is this permanent documentation?
+    YES → spec.md, plan.md, tasks.md, etc.
+```
+
+**Concrete Examples:**
+| Content Type | Write To | Reason |
+|-------------|----------|--------|
+| SQL query you're testing | scratch/test-query.sql | Disposable once verified |
+| Debug log from failed run | scratch/debug.log | Temporary investigation |
+| "Why we chose approach X" | memory/ | Future sessions need this |
+| Final API contract | spec.md or contracts/ | Permanent documentation |
+| Code snippet for PR | Implementation files | Goes in actual codebase |
+
+**Best Practice:** When exploration in scratch/ produces valuable insights, move them to:
+- `spec.md` → Requirements discovered
+- `plan.md` → Implementation approach found
+- `memory/` → Context worth preserving
+
+**Cleanup Reminder:** Delete scratch/ contents when task completes. The folder structure (with .gitkeep) persists, but contents should not accumulate.
 
 
 ### Sub-Folder Versioning Pattern
@@ -323,16 +382,19 @@ specs/###-name/
 ├── 001-original-topic/   # Auto-archived first iteration
 │   ├── spec.md
 │   ├── plan.md
+│   ├── scratch/          # Temporary working files (git-ignored)
 │   └── memory/
 │       └── {timestamp}__.md
 ├── 002-new-iteration/    # Second iteration
 │   ├── spec.md
 │   ├── plan.md
+│   ├── scratch/          # Temporary working files (git-ignored)
 │   └── memory/
 │       └── {timestamp}__.md
 └── 003-another-task/     # Third iteration (current, active)
     ├── spec.md
     ├── plan.md
+    ├── scratch/          # Temporary working files (git-ignored)
     └── memory/           # Independent context
         └── {timestamp}__.md
 ```
@@ -340,15 +402,15 @@ specs/###-name/
 **When This Triggers:**
 - User selects **Option A** (use existing folder)
 - Spec folder has root-level content (spec.md, plan.md, etc.)
-- AI detects need for iteration separation
+- Hook detects need for iteration separation
 
-**What Happens (Manual Workflow):**
-1. AI detects root-level files in existing spec folder
-2. AI asks user for new sub-folder name
-3. AI executes migration via Bash commands
-4. Existing files archived to `001-{topic}/` (numbered)
-5. New sub-folder created with user-provided name
-6. Fresh templates copied to new sub-folder
+**What Happens Automatically:**
+1. System detects root-level files in existing spec folder
+2. Hook prompts AI to ask user for new sub-folder name
+3. AI calls `migrate_to_subfolders()` function via Bash tool
+4. System archives existing files to `001-{topic}/` (numbered)
+5. System creates new sub-folder with user-provided name
+6. System copies fresh templates to new sub-folder
 7. `.spec-active` marker updated to point to new sub-folder
 8. Each sub-folder maintains independent `memory/` directory
 
@@ -362,15 +424,19 @@ specs/###-name/
 
 **AI Workflow When Migration Needed:**
 ```
-1. AI detects: "📦 SUB-FOLDER VERSIONING RECOMMENDED"
+1. Hook displays: "📦 SUB-FOLDER VERSIONING WILL BE APPLIED"
 2. User selects Option A
 3. AI asks: "Please provide a name for the new sub-folder (e.g., 'api-refactor')"
 4. User provides: "spec-folder-versioning"
-5. AI executes migration:
-   - Creates numbered archive folder (001-original-name/)
-   - Moves existing files to archive
-   - Creates new numbered sub-folder (002-user-provided-name/)
-   - Updates .spec-active marker
+5. AI executes:
+   node -e "
+   const { execSync } = require('child_process');
+   const result = execSync(
+     'bash -c \"source .claude/hooks/UserPromptSubmit/enforce-spec-folder.sh && migrate_to_subfolders \\\"specs/122-skill-standardization\\\" \\\"spec-folder-versioning\\\"\"',
+     { encoding: 'utf-8', stdio: 'pipe' }
+   );
+   console.log(result);
+   "
 6. System creates:
    ├── 001-skill-standardization/  (archive)
    └── 002-spec-folder-versioning/ (new, active)
@@ -379,7 +445,7 @@ specs/###-name/
 ```
 
 **Memory Context Routing:**
-- `save-context` reads `.spec-active` marker
+- `workflows-memory` reads `.spec-active` marker
 - Writes to active sub-folder's `memory/` directory
 - Each iteration has isolated conversation history
 - Root `memory/` preserved for legacy saves (backward compatibility)
@@ -391,11 +457,11 @@ Scenario: Working on skill standardization across multiple skills
 Initial work: specs/122-skill-standardization/
   └── (root files: spec.md, plan.md, etc.)
 
-User: "Work on first alignment task"
-System: Creates → 001-first-alignment/ sub-folder
+User: "Work on devtools alignment"
+System: Creates → 001-devtools-alignment/ sub-folder
 
 User: "Now work on workflows-spec-kit alignment"
-System: Archives to 002-first-alignment/
+System: Archives to 002-devtools-alignment/
 System: Creates → 003-workflows-spec-kit-alignment/ sub-folder
 
 Result: Clean separation of work, independent memory contexts
@@ -411,7 +477,7 @@ Result: Clean separation of work, independent memory contexts
 
 ### Two-Stage Question Flow (Returning to Spec Folder)
 
-When returning to an active spec folder, the AI asks **two separate questions in sequence**:
+When returning to an active spec folder, the hook now asks **two separate questions in sequence**:
 
 **Stage 1: Spec Folder Confirmation** (MANDATORY)
 ```
@@ -444,11 +510,11 @@ Found 3 previous session file(s):
 - Stage 2 "D" = Skip memory loading (but stay in spec folder)
 
 **AI Workflow (MANDATORY):**
-1. AI detects active spec folder from `.spec-active` marker
+1. Hook displays Stage 1 (spec folder confirmation)
 2. **AI MUST ask user**: "Continue in this spec folder? (A/B/D)"
 3. Wait for explicit choice
 4. If A chosen AND memory files exist:
-   - AI checks for memory files in spec folder
+   - Hook displays Stage 2 (memory file selection)
    - **AI MUST ask user**: "Load memory files? (A/B/C/D)"
    - Wait for explicit choice
 5. Based on Stage 2 selection:
@@ -467,9 +533,11 @@ Found 3 previous session file(s):
 ```
 specs/122-skill-standardization/
 ├── 001-original-work/
+│   ├── scratch/          # Temporary working files (git-ignored)
 │   └── memory/
 │       └── 23-11-25_10-10__original.md  (archived)
 └── 002-api-refactor/       (.spec-active points here)
+    ├── scratch/          # Temporary working files (git-ignored)
     └── memory/
         └── 23-11-25_11-30__api-refactor.md  ← This is shown
 ```
@@ -502,7 +570,7 @@ specs/122-skill-standardization/
    - Remove `<!-- SAMPLE CONTENT -->` blocks
    - Remove instructional comments
 
-4. **ALWAYS present spec folder options and ask user for choice (A/B/C/D)**
+4. **ALWAYS respond to hook confirmation prompts by asking user for choice (A/B/C/D)**
    - Present all 4 options clearly
    - Explain implications of each choice
    - Wait for explicit user selection
@@ -566,8 +634,8 @@ specs/122-skill-standardization/
    - Must mark all P0/P1 items as verified with evidence
    - Incomplete checklist = incomplete work
 
-7. **NEVER proceed without user confirmation for spec folder selection**
-   - Always present options before starting work
+7. **NEVER proceed without hook confirmation response**
+   - If hook presents options → Ask user to choose
    - Wait for explicit A/B/C/D selection
    - Document choice in spec folder
 
@@ -626,12 +694,12 @@ specs/122-skill-standardization/
 - [ ] Implementation approach explained
 - [ ] Explicit "yes/go ahead/proceed" received before file changes
 
-### Workflow Compliance
+### Hook Compliance
 
-- [ ] Presented spec folder options to user
+- [ ] Responded to hook confirmation prompt (if displayed)
 - [ ] Asked user for A/B/C/D choice
 - [ ] Documented user's choice
-- [ ] Recorded skip decision if Option D selected
+- [ ] Created skip marker if Option D selected
 
 ### Context Preservation
 
@@ -654,12 +722,20 @@ specs/122-skill-standardization/
 
 ## 6. 🔗 INTEGRATION POINTS
 
-### Priority System (Manual Enforcement)
+### CAPS Integration (Context-Aware Permission System)
 
-> **Note:** In Claude Code, CAPS (Context-Aware Permission System) provides automated enforcement via hooks. In Opencode, use manual discipline with the same priority levels.
+SpecKit integrates with CAPS for validation and enforcement through hook-assisted rules.
 
-**Enforcement Levels (Priority System):**
-- **P0 (Blocker)**: Must resolve before proceeding
+**CAPS Components Used:**
+| Component              | Purpose                                   | Location             |
+| ---------------------- | ----------------------------------------- | -------------------- |
+| `context-inference.sh` | Core CAPS engine (v1.0.0)                 | `.claude/hooks/lib/` |
+| `caps-adapter.sh`      | Adapter bridging operations to CAPS rules | `.claude/hooks/lib/` |
+| `rule-evaluation.sh`   | Rule priority evaluation (P0/P1/P2)       | `.claude/hooks/lib/` |
+| `speckit-state.sh`     | SpecKit state management with CAPS        | `.claude/hooks/lib/` |
+
+**Enforcement Levels (CAPS Priority System):**
+- **P0 (Blocker)**: Hard block - cannot proceed without resolution
   - Missing required templates for level (e.g., no `checklist.md` for Level 2)
   - Unresolved placeholders in templates (`[PLACEHOLDER]`)
 - **P1 (Warning)**: Must address or explicitly defer with user approval
@@ -669,14 +745,22 @@ specs/122-skill-standardization/
   - Documentation enhancements
   - Additional context preservation
 
-**Manual Validation Checklist:**
+**CAPS Functions Available:**
+```bash
+# Validate operations via CAPS rules
+result=$(validate_agent_via_caps "$context_json")
+
+# Context inference for permission decisions
+context=$(infer_context "$prompt_text")
+
+# Rule evaluation with priority
+rules=$(evaluate_rules "$context_json")
 ```
-Before proceeding with work:
-1. Verify spec folder exists for documentation level
-2. Check all required templates are present
-3. Confirm placeholders are filled
-4. Review checklist.md items (Level 2+)
-```
+
+**SpecKit-Specific CAPS Triggers:**
+- `enforce-spec-folder.sh` → Validates spec folder existence and template completeness
+- `workflows-memory-trigger.sh` → Triggers context preservation at 20-message intervals
+- Template validation → Checks placeholder removal and required field completion
 
 ### Related Skills
 
@@ -704,11 +788,10 @@ Before proceeding with work:
 
 ### External Dependencies
 
-- `.opencode/speckit/templates/` - All template files (source of truth)
+- `.opencode/speckit/templates/` - All template files
+- `.claude/hooks/UserPromptSubmit/enforce-spec-folder.sh` - Hook enforcement
+- `.claude/hooks/UserPromptSubmit/workflows-memory-trigger.sh` - Context auto-save
 - `/spec_kit:complete` - Level 3 auto-generation command
-- `/memory:save` - Manual context save command
-
-> **Claude Code only:** Hook-based enforcement via `.claude/hooks/` is not available in Opencode.
 
 ---
 

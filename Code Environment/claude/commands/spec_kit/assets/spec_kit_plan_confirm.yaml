@@ -125,6 +125,9 @@ available_templates:
   # Optional (any level)
   research: .opencode/speckit/templates/research.md
   research_spike: .opencode/speckit/templates/research-spike.md
+  # Utility (any level)
+  handover: .opencode/speckit/templates/handover.md
+  debug_delegation: .opencode/speckit/templates/debug-delegation.md
 
 # ─────────────────────────────────────────────────────────────────
 # PARALLEL DISPATCH CONFIGURATION
@@ -280,7 +283,7 @@ workflow:
     activities:
     - Generate concise short name for branch
     - Check for existing branches
-    - Run create-new-feature.sh script
+    - Run create-documentation.sh script
     - Estimate complexity and select documentation level using progressive enhancement:
       - "Level 1 (Baseline): <100 LOC - spec.md + plan.md + tasks.md"
       - "Level 2 (Verification): 100-499 LOC - Level 1 + checklist.md"
@@ -436,7 +439,7 @@ workflow:
 
     # FALLBACK: Inline planning if exploration fails
     activities:
-    - Run setup-plan.sh --json
+    - Run check-prerequisites.sh --json --paths-only
     - Load plan.md
     - Fill Technical Context
     - Fill Constitution Check section

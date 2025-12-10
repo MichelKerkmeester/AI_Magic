@@ -102,7 +102,7 @@ document.addEventListener('click', (e) => {
 #!/bin/bash
 # Detect duplicate IDs in collection lists
 
-URL="https://example.com"
+URL="https://example-project.com"
 
 echo "🔍 Checking for duplicate IDs..."
 
@@ -131,7 +131,7 @@ echo "✅ ID duplication check complete"
 #!/bin/bash
 # Inspect collection list structure and IDs
 
-URL="https://example.com"
+URL="https://example-project.com"
 
 echo "🔍 Inspecting collection list structure..."
 
@@ -180,7 +180,7 @@ echo "✅ Collection list inspection complete"
 #!/bin/bash
 # Pre-deployment validation: Assert no duplicate IDs
 
-URL="https://example.com"
+URL="https://example-project.com"
 FAIL=0
 
 echo "🔍 Running pre-deployment ID validation..."

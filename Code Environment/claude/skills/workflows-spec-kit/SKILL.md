@@ -314,6 +314,64 @@ ls -d specs/[0-9]*/ | sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n | tail -1
 - Manual trigger: Keywords "save context", "save conversation"
 
 
+### Scratch Directory (`scratch/`)
+
+Every spec folder includes a `scratch/` directory for **temporary, exploratory, and work-in-progress files**.
+
+**Key Characteristics:**
+| Aspect | Behavior |
+|--------|----------|
+| **Git Status** | Contents ignored (except `.gitkeep`) |
+| **Purpose** | Temporary working files, drafts, experiments |
+| **Lifecycle** | Safe to delete anytime without git impact |
+| **Created By** | `create-documentation.sh` script automatically |
+
+**Intended Use Cases:**
+- **Exploration**: Test queries, code snippets, API responses
+- **Drafts**: Work-in-progress documentation before formalizing
+- **Debugging**: Temporary logs, stack traces, reproduction steps
+- **Experiments**: Configuration variants, prototype code
+
+**Scratch vs Memory vs Spec Folder:**
+| Location | Git Status | Purpose | Lifecycle |
+|----------|-----------|---------|-----------|
+| scratch/ | Ignored | Temporary working files | Delete when done |
+| memory/ | Tracked | Session context preservation | Keep for continuity |
+| spec.md/plan.md | Tracked | Permanent documentation | Keep forever |
+
+**Decision Flowchart:**
+```
+Creating a file? Ask yourself:
+│
+├─ Is this a draft/test/experiment?
+│   YES → scratch/
+│   NO  ↓
+│
+├─ Is this context for future sessions?
+│   YES → memory/
+│   NO  ↓
+│
+└─ Is this permanent documentation?
+    YES → spec.md, plan.md, tasks.md, etc.
+```
+
+**Concrete Examples:**
+| Content Type | Write To | Reason |
+|-------------|----------|--------|
+| SQL query you're testing | scratch/test-query.sql | Disposable once verified |
+| Debug log from failed run | scratch/debug.log | Temporary investigation |
+| "Why we chose approach X" | memory/ | Future sessions need this |
+| Final API contract | spec.md or contracts/ | Permanent documentation |
+| Code snippet for PR | Implementation files | Goes in actual codebase |
+
+**Best Practice:** When exploration in scratch/ produces valuable insights, move them to:
+- `spec.md` → Requirements discovered
+- `plan.md` → Implementation approach found
+- `memory/` → Context worth preserving
+
+**Cleanup Reminder:** Delete scratch/ contents when task completes. The folder structure (with .gitkeep) persists, but contents should not accumulate.
+
+
 ### Sub-Folder Versioning Pattern
 
 When reusing existing spec folders for iterative work, the system automatically creates sub-folders to separate iterations while maintaining independent memory contexts.
@@ -324,16 +382,19 @@ specs/###-name/
 ├── 001-original-topic/   # Auto-archived first iteration
 │   ├── spec.md
 │   ├── plan.md
+│   ├── scratch/          # Temporary working files (git-ignored)
 │   └── memory/
 │       └── {timestamp}__.md
 ├── 002-new-iteration/    # Second iteration
 │   ├── spec.md
 │   ├── plan.md
+│   ├── scratch/          # Temporary working files (git-ignored)
 │   └── memory/
 │       └── {timestamp}__.md
 └── 003-another-task/     # Third iteration (current, active)
     ├── spec.md
     ├── plan.md
+    ├── scratch/          # Temporary working files (git-ignored)
     └── memory/           # Independent context
         └── {timestamp}__.md
 ```
@@ -472,9 +533,11 @@ Found 3 previous session file(s):
 ```
 specs/122-skill-standardization/
 ├── 001-original-work/
+│   ├── scratch/          # Temporary working files (git-ignored)
 │   └── memory/
 │       └── 23-11-25_10-10__original.md  (archived)
 └── 002-api-refactor/       (.spec-active points here)
+    ├── scratch/          # Temporary working files (git-ignored)
     └── memory/
         └── 23-11-25_11-30__api-refactor.md  ← This is shown
 ```

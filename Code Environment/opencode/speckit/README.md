@@ -33,11 +33,11 @@
 | Category   | Count  | Details                                                            |
 | ---------- | ------ | ------------------------------------------------------------------ |
 | Templates  | 9      | Markdown templates for specs, plans, research, decisions, handover |
-| Scripts    | 5      | Shell scripts for automation and validation                        |
+| Scripts    | 4      | Shell scripts for automation and validation                        |
 | Commands   | 5      | Slash commands for workflow execution (4 core + 1 utility)         |
 | Assets     | 2      | Decision support tools (level matrix, template mapping)            |
 | References | 4      | Detailed workflow documentation                                    |
-| **Total**  | **27** | Complete bundled resource set                                      |
+| **Total**  | **24** | Complete bundled resource set                                      |
 
 ### Key Features
 
@@ -136,12 +136,11 @@ cp .opencode/speckit/templates/tasks.md specs/###-your-feature-name/
 │   ├── research-spike.md   # Time-boxed PoC (Level 3 optional)
 │   ├── handover.md         # Session continuity (utility)
 │   └── debug-delegation.md # Sub-agent debugging (utility)
-└── scripts/                # 5 shell scripts
-    ├── common.sh           # Shared utility functions
-    ├── create-new-feature.sh    # Create feature branch & spec folder
-    ├── check-prerequisites.sh   # Validate spec folder structure
-    ├── calculate-completeness.sh # Calculate completeness percentage
-    └── setup-plan.sh            # Copy plan template
+└── scripts/                # 4 shell scripts
+    ├── common.sh              # Shared utility functions
+    ├── create-documentation.sh # Create feature branch & spec folder
+    ├── check-prerequisites.sh  # Validate spec folder structure
+    └── calculate-completeness.sh # Calculate completeness percentage
 ```
 
 ### Skill Resources (workflows-spec-kit)
@@ -170,10 +169,67 @@ specs/042-user-authentication/
 ├── checklist.md            # Required (Level 2+)
 ├── decision-record-auth-provider.md  # Required (Level 3)
 ├── research.md             # Optional (Level 3)
-└── memory/                 # Context preservation
-    ├── 07-12-25_14-30__initial-spec.md
-    └── 07-12-25_16-45__implementation-progress.md
+├── memory/                 # Context preservation
+│   ├── 07-12-25_14-30__initial-spec.md
+│   └── 07-12-25_16-45__implementation-progress.md
+└── scratch/                # Temporary/exploratory files (git-ignored)
+    └── .gitkeep
 ```
+
+### Special Folders
+
+#### `scratch/` - Temporary Working Files
+
+The `scratch/` folder is a designated location for **temporary, exploratory, and work-in-progress files** that should NOT be committed to version control.
+
+**Purpose:**
+- Store temporary exploration files during development
+- Keep draft code snippets being tested
+- Hold experimental configurations
+- Preserve working notes that don't belong in formal documentation
+
+**Git Behavior:**
+- Contents are **git-ignored** (won't appear in `git status`)
+- `.gitkeep` file is **tracked** to preserve the folder structure
+- Safe to delete contents at any time without affecting git history
+
+**Use Cases:**
+```bash
+# Testing a code snippet before adding to plan
+echo "test query" > specs/042-feature/scratch/db-query-test.sql
+
+# Temporary notes while investigating
+vim specs/042-feature/scratch/investigation-notes.txt
+
+# Draft implementation before finalizing
+cp src/component.js specs/042-feature/scratch/component-draft.js
+```
+
+**Best Practices:**
+- Use scratch/ for anything you might delete later
+- Move useful content to proper documentation (spec.md, plan.md, memory/)
+- Clean up scratch/ periodically to avoid confusion
+- Never reference scratch/ files from other documentation
+
+#### `memory/` - Context Preservation
+
+The `memory/` folder stores **conversation context and session history** for AI assistants.
+
+**Purpose:**
+- Auto-saves conversation context at key milestones
+- Enables session continuity across multiple conversations
+- Preserves decision rationale and implementation progress
+
+**Git Behavior:**
+- Contents **ARE tracked** (committed to version control)
+- Files follow naming pattern: `DD-MM-YY_HH-MM__topic-name.md`
+- Auto-created by save-context hooks
+
+**When Memory is Saved:**
+- After completing major implementation milestones
+- Before session ends (if significant work was done)
+- When user requests context save
+- At regular intervals during long sessions
 
 ---
 
@@ -456,17 +512,16 @@ cp .opencode/speckit/templates/debug-delegation.md specs/###-name/debug-delegati
 
 ## 6. ⚙️ SCRIPTS
 
-Five automation scripts in `.opencode/speckit/scripts/` provide workflow automation.
+Four automation scripts in `.opencode/speckit/scripts/` provide workflow automation.
 
 ### Script Overview
 
 | Script                      | Purpose                             | Performance   |
 | --------------------------- | ----------------------------------- | ------------- |
 | `common.sh`                 | Shared utility functions            | N/A (sourced) |
-| `create-new-feature.sh`     | Create feature branch & spec folder | ~100ms        |
+| `create-documentation.sh`   | Create feature branch & spec folder | ~100ms        |
 | `check-prerequisites.sh`    | Validate spec folder structure      | ~50ms         |
 | `calculate-completeness.sh` | Calculate completeness percentage   | ~200ms        |
-| `setup-plan.sh`             | Copy plan template                  | ~30ms         |
 
 ### `common.sh` - Shared Utilities
 
@@ -482,25 +537,47 @@ Five automation scripts in `.opencode/speckit/scripts/` provide workflow automat
 
 **Usage**: Sourced by other scripts, not called directly
 
-### `create-new-feature.sh` - Feature Creation
+### `create-documentation.sh` - Feature Creation
 
 **Purpose**: Create new feature branch and spec folder with proper numbering
 
 **Options**:
-| Flag                  | Description                     | Default        |
-| --------------------- | ------------------------------- | -------------- |
-| `--json`              | Output in JSON format           | false          |
-| `--short-name <name>` | Custom feature name (2-4 words) | auto-generated |
-| `--number N`          | Specify feature number          | auto-increment |
+| Flag                  | Description                           | Default        |
+| --------------------- | ------------------------------------- | -------------- |
+| `--json`              | Output in JSON format                 | false          |
+| `--level N`           | Documentation level (1, 2, or 3)      | 1              |
+| `--short-name <name>` | Custom feature name (2-4 words)       | auto-generated |
+| `--number N`          | Specify feature number                | auto-increment |
+| `--skip-branch`       | Create spec folder without git branch | false          |
+
+**Documentation Levels**:
+- **Level 1 (Baseline)**: spec.md + plan.md + tasks.md
+- **Level 2 (Verification)**: Level 1 + checklist.md
+- **Level 3 (Full)**: Level 2 + decision-record.md
 
 **Example**:
 ```bash
-$ .opencode/speckit/scripts/create-new-feature.sh "Add user authentication"
+$ .opencode/speckit/scripts/create-documentation.sh "Add user authentication" --level 2
 
-✅ Feature created:
-   Branch: 042-user-authentication
-   Folder: specs/042-user-authentication/
-   File:   specs/042-user-authentication/spec.md
+═══════════════════════════════════════════════════════════════════
+  SpecKit: Spec Folder Created Successfully
+═══════════════════════════════════════════════════════════════════
+
+  BRANCH_NAME:  042-user-authentication
+  FEATURE_NUM:  042
+  DOC_LEVEL:    Level 2
+  SPEC_FOLDER:  /path/to/specs/042-user-authentication
+
+  Created Structure:
+  └── 042-user-authentication/
+      ├── spec.md
+      ├── plan.md
+      ├── tasks.md
+      ├── checklist.md
+      ├── scratch/          (git-ignored working files)
+      │   └── .gitkeep
+      └── memory/           (context preservation)
+          └── .gitkeep
 ```
 
 **Auto-Create Logic**:
@@ -567,24 +644,6 @@ Recommendations:
 ```
 
 **Exit Codes**: `0` = 80%+ complete | `1` = Below 80% | `2` = Spec folder not found
-
-### `setup-plan.sh` - Plan Template Setup
-
-**Purpose**: Copy plan template to current feature folder
-
-**Options**:
-| Flag     | Description           | Default |
-| -------- | --------------------- | ------- |
-| `--json` | Output in JSON format | false   |
-
-**Example**:
-```bash
-$ .opencode/speckit/scripts/setup-plan.sh
-
-✅ Plan template copied to: specs/042-user-auth/plan.md
-```
-
-**Exit Codes**: `0` = Success | `1` = No feature folder | `2` = Template not found
 
 ---
 
@@ -968,7 +1027,7 @@ The Context-Aware Permission System provides intelligent rule evaluation:
 
 ```bash
 # Generate feature branch and spec folder
-.opencode/speckit/scripts/create-new-feature.sh "Add user authentication system"
+.opencode/speckit/scripts/create-documentation.sh "Add user authentication system"
 
 # Result:
 # - Branch: 042-user-authentication-system
@@ -1200,10 +1259,9 @@ cat specs/###-folder/memory/DD-MM-YY_HH-MM__description.md
 **Expected Performance**:
 | Script                      | Expected Time |
 | --------------------------- | ------------- |
-| `create-new-feature.sh`     | <100ms        |
+| `create-documentation.sh`   | <100ms        |
 | `check-prerequisites.sh`    | <50ms         |
 | `calculate-completeness.sh` | <200ms        |
-| `setup-plan.sh`             | <30ms         |
 
 ---
 
@@ -1238,7 +1296,7 @@ A: Use this decision tree:
 
 A: Yes. Templates and scripts work independently. You can:
 - Copy templates manually: `cp templates/spec.md specs/042-feature/spec.md`
-- Run scripts directly: `./scripts/create-new-feature.sh "feature name"`
+- Run scripts directly: `./scripts/create-documentation.sh "feature name"`
 - Commands just orchestrate these components
 
 ---

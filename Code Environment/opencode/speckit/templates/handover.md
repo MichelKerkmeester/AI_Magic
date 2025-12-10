@@ -22,8 +22,8 @@
 ## 2. COMPLETED WORK
 
 ### Files Modified
-| File | Change Type | Status |
-|------|-------------|--------|
+| File                     | Change Type                | Status                |
+| ------------------------ | -------------------------- | --------------------- |
 | [PLACEHOLDER: file_path] | [created/modified/deleted] | [verified/unverified] |
 
 ### Decisions Made

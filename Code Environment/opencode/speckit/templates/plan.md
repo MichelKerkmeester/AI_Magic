@@ -80,7 +80,12 @@ specs/[###-feature]/
   quickstart.md        # Phase 1 output (/spec_kit:plan command)
   contracts/           # Phase 1 output (/spec_kit:plan command)
   tasks.md             # Phase 2 output (/spec_kit:tasks command)
+  scratch/             # Drafts, prototypes, debug logs (git-ignored, delete when done)
+  memory/              # Session context preservation (auto-created, git-tracked)
 ```
+
+> **Tip:** Use `scratch/` for throwaway work (test queries, debug output, draft code).
+> Move valuable findings to spec.md, plan.md, or memory/ before completing the task.
 
 ### Source Code (Repository Root)
 
