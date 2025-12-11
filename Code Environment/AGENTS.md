@@ -361,11 +361,11 @@ CHECKLIST VERIFICATION RULE (Level 2+):
 
 ### Scratch vs Memory: When to Use Each
 
-| Write to... | When... | Examples |
-|-------------|---------|----------|
-| **scratch/** | Content is temporary, exploratory, or disposable | Draft snippets, debug logs, test queries, prototypes, comparison files |
-| **memory/** | Content preserves context for future sessions | Decisions made, approaches tried, blockers found, session summaries |
-| **spec folder** | Content is permanent documentation | spec.md, plan.md, tasks.md, final implementation |
+| Write to...     | When...                                          | Examples                                                               |
+| --------------- | ------------------------------------------------ | ---------------------------------------------------------------------- |
+| **scratch/**    | Content is temporary, exploratory, or disposable | Draft snippets, debug logs, test queries, prototypes, comparison files |
+| **memory/**     | Content preserves context for future sessions    | Decisions made, approaches tried, blockers found, session summaries    |
+| **spec folder** | Content is permanent documentation               | spec.md, plan.md, tasks.md, final implementation                       |
 
 **Decision Flow:**
 ```
@@ -714,14 +714,20 @@ Usage notes:
 </skill>
 
 <skill>
-<name>mcp-code-mode</name>
-<description>MCP orchestration via TypeScript execution for efficient multi-tool workflows. Use Code Mode for ALL MCP tool calls (ClickUp, Figma, Webflow, Chrome DevTools, etc.). Provides 98.7% context reduction, 60% faster execution, and type-safe invocation. Mandatory for external tool integration.</description>
+<name>cli-codex</name>
+<description>Wield OpenAI's Codex CLI as a powerful auxiliary tool for code generation, review, analysis, and parallel processing. Use when tasks benefit from a second AI perspective, alternative implementation approaches, or specialized code generation. Also use when user explicitly requests Codex operations.</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>mcp-mnemo</name>
-<description>Extended AI memory via Gemini context caching. Use for loading and querying large external content (GitHub repos, documentation URLs, PDFs, JSON APIs) that exceeds local context. Complements semantic search for cross-project and external knowledge access.</description>
+<name>cli-gemini</name>
+<description>Wield Google's Gemini CLI as a powerful auxiliary tool for code generation, review, analysis, and web research. Use when tasks benefit from a second AI perspective, current web information via Google Search, codebase architecture analysis, or parallel code generation. Also use when user explicitly requests Gemini operations.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>mcp-code-mode</name>
+<description>MCP orchestration via TypeScript execution for efficient multi-tool workflows. Use Code Mode for ALL MCP tool calls (ClickUp, Figma, Webflow, Chrome DevTools, etc.). Provides 98.7% context reduction, 60% faster execution, and type-safe invocation. Mandatory for external tool integration.</description>
 <location>project</location>
 </skill>
 
@@ -765,5 +771,3 @@ Usage notes:
 <!-- SKILLS_TABLE_END -->
 
 </skills_system>
-
-<!-- END AGENTS.md -->
