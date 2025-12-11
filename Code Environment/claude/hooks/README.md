@@ -52,7 +52,7 @@ This directory contains hooks that automatically trigger during Claude Code oper
 - Suggest relevant skills based on prompt content
 - Semantic search MCP tool reminders for code exploration
 - Debug trace output for semantic search hook (visible execution with timing)
-- Read-only detection: Skips skill/dispatch prompts for questions, verification, analysis, and tool operations (mnemo, etc.)
+- Read-only detection: Skips skill/dispatch prompts for questions, verification, analysis, and tool operations
 
 **Markdown & Quality**
 - Auto-fix markdown filenames to lowercase snake_case with condensed output
@@ -81,8 +81,10 @@ Session Start
 ┌─────────────────────────────────────────┐
 │  PreSessionStart Hooks 🆕               │
 │  - initialize-session.sh (0)            │
+│  - inject-agents-md.sh (0) 📋           │
 │  Note: (0) = initialization, non-block  │
 │        🆕  = Session lifecycle          │
+│        📋  = AGENTS.md context injection│
 └────────┬────────────────────────────────┘
          │
          ▼
@@ -252,6 +254,7 @@ User Action
 
 | save-context-before-compact | PreCompact | Auto-save before compact | Before compaction | 0 | <10s |
 | initialize-session | PreSessionStart | Session initialization | Session start | 0 | <50ms |
+| inject-agents-md | SessionStart | Inject AGENTS.md into Claude context | Session start | 0 | <50ms |
 | offer-state-restore | PreSessionStart | Check saved state; offer cross-session restoration | Session starts, saved state exists | 0 | <100ms |
 | cleanup-session | PostSessionEnd | Session cleanup | Session end | 0 | <100ms |
 
@@ -327,6 +330,18 @@ json_escape() {
 ---
 
 ### 3.1 Context Injection Hooks
+
+#### inject-agents-md.sh (SessionStart)
+**Purpose**: Injects full AGENTS.md content into Claude's context at session start
+**Why**: Ensures Claude reads blocking gates, mandatory rules, and skill system without relying on CLAUDE.md redirect
+**Output Format**: Full AGENTS.md as systemMessage JSON (~41KB)
+**Features**:
+  - Runs ONCE at session start (not per-prompt)
+  - Uses jq for reliable JSON escaping (sed fallback)
+  - Silent exit if AGENTS.md not found
+**Performance**: <50ms
+**Exit**: Always 0 (informational, never blocks)
+**Use Case**: Forces Claude to read mandatory instructions (blocking gates, spec folder rules, skill system)
 
 #### inject-datetime.sh (UserPromptSubmit)
 **Purpose**: Injects current date and time into every AI message for temporal awareness
@@ -670,6 +685,19 @@ json_escape() {
 **Creates**: Temporary files, session markers
 **Performance**: <50ms
 
+#### inject-agents-md.sh (SessionStart)
+**Purpose**: Inject AGENTS.md content into Claude's context at session start
+**Why**: Ensures Claude reads and follows AGENTS.md instructions without relying on CLAUDE.md redirect
+**Features**:
+  - Reads AGENTS.md from project root
+  - Escapes content for JSON using jq (with sed fallback)
+  - Outputs as `{"systemMessage": "..."}` for Claude visibility
+  - Silently exits if AGENTS.md not found
+**Output**: Full AGENTS.md content as system-reminder (~41KB)
+**Performance**: <50ms
+**Exit**: Always 0 (informational, never blocks)
+**Spec**: `specs/008-agents-md-injection/`
+
 #### cleanup-session.sh (PostSessionEnd)
 **Purpose**: Session cleanup
 **Removes**: Temporary files, stale markers
@@ -994,6 +1022,9 @@ Most hooks write to `.claude/hooks/logs/`:
 | **filter-cluster.js** | Result filtering and clustering (Spec 015) | `parseFilter()`, `applyFilter()`, `clusterByFolder()` | search-interactive.js | <30ms |
 | **pagination.js** | Pagination state management (Spec 015) | Page navigation, boundary handling, position tracking | search-interactive.js | <10ms |
 | **preview-handler.js** | Memory preview display (Spec 015) | `formatPreview()`, section extraction, anchor extraction | search-interactive.js | <30ms |
+| **fuzzy-match.sh** | Typo correction & keyword expansion (Phase 2) | `fuzzy_correct_typo()`, `fuzzy_expand_keyword()`, `fuzzy_match_score()` | skill-relevance-scorer.sh | <5ms |
+| **project-detection.sh** | Project type detection (Phase 2) | `detect_project_type()`, `get_skill_affinity()`, `list_project_indicators()` | skill-relevance-scorer.sh | <10ms |
+| **skill-relevance-scorer.sh** | Multi-dimensional skill scoring (v2.0.0) | `calculate_skill_score()`, `get_skill_keywords()`, `match_skill_to_prompt()` | suggest-mcp-tools.sh, orchestrate-skill-validation.sh | <20ms |
 
 ### 8.1 Core Libraries
 
@@ -1100,7 +1131,55 @@ Most hooks write to `.claude/hooks/logs/`:
 **Purpose**: Standardized AI communication protocol with user visibility
 **jq Dependency**: Now includes jq availability check with warning
 
-### 8.6 New Utility Libraries (v2.0.0)
+### 8.6 Skill Matching Libraries (Phase 2)
+
+#### fuzzy-match.sh
+Typo correction and keyword expansion for skill matching.
+
+**Functions:**
+- `fuzzy_correct_typo()` - Corrects common typos (58 patterns)
+- `fuzzy_expand_keyword()` - Expands abbreviations (16 patterns)
+- `fuzzy_match_score()` - Returns match confidence 0-100
+
+**Usage:**
+```bash
+source "$HOOKS_DIR/lib/fuzzy-match.sh"
+corrected=$(fuzzy_correct_typo "documnetation")  # Returns "documentation"
+expanded=$(fuzzy_expand_keyword "docs")           # Returns "documentation"
+```
+
+#### project-detection.sh
+Project type detection and skill affinity scoring.
+
+**Functions:**
+- `detect_project_type()` - Detects project type from indicators
+- `get_skill_affinity()` - Returns skill relevance for project type (0-100)
+- `list_project_indicators()` - Lists detected project indicators
+
+**Usage:**
+```bash
+source "$HOOKS_DIR/lib/project-detection.sh"
+project_type=$(detect_project_type "/path/to/project")  # Returns "webflow" or "nodejs" etc.
+affinity=$(get_skill_affinity "workflows-code" "$project_type")  # Returns 0-100
+```
+
+#### skill-relevance-scorer.sh (v2.0.0)
+Multi-dimensional skill relevance scoring with Phase 2 integration.
+
+**v2.0.0 Features:** Integrated fuzzy matching and project detection for enhanced accuracy.
+
+**Functions:**
+- `calculate_skill_score()` - Main scoring function (0-100)
+- `get_skill_keywords()` - Returns keywords for a skill
+- `match_skill_to_prompt()` - Matches user prompt to skills
+
+**Usage:**
+```bash
+source "$HOOKS_DIR/lib/skill-relevance-scorer.sh"
+score=$(calculate_skill_score "workflows-code" "$user_prompt" "$project_type")
+```
+
+### 8.7 General Utility Libraries (v2.0.0)
 
 #### platform-utils.sh
 **Purpose**: Cross-platform utilities for macOS/Linux compatibility
@@ -1154,7 +1233,7 @@ Most hooks write to `.claude/hooks/logs/`:
   - `atomic_rename(src, dst)` - Case-safe rename
 **Exceptions**: README.md, SKILL.md, AGENTS.md, CLAUDE.md, GEMINI.md
 
-### 8.7 Usage Pattern
+### 8.8 Usage Pattern
 
 ```bash
 # Source libraries in hooks

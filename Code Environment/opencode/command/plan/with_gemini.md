@@ -6,7 +6,9 @@ agent: plan
 model: gemini-3.0-pro
 ---
 
-# ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
+# Plan with Gemini
+
+## ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
 
 **YOU MUST COMPLETE ALL GATES BEFORE READING ANYTHING ELSE IN THIS FILE.**
 
@@ -113,7 +115,7 @@ If you notice yourself:
 
 ---
 
-# Implementation Plan with Gemini Orchestrator (OpenCode)
+## Implementation Plan with Gemini Orchestrator (OpenCode)
 
 **About this command:** This command creates SpecKit documentation using Gemini as orchestrator with Sonnet agents for parallel codebase exploration and web research. It requires a task description as input.
 
@@ -366,20 +368,20 @@ If no mode override specified, analyze task complexity:
 ### Basic Planning (Auto-Detect Mode)
 ```bash
 /plan:with_gemini Add user authentication with OAuth2
-# Gemini orchestrator spawns 4 Sonnet agents for exploration
 ```
+> Gemini orchestrator spawns 4 Sonnet agents for exploration
 
 ### Explicit Simple Mode
 ```bash
 /plan:with_gemini "Refactor authentication (800 LOC)" mode:simple
-# Forces SIMPLE mode despite LOC estimate
 ```
+> Forces SIMPLE mode despite LOC estimate
 
 ### Leveraging Web Research
 ```bash
 /plan:with_gemini Implement WebAssembly module loader
-# Gemini may research current WASM best practices if web search enabled
 ```
+> Gemini may research current WASM best practices if web search enabled
 
 ---
 

@@ -6,7 +6,9 @@ agent: plan
 model: opus
 ---
 
-# ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
+# Plan with Sonnet Agents
+
+## ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
 
 **YOU MUST COMPLETE ALL GATES BEFORE READING ANYTHING ELSE IN THIS FILE.**
 
@@ -113,7 +115,7 @@ If you notice yourself:
 
 ---
 
-# Implementation Plan (Claude Code + Sonnet Agents)
+## Implementation Plan (Claude Code + Sonnet Agents)
 
 **About this command:** This command creates SpecKit documentation using 4 parallel Sonnet agents for fast, cost-effective codebase exploration before any code changes. It requires a task description as input.
 
@@ -322,20 +324,20 @@ If no mode override specified, analyze task complexity:
 ### Basic Planning (Auto-Detect Mode)
 ```bash
 /plan:cc_sonnet Add user authentication with OAuth2
-# Auto-detects: ~300 LOC → SIMPLE mode → 4 Sonnet agents explore → Opus verifies
 ```
+> Auto-detects: ~300 LOC → SIMPLE mode → 4 Sonnet agents explore → Opus verifies
 
 ### Explicit Simple Mode
 ```bash
 /plan:cc_sonnet "Refactor authentication (800 LOC)" mode:simple
-# Forces SIMPLE mode despite LOC estimate
 ```
+> Forces SIMPLE mode despite LOC estimate
 
 ### For Thorough Analysis (Use cc_opus Instead)
 ```bash
 /plan:cc_opus Implement real-time collaboration with conflict resolution
-# Uses 4 Opus agents for deeper exploration (slower but more thorough)
 ```
+> Uses 4 Opus agents for deeper exploration (slower but more thorough)
 
 ---
 

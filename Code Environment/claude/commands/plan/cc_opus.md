@@ -6,7 +6,9 @@ agent: plan
 model: opus
 ---
 
-# ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
+# Plan with Opus Agents
+
+## ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
 
 **YOU MUST COMPLETE ALL GATES BEFORE READING ANYTHING ELSE IN THIS FILE.**
 
@@ -113,7 +115,7 @@ If you notice yourself:
 
 ---
 
-# Implementation Plan (Claude Code + Opus 4.5 Agents)
+## Implementation Plan (Claude Code + Opus 4.5 Agents)
 
 **About this command:** This command creates SpecKit documentation using 4 parallel Opus 4.5 agents for thorough, deep-reasoning codebase exploration before any code changes. It requires a task description as input.
 
@@ -332,26 +334,26 @@ If no mode override specified, analyze task complexity:
 ### Complex Architecture Planning
 ```bash
 /plan:cc_opus Redesign the authentication system with multi-tenant support
-# Uses 4 Opus 4.5 agents for deep architectural analysis
 ```
+> Uses 4 Opus 4.5 agents for deep architectural analysis
 
 ### Critical Feature Planning
 ```bash
 /plan:cc_opus Implement payment processing with Stripe integration
-# Thorough exploration of security, error handling, webhook patterns
 ```
+> Thorough exploration of security, error handling, webhook patterns
 
 ### Large-Scale Refactor
 ```bash
 /plan:cc_opus Migrate from REST to GraphQL across all services
-# Deep reasoning about API surface, breaking changes, migration paths
 ```
+> Deep reasoning about API surface, breaking changes, migration paths
 
 ### For Quick Planning (Use cc_sonnet Instead)
 ```bash
 /plan:cc_sonnet Add user profile page
-# Faster exploration with Sonnet agents (recommended for standard features)
 ```
+> Faster exploration with Sonnet agents (recommended for standard features)
 
 ---
 

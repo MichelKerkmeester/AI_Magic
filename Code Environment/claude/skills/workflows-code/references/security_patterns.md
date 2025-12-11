@@ -95,7 +95,7 @@ document.cookie = "session=abc123";  // Vulnerable to CSRF
 **Verify Origin/Referer:**
 ```javascript
 // ✅ GOOD: Verify request origin (server-side)
-const allowedOrigins = ['https://example-project.com'];
+const allowedOrigins = ['https://example.com'];
 if (!allowedOrigins.includes(req.headers.origin)) {
   throw new Error('Invalid origin');
 }

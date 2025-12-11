@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Configuration
 LOG_FILE="$SCRIPT_DIR/../logs/quality-checks.log"
 START_TIME=$(date +%s)
-SITE_URL="${SITE_URL:-https://example-project.com}"
+SITE_URL="${SITE_URL:-https://example.com}"
 
 # Parse tool input from stdin
 TOOL_INPUT=$(cat)

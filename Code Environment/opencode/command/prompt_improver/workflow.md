@@ -4,7 +4,9 @@ argument-hint: "<prompt-text> [:quick|:improve|:refine]"
 allowed-tools: Read, Write, AskUserQuestion
 ---
 
-# ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
+# Prompt Improver
+
+## ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
 
 **YOU MUST COMPLETE ALL GATES BEFORE READING ANYTHING ELSE IN THIS FILE.**
 
@@ -111,7 +113,7 @@ If you notice yourself:
 
 ---
 
-# Improve Prompt - DEPTH Framework
+## Improve Prompt - DEPTH Framework
 
 Transform raw prompts into optimized, framework-structured prompts using DEPTH methodology (Discover, Engineer, Prototype, Test, Harmonize).
 

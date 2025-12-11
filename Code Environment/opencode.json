@@ -59,20 +59,6 @@
         "MCP_CODEBASE_JUDGE_MODEL_ID": "voyage-rerank-2"
       },
       "enabled": true
-    },
-    "mnemo": {
-      "type": "local",
-      "command": [
-        "/path/to/bun",
-        "run",
-        "/path/to/mnemo/packages/local/src/stdio.ts"
-      ],
-      "environment": {
-        "GEMINI_API_KEY": "your-api-key-here",
-        "MNEMO_PORT": "8080",
-        "MNEMO_DIR": "~/.mnemo"
-      },
-      "enabled": true
     }
   }
 }

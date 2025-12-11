@@ -73,12 +73,8 @@ CLICKUP_COUNT=$(echo "$PROMPT_LOWER" | grep -o "clickup" | wc -l | tr -d ' ')
 CHROME_COUNT=$(echo "$PROMPT_LOWER" | grep -o -E "chrome|devtools|screenshot|browser automation" | wc -l | tr -d ' ')
 SEMANTIC_COUNT=$(echo "$PROMPT_LOWER" | grep -o -E "semantic search|code search|find.*implementation|search.*codebase" | wc -l | tr -d ' ')
 
-# NATIVE MCP tools (NOT routed through Code Mode)
-# These tools use mcp__toolname__ prefix and are called directly
-MNEMO_COUNT=$(echo "$PROMPT_LOWER" | grep -o -E "mnemo|gemini cache|context cache|load.*repo|query.*repo|external.*memory" | wc -l | tr -d ' ')
-
 # Calculate CODE MODE platforms only (Bash 3.2 compatible)
-# NOTE: Mnemo and Semantic Search are NATIVE MCP - NOT counted here
+# NOTE: Semantic Search is NATIVE MCP - NOT counted here
 TOTAL_PLATFORMS=0
 [ "$WEBFLOW_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
 [ "$FIGMA_COUNT" -gt 0 ] && TOTAL_PLATFORMS=$((TOTAL_PLATFORMS + 1))
@@ -90,7 +86,6 @@ TOTAL_PLATFORMS=0
 
 # Track native MCP tools separately (they bypass Code Mode)
 NATIVE_MCP_TOOLS=""
-[ "$MNEMO_COUNT" -gt 0 ] && NATIVE_MCP_TOOLS="${NATIVE_MCP_TOOLS}mnemo,"
 [ "$SEMANTIC_COUNT" -gt 0 ] && NATIVE_MCP_TOOLS="${NATIVE_MCP_TOOLS}semantic-search,"
 NATIVE_MCP_TOOLS=$(echo "$NATIVE_MCP_TOOLS" | sed 's/,$//')
 
@@ -199,10 +194,6 @@ HAS_CODE_MODE=false
 if [ -n "$NATIVE_MCP_TOOLS" ]; then
     HAS_NATIVE_MCP=true
     COMBINED_MSG="🧠 NATIVE MCP TOOLS (call directly, NOT Code Mode):\\n"
-
-    if echo "$NATIVE_MCP_TOOLS" | grep -q "mnemo"; then
-        COMBINED_MSG="${COMBINED_MSG}\\n  📦 Mnemo: mcp__mnemo__context_load/query/list\\n"
-    fi
 
     if echo "$NATIVE_MCP_TOOLS" | grep -q "semantic-search"; then
         COMBINED_MSG="${COMBINED_MSG}\\n  🔍 Semantic: mcp__semantic_search__semantic_search\\n"

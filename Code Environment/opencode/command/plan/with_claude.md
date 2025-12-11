@@ -5,7 +5,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Task, AskUserQuestion
 agent: plan
 ---
 
-# ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
+# Plan with Claude
+
+## ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
 
 **YOU MUST COMPLETE ALL GATES BEFORE READING ANYTHING ELSE IN THIS FILE.**
 
@@ -112,7 +114,7 @@ If you notice yourself:
 
 ---
 
-# Implementation Plan (OpenCode + Claude Orchestrator)
+## Implementation Plan (OpenCode + Claude Orchestrator)
 
 **About this command:** This command creates SpecKit documentation using Claude as orchestrator with 4 parallel Sonnet agents for fast, cost-effective codebase exploration. It requires a task description as input.
 
@@ -326,20 +328,20 @@ If no mode override specified, analyze task complexity:
 ### Basic Planning (Auto-Detect Mode)
 ```bash
 /plan:with_claude Add user authentication with OAuth2
-# Auto-detects: ~300 LOC → SIMPLE mode → simple_mode.yaml
 ```
+> Auto-detects: ~300 LOC → SIMPLE mode → simple_mode.yaml
 
 ### Explicit Simple Mode
 ```bash
 /plan:with_claude "Refactor authentication (800 LOC)" mode:simple
-# Forces SIMPLE mode despite LOC estimate
 ```
+> Forces SIMPLE mode despite LOC estimate
 
 ### Future: Complex Mode
 ```bash
 /plan:with_claude Implement real-time collaboration with conflict resolution
-# Auto-detects: ~800 LOC → COMPLEX mode → Falls back to SIMPLE (stub)
 ```
+> Auto-detects: ~800 LOC → COMPLEX mode → Falls back to SIMPLE (stub)
 
 ---
 

@@ -132,51 +132,6 @@
         "contentPatterns": ["puppeteer", "browser\\.", "page\\."]
       }
     },
-    "mcp-mnemo": {
-      "type": "tool",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "Extended AI memory via Gemini context caching. Call mnemo tools DIRECTLY (NOT through Code Mode). Use for external content: GitHub repos, documentation URLs, PDFs, JSON APIs (.claude/skills/mcp-mnemo/)",
-      "nativeToolConfig": {
-        "bypassCodeMode": true,
-        "toolPrefix": "mcp__mnemo__",
-        "availableTools": [
-          "context_load",
-          "context_query",
-          "context_list",
-          "context_stats",
-          "context_refresh",
-          "context_evict"
-        ]
-      },
-      "promptTriggers": {
-        "keywords": [
-          "mnemo",
-          "gemini cache",
-          "context cache",
-          "load github repo",
-          "query repo",
-          "external documentation",
-          "pdf query",
-          "github analysis",
-          "external memory",
-          "cross-project",
-          "load repo"
-        ],
-        "intentPatterns": [
-          "(load|query|analyze).*(github|repo|repository)",
-          "(query|search).*(documentation|docs|external)",
-          "(analyze|load).*(pdf|paper|document)",
-          "context.*(cache|caching)",
-          "gemini.*cache",
-          "mnemo.*(load|query|list)"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [".claude/skills/mcp-mnemo/**"],
-        "contentPatterns": ["mcp__mnemo__", "context_load", "context_query"]
-      }
-    },
     "mcp-semantic-search": {
       "type": "tool",
       "enforcement": "strict",

@@ -24,6 +24,7 @@ lib/
 .claude/
 .opencode/
 .opencode
+.gemini/
 
 # Configuration files (ignored at all levels)
 mcp_servers.json

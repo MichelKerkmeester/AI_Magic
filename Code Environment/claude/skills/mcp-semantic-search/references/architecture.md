@@ -366,7 +366,7 @@ CREATE TABLE commits (
 
 ## 8. ⚡ PERFORMANCE CHARACTERISTICS
 
-**Note:** Statistics based on example-project.com project as of 2025-11-25.
+**Note:** Statistics based on example.com project as of 2025-11-25.
 
 ### Indexing Performance
 
@@ -398,7 +398,7 @@ CREATE TABLE commits (
 
 ### Disk Space
 
-**For example-project.com project:**
+**For example.com project:**
 
 - **Original code:** ~2-5 MB
 - **Vector database:** ~50-100 MB
@@ -422,7 +422,7 @@ CREATE TABLE commits (
 
 ### Current Limits
 
-**example-project.com project:**
+**example.com project:**
 
 - **Files:** 249 files
 - **Code blocks:** 496 chunks

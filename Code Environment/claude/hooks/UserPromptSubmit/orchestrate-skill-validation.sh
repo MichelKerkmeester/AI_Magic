@@ -125,16 +125,11 @@ fi
 # READ-ONLY DETECTION - Skip parallel dispatch for non-implementation
 # ───────────────────────────────────────────────────────────────
 # Exit early for prompts that are read-only: questions, analysis,
-# verification, tool operations (mnemo), documentation review.
+# verification, documentation review.
 # These don't benefit from parallel dispatch complexity calculation.
 
 is_read_only_prompt() {
   local text="$1"
-
-  # Tool-only operations (mnemo, cache, etc.) - include typos
-  if echo "$text" | grep -qiE "(use (mnemo|menmo|memno)|offload.*(context|to)|load.*(into|to).*(cache|mnemo)|context.*(load|query|list)|query.*(mnemo|cache))"; then
-    return 0
-  fi
 
   # Verification/checking of documentation or skills
   if echo "$text" | grep -qiE "(double[[:space:]]*check|verify|check).*(readme|skill|documentation|hook|docs|opencode|claude)"; then

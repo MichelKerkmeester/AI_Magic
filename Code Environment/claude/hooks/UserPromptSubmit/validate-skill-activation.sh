@@ -25,6 +25,11 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 source "$SCRIPT_DIR/../lib/output-helpers.sh" || exit 0
 source "$SCRIPT_DIR/../lib/signal-output.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/../lib/skill-relevance-scorer.sh" 2>/dev/null || true
+
+# Feature flag: Enable numeric scoring (vs binary matching)
+# Set to "true" to use new 0-100 scoring system
+USE_NUMERIC_SCORING="${CLAUDE_SKILL_SCORING:-true}"
 
 # Cross-platform nanosecond timing helper
 _get_nano_time() {
@@ -79,40 +84,47 @@ fi
 validate_json "$SKILL_RULES" || exit 0
 
 # ───────────────────────────────────────────────────────────────
-# PERFORMANCE: PRE-COMPILED SKILL DATA CACHE (90% IMPROVEMENT)
+# PERFORMANCE: PRE-COMPILED SKILL DATA CACHE
 # ───────────────────────────────────────────────────────────────
-# Cache ALL skill data in shell-sourceable format to eliminate
-# 100+ jq subprocess spawns. Single jq execution builds cache.
-# Target: <100ms execution (from 5160ms baseline = 98% reduction)
+# When USE_NUMERIC_SCORING=true: Use skill-relevance-scorer.sh (direct jq)
+# When USE_NUMERIC_SCORING=false: Use cached shell variables (legacy)
+#
+# The scoring system reads config directly via jq which is fast enough
+# for the weighted scoring approach. Legacy cache only needed for
+# binary matching with 100+ jq subprocess spawns.
 
 CACHE_DIR="/tmp/claude_hooks_cache"
-CACHE_KEY=$(echo -n "$SKILL_RULES" | cksum | cut -d' ' -f1)
-CACHE_FILE="$CACHE_DIR/skill_data_${CACHE_KEY}.sh"
 mkdir -p "$CACHE_DIR" 2>/dev/null
 
-# Get file modification time (platform-independent)
-if [[ "$(uname)" == "Darwin" ]]; then
-  # macOS
-  RULES_MTIME=$(stat -f %m "$SKILL_RULES" 2>/dev/null || echo "0")
-else
-  # Linux
-  RULES_MTIME=$(stat -c %Y "$SKILL_RULES" 2>/dev/null || echo "0")
-fi
+# Skip heavy cache building when using numeric scoring
+if [ "$USE_NUMERIC_SCORING" != "true" ] || ! type score_all_skills &>/dev/null; then
+  # Legacy mode or scoring unavailable - use shell variable cache
+  CACHE_KEY=$(echo -n "$SKILL_RULES" | cksum | cut -d' ' -f1)
+  CACHE_FILE="$CACHE_DIR/skill_data_${CACHE_KEY}.sh"
 
-# Check if cache exists and is valid
-USE_CACHE=false
-if [[ -f "$CACHE_FILE" ]]; then
-  CACHED_MTIME=$(head -n1 "$CACHE_FILE" 2>/dev/null | grep -oE '[0-9]+' | head -1)
-  if [[ "$CACHED_MTIME" == "$RULES_MTIME" ]]; then
-    USE_CACHE=true
+  # Get file modification time (platform-independent)
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS
+    RULES_MTIME=$(stat -f %m "$SKILL_RULES" 2>/dev/null || echo "0")
+  else
+    # Linux
+    RULES_MTIME=$(stat -c %Y "$SKILL_RULES" 2>/dev/null || echo "0")
   fi
-fi
 
-# Build or load cache
-if [[ "$USE_CACHE" == "true" ]]; then
-  # Load pre-compiled cache (instant, no jq subprocess)
-  source "$CACHE_FILE" 2>/dev/null || USE_CACHE=false
-fi
+  # Check if cache exists and is valid
+  USE_CACHE=false
+  if [[ -f "$CACHE_FILE" ]]; then
+    CACHED_MTIME=$(head -n1 "$CACHE_FILE" 2>/dev/null | grep -oE '[0-9]+' | head -1)
+    if [[ "$CACHED_MTIME" == "$RULES_MTIME" ]]; then
+      USE_CACHE=true
+    fi
+  fi
+
+  # Build or load cache
+  if [[ "$USE_CACHE" == "true" ]]; then
+    # Load pre-compiled cache (instant, no jq subprocess)
+    source "$CACHE_FILE" 2>/dev/null || USE_CACHE=false
+  fi
 
 if [[ "$USE_CACHE" == "false" ]]; then
   # Cache miss or invalid - rebuild with SINGLE jq execution
@@ -193,6 +205,8 @@ if [ -z "${SKILL_NAMES[*]}" ]; then
   SKILL_NAMES=($SKILL_NAMES)
 fi
 
+fi  # End of legacy mode block (USE_NUMERIC_SCORING != true)
+
 # Convert prompt to lowercase for case-insensitive matching
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
@@ -205,7 +219,6 @@ MATCHED_SKILLS=()
 
 # Check if prompt is a question (no modification intent)
 # PRIORITY-BASED DETECTION:
-# 0. Read-only tool operations (mnemo, offload, cache) - NOT implementation
 # 0.1. Explanatory phrases override implementation keywords (explanation request)
 # 0.2. Read-only analysis of EXISTING content (specs, files) - NOT implementation
 # 0.5. Analysis+issue patterns (likely leads to fixes) - IS implementation
@@ -213,13 +226,6 @@ MATCHED_SKILLS=()
 # 2. Pure question patterns without implementation keywords (read-only question)
 is_question_prompt() {
   local text="$1"
-
-  # Priority 0: Check for tool-only operations (read-only by nature)
-  # These are tool invocations, NOT implementation requests
-  # Include common typos: menmo/memno for mnemo
-  if echo "$text" | grep -qiE "(use (mnemo|menmo|memno)|offload.*(context|to)|load.*(into|to).*(cache|mnemo|menmo)|context.*(load|query|list)|query.*(mnemo|menmo|cache))"; then
-    return 0  # Is read-only (tool operation)
-  fi
 
   # Priority 0.05: Check for verification/checking of documentation or skills
   # "double check", "verify", "check" + readme/skill/docs/hook = read-only review
@@ -699,41 +705,61 @@ DOC_SCOPE_LOC=${DOC_SCOPE_REMAINDER%%|*}
 DOC_SCOPE_REASON=${DOC_SCOPE_INFO##*|}
 NEXT_SPEC_NUMBER=$(calculate_next_spec_number)
 
-# Iterate through all skills using cached data
-for skill_name in "${SKILL_NAMES[@]}"; do
-  if [ -z "$skill_name" ]; then
-    continue
+# ───────────────────────────────────────────────────────────────
+# NUMERIC SCORING MODE (NEW - 0-100 scores vs binary matching)
+# ───────────────────────────────────────────────────────────────
+if [ "$USE_NUMERIC_SCORING" = "true" ] && type score_all_skills &>/dev/null; then
+  # Use new scoring system
+  SCORED_SKILLS_JSON=$(score_all_skills "$PROMPT" "$SKILL_RULES" 2>/dev/null)
+  
+  # Check if we got valid results
+  if [ -n "$SCORED_SKILLS_JSON" ] && [ "$SCORED_SKILLS_JSON" != "[]" ]; then
+    # Convert scored JSON to MATCHED_SKILLS array for backward compatibility
+    while IFS= read -r skill_name; do
+      [ -n "$skill_name" ] && MATCHED_SKILLS+=("$skill_name")
+    done < <(echo "$SCORED_SKILLS_JSON" | jq -r '.[].name' 2>/dev/null)
+    
+    # Store scores for later use in output
+    SKILL_SCORES_JSON="$SCORED_SKILLS_JSON"
   fi
+else
+  # Fallback: Use original binary matching (LEGACY MODE)
+  # Iterate through all skills using cached data
+  for skill_name in "${SKILL_NAMES[@]}"; do
+    if [ -z "$skill_name" ]; then
+      continue
+    fi
 
-  # Get cached skill data using variable indirection
-  # Compute var_prefix ONCE per skill using optimized tr (single subprocess)
-  var_prefix=$(echo "$skill_name" | tr '[:lower:]-' '[:upper:]_')
-  var_prefix="SKILL_${var_prefix}"
-  always_var="${var_prefix}_ALWAYS"
+    # Get cached skill data using variable indirection
+    # Compute var_prefix ONCE per skill using optimized tr (single subprocess)
+    var_prefix=$(echo "$skill_name" | tr '[:lower:]-' '[:upper:]_')
+    var_prefix="SKILL_${var_prefix}"
+    always_var="${var_prefix}_ALWAYS"
 
-  if [ "${!always_var}" = "true" ]; then
-    MATCHED_SKILLS+=("$skill_name")
-    continue
-  fi
+    if [ "${!always_var}" = "true" ]; then
+      MATCHED_SKILLS+=("$skill_name")
+      continue
+    fi
 
-  # Check keyword matches (pass pre-computed var_prefix)
-  if check_keywords "$var_prefix"; then
-    MATCHED_SKILLS+=("$skill_name")
-    continue
-  fi
+    # Check keyword matches (pass pre-computed var_prefix)
+    if check_keywords "$var_prefix"; then
+      MATCHED_SKILLS+=("$skill_name")
+      continue
+    fi
 
-  # Check intent pattern matches (pass pre-computed var_prefix)
-  if check_intent_patterns "$var_prefix"; then
-    MATCHED_SKILLS+=("$skill_name")
-    continue
-  fi
+    # Check intent pattern matches (pass pre-computed var_prefix)
+    if check_intent_patterns "$var_prefix"; then
+      MATCHED_SKILLS+=("$skill_name")
+      continue
+    fi
 
-  # Check file context matches (pass pre-computed var_prefix)
-  if check_file_context "$var_prefix"; then
-    MATCHED_SKILLS+=("$skill_name")
-    continue
-  fi
-done
+    # Check file context matches (pass pre-computed var_prefix)
+    if check_file_context "$var_prefix"; then
+      MATCHED_SKILLS+=("$skill_name")
+      continue
+    fi
+  done
+fi
 
 # ───────────────────────────────────────────────────────────────
 # GENERATE SKILL ACTIVATION MESSAGE
@@ -788,7 +814,9 @@ for skill in "${MATCHED_SKILLS[@]}"; do
         phase_sections="${SKILL_WORKFLOWS_CODE_PHASE_VERIFY_SECTIONS}"
         ;;
     esac
-    description="$description | Start with ${DETECTED_PHASE^} Phase ($phase_sections): $phase_desc"
+    # Bash 3.2 compatible uppercase first letter (no 'local' - we're in global scope)
+    phase_capitalized="$(echo "${DETECTED_PHASE:0:1}" | tr '[:lower:]' '[:upper:]')${DETECTED_PHASE:1}"
+    description="$description | Start with $phase_capitalized Phase ($phase_sections): $phase_desc"
   fi
 
   case "$priority" in
@@ -813,8 +841,24 @@ done
 # DISPLAY MANDATORY SKILLS TO USER
 # ───────────────────────────────────────────────────────────────
 
-# Display MANDATORY priority skills to user (others logged only)
-if [ ${#CRITICAL_SKILLS[@]} -gt 0 ]; then
+# Display skills to user - use scored output if available
+if [ -n "$SKILL_SCORES_JSON" ] && [ "$SKILL_SCORES_JSON" != "[]" ]; then
+  # NEW: Use scored skills output with numeric scores
+  print_scored_skills "$SKILL_SCORES_JSON"
+  
+  # Also show as visible systemMessage for Claude Code
+  print_scored_skills_visible "$SKILL_SCORES_JSON"
+  
+  # Check if conversation-documentation is in results
+  if echo "$SKILL_SCORES_JSON" | jq -e '.[] | select(.name == "conversation-documentation")' &>/dev/null; then
+    CONV_DOC_REQUIRED=true
+  fi
+  
+  if [ "$CONV_DOC_REQUIRED" = true ]; then
+    print_conversation_doc_guidance
+  fi
+elif [ ${#CRITICAL_SKILLS[@]} -gt 0 ]; then
+  # LEGACY: Display MANDATORY priority skills to user (others logged only)
   # Build systemMessage for visible output
   SKILL_MSG="🔴 MANDATORY SKILLS - MUST BE APPLIED:\\n"
   SKILL_MSG="${SKILL_MSG}⚠️  Proceeding without these skills will result in incomplete/incorrect implementation.\\n\\n"
@@ -837,7 +881,9 @@ if [ ${#CRITICAL_SKILLS[@]} -gt 0 ]; then
   done
   
   # Output as systemMessage JSON for Claude Code visibility
-  echo "{\"systemMessage\": \"${SKILL_MSG}\"}"
+  # JSON-escape the message to prevent injection (escape backslashes, quotes, newlines)
+  SKILL_MSG_ESCAPED=$(printf '%s' "$SKILL_MSG" | sed 's/\\/\\\\/g; s/"/\\"/g; s/	/\\t/g')
+  echo "{\"systemMessage\": \"${SKILL_MSG_ESCAPED}\"}"
 
   # NEW: Add evaluation requirement
   print_skill_evaluation_requirement "${CRITICAL_SKILLS[@]}"
@@ -868,41 +914,53 @@ TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
   echo "[$TIMESTAMP] SKILL RECOMMENDATIONS"
   echo "$SEPARATOR"
   echo "Prompt: ${PROMPT:0:100}..."
+  if [ -n "$SKILL_SCORES_JSON" ]; then
+    echo "Mode: Numeric Scoring"
+  else
+    echo "Mode: Binary Matching (Legacy)"
+  fi
   echo "$SEPARATOR"
 
-
-  # Format output by priority
-  if [ ${#CRITICAL_SKILLS[@]} -gt 0 ]; then
+  # Format output by priority - with scores if available
+  if [ -n "$SKILL_SCORES_JSON" ] && [ "$SKILL_SCORES_JSON" != "[]" ]; then
+    # NEW: Log with scores
     echo ""
-    echo "🔴 MANDATORY (Must Apply)"
-    for item in "${CRITICAL_SKILLS[@]}"; do
-      skill_name=$(echo "$item" | cut -d'|' -f1)
-      desc=$(echo "$item" | cut -d'|' -f2)
-      echo "   • $skill_name"
-      echo "     $desc"
-    done
-  fi
+    echo "Scored Skills (threshold: 30):"
+    echo "$SKILL_SCORES_JSON" | jq -r '.[] | "   \(.score)/100 \(.priority | ascii_upcase) \(.name)"' 2>/dev/null
+  else
+    # LEGACY: Log by priority category
+    if [ ${#CRITICAL_SKILLS[@]} -gt 0 ]; then
+      echo ""
+      echo "🔴 MANDATORY (Must Apply)"
+      for item in "${CRITICAL_SKILLS[@]}"; do
+        skill_name=$(echo "$item" | cut -d'|' -f1)
+        desc=$(echo "$item" | cut -d'|' -f2)
+        echo "   • $skill_name"
+        echo "     $desc"
+      done
+    fi
 
-  if [ ${#HIGH_SKILLS[@]} -gt 0 ]; then
-    echo ""
-    echo "🟡 HIGH PRIORITY (Strongly Recommended)"
-    for item in "${HIGH_SKILLS[@]}"; do
-      skill_name=$(echo "$item" | cut -d'|' -f1)
-      desc=$(echo "$item" | cut -d'|' -f2)
-      echo "   • $skill_name"
-      echo "     $desc"
-    done
-  fi
+    if [ ${#HIGH_SKILLS[@]} -gt 0 ]; then
+      echo ""
+      echo "🟡 HIGH PRIORITY (Strongly Recommended)"
+      for item in "${HIGH_SKILLS[@]}"; do
+        skill_name=$(echo "$item" | cut -d'|' -f1)
+        desc=$(echo "$item" | cut -d'|' -f2)
+        echo "   • $skill_name"
+        echo "     $desc"
+      done
+    fi
 
-  if [ ${#MEDIUM_SKILLS[@]} -gt 0 ]; then
-    echo ""
-    echo "🔵 RELEVANT SKILLS (Consider)"
-    for item in "${MEDIUM_SKILLS[@]}"; do
-      skill_name=$(echo "$item" | cut -d'|' -f1)
-      desc=$(echo "$item" | cut -d'|' -f2)
-      echo "   • $skill_name"
-      echo "     $desc"
-    done
+    if [ ${#MEDIUM_SKILLS[@]} -gt 0 ]; then
+      echo ""
+      echo "🔵 RELEVANT SKILLS (Consider)"
+      for item in "${MEDIUM_SKILLS[@]}"; do
+        skill_name=$(echo "$item" | cut -d'|' -f1)
+        desc=$(echo "$item" | cut -d'|' -f2)
+        echo "   • $skill_name"
+        echo "     $desc"
+      done
+    fi
   fi
 
   echo ""
@@ -915,7 +973,9 @@ END_TIME=$(_get_nano_time)
 DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
 # Ensure log directory exists
 [ -d "$HOOKS_DIR/logs" ] || mkdir -p "$HOOKS_DIR/logs" 2>/dev/null
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] validate-skill-activation.sh ${DURATION}ms (${#MATCHED_SKILLS[@]} matched)" >> "$HOOKS_DIR/logs/performance.log"
+SCORING_MODE="scored"
+[ -z "$SKILL_SCORES_JSON" ] && SCORING_MODE="binary"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] validate-skill-activation.sh ${DURATION}ms (${#MATCHED_SKILLS[@]} matched, $SCORING_MODE)" >> "$HOOKS_DIR/logs/performance.log"
 
 # Allow the request to proceed silently (exit 0)
 exit 0

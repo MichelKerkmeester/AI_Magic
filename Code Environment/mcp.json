@@ -42,19 +42,6 @@
         "MCP_CODEBASE_JUDGE_TEMPERATURE": "0"
       },
       "disabled": false
-    },
-    "mnemo": {
-      "command": "/path/to/.bun/bin/bun",
-      "args": [
-        "run",
-        "/path/to/mcp-servers/mnemo/packages/local/src/stdio.ts"
-      ],
-      "env": {
-        "GEMINI_API_KEY": "your-api-key-here",
-        "MNEMO_PORT": "8080",
-        "MNEMO_DIR": "~/.mnemo"
-      },
-      "disabled": false
     }
   }
 }
