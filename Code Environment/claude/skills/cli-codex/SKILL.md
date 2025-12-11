@@ -1,8 +1,8 @@
 ---
 name: cli-codex
 description: Wield OpenAI's Codex CLI as a powerful auxiliary tool for code generation, review, analysis, and parallel processing. Use when tasks benefit from a second AI perspective, alternative implementation approaches, or specialized code generation. Also use when user explicitly requests Codex operations.
-allowed-tools: [Bash, Read, Write, Grep, Glob]
-version: 1.0.0
+allowed-tools: [Bash, Read, Write, Grep, Glob, AskUserQuestion, mcp__semantic_memory__memory_search]
+version: 2.0.0
 ---
 
 <!-- Keywords: cli-codex, openai-codex, code-generation, code-review, parallel-processing, second-opinion, test-generation, ai-orchestration -->
@@ -10,6 +10,39 @@ version: 1.0.0
 # Codex CLI Integration Skill
 
 Enable Claude Code to effectively orchestrate OpenAI Codex CLI (v0.58.0+) with GPT-5.1 Codex for code generation, review, analysis, and specialized tasks requiring a second AI perspective.
+
+---
+
+## 🚀 QUICK START: Slash Commands
+
+**Prefer using these slash commands over raw CLI calls:**
+
+| Command | Description | SpecKit | Best For |
+|---------|-------------|---------|----------|
+| `/cli:codex` | Interactive Codex query with gates | **Required** | Tracked queries with memory |
+| `/cli:codex_quick` | Fast Codex query, no prompts | None | Quick one-off queries |
+
+### Command Examples
+
+```bash
+# Full interactive mode (SpecKit required)
+/cli:codex Review auth.ts for XSS vulnerabilities :review
+/cli:codex Create a debounce hook :generate
+/cli:codex Explain this recursive algorithm :explain
+
+# Quick mode (no spec tracking)
+/cli:codex_quick Why is this returning undefined?
+/cli:codex_quick Implement error handling :generate
+```
+
+### When to Use Each
+
+| Use `/cli:codex` when... | Use `/cli:codex_quick` when... |
+|--------------------------|--------------------------------|
+| Working on tracked feature | Quick one-off question |
+| Want memory integration | Speed is priority |
+| Need spec folder context | No tracking needed |
+| Building documentation trail | Simple analysis tasks |
 
 ---
 
@@ -552,20 +585,20 @@ trust_level = "trusted"
 - Security review, architecture validation, performance optimization
 - Pattern: Claude implements → Codex reviews → Fix issues → Test
 
-**code-review** (if exists):
-- Use cli-codex for second-opinion code reviews
-- Complement Claude's review with Codex's perspective
-- Identify issues Claude may have missed
+**workflows-spec-kit**:
+- `/cli:codex` integrates with spec folders automatically
+- Queries are saved to `specs/XXX/memory/` for context preservation
+- Use `/spec_kit:complete` for full feature workflows with Codex assistance
 
-**bug-hunting** (if exists):
-- Leverage Codex's alternative analysis perspective
-- Cross-validate bug identification
-- Find edge cases through different reasoning
+**workflows-memory**:
+- Codex query results saved via `/cli:codex` command
+- Semantic search finds related previous queries
+- Context loading enriches follow-up queries
 
-**test-generation** (if exists):
-- Use Codex to generate comprehensive test suites
-- Parallel test generation while Claude works on implementation
-- Alternative test approaches for coverage
+**cli-gemini**:
+- Use for web research (Gemini has Google Search)
+- Use for codebase architecture analysis (codebase_investigator)
+- Compare perspectives: `/cli:codex` for deep reasoning, `/cli:gemini` for web info
 
 ### Tool Usage Guidelines
 
@@ -608,4 +641,46 @@ trust_level = "trusted"
 
 ---
 
+---
+
+## 7. 🔗 SLASH COMMAND REFERENCE
+
+### `/cli:codex` - Interactive Query (SpecKit Required)
+
+**Flow:**
+```
+/cli:codex [query] [:type]
+    │
+    ├─► GATE 0: Query validation
+    ├─► GATE 1: Spec folder selection (A/B/C/D)
+    ├─► GATE 2: Memory context loading
+    ├─► Execute Codex CLI
+    └─► MANDATORY: Save to spec_folder/memory/
+```
+
+**Types:** `:review`, `:generate`, `:analyze`, `:explain`, `:debug`, `:refactor`
+
+**Output includes:**
+- Spec folder association
+- Loaded context (if any)
+- Full Codex response with thinking
+- Auto-saved memory file path
+
+### `/cli:codex_quick` - Fast Query (No Tracking)
+
+**Flow:**
+```
+/cli:codex_quick [query] [:type]
+    │
+    ├─► Auto-detect type from keywords
+    ├─► Execute Codex CLI immediately
+    └─► Display raw response (no save)
+```
+
+**Best for:** Quick questions, one-off analysis, speed-critical tasks
+
+---
+
 **Remember**: This skill operates as a specialized auxiliary intelligence. It provides alternative perspectives, parallel processing, and specialized code generation to enhance development.
+
+**Prefer slash commands** (`/cli:codex`, `/cli:codex_quick`) over raw `codex exec` calls for better integration with SpecKit and memory systems.

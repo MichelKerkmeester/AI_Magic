@@ -13,6 +13,35 @@ Enable Claude Code to effectively orchestrate Gemini CLI (v0.16.0+) with Gemini 
 
 ---
 
+## 🚀 QUICK START: Slash Commands
+
+**Recommended way to use this skill:**
+
+| Command | Description | SpecKit | Best For |
+|---------|-------------|---------|----------|
+| `/cli:gemini` | Interactive Gemini query with gates | **Required** | Tracked queries with memory |
+| `/cli:gemini_quick` | Fast Gemini query, no prompts | None | Quick one-off queries |
+
+**Usage Flow:**
+```
+/cli:gemini [query] [:review|:generate|:analyze|:research]
+    │
+    ├─► Prompts for spec folder selection
+    ├─► Loads relevant memory context
+    ├─► Executes Gemini query
+    └─► Saves response to spec memory (mandatory)
+
+/cli:gemini_quick [query] [:type]
+    │
+    └─► Direct execution, no tracking
+```
+
+**When to use which:**
+- **`/cli:gemini`**: Research sessions, architecture analysis, tracked investigations
+- **`/cli:gemini_quick`**: Quick web searches, fast lookups, disposable queries
+
+---
+
 ## 1. 🎯 WHEN TO USE
 
 ### Ideal Use Cases
@@ -450,26 +479,26 @@ Create `.gemini/GEMINI.md` in project root for persistent context that Gemini wi
 
 ### Related Skills
 
+**workflows-spec-kit**:
+- `/cli:gemini` requires SpecKit integration for memory tracking
+- Queries are saved to spec folder memory
+- Use `/spec_kit:resume` to continue tracked work
+
+**workflows-memory**:
+- Gemini query responses auto-saved to spec memory
+- Use `/memory:search` to find past Gemini results
+- Semantic search across all saved contexts
+
+**cli-codex**:
+- Companion CLI skill for OpenAI Codex
+- Use Codex for deep reasoning, Gemini for web search
+- Both integrate with SpecKit for memory tracking
+
 **workflows-code**:
 - Use cli-gemini as optional verification step in Phase 3
 - Get second opinion before browser testing
 - Security review, architecture validation, performance optimization
 - See [workflows-code](../workflows-code/SKILL.md) Section 3 "Phase 3: Verification - Alternative Verification: Gemini CLI"
-
-**code-review** (if exists):
-- Use cli-gemini for second-opinion code reviews
-- Complement Claude's review with Gemini's perspective
-- Identify issues Claude may have missed
-
-**bug-hunting** (if exists):
-- Leverage Gemini's alternative analysis perspective
-- Cross-validate bug identification
-- Find edge cases through different reasoning
-
-**test-generation** (if exists):
-- Use Gemini to generate comprehensive test suites
-- Parallel test generation while Claude works on implementation
-- Alternative test approaches for coverage
 
 ### Tool Usage Guidelines
 
@@ -589,6 +618,112 @@ done
 - Context missing: Use `.gemini/GEMINI.md` for project context
 
 **Solution**: Iterate prompt with more explicit instructions
+
+---
+
+## 8. 🔗 SLASH COMMAND REFERENCE
+
+### Command Comparison
+
+| Feature | `/cli:gemini` | `/cli:gemini_quick` |
+|---------|---------------|---------------------|
+| SpecKit Integration | **Required** | None |
+| Memory Save | **Mandatory** | None |
+| Interactive Gates | 3 gates | None |
+| Best Model | Default | Default |
+| Use Case | Tracked research | Quick lookups |
+
+### `/cli:gemini` Flow
+
+```
+User Invokes /cli:gemini [query]
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ GATE 0: Query Input Validation      │
+│ ├─ If empty: Prompt for query       │
+│ └─ If provided: Store and continue  │
+└─────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ GATE 1: Spec Folder Selection       │
+│ ├─ A) Use active spec               │
+│ ├─ B) Use existing spec folder      │
+│ ├─ C) Create new spec folder        │
+│ └─ D) Quick mode → Redirect         │
+└─────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ GATE 2: Memory Context Loading      │
+│ ├─ Search for related memories      │
+│ └─ Load context if found            │
+└─────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ Execute Gemini Query                │
+│ gemini "[query]" --yolo -o text     │
+└─────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ MANDATORY: Save to Memory           │
+│ {spec}/memory/{timestamp}__gemini.md│
+└─────────────────────────────────────┘
+```
+
+### `/cli:gemini_quick` Flow
+
+```
+User Invokes /cli:gemini_quick [query]
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ Parse Query Type                    │
+│ ├─ :review → Review mode            │
+│ ├─ :generate → Generate mode        │
+│ ├─ :analyze → codebase_investigator │
+│ └─ :research → google_web_search    │
+└─────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ Execute Immediately                 │
+│ gemini "[prefix] [query]" --yolo    │
+└─────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ Display Raw Output                  │
+│ (No memory save, no tracking)       │
+└─────────────────────────────────────┘
+```
+
+### Query Type Modifiers
+
+| Modifier | Gemini Tool | Use Case |
+|----------|-------------|----------|
+| `:review` | — | Security audit, bug hunting |
+| `:generate` | — | Create new code |
+| `:analyze` | codebase_investigator | Architecture analysis |
+| `:research` | google_web_search | Current web info |
+
+### Example Usage
+
+**Tracked queries (with memory):**
+```bash
+/cli:gemini What are the latest Next.js 15 features? :research
+/cli:gemini Analyze the authentication architecture :analyze
+/cli:gemini Review src/auth.ts for security issues :review
+```
+
+**Quick queries (no tracking):**
+```bash
+/cli:gemini_quick What is React Server Components?
+/cli:gemini_quick Check this code :review
+```
 
 ---
 
