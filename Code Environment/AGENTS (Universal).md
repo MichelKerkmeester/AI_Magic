@@ -141,6 +141,8 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
    - "fresh start" / "skip memory" - Skip all context loading this session
    - "ask about memories" - Revert to interactive selection (default)
 
+> **Universal Note:** If hooks are not supported in your environment, manually run memory search commands before starting work in a spec folder. Feature parity: ~60% (commands work, automation requires manual steps).
+
 #### ⚡ Phase 1 Question Details (Q2)
 
 **Q2 (Task):** NEVER auto-dispatch parallel agents. 2+ domains = mandatory question. Domain examples: "feature + tests" (2), "refactor + docs + commit" (3).
@@ -162,7 +164,7 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
 | 11  | Skip Parallel Q        | 2+ domains            | Ask A/B/C before Task dispatch |
 | 12  | No Browser Test        | "works", "done"       | Browser verify first           |
 | 13  | Skip Checklist         | "complete" (L2+)      | Load checklist.md, verify all  |
-| 14  | Skip Memory            | "research", "explore" | Check memory files FIRST       |
+| 14  | Skip Memory            | "research", "explore" | memory search FIRST            |
 
 **Enforcement:** STOP → Acknowledge ("I was about to [pattern]") → Correct → Verify
 
@@ -178,6 +180,7 @@ When creating or editing skills:
 ## 2. 📝 MANDATORY: CONVERSATION DOCUMENTATION
 
 Every conversation that modifies files (code, documentation, configuration, templates, skills, etc.) MUST have a spec folder.
+**Full details**: workflows-spec-kit skill (if available in your environment)
 
 **What requires a spec folder:**
 - ✅ Code files
@@ -253,9 +256,11 @@ CHECKLIST VERIFICATION RULE (Level 2+):
 - `plan.md` → Technical implementation plan (ALL levels)
 - `tasks.md` → Task breakdown by user story (ALL levels)
 - `checklist.md` → Validation/QA checklists (Level 2+)
-- `decision-record.md` → Architecture Decision Records/ADRs (Level 3)
-- `research-spike.md` → Time-boxed research/PoC (Level 3 optional)
+- `decision-record.md` → Architecture Decision Records/ADRs (Level 3, prefix with topic)
+- `research-spike.md` → Time-boxed research/PoC (Level 3 optional, prefix with topic)
 - `research.md` → Comprehensive research documentation (Level 3 optional)
+- `handover.md` → Session handover for continuity (utility, any level)
+- `debug-delegation.md` → Debug task delegation to sub-agents (utility, any level)
 
 **Decision rules:**
 - **When in doubt → choose higher level** (better to over-document than under-document)
@@ -275,6 +280,41 @@ CHECKLIST VERIFICATION RULE (Level 2+):
 - **Archive**: Existing files moved to `001-{topic}/`
 - **New work**: Create sub-folder `002-{user-name}/`, `003-{user-name}/`, etc.
 - **Memory**: Each sub-folder has independent `memory/` context
+- **Example**:
+  ```
+  specs/122-skill-standardization/
+  ├── 001-original-work/  (auto-archived)
+  ├── 002-api-refactor/   (completed)
+  └── 003-bug-fixes/      (active)
+      ├── spec.md
+      ├── plan.md
+      ├── scratch/        # Temporary/exploratory files (git-ignored)
+      └── memory/
+  ```
+
+### Scratch vs Memory: When to Use Each
+
+| Write to...     | When...                                          | Examples                                                               |
+| --------------- | ------------------------------------------------ | ---------------------------------------------------------------------- |
+| **scratch/**    | Content is temporary, exploratory, or disposable | Draft snippets, debug logs, test queries, prototypes, comparison files |
+| **memory/**     | Content preserves context for future sessions    | Decisions made, approaches tried, blockers found, session summaries    |
+| **spec folder** | Content is permanent documentation               | spec.md, plan.md, tasks.md, final implementation                       |
+
+**Decision Flow:**
+```
+Is this content disposable after the task?
+  YES → scratch/
+  NO  → Will future sessions need this context?
+          YES → memory/
+          NO  → spec folder (spec.md, plan.md, etc.)
+```
+
+**scratch/ Best Practices:**
+- Use for code snippets you're testing before committing
+- Store temporary investigation notes (delete when resolved)
+- Keep debug output/logs during troubleshooting
+- Draft content before moving to final location
+- **Clean up**: Delete scratch/ contents when task completes
 
 ### Enforcement Checkpoints
 1. **Collaboration First Rule** - Create before presenting
@@ -286,6 +326,8 @@ CHECKLIST VERIFICATION RULE (Level 2+):
    - Placeholder removal (hard block: `[PLACEHOLDER]`, `[NEEDS CLARIFICATION: ...]`)
    - Template source validation (warn if missing template markers)
    - Metadata completeness (level-specific required fields)
+
+**Note**: AI agent auto-creates folder. SpecKit command users: commands handle folder creation automatically.
 
 ---
 
