@@ -1,0 +1,411 @@
+# ───────────────────────────────────────────────────────────────────
+# CODEX CLI: SPECIALIZED WORKFLOW
+# ───────────────────────────────────────────────────────────────────
+# Workflow for executing queries against OpenAI's Codex CLI tool
+# Optimized for code generation, security analysis, and deep reasoning
+# ───────────────────────────────────────────────────────────────────
+
+role: Codex Query Executor
+purpose: Execute queries against OpenAI Codex CLI with optimized prompts
+action: Route query through Codex with appropriate flags and process response
+
+# ───────────────────────────────────────────────────────────────────
+# OPERATING MODE CONFIGURATION
+# ───────────────────────────────────────────────────────────────────
+operating_mode:
+  workflow: sequential_5_phase
+  workflow_compliance: MANDATORY
+  workflow_execution: automatic
+  tracking: query_progress_transparent
+  retry_on_failure: true
+  max_retries: 2
+
+# ───────────────────────────────────────────────────────────────────
+# CODEX TOOL CONFIGURATION
+# ───────────────────────────────────────────────────────────────────
+codex:
+  name: "Codex CLI"
+  provider: "OpenAI"
+  model: "gpt-5.1-codex"
+  description: "OpenAI's coding-focused model with deep reasoning capabilities"
+
+  strengths:
+    - "Deep reasoning with visible thinking process"
+    - "Complex code generation and refactoring"
+    - "Security vulnerability analysis"
+    - "Algorithm design and optimization"
+    - "Multi-file refactoring support"
+    - "Sandboxed code execution"
+
+  command_pattern: 'codex exec "{prompt}" --full-auto 2>&1'
+
+  flags:
+    full_auto:
+      flag: "--full-auto"
+      description: "Sandboxed auto-execution mode"
+      use_when: "Default for most queries"
+    read_only:
+      flag: "-s read-only"
+      description: "Safe analysis mode - no file modifications"
+      use_when: "Review, analyze, explain queries"
+    json_output:
+      flag: "--json"
+      description: "Structured JSON output"
+      use_when: "Need programmatic parsing"
+    approval_mode:
+      flag: "-a auto-edit"
+      description: "Auto-approve edits"
+      use_when: "Code generation with file writes"
+
+  session_management:
+    resume_last: "codex resume --last"
+    list_sessions: "codex sessions list"
+    resume_specific: "codex resume {session_id}"
+
+  rate_limits: "Varies by OpenAI API tier"
+  token_limits:
+    input: "~32K tokens"
+    output: "~16K tokens"
+
+# ───────────────────────────────────────────────────────────────────
+# QUERY TYPE CONFIGURATIONS
+# ───────────────────────────────────────────────────────────────────
+query_types:
+  review:
+    name: "Code Review"
+    description: "Review code for bugs, security issues, and improvements"
+    flags: "-s read-only"
+    prompt_prefix: |
+      Perform a comprehensive code review. Analyze for:
+      - Security vulnerabilities (OWASP Top 10)
+      - Bugs and edge cases
+      - Performance issues
+      - Code quality and best practices
+
+  generate:
+    name: "Code Generation"
+    description: "Generate production-ready code implementations"
+    flags: "--full-auto"
+    prompt_prefix: |
+      Generate production-ready code with:
+      - Complete implementation (no TODOs)
+      - TypeScript with strict types
+      - Proper error handling
+      - JSDoc documentation
+
+  analyze:
+    name: "Architecture Analysis"
+    description: "Analyze code structure, patterns, and dependencies"
+    flags: "-s read-only"
+    prompt_prefix: |
+      Analyze the code architecture:
+      - Design patterns used
+      - Module dependencies
+      - Coupling and cohesion
+      - Improvement opportunities
+
+  explain:
+    name: "Code Explanation"
+    description: "Explain code functionality in detail"
+    flags: "-s read-only"
+    prompt_prefix: |
+      Explain this code in detail:
+      - Purpose and functionality
+      - Step-by-step execution flow
+      - Key patterns and techniques
+      - Edge case handling
+
+  refactor:
+    name: "Refactoring Suggestions"
+    description: "Suggest code improvements and refactoring"
+    flags: "-s read-only"
+    prompt_prefix: |
+      Suggest refactoring improvements for:
+      - Readability and clarity
+      - Maintainability
+      - Performance optimization
+      - Type safety
+      Provide before/after comparisons.
+
+  debug:
+    name: "Debug Assistance"
+    description: "Help identify and fix bugs"
+    flags: "-s read-only"
+    prompt_prefix: |
+      Help debug this issue:
+      - Identify potential root causes
+      - Rank by likelihood
+      - Provide verification steps
+      - Suggest fixes for each cause
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 0: CLI VERIFICATION
+# ───────────────────────────────────────────────────────────────────
+phase_0_cli_verification:
+  phase_name: "CLI Tool Verification"
+  emoji: "🔍"
+  purpose: "Verify Codex CLI is installed and authenticated"
+
+  steps:
+    step_0_1_check_installation:
+      action: "Check Codex CLI availability"
+      command: "command -v codex && codex --version 2>&1 | head -1"
+      on_success: "codex_installed = true"
+      on_failure:
+        message: "Codex CLI not found"
+        suggestion: "Install from: https://github.com/openai/codex"
+        action: "ABORT with installation instructions"
+
+    step_0_2_check_authentication:
+      action: "Verify authentication status"
+      command: "codex auth status 2>&1"
+      on_success: "codex_authenticated = true"
+      on_failure:
+        message: "Codex authentication required"
+        fix_command: "codex auth login"
+        action: "ABORT with auth instructions"
+
+  outputs:
+    - codex_installed
+    - codex_authenticated
+    - codex_version
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 1: QUERY ANALYSIS
+# ───────────────────────────────────────────────────────────────────
+phase_1_query_analysis:
+  phase_name: "Query Analysis"
+  emoji: "📝"
+  purpose: "Parse query, detect type, select appropriate preset"
+
+  steps:
+    step_1_1_detect_query_type:
+      action: "Identify query type from keywords"
+      rules:
+        - pattern: "review|check|audit|bugs|vulnerabilities|security"
+          type: "review"
+        - pattern: "generate|create|implement|build|write|add"
+          type: "generate"
+        - pattern: "analyze|architecture|structure|dependencies"
+          type: "analyze"
+        - pattern: "explain|what does|how does|understand"
+          type: "explain"
+        - pattern: "refactor|improve|clean|optimize"
+          type: "refactor"
+        - pattern: "debug|fix|error|broken|issue|why"
+          type: "debug"
+      fallback: "generate"
+
+    step_1_2_select_preset:
+      action: "Choose optimal preset based on query analysis"
+      source: "codex_presets.yaml"
+      logic: "Match query keywords to preset rules"
+
+    step_1_3_extract_file_references:
+      action: "Identify files mentioned in query"
+      patterns:
+        - "file paths (src/, lib/, etc.)"
+        - "file extensions (*.ts, *.js, etc.)"
+        - "component names"
+      output: "files_to_include"
+
+  outputs:
+    - query_type
+    - selected_preset
+    - clean_query
+    - files_to_include
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 2: CONTEXT LOADING (OPTIONAL)
+# ───────────────────────────────────────────────────────────────────
+phase_2_context_loading:
+  phase_name: "Context Loading"
+  emoji: "🧠"
+  purpose: "Load relevant file content and context for the query"
+  optional: true
+
+  steps:
+    step_2_1_check_file_references:
+      condition: "files_to_include is not empty"
+      action: "Read referenced files"
+      tool: "Read"
+      note: "Include file content in prompt for better analysis"
+
+    step_2_2_check_spec_context:
+      action: "Check for active spec folder"
+      command: "cat .spec-active 2>/dev/null"
+      if_found: "Include relevant spec context"
+
+    step_2_3_prepare_context_block:
+      action: "Format context for inclusion in prompt"
+      format: |
+        ## Context
+        ### Referenced Files
+        {file_contents}
+
+        ### Active Spec
+        {spec_context}
+
+  outputs:
+    - file_contents
+    - spec_context
+    - context_block
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 3: QUERY EXECUTION
+# ───────────────────────────────────────────────────────────────────
+phase_3_query_execution:
+  phase_name: "Query Execution"
+  emoji: "⚡"
+  purpose: "Execute formatted query against Codex CLI"
+
+  steps:
+    step_3_1_format_prompt:
+      action: "Combine preset template with query and context"
+      format: |
+        {preset_template}
+
+        {clean_query}
+
+        {context_block}
+
+    step_3_2_select_flags:
+      action: "Choose appropriate Codex flags"
+      logic: |
+        if query_type in ['review', 'analyze', 'explain']:
+          flags = "-s read-only"
+        elif query_type == 'generate':
+          flags = "--full-auto"
+        else:
+          flags = "--full-auto"
+
+    step_3_3_execute_codex:
+      action: "Run Codex CLI command"
+      tool: "Bash"
+      command: 'codex exec "{formatted_prompt}" {flags} 2>&1'
+      timeout: 120000  # 2 minutes
+      capture: "full_output"
+
+    step_3_4_handle_long_running:
+      condition: "execution exceeds 60 seconds"
+      action: "Monitor and report progress"
+      note: "Codex may take time for complex reasoning"
+
+  outputs:
+    - raw_output
+    - execution_time
+    - exit_code
+
+# ───────────────────────────────────────────────────────────────────
+# PHASE 4: RESPONSE PROCESSING
+# ───────────────────────────────────────────────────────────────────
+phase_4_response_processing:
+  phase_name: "Response Processing"
+  emoji: "🔄"
+  purpose: "Parse, validate, and format Codex response"
+
+  steps:
+    step_4_1_parse_output:
+      action: "Extract response from Codex CLI output"
+      parsing_rules:
+        skip_header: "Skip metadata (workdir, model, session info)"
+        extract_thinking: "Capture 'thinking' section if present"
+        extract_response: "Capture 'codex' section as main response"
+        extract_tokens: "Parse token usage from footer"
+
+    step_4_2_validate_code_output:
+      condition: "query_type == 'generate'"
+      action: "Validate generated code"
+      checks:
+        - "No hardcoded secrets or API keys"
+        - "No dangerous system calls (rm -rf, etc.)"
+        - "No obvious injection vulnerabilities"
+        - "Proper error handling present"
+      on_issue: "Flag for user review with warning"
+
+    step_4_3_format_response:
+      action: "Format response for presentation"
+      template: |
+        ## Codex Response
+
+        **Query Type**: {query_type}
+        **Execution Time**: {execution_time}s
+        **Tokens Used**: {token_usage}
+
+        ---
+
+        {processed_response}
+
+        ---
+
+        {warnings_if_any}
+
+    step_4_4_extract_key_findings:
+      action: "Summarize key points"
+      extract:
+        - "Main recommendations"
+        - "File paths mentioned"
+        - "Action items"
+        - "Warnings or concerns"
+
+  outputs:
+    - processed_response
+    - thinking_section
+    - key_findings
+    - validation_warnings
+    - token_usage
+
+# ───────────────────────────────────────────────────────────────────
+# COMPLETION CRITERIA
+# ───────────────────────────────────────────────────────────────────
+completion:
+  success_criteria:
+    - "Codex CLI verified and accessible"
+    - "Query executed without errors"
+    - "Response parsed successfully"
+    - "Results formatted and presented"
+
+  status_codes:
+    OK: "Query completed successfully"
+    FAIL: "Query failed - see error details"
+    TIMEOUT: "Query timed out after 120 seconds"
+    AUTH_ERROR: "Authentication failed"
+    RATE_LIMIT: "Rate limit exceeded"
+
+  final_output:
+    format: "STATUS={status} TOOL=codex TYPE={query_type} TIME={execution_time}s TOKENS={token_usage}"
+
+# ───────────────────────────────────────────────────────────────────
+# ERROR HANDLING
+# ───────────────────────────────────────────────────────────────────
+error_handling:
+  cli_not_found:
+    message: "Codex CLI not installed"
+    action: |
+      Install Codex CLI:
+      1. Visit: https://github.com/openai/codex
+      2. Follow installation instructions
+      3. Run: codex auth login
+
+  authentication_error:
+    message: "Codex authentication failed"
+    fix_command: "codex auth login"
+    note: "Ensure valid OpenAI API key is configured"
+
+  timeout:
+    message: "Query timed out after 120 seconds"
+    actions:
+      - "Check for partial output"
+      - "Suggest simplifying the query"
+      - "Offer to retry with smaller scope"
+
+  rate_limit:
+    message: "OpenAI rate limit exceeded"
+    actions:
+      - "Check API tier limits"
+      - "Wait and retry after backoff"
+      - "Suggest upgrading API tier"
+
+  malformed_response:
+    message: "Could not parse Codex response"
+    action: "Display raw output for manual interpretation"

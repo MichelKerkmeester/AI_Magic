@@ -1,0 +1,530 @@
+# ───────────────────────────────────────────────────────────────────
+# CODEX CLI: OPTIMIZED PROMPT PRESETS
+# ───────────────────────────────────────────────────────────────────
+# Prompt templates optimized for Codex's deep reasoning capabilities
+# Leverages Codex strengths: code generation, security analysis, refactoring
+# ───────────────────────────────────────────────────────────────────
+
+version: "1.0.0"
+last_updated: "2025-12-11"
+tool: "codex"
+
+# ───────────────────────────────────────────────────────────────────
+# CODE REVIEW PRESETS
+# ───────────────────────────────────────────────────────────────────
+review:
+  default:
+    name: "General Code Review"
+    flags: "-s read-only"
+    template: |
+      Perform a comprehensive code review of the following:
+
+      {query}
+
+      Review Checklist:
+      1. **Security** (OWASP Top 10)
+         - SQL/Command injection vulnerabilities
+         - XSS risks
+         - Authentication/authorization issues
+         - Sensitive data exposure
+         - CSRF vulnerabilities
+
+      2. **Bugs & Logic**
+         - Edge cases not handled
+         - Race conditions
+         - Null/undefined handling
+         - Error propagation issues
+         - Off-by-one errors
+
+      3. **Performance**
+         - N+1 query patterns
+         - Unnecessary re-renders (React)
+         - Memory leaks
+         - Inefficient algorithms
+         - Missing caching opportunities
+
+      4. **Code Quality**
+         - Naming conventions
+         - Function length/complexity
+         - DRY violations
+         - SOLID principle violations
+         - Missing type annotations
+
+      Format each issue as:
+      - Severity: CRITICAL | HIGH | MEDIUM | LOW
+      - Location: file:line_number
+      - Issue: Description
+      - Fix: Recommended solution with code example
+
+  security:
+    name: "Security-Focused Review"
+    flags: "-s read-only"
+    template: |
+      Perform a security-focused code audit:
+
+      {query}
+
+      Security Analysis Focus:
+      1. **Input Validation**
+         - User input sanitization
+         - Type coercion vulnerabilities
+         - Path traversal risks
+         - File upload validation
+
+      2. **Authentication & Authorization**
+         - Session management
+         - JWT implementation flaws
+         - Role-based access control gaps
+         - API key handling
+         - Password storage
+
+      3. **Data Protection**
+         - Encryption at rest/transit
+         - PII exposure risks
+         - Logging sensitive data
+         - Data retention issues
+
+      4. **Injection Vulnerabilities**
+         - SQL injection
+         - NoSQL injection
+         - Command injection
+         - LDAP injection
+         - Template injection
+
+      5. **Third-Party Risks**
+         - Dependency vulnerabilities
+         - Insecure API usage
+         - Outdated packages
+
+      For each vulnerability:
+      - CVE reference (if applicable)
+      - CVSS score estimate
+      - Exploitation scenario
+      - Remediation code
+
+  performance:
+    name: "Performance Review"
+    flags: "-s read-only"
+    template: |
+      Analyze code performance:
+
+      {query}
+
+      Performance Analysis:
+      1. **Time Complexity**
+         - Big-O analysis of critical paths
+         - Identify O(n^2) or worse algorithms
+         - Loop optimization opportunities
+
+      2. **Space Complexity**
+         - Memory usage patterns
+         - Data structure efficiency
+         - Garbage collection pressure
+
+      3. **I/O Operations**
+         - Database query optimization
+         - Network request batching
+         - File system efficiency
+         - Connection pooling
+
+      4. **Caching Opportunities**
+         - Memoization candidates
+         - Cache invalidation strategy
+         - HTTP caching headers
+
+      5. **Async Patterns**
+         - Promise handling efficiency
+         - Parallel vs sequential execution
+         - Race condition risks
+
+      Provide:
+      - Current complexity estimate
+      - Optimized complexity target
+      - Before/after code samples
+      - Benchmarking suggestions
+
+# ───────────────────────────────────────────────────────────────────
+# CODE GENERATION PRESETS
+# ───────────────────────────────────────────────────────────────────
+generate:
+  default:
+    name: "General Code Generation"
+    flags: "--full-auto"
+    template: |
+      Generate production-ready code for:
+
+      {query}
+
+      Requirements:
+      - **Complete implementation** - No TODOs, placeholders, or stub code
+      - **TypeScript** - Use TypeScript with strict mode enabled
+      - **Error handling** - Comprehensive try/catch with typed errors
+      - **Types** - Explicit types, never use 'any'
+      - **Documentation** - JSDoc comments for public APIs
+      - **Testing hooks** - Design for testability (dependency injection)
+
+      Code Style:
+      - Use modern ES2022+ features
+      - Prefer async/await over callbacks
+      - Use const by default, let when reassignment needed
+      - Destructure objects and arrays
+      - Use optional chaining (?.) and nullish coalescing (??)
+      - Single responsibility functions
+      - Maximum 30 lines per function
+
+      Output complete code with file paths indicated.
+
+  react_component:
+    name: "React Component Generation"
+    flags: "--full-auto"
+    template: |
+      Generate a React component:
+
+      {query}
+
+      Component Specifications:
+      - **Framework**: React 18+ with hooks
+      - **Language**: TypeScript with strict types
+      - **Styling**: Tailwind CSS classes (responsive)
+      - **Props**: Fully typed interface with JSDoc descriptions
+      - **State**: Appropriate hooks (useState, useReducer, useContext)
+      - **Effects**: useEffect with proper cleanup functions
+      - **Memoization**: useMemo/useCallback where performance benefits
+      - **Accessibility**: ARIA attributes, keyboard navigation, focus management
+      - **Error Boundaries**: Consider error states
+
+      File Structure:
+      ```
+      ComponentName/
+      ├── types.ts          # Props, state, and internal types
+      ├── ComponentName.tsx # Main component implementation
+      ├── ComponentName.test.tsx # Jest + Testing Library tests
+      ├── hooks.ts          # Custom hooks (if needed)
+      └── index.ts          # Clean exports
+      ```
+
+      Include:
+      - Example usage in JSDoc
+      - Storybook story (optional)
+      - Responsive breakpoints (sm, md, lg, xl)
+
+  api_endpoint:
+    name: "API Endpoint Generation"
+    flags: "--full-auto"
+    template: |
+      Generate a REST API endpoint:
+
+      {query}
+
+      Endpoint Specifications:
+      - **Framework**: Express.js or Next.js API routes
+      - **Validation**: Zod schema validation for request body
+      - **Error Handling**: Consistent error response format
+      - **Authentication**: JWT middleware integration point
+      - **Rate Limiting**: Rate limit considerations
+      - **Logging**: Structured logging with correlation IDs
+      - **Documentation**: OpenAPI/Swagger comments
+
+      Required Files:
+      1. Route handler with full implementation
+      2. Request/response TypeScript types
+      3. Zod validation schema
+      4. Error types and handlers
+      5. Middleware (auth, validation)
+
+      Include:
+      - Example curl commands for testing
+      - Success and error response examples
+      - Rate limit headers
+
+  test_suite:
+    name: "Test Suite Generation"
+    flags: "--full-auto"
+    template: |
+      Generate a comprehensive test suite for:
+
+      {query}
+
+      Testing Framework: Jest + Testing Library
+
+      Coverage Requirements:
+      1. **Unit Tests**
+         - All public functions (100% coverage)
+         - Edge cases (empty, null, undefined, max values)
+         - Error conditions and thrown exceptions
+         - Boundary conditions
+
+      2. **Integration Tests**
+         - API endpoints with supertest
+         - Database operations with test fixtures
+         - External service mocks
+
+      3. **Component Tests** (if React)
+         - Initial render states
+         - User interactions (click, type, submit)
+         - Async operations (loading, success, error)
+         - Accessibility checks
+
+      Test Structure:
+      - Arrange-Act-Assert pattern
+      - Descriptive test names (should X when Y)
+      - Proper beforeEach/afterEach setup
+      - Mock isolation (jest.mock, jest.spyOn)
+      - Snapshot tests where appropriate
+
+      Output: Complete test file(s) with all test cases.
+
+# ───────────────────────────────────────────────────────────────────
+# ANALYSIS PRESETS
+# ───────────────────────────────────────────────────────────────────
+analyze:
+  architecture:
+    name: "Architecture Analysis"
+    flags: "-s read-only"
+    template: |
+      Analyze the codebase architecture:
+
+      {query}
+
+      Architecture Analysis Report:
+      1. **Project Structure**
+         - Directory organization pattern
+         - Module boundaries and interfaces
+         - Entry points and exports
+
+      2. **Architectural Patterns**
+         - Design patterns identified
+         - State management approach
+         - Data flow patterns (unidirectional, etc.)
+         - Dependency injection usage
+
+      3. **Code Organization**
+         - Layer separation (presentation, business, data)
+         - Domain boundaries
+         - Shared utilities structure
+
+      4. **Quality Metrics**
+         - Coupling assessment
+         - Cohesion analysis
+         - Cyclomatic complexity hotspots
+
+      5. **Recommendations**
+         - Architecture improvements
+         - Refactoring priorities
+         - Technical debt areas
+         - Scalability concerns
+
+      Include file paths with line numbers for key locations.
+
+  dependency:
+    name: "Dependency Analysis"
+    flags: "-s read-only"
+    template: |
+      Analyze dependencies:
+
+      {query}
+
+      Dependency Analysis:
+      1. **Direct Dependencies**
+         - Runtime dependencies (production)
+         - Development dependencies
+         - Peer dependencies
+
+      2. **Internal Module Graph**
+         - Module interdependencies
+         - Circular dependency detection
+         - Coupling metrics
+
+      3. **External Package Assessment**
+         - Version currency (outdated packages)
+         - Security vulnerabilities
+         - Maintenance status (last update, issues)
+         - License compatibility
+
+      4. **Bundle Impact**
+         - Size contribution per package
+         - Tree-shaking potential
+         - Lighter alternatives
+
+      5. **Upgrade Recommendations**
+         - Priority upgrades (security)
+         - Breaking change warnings
+         - Migration guides available
+
+# ───────────────────────────────────────────────────────────────────
+# SPECIAL PRESETS
+# ───────────────────────────────────────────────────────────────────
+explain:
+  default:
+    name: "Code Explanation"
+    flags: "-s read-only"
+    template: |
+      Explain this code in detail:
+
+      {query}
+
+      Explanation Structure:
+      1. **Purpose**
+         - What does this code accomplish?
+         - What problem does it solve?
+
+      2. **Execution Flow**
+         - Step-by-step walkthrough
+         - Control flow paths
+         - Data transformations
+
+      3. **Key Concepts**
+         - Design patterns used
+         - Algorithms implemented
+         - Language features leveraged
+
+      4. **Dependencies**
+         - External libraries used
+         - Internal modules referenced
+         - Environment requirements
+
+      5. **Edge Cases**
+         - Error handling paths
+         - Boundary conditions
+         - Special case handling
+
+      6. **Potential Improvements**
+         - Readability enhancements
+         - Performance optimizations
+         - Modern alternatives
+
+      Use simple, clear language. Include diagrams or ASCII art if helpful.
+
+refactor:
+  default:
+    name: "Refactoring Suggestions"
+    flags: "-s read-only"
+    template: |
+      Suggest refactoring improvements for:
+
+      {query}
+
+      Refactoring Analysis:
+      1. **Readability**
+         - Clearer variable/function naming
+         - Better code organization
+         - Reduced nesting depth
+
+      2. **Maintainability**
+         - Single responsibility adherence
+         - Dependency reduction
+         - Interface extraction
+
+      3. **Testability**
+         - Dependency injection opportunities
+         - Pure function extraction
+         - Mock-friendly design
+
+      4. **Performance**
+         - Algorithm improvements
+         - Caching opportunities
+         - Lazy evaluation
+
+      5. **Type Safety**
+         - Stricter TypeScript usage
+         - Discriminated unions
+         - Branded types
+
+      For each suggestion provide:
+      ```
+      BEFORE:
+      [current code]
+
+      AFTER:
+      [refactored code]
+
+      RATIONALE:
+      [why this change improves the code]
+
+      IMPACT:
+      [risk level and testing requirements]
+      ```
+
+debug:
+  default:
+    name: "Debug Assistance"
+    flags: "-s read-only"
+    template: |
+      Help debug this issue:
+
+      {query}
+
+      Debugging Approach:
+
+      1. **Issue Analysis**
+         - Symptoms described
+         - Expected vs actual behavior
+         - Reproduction steps
+
+      2. **Root Cause Hypotheses**
+         For each hypothesis:
+         - Description
+         - Likelihood: HIGH | MEDIUM | LOW
+         - Evidence supporting
+         - Verification steps
+
+      3. **Investigation Steps**
+         - Diagnostic commands to run
+         - Log entries to check
+         - Breakpoints to set
+         - Values to inspect
+
+      4. **Solutions**
+         For each hypothesis, if confirmed:
+         - Fix implementation
+         - Code changes required
+         - Testing to verify fix
+
+      5. **Prevention**
+         - How to prevent recurrence
+         - Test cases to add
+         - Monitoring to implement
+
+      Prioritize hypotheses by likelihood. Start with most probable cause.
+
+# ───────────────────────────────────────────────────────────────────
+# AUTO-DETECTION RULES
+# ───────────────────────────────────────────────────────────────────
+selection:
+  auto_detect:
+    description: "Automatically select preset based on query analysis"
+    rules:
+      # Review presets
+      - pattern: "review|check|audit|bugs"
+        preset: "review.default"
+      - pattern: "security|xss|injection|auth|vulnerability|cve"
+        preset: "review.security"
+      - pattern: "performance|slow|optimize|speed|memory|cpu"
+        preset: "review.performance"
+
+      # Generate presets
+      - pattern: "generate|create|implement|build|write|add"
+        preset: "generate.default"
+      - pattern: "react|component|hook|tsx|jsx"
+        preset: "generate.react_component"
+      - pattern: "api|endpoint|route|rest|graphql"
+        preset: "generate.api_endpoint"
+      - pattern: "test|spec|coverage|jest|vitest"
+        preset: "generate.test_suite"
+
+      # Analysis presets
+      - pattern: "architecture|structure|design pattern|organization"
+        preset: "analyze.architecture"
+      - pattern: "dependencies|imports|packages|node_modules"
+        preset: "analyze.dependency"
+
+      # Special presets
+      - pattern: "explain|what does|how does|understand|walkthrough"
+        preset: "explain.default"
+      - pattern: "refactor|improve|clean|modernize|simplify"
+        preset: "refactor.default"
+      - pattern: "debug|fix|error|broken|issue|why|failing"
+        preset: "debug.default"
+
+    fallback: "generate.default"
+    note: "When no pattern matches, default to code generation"

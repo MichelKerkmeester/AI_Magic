@@ -1,10 +1,12 @@
 ---
 description: Enhance prompts using DEPTH framework with AI-guided analysis
 argument-hint: "<prompt-text> [:quick|:improve|:refine]"
-allowed-tools: Read, Write, AskUserQuestion
+allowed-tools: Read, Write
 ---
 
-# ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
+# Prompt Improver
+
+## ⛔ MANDATORY GATES - BLOCKING ENFORCEMENT
 
 **YOU MUST COMPLETE ALL GATES BEFORE READING ANYTHING ELSE IN THIS FILE.**
 
@@ -21,7 +23,7 @@ IF $ARGUMENTS is empty, undefined, or contains only whitespace:
     ⛔ BLOCKED - Cannot proceed
     
     ACTION REQUIRED:
-    1. Use AskUserQuestion tool with this exact question:
+    1. Present a prompt asking the user:
        question: "What prompt would you like me to improve?"
        options:
          - label: "Provide prompt text"
@@ -48,7 +50,7 @@ IF $ARGUMENTS contains prompt text:
 ⛔ BLOCKED until user explicitly selects A, B, C, or D
 
 ACTION REQUIRED:
-1. Use AskUserQuestion tool with these exact options:
+1. Present a multiple-choice prompt with these options:
    question: "Where should I save the prompt improvement documentation?"
    options:
      A) Use existing spec folder - [suggest relevant existing folder if found]
@@ -111,7 +113,7 @@ If you notice yourself:
 
 ---
 
-# Improve Prompt - DEPTH Framework
+## Improve Prompt - DEPTH Framework
 
 Transform raw prompts into optimized, framework-structured prompts using DEPTH methodology (Discover, Engineer, Prototype, Test, Harmonize).
 
@@ -157,10 +159,10 @@ $ARGUMENTS
 
 | Pattern                                 | Mode        | Behavior                                   |
 | --------------------------------------- | ----------- | ------------------------------------------ |
-| `/prompt_improver:workflow:quick`       | QUICK       | 1-5 rounds, auto-framework                 |
-| `/prompt_improver:workflow:improve`     | FULL        | 10 rounds, interactive framework selection |
-| `/prompt_improver:workflow:refine`      | REFINE      | Preserve framework, polish clarity         |
-| `/prompt_improver:workflow` (no suffix) | INTERACTIVE | Full user participation                    |
+| `/prompt:improve:quick`       | QUICK       | 1-5 rounds, auto-framework                 |
+| `/prompt:improve:improve`     | FULL        | 10 rounds, interactive framework selection |
+| `/prompt:improve:refine`      | REFINE      | Preserve framework, polish clarity         |
+| `/prompt:improve` (no suffix) | INTERACTIVE | Full user participation                    |
 
 ---
 
@@ -208,19 +210,18 @@ Apply systematic prompt enhancement with:
    ```
 
 2. **Validate prompt:**
-   - If empty: Use AskUserQuestion with options (paste text / describe intent / file path / cancel)
+   - If empty: Ask the user with these options (paste text / describe intent / file path / cancel)
    - Store: `original_prompt`, `original_length`, `mode`, `timestamp_start`
 
 3. **Spec folder selection (follows standard SpecKit workflow):**
    - Find next spec number: `ls -d specs/[0-9]*/ | sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n | tail -1`
    - Suggest name: `enhanced-prompt` or based on prompt content
-   - Use AskUserQuestion with 4 options (A/B/C/D pattern from AGENTS.md):
+   - Present a multiple-choice prompt with these options (A/B/C/D pattern from AGENTS.md):
      - **A)** Use existing spec folder (if .spec-active exists)
      - **B)** Create new spec folder: `specs/[###]-[suggested-name]/`
      - **C)** Update related spec (show any existing prompt-related specs)
-     - **D)** Skip documentation (creates `.claude/.spec-skip` marker) - NOT RECOMMENDED
+     - **D)** Skip documentation (creates `.opencode/.spec-skip` marker) - NOT RECOMMENDED
    - Store: `spec_folder_path`, `spec_folder_choice`
-
 
 ### Phase 1.5: Verify Gates Passed
 
@@ -234,14 +235,14 @@ Before continuing, confirm all gates are complete:
 If ANY gate incomplete → STOP and return to that gate
 ```
 
+---
+
 ### Phase 2-5: Execute DEPTH Workflow
 
-3. **Invoke workflow YAML** (search order: `.claude/commands/prompt_improver/assets/improve_prompt.yaml` → `.opencode/command/prompt_improver/assets/improve_prompt.yaml`) with:
+3. **Invoke workflow YAML** (location: `.opencode/command/prompt/assets/improve_prompt.yaml`) with:
    - `prompt_text`: Original prompt
    - `mode`: Detected mode
    - `rounds`: 1-5 (quick) or 10 (others)
-   
-   **Fallback logic:** If not found in `.claude/`, automatically search `.opencode/` folder.
 
 4. **DEPTH phases execute autonomously:**
    - **D (Discover)**: Analyze intent, assess complexity (1-10), identify gaps
@@ -261,10 +262,11 @@ If ANY gate incomplete → STOP and return to that gate
    - Check framework components are complete and substantive
    - Ensure no placeholder text remains
 
+---
 
 ### Phase 6: Dual Output Generation
 
-**See workflow YAML Phase 6 for complete workflow (searched in `.claude/` then `.opencode/`).**
+**See workflow YAML Phase 6 for complete workflow (located at `.opencode/command/prompt/assets/improve_prompt.yaml`).**
 
 7. **Use spec folder from Phase 1 step 3:**
    ```
@@ -328,23 +330,23 @@ If ANY gate incomplete → STOP and return to that gate
 
 ## 13. 🔧 FAILURE RECOVERY
 
-| Failure Type            | Recovery Action                                          |
-| ----------------------- | -------------------------------------------------------- |
-| Enhancement incomplete  | Prompt: retry refinement / accept current / cancel       |
-| Framework timeout       | Default to RCAF → Notify → Continue                      |
-| YAML workflow missing   | Search `.claude/` then `.opencode/` → Error if both fail |
-| Write permission denied | Output to chat → Suggest manual save                     |
+| Failure Type            | Recovery Action                                           |
+| ----------------------- | --------------------------------------------------------- |
+| Enhancement incomplete  | Prompt: retry refinement / accept current / cancel        |
+| Framework timeout       | Default to RCAF → Notify → Continue                       |
+| YAML workflow missing   | Error if `.opencode/command/prompt/assets/` file not found |
+| Write permission denied | Output to chat → Suggest manual save                      |
 
 ---
 
 ## 14. ⚠️ ERROR HANDLING
 
-| Condition                 | Action                                                      |
-| ------------------------- | ----------------------------------------------------------- |
-| Empty `$ARGUMENTS`        | AskUserQuestion with 4 options (paste/describe/file/cancel) |
-| Invalid mode suffix       | Default to INTERACTIVE mode                                 |
-| Framework selection fails | Auto-select RCAF as fallback                                |
-| Spec folder conflict      | Prompt for resolution (A/B/C/D options)                     |
+| Condition                 | Action                                                             |
+| ------------------------- | ------------------------------------------------------------------ |
+| Empty `$ARGUMENTS`        | Present prompt with 4 options (paste/describe/file/cancel)         |
+| Invalid mode suffix       | Default to INTERACTIVE mode                                        |
+| Framework selection fails | Auto-select RCAF as fallback                                       |
+| Spec folder conflict      | Prompt for resolution (A/B/C/D options)                            |
 
 ---
 
@@ -360,7 +362,7 @@ When resuming in an existing spec folder with prior prompt work:
 
 ## 16. 📁 TEMPLATES USED
 
-- `.claude/commands/prompt_improver/assets/improve_prompt.yaml` - DEPTH workflow logic
+- `.opencode/command/prompt/assets/improve_prompt.yaml` - DEPTH workflow logic
 - `.opencode/speckit/templates/spec.md` - SpecKit specification output
 
 ---
@@ -390,19 +392,19 @@ STATUS=OK SPEC={spec_folder_path} FILES=spec.md,enhanced_prompt.yaml
 
 ### Quick Mode
 ```bash
-/prompt_improver:workflow:quick "Analyze user feedback"
+/prompt:improve:quick "Analyze user feedback"
 ```
 Output: 3-5 rounds, RCAF framework, ~5 seconds
 
 ### Interactive Mode
 ```bash
-/prompt_improver:workflow "Review code for architecture and performance"
+/prompt:improve "Review code for architecture and performance"
 ```
 Output: 10 rounds, user selects framework (complexity 5-6), ~12 seconds
 
 ### Refine Mode
 ```bash
-/prompt_improver:workflow:refine "Role: Data scientist. Task: Analyze IoT sensor data..."
+/prompt:improve:refine "Role: Data scientist. Task: Analyze IoT sensor data..."
 ```
 Output: Preserves existing framework, polishes clarity, ~9 seconds
 
@@ -447,6 +449,6 @@ Output: Preserves existing framework, polishes clarity, ~9 seconds
 - YAML ready for copy/paste into AI workflows
 
 **Workflow Details:**
-- Complete implementation: `improve_prompt.yaml` (in `.claude/commands/` or `.opencode/command/`)
+- Complete implementation: `improve_prompt.yaml` (in `.opencode/command/prompt/assets/`)
 - Phase 6 (Dual Output): Steps 13-17 with atomic write guarantees
 - Framework templates: All 7 frameworks output as pure YAML

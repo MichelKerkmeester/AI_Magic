@@ -125,8 +125,8 @@ user_inputs:
 
 Based on detected/selected mode:
 
-- **AUTONOMOUS**: Load and execute `.claude/commands/agent_router/assets/route_auto.yaml`
-- **INTERACTIVE**: Load and execute `.claude/commands/agent_router/assets/route_confirm.yaml`
+- **AUTONOMOUS**: Load and execute `.opencode/command/agent_router/assets/route_auto.yaml`
+- **INTERACTIVE**: Load and execute `.opencode/command/agent_router/assets/route_confirm.yaml`
 
 ### Phase 2: Workflow Execution
 

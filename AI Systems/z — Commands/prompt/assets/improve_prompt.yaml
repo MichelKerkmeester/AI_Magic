@@ -245,7 +245,7 @@ depth_phases:
         tasks:
         - Display enhanced prompt summary
         - Show improvement areas
-        - Present action menu via AskUserQuestion
+        - Present action menu via user prompt
         options:
           option_1_use_prompt:
             label: "Use enhanced prompt"
@@ -874,16 +874,16 @@ mode_adaptations:
   audit_mode:
     trigger: ":audit flag (no prompt text required)"
     modifications:
-    - scanning: "true (scan .claude/commands/ and .claude/commands/*/assets/)"
+    - scanning: "true (scan .opencode/command/ and .opencode/command/*/assets/)"
     - analysis: "assess quality for all prompts"
     - recommendations: "prioritize by completeness (least complete first)"
     - user_interaction: "show results, offer batch enhancement"
 
     workflow:
       step_1_scan_directories:
-      - "Glob search: .claude/commands/*.md"
-      - "Glob search: .claude/commands/*/assets/*.yaml"
-      - "Glob search: .claude/commands/**/*.md"
+      - "Glob search: .opencode/command/*.md"
+      - "Glob search: .opencode/command/*/assets/*.yaml"
+      - "Glob search: .opencode/command/**/*.md"
       - "Extract prompt content from each file"
 
       step_2_analyze_prompts:
@@ -1322,7 +1322,7 @@ phase_6_output_generation:
       action: "Use spec folder from Phase 1 step 3 (user already selected A/B/C/D)"
 
       spec_folder_source:
-        from_phase_1: "User selected spec folder via AskUserQuestion (A/B/C/D pattern)"
+        from_phase_1: "User selected spec folder via user prompt (A/B/C/D pattern)"
         options_recap:
           A: "Use existing spec folder from .spec-active marker"
           B: "Create new spec folder: specs/[###]-enhanced-prompt/"
@@ -1444,52 +1444,53 @@ phase_6_output_generation:
           - "## 5. TARGET"
 
       output_example: |
-        # Feature Specification: Enhanced Prompt - Hook Analysis and Bug Scan
+        # Feature Specification: Enhanced Prompt - API Endpoint Security Audit
 
         Complete specification for the enhanced prompt using TIDD-EC framework.
 
         ### Purpose
-        Transform a vague hook analysis request into a structured, actionable prompt that guides systematic code review, bug detection, and testing of shell script hooks with clear deliverables and success criteria.
+        Transform a vague API analysis request into a structured, actionable prompt that guides systematic code review, vulnerability detection, and testing of REST API endpoints with clear deliverables and success criteria.
 
         ### Original Prompt
         ```
-        Analyze all hooks and do a thorough bug scan and test every single hook
+        Analyze all API endpoints and do a thorough security scan and test every single endpoint
         ```
 
         ---
 
         ## 1. TASK
-        Perform a comprehensive security and quality audit of all shell script hooks in the `.claude/hooks/` directory, identifying bugs, anti-patterns, and potential failures, then validate each hook's functionality through static analysis and execution testing.
+        Perform a comprehensive security and quality audit of all REST API endpoints in the `src/api/` directory, identifying vulnerabilities, anti-patterns, and potential failures, then validate each endpoint's functionality through static analysis and request testing.
 
         ## 2. INSTRUCTIONS
         1. **Discovery Phase**
-           - List all hook directories: `PreToolUse/`, `PostToolUse/`, `PreSessionStart/`, etc.
-           - Catalog every `.sh` file in each directory
+           - List all route files: `routes/auth.js`, `routes/users.js`, `routes/products.js`, etc.
+           - Catalog every endpoint (GET, POST, PUT, DELETE) in each file
            ...
 
         ## 3. DETAILS
-        - **Hook Location:** `.claude/hooks/` directory structure
-        - **File Types:** Shell scripts (`.sh` extension)
+        - **API Location:** `src/api/routes/` directory structure
+        - **File Types:** JavaScript/TypeScript route handlers (`.js`, `.ts`)
         - **Severity Levels:**
-          - P0 (Critical): Security vulnerabilities, data loss risks
+          - P0 (Critical): SQL injection, authentication bypass, data exposure
           ...
 
         ## 4. DELIVERABLES
-        1. **Hook Inventory Table**
-           | Hook Directory | Script Name | Purpose | Dependencies |
+        1. **Endpoint Inventory Table**
+           | Route File | Method | Path | Auth Required | Rate Limited |
            ...
 
         ## 5. EXAMPLES
-        Example bug report entry:
+        Example vulnerability report entry:
         ```
-        Hook: PreToolUse/validate-inputs.sh
+        Endpoint: POST /api/users/login
+        File: routes/auth.js:45
         Severity: P1 (High)
         ...
         ```
 
         ## 6. CONSTRAINTS
-        - Do NOT modify any hook files during analysis
-        - Do NOT execute hooks that could have side effects
+        - Do NOT modify any route files during analysis
+        - Do NOT execute requests that could have side effects
         - Report ALL findings regardless of severity
         ...
 
