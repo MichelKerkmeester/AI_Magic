@@ -4,11 +4,11 @@
 
 ---
 
-## 1. ⚠️ AI BEHAVIOR GUARDRAILS & ANTI-PATTERNS
+## 1. ⛔ MANDATORY GATES - STOP BEFORE ACTING
 
-### 🔒 BLOCKING GATES (MANDATORY)
+**⚠️ BEFORE using ANY tool, you MUST pass all applicable gates below.**
 
-**These gates are HARD BLOCKS - you CANNOT proceed without passing each one.**
+### 🔒 BLOCKING GATES (HARD BLOCKS)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -26,16 +26,23 @@
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓ PASS
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 1: CONSOLIDATED SETUP QUESTIONS (Gates 2+5)                           │
-│ Bundle all PRE-DETECTABLE questions into ONE multi-question prompt          │
+│ ⛔ PHASE 1: CONSOLIDATED SETUP QUESTIONS (Gates 2+5) - ASK BEFORE TOOLS     │
 │                                                                             │
-│ ├─ Q1: SPEC FOLDER (Gate 2) - Always if file modifications planned            │
+│ FILE MODIFICATION TRIGGERS (if ANY match → Q1 REQUIRED):                    │
+│   □ "rename", "move", "delete", "create", "add", "remove"                   │
+│   □ "update", "change", "modify", "edit", "fix", "refactor"                  │
+│   □ "implement", "build", "write", "generate", "configure"                   │
+│   □ Any task that will result in file changes                                │
+│                                                                             │
+│ ├─ Q1: SPEC FOLDER (Gate 2) - If file modification triggers detected          │
 │ │      Options: A) Existing | B) New | C) Update related | D) Skip          │
+│ │      ❌ DO NOT use Read/Edit/Write/Bash before asking this question       │
+│ │      ✅ ASK FIRST, wait for A/B/C/D response, THEN proceed                │
 │ │                                                                           │
 │ └─ Q2: TASK APPROACH (Gate 5) - If 2+ domains detected                      │
 │        Options: A) Sequential | B) Parallel agents | C) Auto-decide         │
 │                                                                             │
-│ Block: HARD - Cannot proceed without answers to applicable questions        │
+│ Block: HARD - Cannot use tools without answers to applicable questions      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓ PASS
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -56,6 +63,22 @@
                                     ↓ PASS
                               ✅ CLAIM COMPLETION
 ```
+
+### ⚡ Self-Verification (complete before responding)
+
+```
+□ Did I detect file modification intent? → If YES, did I ask Q1 BEFORE using tools?
+□ Did I wait for user's A/B/C/D response before Read/Edit/Write/Bash?
+□ Am I about to use a tool without having asked? → STOP, ask first
+```
+
+### 🔄 Violation Recovery
+
+If you catch yourself about to skip the gates:
+1. **STOP** immediately
+2. **State**: "Before I proceed, I need to ask about documentation:"
+3. **Ask** the applicable Phase 1 questions
+4. **Wait** for response, then continue
 
 #### 🔄 Consolidated Question Protocol
 
@@ -84,16 +107,24 @@ File modification planned? → Include Q1 (Spec Folder)
 
 ### 🚨 CRITICAL RULES (MANDATORY)
 
+**HARD BLOCKERS (must do or stop):**
 - **All file modifications require a spec folder** - code, documentation, configuration, templates, etc.
 - **Never lie or fabricate** - use "UNKNOWN" when uncertain, verify before claiming completion
 - **Clarify** if confidence < 80% or ambiguity exists; **propose options**
 - **Use explicit uncertainty:** prefix claims with "I'M UNCERTAIN ABOUT THIS:" and output "UNKNOWN" when unverifiable
+
+**MANDATORY TOOLS:**
+- **Semantic Memory MCP is MANDATORY** for research tasks, context recovery, and finding prior work. See Section 5 for tool list.
+- **Semantic Search MCP is MANDATORY** for code exploration/discovery - intent-based, not keyword matching. See Section 5 for tool list.
+- **Sequential Thinking MCP is MANDATORY** for complex problem decomposition, multi-step reasoning, and architectural decisions. Call directly: `sequential_thinking_sequentialthinking()`.
+
+**QUALITY PRINCIPLES:**
 - **Prefer simplicity**, reuse existing patterns, and cite evidence with sources
 - Solve only the stated problem; **avoid over-engineering** and premature optimization
 - **Verify with checks** (simplicity, performance, maintainability, scope) before making changes
-- **Semantic Memory MCP** (if configured): Use for research tasks, context recovery, finding prior work
-- **Semantic Search MCP** (if configured): Use for code exploration/discovery - intent-based, not keyword matching
-- **Sequential Thinking MCP** (if configured): Useful for complex reasoning in environments lacking native reasoning
+
+**FILE ORGANIZATION:**
+- **All temporary files MUST go in scratch/** - test scripts, debug files, prototypes, exploration code MUST be placed in `specs/[###-name]/scratch/`, NEVER in project root or spec folder root.
 
 #### ⚡ Context Compaction Override (Gate 0)
 
@@ -117,7 +148,7 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
 
 #### ⚡ Phase 1: Consolidated Setup Questions (Gates 2+5)
 
-**CRITICAL:** Bundle all applicable questions into ONE prompt. Pre-detect conditions BEFORE asking.
+**CRITICAL:** Bundle all applicable questions into ONE prompt. See **Section 1 gate flowchart** for question format, detection logic, and bypass phrases.
 
 **After Phase 1 answers received:**
 1. Create spec folder based on Q1 answer
@@ -130,7 +161,7 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
 
 #### ⚡ Phase 2: Memory File Loading (Gate 3 - Conditional)
 
-**Triggered AFTER Phase 1** when user selected Option A or C, and memory files exist:
+**Triggered AFTER Phase 1** when user selected Option A or C, and memory files exist. See **Section 1 PHASE 2 gate** for full trigger conditions.
 
 1. **Interactive selection prompt** (DEFAULT BEHAVIOR)
    - Display numbered list of recent memories: `[1] [2] [3] [all] [skip]`
@@ -143,28 +174,44 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
 
 > **Universal Note:** If hooks are not supported in your environment, manually run memory search commands before starting work in a spec folder. Feature parity: ~60% (commands work, automation requires manual steps).
 
+**Full details:** workflows-memory skill (context preservation, tiers, checkpoints)
+
 #### ⚡ Phase 1 Question Details (Q2)
 
-**Q2 (Task):** NEVER auto-dispatch parallel agents. 2+ domains = mandatory question. Domain examples: "feature + tests" (2), "refactor + docs + commit" (3).
+**Q2 (Task):** NEVER auto-dispatch parallel agents. See **Section 1 Q2** and Section 5 "Task Dispatch" for rules.
+
+#### ⚡ Sequential Thinking (MANDATORY)
+
+**Sequential Thinking MCP** provides structured reasoning for complex problem decomposition.
+
+**When to Use:**
+- Multi-step debugging or troubleshooting
+- Architectural decisions with trade-offs
+- Complex refactoring planning
+- Any task requiring iterative reasoning
+
+**5 Stages:** Problem Definition → Research → Analysis → Synthesis → Conclusion
+**Tool:** `sequential_thinking_sequentialthinking()` (direct MCP call)
 
 #### ⚡ Common Failure Patterns (MANDATORY)
 
-| #   | Pattern                | Trigger Phrase        | Response Action                |
-| --- | ---------------------- | --------------------- | ------------------------------ |
-| 1   | Task Misinterpretation | N/A                   | Parse request, confirm scope   |
-| 2   | Rush to Code           | "straightforward"     | Analyze → Verify → Simplest    |
-| 3   | Fabrication            | "obvious" w/o verify  | Output "UNKNOWN", verify first |
-| 4   | Skip Verification      | "trivial edit"        | Run ALL tests, no exceptions   |
-| 5   | Assumptions            | N/A                   | Read existing code first       |
-| 6   | Cascading Breaks       | N/A                   | Reproduce before fixing        |
-| 7   | Skip Process           | "I already know"      | Follow checklist anyway        |
-| 8   | Over-Engineering       | N/A                   | YAGNI - solve only stated      |
-| 9   | Clever > Clear         | N/A                   | Obvious code wins              |
-| 10  | Retain Legacy          | "just in case"        | Remove unused, ask if unsure   |
-| 11  | Skip Parallel Q        | 2+ domains            | Ask A/B/C before Task dispatch |
-| 12  | No Browser Test        | "works", "done"       | Browser verify first           |
-| 13  | Skip Checklist         | "complete" (L2+)      | Load checklist.md, verify all  |
-| 14  | Skip Memory            | "research", "explore" | memory search FIRST            |
+| #   | Stage          | Pattern                | Trigger Phrase        | Response Action                  |
+| --- | -------------- | ---------------------- | --------------------- | -------------------------------- |
+| 1   | Understanding  | Task Misinterpretation | N/A                   | Parse request, confirm scope     |
+| 2   | Understanding  | Assumptions            | N/A                   | Read existing code first         |
+| 3   | Understanding  | Skip Memory            | "research", "explore" | `memory_search()` FIRST          |
+| 4   | Planning       | Rush to Code           | "straightforward"     | Analyze → Verify → Simplest      |
+| 5   | Planning       | Over-Engineering       | N/A                   | YAGNI - solve only stated        |
+| 6   | Planning       | Skip Process           | "I already know"      | Follow checklist anyway          |
+| 7   | Implementation | Clever > Clear         | N/A                   | Obvious code wins                |
+| 8   | Implementation | Fabrication            | "obvious" w/o verify  | Output "UNKNOWN", verify first   |
+| 9   | Implementation | Cascading Breaks       | N/A                   | Reproduce before fixing          |
+| 10  | Implementation | Root Folder Pollution  | Creating temp file    | STOP → Move to scratch/ → Verify |
+| 11  | Review         | Skip Verification      | "trivial edit"        | Run ALL tests, no exceptions     |
+| 12  | Review         | Retain Legacy          | "just in case"        | Remove unused, ask if unsure     |
+| 13  | Review         | Skip Parallel Q        | 2+ domains            | Ask A/B/C before Task dispatch   |
+| 14  | Completion     | No Browser Test        | "works", "done"       | Browser verify first             |
+| 15  | Completion     | Skip Checklist         | "complete" (L2+)      | Load checklist.md, verify all    |
 
 **Enforcement:** STOP → Acknowledge ("I was about to [pattern]") → Correct → Verify
 
@@ -250,17 +297,25 @@ CHECKLIST VERIFICATION RULE (Level 2+):
 - [ ] P2: Documentation updated - Deferred (user approved)
 ```
 
-#### Supporting Templates & Decision Rules
-**All templates** (in `speckit/templates/` or `.opencode/speckit/templates/`):
+#### Supporting Templates & Scripts
+**Templates (9)** in `.opencode/speckit/templates/`:
 - `spec.md` → Requirements and user stories (ALL levels)
 - `plan.md` → Technical implementation plan (ALL levels)
 - `tasks.md` → Task breakdown by user story (ALL levels)
 - `checklist.md` → Validation/QA checklists (Level 2+)
-- `decision-record.md` → Architecture Decision Records/ADRs (Level 3, prefix with topic)
-- `research-spike.md` → Time-boxed research/PoC (Level 3 optional, prefix with topic)
+- `decision-record.md` → Architecture Decision Records/ADRs (Level 3)
+- `research-spike.md` → Time-boxed research/PoC (Level 3 optional)
 - `research.md` → Comprehensive research documentation (Level 3 optional)
 - `handover.md` → Session handover for continuity (utility, any level)
 - `debug-delegation.md` → Debug task delegation to sub-agents (utility, any level)
+
+**Scripts (6)** in `.opencode/speckit/scripts/`:
+- `common.sh` → Shared utility functions
+- `create-documentation.sh` → Create spec folders with templates
+- `check-prerequisites.sh` → Validate spec folder structure
+- `calculate-completeness.sh` → Calculate placeholder completion %
+- `recommend-level.sh` → Recommend documentation level (1-3)
+- `archive-spec.sh` → Archive completed spec folders
 
 **Decision rules:**
 - **When in doubt → choose higher level** (better to over-document than under-document)
@@ -316,6 +371,15 @@ Is this content disposable after the task?
 - Draft content before moving to final location
 - **Clean up**: Delete scratch/ contents when task completes
 
+**MANDATORY RULES:**
+- **MUST** use `specs/[###-name]/scratch/` for ALL temporary/exploratory files
+- **NEVER** create test scripts, debug files, or prototypes in project root
+- **NEVER** place disposable content in spec folder root (use scratch/ instead)
+- **VERIFY** file placement before claiming completion
+- **CLEAN UP** scratch/ contents when task completes
+
+**Full details:** workflows-memory skill (memory/ file guidelines, context saving)
+
 ### Enforcement Checkpoints
 1. **Collaboration First Rule** - Create before presenting
 2. **Request Analysis** - Determine level
@@ -328,6 +392,18 @@ Is this content disposable after the task?
    - Metadata completeness (level-specific required fields)
 
 **Note**: AI agent auto-creates folder. SpecKit command users: commands handle folder creation automatically.
+
+#### SpecKit Commands Reference
+
+| Command | Steps | Description |
+|---------|-------|-------------|
+| `/spec_kit:complete` | 12 | Full end-to-end workflow from spec through implementation |
+| `/spec_kit:plan` | 7 | Planning only - spec through plan, no implementation |
+| `/spec_kit:implement` | 8 | Execute pre-planned work (requires existing plan.md) |
+| `/spec_kit:research` | 9 | Technical investigation and documentation |
+| `/spec_kit:resume` | - | Resume previous session context from spec folder |
+
+**Mode Suffixes:** Add `:auto` or `:confirm` to commands (except resume). Example: `/spec_kit:complete:auto`
 
 ---
 
@@ -449,6 +525,8 @@ PRE-CHANGE VALIDATION:
 
 **STOP CONDITIONS:** □ unchecked | no spec folder | no user approval → STOP and address
 
+**Full details:** workflows-code skill (3-phase implementation lifecycle)
+
 #### Phase 7: Final Output Review
 **Verification Summary (Mandatory for Factual Content):**
 
@@ -473,44 +551,41 @@ Review response for:
 
 ## 5. 🏎️ TOOL SELECTION & ROUTING
 
-#### Tool Selection
-
-**Key Routing Rules:**
-- **Known file path** → Use Read tool directly
-- **Exact symbol/keyword search** → Use Grep tool
-- **File pattern discovery** → Use Glob tool
-- **Code exploration by intent** → Use semantic search (if configured)
-- **Research/prior work** → Use semantic memory (if configured)
-- **Complex reasoning** → Use sequential thinking MCP (if configured)
-- **Browser debugging** → workflows-chrome-devtools skill (bdg CLI tool)
-- **Multi-domain tasks (2+ domains)** → ALWAYS ask user before parallel dispatch
-- **Skills** → On-demand workflow orchestration for complex tasks (see Section 6)
-- **Native tools** → Read/Grep/Glob/Bash for file operations and simple tasks
-
 ### Tool Routing (Quick Decision)
 ```
 Known file path? → Read()
+Know what code DOES? → semantic_search() [NATIVE MCP - MANDATORY]
+Research/prior work? → memory_search() [NATIVE MCP - MANDATORY]
 Exact symbol/keyword? → Grep()
-File structure/pattern? → Glob()
-Terminal operation? → Bash()
-Code exploration by intent? → Semantic Search MCP (if configured)
-Research/prior work? → Semantic Memory MCP (if configured)
-Complex reasoning? → Sequential Thinking MCP (if configured)
-Browser debugging? → workflows-chrome-devtools skill (bdg CLI tool)
-Multi-step workflow? → openskills read <skill-name> [see Section 6]
+File structure? → Glob()
+Complex reasoning? → sequential_thinking_sequentialthinking() [NATIVE MCP - MANDATORY]
+Browser debugging? → workflows-chrome-devtools skill [bdg CLI tool]
+Multi-step workflow? → openskills read [see Section 6]
 2+ domains detected? → Ask user: parallel sub-agents or direct handling? (MANDATORY question)
 
+NATIVE MCP TOOLS:
+  ┌─ SEMANTIC SEARCH (code discovery):
+  │   semantic_search()
+  │   visit_other_project()
+  │
+  ├─ SEMANTIC MEMORY (context/research - v11.1):
+  │   memory_search()         # Hybrid search, tier/type filters
+  │   memory_load()           # Load by spec folder/anchor
+  │   memory_match_triggers() # Fast trigger matching <50ms
+  │   memory_list()           # Browse memories, pagination
+  │   memory_update()         # Update importance/metadata
+  │   memory_delete()         # Delete by ID or spec folder
+  │   memory_validate()       # Validate accuracy, build confidence
+  │   memory_stats()          # System statistics
+  │
+  └─ SEQUENTIAL THINKING (mandatory for complex reasoning):
+      sequential_thinking_sequentialthinking()
+
 SKILLS (Section 6):
-  - openskills read <skill-name> [CLI command]
-  - Or read SKILL.md directly from skills folder
+  - Use `openskills read <skill-name>` CLI command
 ```
 
-**User Override Phrases:**
-- `"proceed directly"` - Force direct handling
-- `"use parallel agents"` - Force parallel dispatch
-- `"auto-decide"` - Enable session auto-mode
-
-**Example:** Auth + tests + docs = 3 domains (code + testing + docs) → ASK user before dispatch
+**Skill references:** mcp-semantic-search (code discovery patterns)
 
 #### Task Dispatch (Parallel Agent Logic)
 
@@ -522,6 +597,13 @@ SKILLS (Section 6):
 | ------- | ------------- | ------------------ |
 | 1       | Handle direct | Single domain      |
 | 2+      | Ask user      | MANDATORY question |
+
+**User Override Phrases:**
+- `"proceed directly"` - Force direct handling
+- `"use parallel agents"` - Force parallel dispatch
+- `"auto-decide"` - Enable session auto-mode
+
+**Example:** Auth + tests + docs = 3 domains (code + testing + docs) → ASK user before dispatch
 
 ---
 
@@ -597,13 +679,13 @@ Usage notes:
 
 <skill>
 <name>workflows-memory</name>
-<description>Saves expanded conversation context with full dialogue, decision rationale, visual flowcharts, and file changes. Auto-triggers on keywords or every 20 messages. Includes semantic vector search.</description>
+<description>Context preservation with semantic memory v11.1: six-tier importance system (constitutional/critical/important/normal/temporary/deprecated), hybrid search (FTS5 + vector), 90-day half-life decay for recency boosting, checkpoint save/restore for context safety, constitutional memories (always surfaced), confidence-based promotion (90% threshold), session validation logging, context type filtering (research/implementation/decision/discovery/general). Auto-triggers on keywords or every 20 messages.</description>
 <location>project</location>
 </skill>
 
 <skill>
 <name>workflows-spec-kit</name>
-<description>Mandatory spec folder workflow orchestrating documentation level selection (1-3), template selection, and folder creation for all file modifications through hook-assisted enforcement and context auto-save.</description>
+<description>Mandatory spec folder workflow orchestrating documentation level selection (1-3), template selection, and folder creation for all file modifications through documentation-assisted enforcement and context auto-save.</description>
 <location>project</location>
 </skill>
 

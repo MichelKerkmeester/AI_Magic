@@ -9,9 +9,10 @@
  * Tools:
  * - memory_search: Semantic search across all memories
  * - memory_load: Load specific memory by spec folder and anchor ID
+ * - checkpoint_create/list/restore/delete: Memory state checkpointing
  *
- * @version 10.0.0
- * @module semantic-memory/semantic-memory
+ * @version 12.0.0
+ * @module semantic-memory/memory-server
  */
 
 'use strict';
@@ -39,6 +40,11 @@ const {
 const vectorIndex = require(path.join(LIB_DIR, 'vector-index.js'));
 const embeddings = require(path.join(LIB_DIR, 'embeddings.js'));
 const triggerMatcher = require(path.join(LIB_DIR, 'trigger-matcher.js'));
+const checkpoints = require(path.join(LIB_DIR, 'checkpoints.js'));
+const { truncateToTokenLimit } = require(path.join(LIB_DIR, 'token-budget.js'));
+const accessTracker = require(path.join(LIB_DIR, 'access-tracker.js'));
+const { VALID_TIERS } = require(path.join(LIB_DIR, 'importance-tiers.js'));
+const confidenceTracker = require(path.join(LIB_DIR, 'confidence-tracker.js'));
 
 // ───────────────────────────────────────────────────────────────
 // PATH VALIDATION
@@ -83,8 +89,8 @@ function validateFilePath(filePath) {
 
 const server = new Server(
   {
-    name: 'semantic-memory',
-    version: '10.0.0'
+    name: 'memory-server',
+    version: '12.0.0'
   },
   {
     capabilities: {
@@ -104,7 +110,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: 'memory_search',
-      description: 'Search conversation memories semantically using vector similarity. Returns ranked results with similarity scores.',
+      description: 'Search conversation memories semantically using vector similarity. Returns ranked results with similarity scores. Constitutional tier memories are ALWAYS included at the top of results (~500 tokens max), regardless of query.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -125,9 +131,32 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             type: 'number',
             default: 10,
             description: 'Maximum number of results to return'
+          },
+          tier: {
+            type: 'string',
+            description: 'Filter by importance tier (constitutional, critical, important, normal, temporary, deprecated)'
+          },
+          contextType: {
+            type: 'string',
+            description: 'Filter by context type (decision, implementation, research, etc.)'
+          },
+          useDecay: {
+            type: 'boolean',
+            default: true,
+            description: 'Apply temporal decay scoring to results'
+          },
+          includeContiguity: {
+            type: 'boolean',
+            default: false,
+            description: 'Include adjacent/contiguous memories in results'
+          },
+          includeConstitutional: {
+            type: 'boolean',
+            default: true,
+            description: 'Include constitutional tier memories at top of results (default: true)'
           }
         },
-        required: ['query']
+        required: []
       }
     },
     {
@@ -170,6 +199,160 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         },
         required: ['prompt']
       }
+    },
+    {
+      name: 'memory_delete',
+      description: 'Delete a memory by ID or all memories in a spec folder. Use to remove incorrect or outdated information.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'number',
+            description: 'Memory ID to delete'
+          },
+          specFolder: {
+            type: 'string',
+            description: 'Delete all memories in this spec folder'
+          },
+          confirm: {
+            type: 'boolean',
+            description: 'Required for bulk delete (when specFolder is used without id)'
+          }
+        }
+      }
+    },
+    {
+      name: 'memory_update',
+      description: 'Update an existing memory with corrections. Re-generates embedding if content changes.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'number',
+            description: 'Memory ID to update'
+          },
+          title: {
+            type: 'string',
+            description: 'New title'
+          },
+          triggerPhrases: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Updated trigger phrases'
+          },
+          importanceWeight: {
+            type: 'number',
+            description: 'New importance weight (0-1)'
+          },
+          importanceTier: {
+            type: 'string',
+            enum: ['constitutional', 'critical', 'important', 'normal', 'temporary', 'deprecated'],
+            description: 'Set importance tier. Constitutional tier memories always surface at top of results.'
+          }
+        },
+        required: ['id']
+      }
+    },
+    {
+      name: 'memory_list',
+      description: 'Browse stored memories with pagination. Use to discover what is remembered and find IDs for delete/update.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          limit: {
+            type: 'number',
+            default: 20,
+            description: 'Maximum results to return (max 100)'
+          },
+          offset: {
+            type: 'number',
+            default: 0,
+            description: 'Number of results to skip (for pagination)'
+          },
+          specFolder: {
+            type: 'string',
+            description: 'Filter by spec folder'
+          },
+          sortBy: {
+            type: 'string',
+            enum: ['created_at', 'updated_at', 'importance_weight'],
+            description: 'Sort order (default: created_at DESC)'
+          }
+        }
+      }
+    },
+    {
+      name: 'memory_stats',
+      description: 'Get statistics about the memory system. Shows counts, dates, status breakdown, and top folders.',
+      inputSchema: {
+        type: 'object',
+        properties: {}
+      }
+    },
+    {
+      name: 'checkpoint_create',
+      description: 'Create a named checkpoint of current memory state for later restoration.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Unique checkpoint name' },
+          specFolder: { type: 'string', description: 'Limit to specific spec folder' },
+          metadata: { type: 'object', description: 'Additional metadata' }
+        },
+        required: ['name']
+      }
+    },
+    {
+      name: 'checkpoint_list',
+      description: 'List all available checkpoints.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          specFolder: { type: 'string', description: 'Filter by spec folder' },
+          limit: { type: 'number', default: 50 }
+        }
+      }
+    },
+    {
+      name: 'checkpoint_restore',
+      description: 'Restore memory state from a checkpoint.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Checkpoint name to restore' },
+          clearExisting: { type: 'boolean', default: false }
+        },
+        required: ['name']
+      }
+    },
+    {
+      name: 'checkpoint_delete',
+      description: 'Delete a checkpoint.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Checkpoint name to delete' }
+        },
+        required: ['name']
+      }
+    },
+    {
+      name: 'memory_validate',
+      description: 'Record validation feedback for a memory. Tracks whether memories are useful, updating confidence scores. Memories with high confidence and validation counts may be promoted to critical tier.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'number',
+            description: 'Memory ID to validate'
+          },
+          wasUseful: {
+            type: 'boolean',
+            description: 'Whether the memory was useful (true increases confidence, false decreases it)'
+          }
+        },
+        required: ['id', 'wasUseful']
+      }
     }
   ]
 }));
@@ -198,6 +381,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'memory_match_triggers':
         return await handleMemoryMatchTriggers(args);
 
+      case 'memory_delete':
+        return await handleMemoryDelete(args);
+
+      case 'memory_update':
+        return await handleMemoryUpdate(args);
+
+      case 'memory_list':
+        return await handleMemoryList(args);
+
+      case 'memory_stats':
+        return await handleMemoryStats(args);
+
+      case 'checkpoint_create':
+        return await handleCheckpointCreate(args);
+
+      case 'checkpoint_list':
+        return await handleCheckpointList(args);
+
+      case 'checkpoint_restore':
+        return await handleCheckpointRestore(args);
+
+      case 'checkpoint_delete':
+        return await handleCheckpointDelete(args);
+
+      case 'memory_validate':
+        return await handleMemoryValidate(args);
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -222,10 +432,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
  * Handle memory_search tool
  */
 async function handleMemorySearch(args) {
-  const { query, concepts, specFolder, limit = 10 } = args;
+  const { query, concepts, specFolder, limit = 10, tier, contextType, useDecay = true, includeContiguity = false, includeConstitutional = true } = args;
 
-  if (!query || typeof query !== 'string') {
-    throw new Error('query is required and must be a string');
+  // Allow either query OR concepts (for multi-concept search)
+  const hasValidQuery = query && typeof query === 'string';
+  const hasValidConcepts = concepts && Array.isArray(concepts) && concepts.length >= 2;
+
+  if (!hasValidQuery && !hasValidConcepts) {
+    throw new Error('Either query (string) or concepts (array of 2-5 strings) is required');
   }
 
   // Validate specFolder parameter
@@ -239,10 +453,10 @@ async function handleMemorySearch(args) {
       throw new Error('Maximum 5 concepts allowed');
     }
 
-    // Generate embeddings for all concepts
+    // Generate embeddings for all concepts (using query prefix for search)
     const conceptEmbeddings = [];
     for (const concept of concepts) {
-      const emb = await embeddings.generateEmbedding(concept);
+      const emb = await embeddings.generateQueryEmbedding(concept);
       if (!emb) {
         throw new Error(`Failed to generate embedding for concept: ${concept}`);
       }
@@ -258,15 +472,20 @@ async function handleMemorySearch(args) {
     return formatSearchResults(results, 'multi-concept');
   }
 
-  // Single query search
-  const queryEmbedding = await embeddings.generateEmbedding(query);
+  // Single query search (using query prefix for optimal retrieval)
+  const queryEmbedding = await embeddings.generateQueryEmbedding(query);
   if (!queryEmbedding) {
     throw new Error('Failed to generate embedding for query');
   }
 
   const results = vectorIndex.vectorSearch(queryEmbedding, {
     limit,
-    specFolder
+    specFolder,
+    tier,
+    contextType,
+    useDecay,
+    includeContiguity,
+    includeConstitutional
   });
 
   return formatSearchResults(results, 'vector');
@@ -284,6 +503,7 @@ function formatSearchResults(results, searchType) {
           text: JSON.stringify({
             searchType,
             count: 0,
+            constitutionalCount: 0,
             results: [],
             message: 'No matching memories found'
           }, null, 2)
@@ -292,13 +512,19 @@ function formatSearchResults(results, searchType) {
     };
   }
 
+  // Count constitutional results
+  const constitutionalCount = results.filter(r => r.isConstitutional).length;
+
   const formatted = results.map(r => ({
     id: r.id,
     specFolder: r.spec_folder,
     filePath: r.file_path,
     title: r.title,
     similarity: r.similarity || r.averageSimilarity,
-    triggerPhrases: r.trigger_phrases ? JSON.parse(r.trigger_phrases) : [],
+    isConstitutional: r.isConstitutional || false,
+    importanceTier: r.importance_tier,
+    triggerPhrases: Array.isArray(r.trigger_phrases) ? r.trigger_phrases :
+                    (r.trigger_phrases ? JSON.parse(r.trigger_phrases) : []),
     createdAt: r.created_at
   }));
 
@@ -309,6 +535,7 @@ function formatSearchResults(results, searchType) {
         text: JSON.stringify({
           searchType,
           count: formatted.length,
+          constitutionalCount,
           results: formatted
         }, null, 2)
       }
@@ -486,6 +713,341 @@ function escapeRegex(str) {
 }
 
 // ───────────────────────────────────────────────────────────────
+// CRUD HANDLERS (memory_delete, memory_update, memory_list, memory_stats)
+// ───────────────────────────────────────────────────────────────
+
+/**
+ * Handle memory_delete tool - delete by ID or bulk delete by spec folder
+ */
+async function handleMemoryDelete(args) {
+  const { id, specFolder, confirm } = args;
+
+  if (!id && !specFolder) {
+    throw new Error('Either id or specFolder is required');
+  }
+
+  if (specFolder && !id && !confirm) {
+    throw new Error('Bulk delete requires confirm: true');
+  }
+
+  let deletedCount = 0;
+
+  if (id) {
+    // Single delete by ID
+    const success = vectorIndex.deleteMemory(id);
+    deletedCount = success ? 1 : 0;
+  } else {
+    // Bulk delete by spec folder
+    const memories = vectorIndex.getMemoriesByFolder(specFolder);
+    for (const memory of memories) {
+      if (vectorIndex.deleteMemory(memory.id)) {
+        deletedCount++;
+      }
+    }
+  }
+
+  return {
+    content: [{
+      type: 'text',
+      text: JSON.stringify({
+        deleted: deletedCount,
+        message: deletedCount > 0
+          ? `Deleted ${deletedCount} memory(s)`
+          : 'No memories found to delete'
+      }, null, 2)
+    }]
+  };
+}
+
+/**
+ * Handle memory_update tool - update existing memory metadata
+ */
+async function handleMemoryUpdate(args) {
+  const { id, title, triggerPhrases, importanceWeight, importanceTier } = args;
+
+  if (!id) {
+    throw new Error('id is required');
+  }
+
+  // Get existing memory
+  const existing = vectorIndex.getMemory(id);
+  if (!existing) {
+    throw new Error(`Memory not found: ${id}`);
+  }
+
+  // Build update params
+  const updateParams = { id };
+
+  if (title !== undefined) updateParams.title = title;
+  if (triggerPhrases !== undefined) updateParams.triggerPhrases = triggerPhrases;
+  if (importanceWeight !== undefined) updateParams.importanceWeight = importanceWeight;
+  if (importanceTier !== undefined) updateParams.importanceTier = importanceTier;
+
+  // Execute update (no re-embedding for metadata-only changes)
+  vectorIndex.updateMemory(updateParams);
+
+  return {
+    content: [{
+      type: 'text',
+      text: JSON.stringify({
+        updated: id,
+        message: 'Memory updated successfully',
+        fields: Object.keys(updateParams).filter(k => k !== 'id')
+      }, null, 2)
+    }]
+  };
+}
+
+/**
+ * Handle memory_list tool - paginated memory browsing
+ */
+async function handleMemoryList(args) {
+  const { limit = 20, offset = 0, specFolder, sortBy = 'created_at' } = args;
+
+  const database = vectorIndex.getDb();
+
+  // Get total count
+  const countSql = specFolder
+    ? 'SELECT COUNT(*) as count FROM memory_index WHERE spec_folder = ?'
+    : 'SELECT COUNT(*) as count FROM memory_index';
+  const countParams = specFolder ? [specFolder] : [];
+  const total = database.prepare(countSql).get(...countParams).count;
+
+  // Validate and set sort column
+  const sortColumn = ['created_at', 'updated_at', 'importance_weight'].includes(sortBy)
+    ? sortBy
+    : 'created_at';
+  const sortDir = 'DESC';
+
+  // Get paginated results
+  let sql = `
+    SELECT id, spec_folder, file_path, title, trigger_phrases,
+           importance_weight, created_at, updated_at
+    FROM memory_index
+    ${specFolder ? 'WHERE spec_folder = ?' : ''}
+    ORDER BY ${sortColumn} ${sortDir}
+    LIMIT ? OFFSET ?
+  `;
+
+  const effectiveLimit = Math.min(limit, 100);
+  const params = specFolder
+    ? [specFolder, effectiveLimit, offset]
+    : [effectiveLimit, offset];
+
+  const rows = database.prepare(sql).all(...params);
+
+  const memories = rows.map(row => ({
+    id: row.id,
+    specFolder: row.spec_folder,
+    title: row.title || '(untitled)',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    importanceWeight: row.importance_weight,
+    triggerCount: row.trigger_phrases ? JSON.parse(row.trigger_phrases).length : 0,
+    filePath: row.file_path
+  }));
+
+  return {
+    content: [{
+      type: 'text',
+      text: JSON.stringify({
+        total,
+        offset,
+        limit: effectiveLimit,
+        count: memories.length,
+        memories
+      }, null, 2)
+    }]
+  };
+}
+
+/**
+ * Handle memory_stats tool - system-wide statistics
+ */
+async function handleMemoryStats(args) {
+  const database = vectorIndex.getDb();
+
+  // Total count
+  const total = database.prepare('SELECT COUNT(*) as count FROM memory_index').get().count;
+
+  // Status breakdown
+  const statusCounts = vectorIndex.getStatusCounts();
+
+  // Date range
+  const dates = database.prepare(`
+    SELECT
+      MIN(created_at) as oldest,
+      MAX(created_at) as newest
+    FROM memory_index
+  `).get();
+
+  // Top folders
+  const topFolders = database.prepare(`
+    SELECT spec_folder, COUNT(*) as count
+    FROM memory_index
+    GROUP BY spec_folder
+    ORDER BY count DESC
+    LIMIT 10
+  `).all();
+
+  // Trigger phrase count
+  const triggerResult = database.prepare(`
+    SELECT SUM(json_array_length(trigger_phrases)) as count
+    FROM memory_index
+    WHERE trigger_phrases IS NOT NULL AND trigger_phrases != '[]'
+  `).get();
+  const triggerCount = triggerResult.count || 0;
+
+  return {
+    content: [{
+      type: 'text',
+      text: JSON.stringify({
+        totalMemories: total,
+        byStatus: statusCounts,
+        oldestMemory: dates.oldest || null,
+        newestMemory: dates.newest || null,
+        topFolders: topFolders.map(f => ({ folder: f.spec_folder, count: f.count })),
+        totalTriggerPhrases: triggerCount
+      }, null, 2)
+    }]
+  };
+}
+
+// ───────────────────────────────────────────────────────────────
+// CHECKPOINT HANDLERS
+// ───────────────────────────────────────────────────────────────
+
+/**
+ * Handle checkpoint_create tool - create a named checkpoint
+ */
+async function handleCheckpointCreate(args) {
+  const { name, specFolder, metadata } = args;
+
+  if (!name || typeof name !== 'string') {
+    throw new Error('name is required and must be a string');
+  }
+
+  const result = checkpoints.create(name, { specFolder, metadata });
+
+  return {
+    content: [{
+      type: 'text',
+      text: JSON.stringify({
+        success: true,
+        checkpoint: result,
+        message: `Checkpoint "${name}" created successfully`
+      }, null, 2)
+    }]
+  };
+}
+
+/**
+ * Handle checkpoint_list tool - list all checkpoints
+ */
+async function handleCheckpointList(args) {
+  const { specFolder, limit = 50 } = args;
+
+  const results = checkpoints.list({ specFolder, limit });
+
+  return {
+    content: [{
+      type: 'text',
+      text: JSON.stringify({
+        count: results.length,
+        checkpoints: results
+      }, null, 2)
+    }]
+  };
+}
+
+/**
+ * Handle checkpoint_restore tool - restore from a checkpoint
+ */
+async function handleCheckpointRestore(args) {
+  const { name, clearExisting = false } = args;
+
+  if (!name || typeof name !== 'string') {
+    throw new Error('name is required and must be a string');
+  }
+
+  const result = checkpoints.restore(name, { clearExisting });
+
+  return {
+    content: [{
+      type: 'text',
+      text: JSON.stringify({
+        success: true,
+        restored: result,
+        message: `Checkpoint "${name}" restored successfully`
+      }, null, 2)
+    }]
+  };
+}
+
+/**
+ * Handle checkpoint_delete tool - delete a checkpoint
+ */
+async function handleCheckpointDelete(args) {
+  const { name } = args;
+
+  if (!name || typeof name !== 'string') {
+    throw new Error('name is required and must be a string');
+  }
+
+  const success = checkpoints.delete(name);
+
+  return {
+    content: [{
+      type: 'text',
+      text: JSON.stringify({
+        success,
+        message: success
+          ? `Checkpoint "${name}" deleted successfully`
+          : `Checkpoint "${name}" not found`
+      }, null, 2)
+    }]
+  };
+}
+
+// ───────────────────────────────────────────────────────────────
+// VALIDATION HANDLER
+// ───────────────────────────────────────────────────────────────
+
+/**
+ * Handle memory_validate tool - record validation feedback for a memory
+ */
+async function handleMemoryValidate(args) {
+  const { id, wasUseful } = args;
+
+  if (id === undefined || id === null) {
+    throw new Error('id is required');
+  }
+
+  if (typeof wasUseful !== 'boolean') {
+    throw new Error('wasUseful is required and must be a boolean');
+  }
+
+  const database = vectorIndex.getDb();
+  const result = confidenceTracker.recordValidation(database, id, wasUseful);
+
+  return {
+    content: [{
+      type: 'text',
+      text: JSON.stringify({
+        memoryId: id,
+        wasUseful,
+        confidence: result.confidence,
+        validationCount: result.validationCount,
+        promotionEligible: result.promotionEligible,
+        message: wasUseful
+          ? `Positive validation recorded. Confidence: ${result.confidence.toFixed(2)}`
+          : `Negative validation recorded. Confidence: ${result.confidence.toFixed(2)}`
+      }, null, 2)
+    }]
+  };
+}
+
+// ───────────────────────────────────────────────────────────────
 // GRACEFUL SHUTDOWN
 // ───────────────────────────────────────────────────────────────
 
@@ -494,7 +1056,8 @@ let shuttingDown = false;
 process.on('SIGTERM', () => {
   if (shuttingDown) return;
   shuttingDown = true;
-  console.error('[semantic-memory] Received SIGTERM, shutting down...');
+  console.error('[memory-server] Received SIGTERM, shutting down...');
+  accessTracker.flushAccessCounts();
   vectorIndex.closeDb();
   process.exit(0);
 });
@@ -502,7 +1065,8 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   if (shuttingDown) return;
   shuttingDown = true;
-  console.error('[semantic-memory] Received SIGINT, shutting down...');
+  console.error('[memory-server] Received SIGINT, shutting down...');
+  accessTracker.flushAccessCounts();
   vectorIndex.closeDb();
   process.exit(0);
 });
@@ -511,21 +1075,42 @@ process.on('SIGINT', () => {
 // MAIN
 // ───────────────────────────────────────────────────────────────
 
+// Default base path - use environment variable or current working directory
+const DEFAULT_BASE_PATH = process.env.MEMORY_BASE_PATH || process.cwd();
+
 async function main() {
   // Pre-warm embedding model by generating a dummy embedding
   // Don't await - let server start while model loads
   embeddings.generateEmbedding('warmup').then(() => {
-    console.error('[semantic-memory] Embedding model ready');
+    console.error('[memory-server] Embedding model ready');
   }).catch(err => {
-    console.error('[semantic-memory] Embedding model pre-warm failed:', err.message);
+    console.error('[memory-server] Embedding model pre-warm failed:', err.message);
   });
+
+  // Run integrity check on startup (non-blocking)
+  try {
+    vectorIndex.initializeDb();
+    const report = vectorIndex.verifyIntegrityWithPaths(DEFAULT_BASE_PATH);
+    console.error(`[memory-server] Integrity check: ${report.validCount}/${report.total} valid entries`);
+    if (report.orphanedCount > 0) {
+      console.error(`[memory-server] WARNING: ${report.orphanedCount} orphaned entries detected (files missing)`);
+      console.error('[memory-server] Run cleanupOrphans() to remove stale entries');
+    }
+
+    // Initialize checkpoints and access tracker with database connection
+    checkpoints.init(vectorIndex.getDb());
+    accessTracker.init(vectorIndex.getDb());
+    console.error('[memory-server] Checkpoints and access tracker initialized');
+  } catch (err) {
+    console.error('[memory-server] Integrity check failed:', err.message);
+  }
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('[semantic-memory] Memory MCP server running on stdio');
+  console.error('[memory-server] Memory MCP server running on stdio');
 }
 
 main().catch(err => {
-  console.error('[semantic-memory] Fatal error:', err);
+  console.error('[memory-server] Fatal error:', err);
   process.exit(1);
 });

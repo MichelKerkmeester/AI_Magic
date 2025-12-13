@@ -4,8 +4,8 @@ A Model Context Protocol server providing semantic search, memory loading, and f
 
 > **Navigation**: This is the MCP Server technical reference.
 > - New to semantic memory? Start here
-> - Need workflow details? See [SKILL.md](./SKILL.md)
-> - Quick command lookup? See [/memory/save](../../commands/memory/save.md) or [/memory/search](../../commands/memory/search.md)
+> - Need workflow details? See [SKILL.md](../skills/workflows-memory/SKILL.md)
+> - Quick command lookup? See [/memory/save](../command/memory/save.md) or [/memory/search](../command/memory/search.md)
 
 ---
 
@@ -437,13 +437,13 @@ Slow operations are logged automatically:
 1. Check symlink:
    ```bash
    ls -la node_modules
-   # Should point to workflows-memory/node_modules
+   # Should point to MCP Server/semantic-memory/node_modules
    ```
 
 2. Reinstall if broken:
    ```bash
    rm node_modules
-   ln -s /path/to/.claude/skills/workflows-memory/node_modules .
+   ln -s /path/to/.opencode/memory/node_modules .
    ```
 
 ### sqlite-vec Not Loading
@@ -469,23 +469,23 @@ Slow operations are logged automatically:
 **Solutions**:
 1. Check database exists:
    ```bash
-   ls .opencode/memory/memory-index.sqlite
+   ls .opencode/memory/database/memory-index.sqlite
    ```
 
 2. Verify embeddings exist:
    ```bash
-   sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM vec_memories"
+   sqlite3 .opencode/memory/database/memory-index.sqlite "SELECT COUNT(*) FROM vec_memories"
    ```
 
 3. Check embedding status:
    ```bash
-   sqlite3 .opencode/memory/memory-index.sqlite \
+   sqlite3 .opencode/memory/database/memory-index.sqlite \
      "SELECT embedding_status, COUNT(*) FROM memory_index GROUP BY embedding_status"
    ```
 
 4. Rebuild index with batch indexer:
    ```bash
-   cd .claude/skills/workflows-memory/scripts
+   cd .opencode/memory/scripts
    node index-all.js --scan /path/to/project
    ```
 
@@ -499,7 +499,7 @@ Slow operations are logged automatically:
 1. Check for large prompt (truncated at 2000 chars)
 2. Verify WAL mode:
    ```bash
-   sqlite3 .opencode/memory/memory-index.sqlite "PRAGMA journal_mode"
+   sqlite3 .opencode/memory/database/memory-index.sqlite "PRAGMA journal_mode"
    # Should return: wal
    ```
 
@@ -529,7 +529,7 @@ semantic-memory/
 | --------------- | ------------------------------------------------ | ------------------------- |
 | Install Guide   | `Install Guides/MCP - Semantic Memory.md`        | Step-by-step installation |
 | Spec 011        | `specs/011-semantic-memory-upgrade/`             | Full specification        |
-| Skills SKILL.md | `.claude/skills/workflows-memory/SKILL.md` | Memory workflow     |
+| Skills SKILL.md | `.opencode/skills/workflows-memory/SKILL.md` | Memory workflow     |
 
 ### Verification Commands
 
@@ -541,8 +541,8 @@ node memory-server.js --version 2>&1 | head -1
 node memory-server.js
 
 # Check database
-sqlite3 .opencode/memory/memory-index.sqlite ".tables"
+sqlite3 .opencode/memory/database/memory-index.sqlite ".tables"
 
 # Count indexed memories
-sqlite3 .opencode/memory/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
+sqlite3 .opencode/memory/database/memory-index.sqlite "SELECT COUNT(*) FROM memory_index"
 ```

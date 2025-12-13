@@ -3,10 +3,10 @@
     "code_mode": {
       "command": "node",
       "args": [
-        "/path/to/mcp-servers/code-mode/code-mode-mcp/dist/index.js"
+        "/Users/USER/Projects/mcp-servers/code-mode/code-mode-mcp/dist/index.js"
       ],
       "env": {
-        "UTCP_CONFIG_FILE": "/path/to/project/.utcp_config.json"
+        "UTCP_CONFIG_FILE": "/Users/USER/Projects/example-site/.utcp_config.json"
       },
       "working_directory": null,
       "disabled": false
@@ -14,28 +14,28 @@
     "semantic_memory": {
       "command": "node",
       "args": [
-        "/path/to/mcp-servers/semantic-memory/semantic-memory.js"
+        "/Users/USER/Projects/mcp-servers/semantic-memory/semantic-memory.js"
       ],
       "env": {
-        "_NOTE_DATABASE": "Stores vectors in: {cwd}/.opencode/memory/memory-index.sqlite",
+        "_NOTE_DATABASE": "Stores vectors in: {cwd}/.opencode/memory/database/memory-index.sqlite",
         "_NOTE_MODEL": "Uses nomic-embed-text-v1.5 (768-dim embeddings)"
       },
       "disabled": false
     },
     "semantic_search": {
-      "command": "/path/to/mcp-servers/semantic-search/venv/bin/python",
+      "command": "/Users/USER/Projects/mcp-servers/semantic-search/venv/bin/python",
       "args": [
-        "/path/to/mcp-servers/semantic-search/src/server_sqlite.py"
+        "/Users/USER/Projects/mcp-servers/semantic-search/src/server_sqlite.py"
       ],
       "env": {
-        "MCP_CODEBASE_WORKSPACE": "/path/to/project",
-        "MCP_CODEBASE_DB_PATH": "/path/to/project/.codebase/vectors.db",
+        "MCP_CODEBASE_WORKSPACE": "/Users/USER/Projects/example-site",
+        "MCP_CODEBASE_DB_PATH": "/Users/USER/Projects/example-site/.codebase/vectors.db",
         "MCP_CODEBASE_EMBEDDER_PROVIDER": "openai-compatible",
-        "MCP_CODEBASE_EMBEDDER_API_KEY": "your-api-key-here",
+        "MCP_CODEBASE_EMBEDDER_API_KEY": "YOUR_EMBEDDER_API_KEY",
         "MCP_CODEBASE_EMBEDDER_BASE_URL": "https://api.voyageai.com/v1",
         "MCP_CODEBASE_EMBEDDER_MODEL_ID": "voyage-code-3",
         "MCP_CODEBASE_JUDGE_PROVIDER": "openai-compatible",
-        "MCP_CODEBASE_JUDGE_API_KEY": "your-api-key-here",
+        "MCP_CODEBASE_JUDGE_API_KEY": "YOUR_JUDGE_API_KEY",
         "MCP_CODEBASE_JUDGE_BASE_URL": "https://api.voyageai.com/v1",
         "MCP_CODEBASE_JUDGE_MODEL_ID": "voyage-3",
         "MCP_CODEBASE_JUDGE_MAX_TOKENS": "1024",

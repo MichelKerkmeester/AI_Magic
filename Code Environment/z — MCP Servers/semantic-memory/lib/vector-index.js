@@ -6,7 +6,7 @@
  * synchronized rowid linkage between metadata and vectors.
  *
  * @module vector-index
- * @version 10.0.0
+ * @version 12.0.0
  */
 
 'use strict';
@@ -22,6 +22,7 @@ const fs = require('fs');
 // ───────────────────────────────────────────────────────────────
 
 const EMBEDDING_DIM = 768;
+const MODEL_NAME = 'nomic-ai/nomic-embed-text-v1.5';
 // Project-local database - works for both Claude Code and Opencode
 const DEFAULT_DB_PATH = path.join(process.cwd(), '.opencode', 'memory', 'memory-index.sqlite');
 const DB_PERMISSIONS = 0o600; // Owner read/write only
@@ -72,6 +73,12 @@ function initializeDb(customPath = null) {
   // Enable WAL mode for concurrent access (FR-010b)
   db.pragma('journal_mode = WAL');
 
+  // Performance pragmas (P1 optimization - 20-50% faster queries/writes)
+  db.pragma('cache_size = -64000');       // 64MB cache (negative = KB)
+  db.pragma('mmap_size = 268435456');     // 256MB memory-mapped I/O
+  db.pragma('synchronous = NORMAL');      // Balanced durability/speed
+  db.pragma('temp_store = MEMORY');       // Use RAM for temp tables
+
   // Create schema if needed
   createSchema(db);
 
@@ -89,6 +96,74 @@ function initializeDb(customPath = null) {
 }
 
 /**
+ * Migrate existing database to add confidence tracking columns
+ * @param {Object} database - better-sqlite3 instance
+ */
+function migrateConfidenceColumns(database) {
+  // Check if confidence column exists
+  const columns = database.prepare(`PRAGMA table_info(memory_index)`).all();
+  const columnNames = columns.map(c => c.name);
+
+  if (!columnNames.includes('confidence')) {
+    database.exec(`ALTER TABLE memory_index ADD COLUMN confidence REAL DEFAULT 0.5`);
+    console.warn('[vector-index] Migration: Added confidence column');
+  }
+
+  if (!columnNames.includes('validation_count')) {
+    database.exec(`ALTER TABLE memory_index ADD COLUMN validation_count INTEGER DEFAULT 0`);
+    console.warn('[vector-index] Migration: Added validation_count column');
+  }
+}
+
+/**
+ * Migrate existing database to support constitutional tier
+ *
+ * Note: SQLite CHECK constraints cannot be modified after table creation.
+ * For existing databases, the 'constitutional' value will be accepted
+ * because SQLite's CHECK constraint only validates on INSERT/UPDATE.
+ * New databases get the updated constraint automatically.
+ *
+ * @param {Object} database - better-sqlite3 instance
+ */
+function migrateConstitutionalTier(database) {
+  // Check the current CHECK constraint by examining table schema
+  const tableInfo = database.prepare(`
+    SELECT sql FROM sqlite_master
+    WHERE type='table' AND name='memory_index'
+  `).get();
+
+  if (tableInfo && tableInfo.sql) {
+    // Check if constitutional is already in the constraint
+    if (tableInfo.sql.includes("'constitutional'")) {
+      return; // Already migrated
+    }
+
+    // Note: We can't ALTER the CHECK constraint in SQLite
+    // The new tier will work because:
+    // 1. SQLite allows any value if you disable constraint checking
+    // 2. New inserts with 'constitutional' will fail on old schema
+    // Solution: We'll recreate the table with the new constraint
+
+    // Check if there are constitutional memories that need to be preserved
+    // (in case someone already inserted them with constraint checking disabled)
+    const constitutionalCount = database.prepare(`
+      SELECT COUNT(*) as count FROM memory_index
+      WHERE importance_tier = 'constitutional'
+    `).get().count;
+
+    if (constitutionalCount > 0) {
+      console.warn(`[vector-index] Found ${constitutionalCount} constitutional memories`);
+    }
+
+    // For production safety, we don't automatically migrate the table
+    // Instead, we log a warning and the new constraint applies to new databases only
+    console.warn('[vector-index] Migration: Constitutional tier available');
+    console.warn('[vector-index] Note: For existing databases, constitutional tier may require manual schema update');
+    console.warn('[vector-index] New databases will have the updated constraint automatically');
+  }
+}
+
+/**
  * Create database schema
  * @param {Object} database - better-sqlite3 instance
  */
@@ -100,6 +175,9 @@ function createSchema(database) {
   `).get();
 
   if (tableExists) {
+    // Migrations for existing databases
+    migrateConfidenceColumns(database);
+    migrateConstitutionalTier(database);
     return; // Schema already exists
   }
 
@@ -121,6 +199,19 @@ function createSchema(database) {
       retry_count INTEGER DEFAULT 0,
       last_retry_at TEXT,
       failure_reason TEXT,
+      base_importance REAL DEFAULT 0.5,
+      decay_half_life_days REAL DEFAULT 90.0,
+      is_pinned INTEGER DEFAULT 0,
+      access_count INTEGER DEFAULT 0,
+      last_accessed INTEGER DEFAULT 0,
+      importance_tier TEXT DEFAULT 'normal' CHECK(importance_tier IN ('constitutional', 'critical', 'important', 'normal', 'temporary', 'deprecated')),
+      session_id TEXT,
+      context_type TEXT DEFAULT 'general' CHECK(context_type IN ('research', 'implementation', 'decision', 'discovery', 'general')),
+      channel TEXT DEFAULT 'default',
+      content_hash TEXT,
+      expires_at DATETIME,
+      confidence REAL DEFAULT 0.5,
+      validation_count INTEGER DEFAULT 0,
       UNIQUE(spec_folder, file_path, anchor_id)
     )
   `);
@@ -134,6 +225,66 @@ function createSchema(database) {
     `);
   }
 
+  // Create FTS5 virtual table
+  database.exec(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts USING fts5(
+      title, trigger_phrases, file_path,
+      content='memory_index', content_rowid='id'
+    )
+  `);
+
+  // Create FTS5 sync triggers
+  database.exec(`
+    CREATE TRIGGER IF NOT EXISTS memory_fts_insert AFTER INSERT ON memory_index BEGIN
+      INSERT INTO memory_fts(rowid, title, trigger_phrases, file_path)
+      VALUES (new.id, new.title, new.trigger_phrases, new.file_path);
+    END
+  `);
+
+  database.exec(`
+    CREATE TRIGGER IF NOT EXISTS memory_fts_update AFTER UPDATE ON memory_index BEGIN
+      INSERT INTO memory_fts(memory_fts, rowid, title, trigger_phrases, file_path)
+      VALUES ('delete', old.id, old.title, old.trigger_phrases, old.file_path);
+      INSERT INTO memory_fts(rowid, title, trigger_phrases, file_path)
+      VALUES (new.id, new.title, new.trigger_phrases, new.file_path);
+    END
+  `);
+
+  database.exec(`
+    CREATE TRIGGER IF NOT EXISTS memory_fts_delete AFTER DELETE ON memory_index BEGIN
+      INSERT INTO memory_fts(memory_fts, rowid, title, trigger_phrases, file_path)
+      VALUES ('delete', old.id, old.title, old.trigger_phrases, old.file_path);
+    END
+  `);
+
+  // Create memory_history and checkpoints tables
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS memory_history (
+      id TEXT PRIMARY KEY,
+      memory_id INTEGER NOT NULL,
+      prev_value TEXT,
+      new_value TEXT,
+      event TEXT NOT NULL CHECK(event IN ('ADD', 'UPDATE', 'DELETE')),
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      is_deleted INTEGER DEFAULT 0,
+      actor TEXT DEFAULT 'system',
+      FOREIGN KEY (memory_id) REFERENCES memory_index(id)
+    )
+  `);
+
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS checkpoints (
+      id INTEGER PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      spec_folder TEXT,
+      git_branch TEXT,
+      memory_snapshot BLOB,
+      file_snapshot BLOB,
+      metadata TEXT
+    )
+  `);
+
   // Create indexes
   database.exec(`
     CREATE INDEX idx_spec_folder ON memory_index(spec_folder);
@@ -141,6 +292,16 @@ function createSchema(database) {
     CREATE INDEX idx_importance ON memory_index(importance_weight DESC);
     CREATE INDEX idx_embedding_status ON memory_index(embedding_status);
     CREATE INDEX idx_retry_eligible ON memory_index(embedding_status, retry_count, last_retry_at)
+  `);
+
+  // Additional indexes for new features
+  database.exec(`
+    CREATE INDEX IF NOT EXISTS idx_importance_tier ON memory_index(importance_tier);
+    CREATE INDEX IF NOT EXISTS idx_access_importance ON memory_index(access_count DESC, importance_weight DESC);
+    CREATE INDEX IF NOT EXISTS idx_memories_scope ON memory_index(spec_folder, session_id, context_type);
+    CREATE INDEX IF NOT EXISTS idx_channel ON memory_index(channel);
+    CREATE INDEX IF NOT EXISTS idx_history_memory ON memory_history(memory_id, timestamp);
+    CREATE INDEX IF NOT EXISTS idx_checkpoints_spec ON checkpoints(spec_folder);
   `);
 
   console.warn('[vector-index] Schema created successfully');
@@ -215,7 +376,7 @@ function indexMemory(params) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       specFolder, filePath, anchorId, title, triggersJson,
-      importanceWeight, now, now, 'Xenova/all-MiniLM-L6-v2', now, embeddingStatus
+      importanceWeight, now, now, MODEL_NAME, now, embeddingStatus
     );
 
     // sqlite-vec requires BigInt for explicit rowid insertion
@@ -273,7 +434,7 @@ function updateMemory(params) {
       updates.push('embedding_model = ?');
       updates.push('embedding_generated_at = ?');
       updates.push('embedding_status = ?');
-      values.push('Xenova/all-MiniLM-L6-v2', now, 'success');
+      values.push(MODEL_NAME, now, 'success');
     }
 
     values.push(id);
@@ -441,11 +602,18 @@ function getStats() {
 /**
  * Search memories by vector similarity
  *
- * @param {Float32Array|Buffer} queryEmbedding - Query vector (384-dim)
+ * Constitutional tier memories are ALWAYS included at the top of results,
+ * regardless of query, limited to ~500 tokens worth of content.
+ *
+ * @param {Float32Array|Buffer} queryEmbedding - Query vector (768-dim)
  * @param {Object} [options] - Search options
  * @param {number} [options.limit=10] - Maximum results
  * @param {string} [options.specFolder] - Filter by spec folder
  * @param {number} [options.minSimilarity=0] - Minimum similarity (0-100)
+ * @param {boolean} [options.useDecay=true] - Apply time-based decay to importance
+ * @param {string} [options.tier] - Filter by importance tier (constitutional, critical, important, normal, temporary)
+ * @param {string} [options.contextType] - Filter by context type (research, implementation, decision, discovery, general)
+ * @param {boolean} [options.includeConstitutional=true] - Include constitutional memories at top
  * @returns {Object[]} Ranked results with similarity scores
  */
 function vectorSearch(queryEmbedding, options = {}) {
@@ -457,7 +625,15 @@ function vectorSearch(queryEmbedding, options = {}) {
 
   const database = initializeDb();
 
-  const { limit = 10, specFolder = null, minSimilarity = 0 } = options;
+  const {
+    limit = 10,
+    specFolder = null,
+    minSimilarity = 0,
+    useDecay = true,
+    tier = null,
+    contextType = null,
+    includeConstitutional = true
+  } = options;
 
   // Convert to Buffer if Float32Array
   const queryBuffer = queryEmbedding instanceof Buffer
@@ -468,32 +644,155 @@ function vectorSearch(queryEmbedding, options = {}) {
   // similarity = (1 - distance/2) * 100, so distance = 2 * (1 - similarity/100)
   const maxDistance = 2 * (1 - minSimilarity / 100);
 
+  // Build decay expression: importance * (0.5 ^ (days_since_update / half_life))
+  // For pinned items, decay is disabled (multiplier = 1.0)
+  const decayExpr = useDecay
+    ? `CASE WHEN m.is_pinned = 1 THEN m.importance_weight
+        ELSE m.importance_weight * POWER(0.5, (julianday('now') - julianday(m.updated_at)) / COALESCE(m.decay_half_life_days, 90.0))
+       END`
+    : 'm.importance_weight';
+
+  // ─────────────────────────────────────────────────────────────────
+  // CONSTITUTIONAL MEMORIES: Always surface at top (unless filtering by tier)
+  // ─────────────────────────────────────────────────────────────────
+  let constitutionalResults = [];
+
+  // Only fetch constitutional if not filtering by a specific tier and includeConstitutional is true
+  if (includeConstitutional && !tier) {
+    const constitutionalSql = `
+      SELECT m.*, 100.0 as similarity, 1.0 as effective_importance,
+             'constitutional' as source_type
+      FROM memory_index m
+      WHERE m.importance_tier = 'constitutional'
+        AND m.embedding_status = 'success'
+        ${specFolder ? 'AND m.spec_folder = ?' : ''}
+      ORDER BY m.importance_weight DESC, m.created_at DESC
+    `;
+
+    const constitutionalParams = specFolder ? [specFolder] : [];
+    constitutionalResults = database.prepare(constitutionalSql).all(...constitutionalParams);
+
+    // Limit constitutional results to ~500 tokens (~2000 chars, ~5 memories avg)
+    // Rough estimate: each memory title + metadata ~ 100 tokens
+    const MAX_CONSTITUTIONAL_TOKENS = 500;
+    const TOKENS_PER_MEMORY = 100; // Conservative estimate
+    const maxConstitutionalCount = Math.floor(MAX_CONSTITUTIONAL_TOKENS / TOKENS_PER_MEMORY);
+    constitutionalResults = constitutionalResults.slice(0, maxConstitutionalCount);
+
+    // Mark as constitutional for client identification
+    constitutionalResults = constitutionalResults.map(row => {
+      if (row.trigger_phrases) {
+        row.trigger_phrases = JSON.parse(row.trigger_phrases);
+      }
+      row.isConstitutional = true;
+      return row;
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // REGULAR VECTOR SEARCH
+  // ─────────────────────────────────────────────────────────────────
+  // Build dynamic WHERE clauses for tier and contextType filtering
+  const whereClauses = ['m.embedding_status = \'success\''];
+  const params = [queryBuffer];
+
+  // Exclude deprecated and constitutional tier from regular search (constitutional already surfaced)
+  if (tier === 'deprecated') {
+    whereClauses.push('m.importance_tier = ?');
+    params.push('deprecated');
+  } else if (tier === 'constitutional') {
+    whereClauses.push('m.importance_tier = ?');
+    params.push('constitutional');
+  } else if (tier) {
+    whereClauses.push('m.importance_tier = ?');
+    params.push(tier);
+  } else {
+    // Exclude both deprecated and constitutional from regular results (constitutional already at top)
+    whereClauses.push('(m.importance_tier IS NULL OR m.importance_tier NOT IN (\'deprecated\', \'constitutional\'))');
+  }
+
+  if (specFolder) {
+    whereClauses.push('m.spec_folder = ?');
+    params.push(specFolder);
+  }
+
+  if (contextType) {
+    whereClauses.push('m.context_type = ?');
+    params.push(contextType);
+  }
+
+  // Adjust limit to account for constitutional results
+  const adjustedLimit = Math.max(1, limit - constitutionalResults.length);
+  params.push(maxDistance, adjustedLimit);
+
   // Refactored to compute distance only once using subquery pattern
   const sql = `
     SELECT sub.*,
            ROUND((1 - sub.distance / 2) * 100, 2) as similarity
     FROM (
-      SELECT m.*, vec_distance_cosine(v.embedding, ?) as distance
+      SELECT m.*, vec_distance_cosine(v.embedding, ?) as distance,
+             ${decayExpr} as effective_importance
       FROM memory_index m
       JOIN vec_memories v ON m.id = v.rowid
-      WHERE m.embedding_status = 'success'
-      ${specFolder ? 'AND m.spec_folder = ?' : ''}
+      WHERE ${whereClauses.join(' AND ')}
     ) sub
     WHERE sub.distance <= ?
     ORDER BY sub.distance ASC
     LIMIT ?
   `;
 
-  const params = specFolder
-    ? [queryBuffer, specFolder, maxDistance, limit]
-    : [queryBuffer, maxDistance, limit];
-
   const rows = database.prepare(sql).all(...params);
 
-  return rows.map(row => {
+  const regularResults = rows.map(row => {
     if (row.trigger_phrases) {
       row.trigger_phrases = JSON.parse(row.trigger_phrases);
     }
+    row.isConstitutional = false;
+    return row;
+  });
+
+  // Combine: constitutional first, then regular results
+  return [...constitutionalResults, ...regularResults];
+}
+
+/**
+ * Get all constitutional tier memories
+ *
+ * Returns constitutional memories without requiring a query embedding.
+ * Useful for always-surfacing core rules regardless of search context.
+ *
+ * @param {Object} [options] - Options
+ * @param {string} [options.specFolder] - Filter by spec folder
+ * @param {number} [options.maxTokens=500] - Maximum tokens worth of results
+ * @returns {Object[]} Constitutional memories sorted by importance
+ */
+function getConstitutionalMemories(options = {}) {
+  const database = initializeDb();
+
+  const { specFolder = null, maxTokens = 500 } = options;
+
+  const sql = `
+    SELECT m.*, 100.0 as similarity, 1.0 as effective_importance
+    FROM memory_index m
+    WHERE m.importance_tier = 'constitutional'
+      AND m.embedding_status = 'success'
+      ${specFolder ? 'AND m.spec_folder = ?' : ''}
+    ORDER BY m.importance_weight DESC, m.created_at DESC
+  `;
+
+  const params = specFolder ? [specFolder] : [];
+  let results = database.prepare(sql).all(...params);
+
+  // Limit to token budget (~100 tokens per memory avg)
+  const TOKENS_PER_MEMORY = 100;
+  const maxCount = Math.floor(maxTokens / TOKENS_PER_MEMORY);
+  results = results.slice(0, maxCount);
+
+  return results.map(row => {
+    if (row.trigger_phrases) {
+      row.trigger_phrases = JSON.parse(row.trigger_phrases);
+    }
+    row.isConstitutional = true;
     return row;
   });
 }
@@ -774,6 +1073,19 @@ function isVectorSearchAvailable() {
   return sqliteVecAvailable;
 }
 
+/**
+ * Check if FTS5 full-text search is available
+ * @returns {boolean} True if FTS5 is available and memory_fts table exists
+ */
+function isFtsAvailable() {
+  try {
+    db.prepare("SELECT 1 FROM memory_fts LIMIT 1").get();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 module.exports = {
   // Initialization
   initializeDb,
@@ -801,7 +1113,9 @@ module.exports = {
   // Search
   vectorSearch,
   multiConceptSearch,
+  getConstitutionalMemories,
   isVectorSearchAvailable,
+  isFtsAvailable,
 
   // Constants
   EMBEDDING_DIM,

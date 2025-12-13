@@ -46,20 +46,12 @@ specs/
 
 # Exception: Allow memory command folders in Code Environment
 !Code Environment/
-!Code Environment/claude/
-!Code Environment/claude/commands/
-!Code Environment/claude/commands/memory/
-!Code Environment/claude/commands/memory/**
-!Code Environment/opencode/
-!Code Environment/opencode/command/
-!Code Environment/opencode/command/memory/
-!Code Environment/opencode/command/memory/**
-!Code Environment/opencode/memory/
-!Code Environment/opencode/memory/**
+!Code Environment/command/
+!Code Environment/command/memory/
+!Code Environment/command/memory/**
+!Code Environment/memory/
+!Code Environment/memory/**
 
-# Working prompts (ignored at all levels)
-z__request_to_user_input.yaml
-z__starter_prompt.yaml
 
 # Archive folder (root level only)
 /z — Archive/

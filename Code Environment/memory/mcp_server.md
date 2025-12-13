@@ -1,0 +1,1 @@
+/Users/michelkerkmeester/MEGA/MCP Servers/semantic-memory/mcp_server.md

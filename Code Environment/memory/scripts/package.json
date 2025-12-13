@@ -1,0 +1,13 @@
+{
+  "name": "workflows-memory-scripts",
+  "version": "10.0.0",
+  "description": "Semantic memory scripts for workflows-memory skill",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "@huggingface/transformers": "^3.0.0",
+    "better-sqlite3": "^11.0.0",
+    "sqlite-vec": "^0.1.0"
+  }
+}

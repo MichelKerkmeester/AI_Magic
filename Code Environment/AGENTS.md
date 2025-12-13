@@ -4,11 +4,11 @@
 
 ---
 
-## 1. ⚠️ AI BEHAVIOR GUARDRAILS & ANTI-PATTERNS
+## 1. ⛔ MANDATORY GATES - STOP BEFORE ACTING
 
-### 🔒 BLOCKING GATES (MANDATORY)
+**⚠️ BEFORE using ANY tool, you MUST pass all applicable gates below.**
 
-**These gates are HARD BLOCKS - you CANNOT proceed without passing each one.**
+### 🔒 BLOCKING GATES (HARD BLOCKS)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -26,11 +26,18 @@
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓ PASS
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 1: CONSOLIDATED SETUP QUESTIONS (Gates 2+4+5)                         │
-│ Bundle all PRE-DETECTABLE questions into ONE multi-question prompt          │
+│ ⛔ PHASE 1: CONSOLIDATED SETUP QUESTIONS (Gates 2+4+5)- ASK BEFORE TOOLS    │
 │                                                                             │
-│ ├─ Q1: SPEC FOLDER (Gate 2) - Always if file modifications planned            │
+│ FILE MODIFICATION TRIGGERS (if ANY match → Q1 REQUIRED):                    │
+│   □ "rename", "move", "delete", "create", "add", "remove"                   │
+│   □ "update", "change", "modify", "edit", "fix", "refactor"                  │
+│   □ "implement", "build", "write", "generate", "configure"                   │
+│   □ Any task that will result in file changes                                │
+│                                                                             │
+│ ├─ Q1: SPEC FOLDER (Gate 2) - If file modification triggers detected          │
 │ │      Options: A) Existing | B) New | C) Update related | D) Skip          │
+│ │      ❌ DO NOT use Read/Edit/Write/Bash before asking this question       │
+│ │      ✅ ASK FIRST, wait for A/B/C/D response, THEN proceed                │
 │ │                                                                           │
 │ ├─ Q2: GIT WORKSPACE (Gate 4) - If git keywords detected                    │
 │ │      Options: A) New branch | B) Worktree | C) Current branch             │
@@ -38,7 +45,7 @@
 │ └─ Q3: TASK APPROACH (Gate 5) - If 2+ domains detected                      │
 │        Options: A) Sequential | B) Parallel agents | C) Auto-decide         │
 │                                                                             │
-│ Block: HARD - Cannot proceed without answers to applicable questions        │
+│ Block: HARD - Cannot use tools without answers to applicable questions      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓ PASS
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -46,7 +53,7 @@
 │ Trigger: User selected A or C in Q1 AND memory files exist                   │
 │ Action:  Display [1] [2] [3] [all] [skip] → Wait for user choice            │
 │ Block:   SOFT - User can [skip] to proceed immediately                      │
-│ Note:    Handled by memory-surfacing hook (auto-triggered after Phase 1)    │
+│ Note:    Display memory options manually after Phase 1                      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓ PASS
                               ✅ EXECUTE TASK
@@ -61,22 +68,25 @@
                               ✅ CLAIM COMPLETION
 ```
 
+### ⚡ Self-Verification (complete before responding)
+
+```
+□ Did I detect file modification intent? → If YES, did I ask Q1 BEFORE using tools?
+□ Did I wait for user's A/B/C/D response before Read/Edit/Write/Bash?
+□ Am I about to use a tool without having asked? → STOP, ask first
+```
+
+### 🔄 Violation Recovery
+
+If you catch yourself about to skip the gates:
+1. **STOP** immediately
+2. **State**: "Before I proceed, I need to ask about documentation:"
+3. **Ask** the applicable Phase 1 questions
+4. **Wait** for response, then continue
+
 #### 🔄 Consolidated Question Protocol
 
-**Claude Code:** Use `AskUserQuestion` tool with 1-4 questions (tabs) based on what applies:
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  [Spec Folder]  │  [Git Workspace]  │  [Task Approach]                      │
-├─────────────────┴───────────────────┴───────────────────────────────────────┤
-│ Q1: How should we document this work?                                       │
-│ ○ A) Use existing spec folder                                               │
-│ ○ B) Create new spec folder (Recommended)                                   │
-│ ○ C) Update related spec                                                    │
-│ ○ D) Skip documentation                                                     │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-**Opencode:** Present all applicable questions in single prompt:
+Present all applicable questions in single prompt:
 ```markdown
 **Before proceeding, please answer:**
 
@@ -84,7 +94,7 @@
 2. **Git Workspace** (detected): A) New branch | B) Worktree | C) Current
 3. **Task Approach** (3 domains): A) Sequential | B) Parallel | C) Auto-decide
 
-Reply with choices, e.g.: "B, A, B" or "B, skip, auto"
+Reply with choices, e.g.: "B, A, B" or "C, skip, auto"
 ```
 
 **Detection Logic (run BEFORE asking):**
@@ -104,16 +114,24 @@ Git keywords detected?     → Include Q2 (Git Workspace)
 
 ### 🚨 CRITICAL RULES (MANDATORY)
 
+**HARD BLOCKERS (must do or stop):**
 - **All file modifications require a spec folder** - code, documentation, configuration, templates, etc. (even non-SpecKit conversations)
 - **Never lie or fabricate** - use "UNKNOWN" when uncertain, verify before claiming completion, follow process even for "trivial" changes
 - **Clarify** if confidence < 80% or ambiguity exists; **propose options**
 - **Use explicit uncertainty:** prefix claims with "I'M UNCERTAIN ABOUT THIS:" and output "UNKNOWN" when unverifiable
+
+**MANDATORY TOOLS:**
+- **Semantic Memory MCP is MANDATORY** for research tasks, context recovery, and finding prior work. See Section 5 for full tool list. Call directly - NOT through Code Mode.
+- **CLI AI agents MUST use semantic search MCP** for code exploration/discovery - it's intent-based, not keyword matching. See Section 5 for tool list. Call directly - NOT through Code Mode.
+- **Sequential Thinking MCP is MANDATORY** for complex problem decomposition, multi-step reasoning, and architectural decisions. Call directly: `sequential_thinking_sequentialthinking()` - NOT through Code Mode.
+
+**QUALITY PRINCIPLES:**
 - **Prefer simplicity**, reuse existing patterns, and cite evidence with sources
 - Solve only the stated problem; **avoid over-engineering** and premature optimization
 - **Verify with checks** (simplicity, performance, maintainability, scope) before making changes
-- **Semantic Memory MCP is MANDATORY** for research tasks, context recovery, and finding prior work. Call directly: `mcp__semantic_memory__memory_search()`, `mcp__semantic_memory__memory_load()`, `mcp__semantic_memory__memory_match_triggers()` - NOT through Code Mode
-- **CLI AI agents MUST use semantic search MCP** for code exploration/discovery - it's intent-based, not keyword matching (use grep/read for literal text). Call directly: `mcp__semantic_search__semantic_search()`, `mcp__semantic_search__visit_other_project()` - NOT through Code Mode
-- **Sequential Thinking MCP** - OPTIONAL: Claude Code users use native ultrathink instead; VSCode/Copilot/OpenCode users can use when configured in `.mcp.json`
+
+**FILE ORGANIZATION:**
+- **All temporary files MUST go in scratch/** - test scripts, debug files, prototypes, exploration code MUST be placed in `specs/[###-name]/scratch/`, NEVER in project root or spec folder root. This rule enforces via documentation - verify manually before completion.
 
 #### ⚡ Context Compaction Override (Gate 0)
 
@@ -137,20 +155,7 @@ Pause and ask before proceeding. See Section 3 for confidence scoring and thresh
 
 #### ⚡ Phase 1: Consolidated Setup Questions (Gates 2+4+5)
 
-**CRITICAL:** Bundle all applicable questions into ONE prompt. Pre-detect conditions BEFORE asking.
-
-**Implementation:** Use `AskUserQuestion` tool with questions array containing applicable questions (Q1-Q3). Each question has: `question`, `header`, `options` array with `label` and `description`. Ask ALL detected questions in one call.
-
-**For Opencode - Present as single consolidated prompt:**
-```markdown
-**Before proceeding, please answer:**
-
-1. **Spec Folder** (required): A) Existing | B) New | C) Update related | D) Skip
-2. **Git Workspace** (detected): A) New branch | B) Worktree | C) Current
-3. **Task Approach** (3 domains): A) Sequential | B) Parallel | C) Auto-decide
-
-Reply with choices, e.g.: "B, A, B"
-```
+**CRITICAL:** Bundle all applicable questions into ONE prompt. See **Section 1 gate flowchart** for question format, detection logic, and bypass phrases.
 
 **After Phase 1 answers received:**
 1. Create spec folder based on Q1 answer
@@ -164,7 +169,7 @@ Reply with choices, e.g.: "B, A, B"
 
 #### ⚡ Phase 2: Memory File Loading (Gate 3 - Conditional)
 
-**Triggered AFTER Phase 1** when user selected Option A or C, and memory files exist:
+**Triggered AFTER Phase 1** when user selected Option A or C, and memory files exist. See **Section 1 PHASE 2 gate** for full trigger conditions.
 
 1. **Interactive selection prompt** (DEFAULT BEHAVIOR)
    - Display numbered list of recent memories: `[1] [2] [3] [all] [skip]`
@@ -175,22 +180,28 @@ Reply with choices, e.g.: "B, A, B"
    - "fresh start" / "skip memory" - Skip all context loading this session
    - "ask about memories" - Revert to interactive selection (default)
 
-> **Opencode Users:** Hooks are not supported in Opencode. Instead, manually run `/memory/search` before starting work in a spec folder. Feature parity: ~60% (commands work, automation requires manual steps).
+Run `/memory/search` before starting work in a spec folder to load relevant context.
+
+**Full details:** workflows-memory skill (context preservation, tiers, checkpoints)
 
 #### ⚡ Phase 1 Question Details (Q2/Q3)
 
-**Q2 (Git):** NEVER auto-decide branch vs worktree. Enforcement: `enforce-git-workspace-choice.sh` blocks tools until response. See workflows-git skill for details.
+**Q2 (Git):** NEVER auto-decide branch vs worktree. Always ask user. See **Section 1 Q2** and workflows-git skill.
 
-**Q3 (Task):** NEVER auto-dispatch parallel agents. 2+ domains = mandatory question. Domain examples: "feature + tests" (2), "refactor + docs + commit" (3). See Task Dispatch section for complexity formula.
+**Q3 (Task):** NEVER auto-dispatch parallel agents. See **Section 1 Q3** and Section 5 "Task Dispatch" for rules.
 
-#### ⚡ Sequential Thinking (MANDATORY - for Opencode/VScode)
+#### ⚡ Sequential Thinking (MANDATORY)
 
-**Environment-Specific Utility:**
-- **Claude Code**: NOT recommended - use native ultrathink instead (superior built-in reasoning)
-- **VSCode/Copilot/OpenCode**: Useful - provides structured reasoning some models in those environments lack
+**Sequential Thinking MCP** provides structured reasoning for complex problem decomposition.
+
+**When to Use:**
+- Multi-step debugging or troubleshooting
+- Architectural decisions with trade-offs
+- Complex refactoring planning
+- Any task requiring iterative reasoning
 
 **5 Stages:** Problem Definition → Research → Analysis → Synthesis → Conclusion
-**Tools:** `process_thought`, `generate_summary` (direct MCP calls, NOT through Code Mode)
+**Tool:** `sequential_thinking_sequentialthinking()` (direct MCP call, NOT through Code Mode)
 
 #### ⚡ Code Quality Standards Compliance (MANDATORY)
 
@@ -201,7 +212,7 @@ Reply with choices, e.g.: "B, A, B"
 - Before **animation implementation**: See animation workflow references (if available)
 - Before **searching codebase**: Use mcp-semantic-search skill for intent-based code discovery (MANDATORY for exploration tasks)
 - Before **research tasks**: Use semantic memory MCP to find prior work, saved context, and related memories (MANDATORY)
-- Before **complex multi-domain tasks**: ALWAYS ask user before parallel sub-agent dispatch (2+ domains triggers mandatory question)
+- Before **complex multi-domain tasks**: See Section 5 "Task Dispatch" for parallel agent rules
 - Before **spec folder creation**: Use workflows-spec-kit skill for template structure and sub-folder organization (if available)
 - Before **conversation milestones**: workflows-memory auto-triggers every 20 messages for context preservation (if available)
 - **If conflict exists**: Code quality standards override general practices
@@ -210,32 +221,32 @@ Reply with choices, e.g.: "B, A, B"
 
 #### ⚡ Common Failure Patterns (MANDATORY)
 
-| #   | Pattern                | Trigger Phrase        | Response Action                |
-| --- | ---------------------- | --------------------- | ------------------------------ |
-| 1   | Task Misinterpretation | N/A                   | Parse request, confirm scope   |
-| 2   | Rush to Code           | "straightforward"     | Analyze → Verify → Simplest    |
-| 3   | Fabrication            | "obvious" w/o verify  | Output "UNKNOWN", verify first |
-| 4   | Skip Verification      | "trivial edit"        | Run ALL tests, no exceptions   |
-| 5   | Assumptions            | N/A                   | Read existing code first       |
-| 6   | Cascading Breaks       | N/A                   | Reproduce before fixing        |
-| 7   | Skip Process           | "I already know"      | Follow checklist anyway        |
-| 8   | Over-Engineering       | N/A                   | YAGNI - solve only stated      |
-| 9   | Clever > Clear         | N/A                   | Obvious code wins              |
-| 10  | Retain Legacy          | "just in case"        | Remove unused, ask if unsure   |
-| 11  | Skip Parallel Q        | 2+ domains            | Ask A/B/C before Task dispatch |
-| 12  | No Browser Test        | "works", "done"       | Browser verify first           |
-| 13  | Skip Checklist         | "complete" (L2+)      | Load checklist.md, verify all  |
-| 14  | Skip Memory            | "research", "explore" | `memory_search()` FIRST        |
+| #   | Stage          | Pattern                | Trigger Phrase        | Response Action                  |
+| --- | -------------- | ---------------------- | --------------------- | -------------------------------- |
+| 1   | Understanding  | Task Misinterpretation | N/A                   | Parse request, confirm scope     |
+| 2   | Understanding  | Assumptions            | N/A                   | Read existing code first         |
+| 3   | Understanding  | Skip Memory            | "research", "explore" | `memory_search()` FIRST          |
+| 4   | Planning       | Rush to Code           | "straightforward"     | Analyze → Verify → Simplest      |
+| 5   | Planning       | Over-Engineering       | N/A                   | YAGNI - solve only stated        |
+| 6   | Planning       | Skip Process           | "I already know"      | Follow checklist anyway          |
+| 7   | Implementation | Clever > Clear         | N/A                   | Obvious code wins                |
+| 8   | Implementation | Fabrication            | "obvious" w/o verify  | Output "UNKNOWN", verify first   |
+| 9   | Implementation | Cascading Breaks       | N/A                   | Reproduce before fixing          |
+| 10  | Implementation | Root Folder Pollution  | Creating temp file    | STOP → Move to scratch/ → Verify |
+| 11  | Review         | Skip Verification      | "trivial edit"        | Run ALL tests, no exceptions     |
+| 12  | Review         | Retain Legacy          | "just in case"        | Remove unused, ask if unsure     |
+| 13  | Review         | Skip Parallel Q        | 2+ domains            | Ask A/B/C before Task dispatch   |
+| 14  | Completion     | No Browser Test        | "works", "done"       | Browser verify first             |
+| 15  | Completion     | Skip Checklist         | "complete" (L2+)      | Load checklist.md, verify all    |
 
 **Enforcement:** STOP → Acknowledge ("I was about to [pattern]") → Correct → Verify
 
-#### ⚡ Skill Maintenance (MANDATORY - Platform Compatibility)
+#### ⚡ Skill Maintenance (MANDATORY)
 
-**CRITICAL:** Skills sync to both `.claude/skills/` and `.opencode/skills/`. Opencode does NOT support hooks.
+**CRITICAL:** Skills are located in `.opencode/skills/`.
 
 When creating or editing skills:
-- Check for hook references: `grep -E "hooks block|hook_interaction|\.claude/hooks/|Automatic.*via hooks" SKILL.md`
-- Add Opencode notes: "In Claude Code, this runs automatically via hooks. In Opencode, follow manually."
+- Check for outdated references: `grep -E "hooks block|hook_interaction|Automatic.*via hooks" SKILL.md`
 - Replace misleading claims: "hooks block commits" → "verify before commits"
 - See **Pitfall 6** in `create-documentation/references/skill_creation.md` for complete guidelines
 
@@ -333,7 +344,7 @@ CHECKLIST VERIFICATION RULE (Level 2+):
 - **LOC thresholds are SOFT GUIDANCE** - use judgment based on complexity/risk
 - **Risk/complexity can override LOC** (e.g., 50 LOC security change = Level 2+)
 - **Multi-file changes often need higher level** than LOC alone suggests
-- **Enforcement is HARD** - hooks block commits with missing required templates
+- **Enforcement is HARD** - verify required templates exist before commits
 
 ### Spec Folder: `/specs/[###-short-name]/`
 **Find next #**: `ls -d specs/[0-9]*/ | sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n | tail -1`
@@ -383,6 +394,15 @@ Is this content disposable after the task?
 - Draft content before moving to final location
 - **Clean up**: Delete scratch/ contents when task completes
 
+**MANDATORY RULES (OpenCode Compatible - No Hooks Required):**
+- **MUST** use `specs/[###-name]/scratch/` for ALL temporary/exploratory files
+- **NEVER** create test scripts, debug files, or prototypes in project root
+- **NEVER** place disposable content in spec folder root (use scratch/ instead)
+- **VERIFY** file placement before claiming completion (CHK036-038)
+- **CLEAN UP** scratch/ contents when task completes
+
+**Full details:** workflows-memory skill (memory/ file guidelines, context saving)
+
 ### Enforcement Checkpoints
 1. **Collaboration First Rule** - Create before presenting
 2. **Request Analysis** - Determine level
@@ -394,7 +414,19 @@ Is this content disposable after the task?
    - Template source validation (warn if missing template markers)
    - Metadata completeness (level-specific required fields)
 
-**Note**: AI agent auto-creates folder. SpecKit users: `/spec_kit:complete` or `/spec_kit:plan` handle Level 3.
+**Note**: AI agent auto-creates folder. SpecKit users have these commands available:
+
+**SpecKit Commands:**
+| Command               | Steps | Description                                                     |
+| --------------------- | ----- | --------------------------------------------------------------- |
+| `/spec_kit:complete`  | 12    | Full end-to-end workflow from spec through implementation       |
+| `/spec_kit:plan`      | 7     | Planning only - spec through plan, no implementation            |
+| `/spec_kit:implement` | 8     | Execute pre-planned work (requires existing plan.md)            |
+| `/spec_kit:research`  | 9     | Technical investigation and documentation (creates research.md) |
+| `/spec_kit:resume`    | -     | Resume previous session context from spec folder                |
+
+**Mode Suffixes:** Add `:auto` (autonomous execution) or `:confirm` (interactive with checkpoints) to any command except resume.
+- Example: `/spec_kit:complete:auto`, `/spec_kit:plan:confirm`, `/spec_kit:implement:auto`
 
 ---
 
@@ -527,6 +559,8 @@ PRE-CHANGE VALIDATION:
 
 **STOP CONDITIONS:** □ unchecked | no spec folder | no user approval → STOP and address
 
+**Full details:** workflows-code skill (3-phase implementation lifecycle)
+
 #### Phase 7: Final Output Review
 **Verification Summary (Mandatory for Factual Content):**
 
@@ -551,18 +585,6 @@ Review response for:
 
 ## 5. 🏎️ TOOL SELECTION & ROUTING
 
-#### Tool Selection
-
-**Key Routing Rules:**
-- **Code Mode (mcp-code-mode):** MANDATORY for external MCP tools (Webflow, Figma, ClickUp, Chrome DevTools) - 68% fewer tokens, 98.7% context reduction
-- **Semantic Search (mcp-semantic-search):** MANDATORY for code discovery ("Find code that...", "How does..."). **Native MCP** - call directly: `mcp__semantic_search__semantic_search()`, `mcp__semantic_search__visit_other_project()` - NOT through Code Mode
-- **Semantic Memory (mcp-semantic-memory):** MANDATORY for research, context recovery, finding prior work. **Native MCP** - call directly: `mcp__semantic_memory__memory_search()`, `mcp__semantic_memory__memory_load()` - NOT through Code Mode
-- **Sequential Thinking (OPTIONAL):** Claude Code: use ultrathink instead; VSCode/Copilot/OpenCode: useful when configured - **Native MCP** - call directly, NOT through Code Mode
-- **Parallel Sub-Agents (Task tool):** ALWAYS ask user when 2+ domains detected (mandatory question before dispatch)
-- **Chrome DevTools (workflows-chrome-devtools):** Browser debugging via terminal (bdg CLI tool) - through Code Mode
-- **Skills:** On-demand workflow orchestration for complex tasks (see Section 6)
-- **Native Tools:** Read/Grep/Glob/Bash for file operations and simple tasks
-
 ### Tool Routing (Quick Decision)
 ```
 Known file path? → Read()
@@ -570,10 +592,10 @@ Know what code DOES? → mcp__semantic_search__semantic_search() [NATIVE MCP - M
 Research/prior work? → mcp__semantic_memory__memory_search() [NATIVE MCP - MANDATORY]
 Exact symbol/keyword? → Grep()
 File structure? → Glob()
-Complex reasoning? → ultrathink (Claude Code) | process_thought() (Sequential Thinking MCP) (VSCode/OpenCode)
+Complex reasoning? → sequential_thinking_sequentialthinking() [NATIVE MCP - MANDATORY]
 Browser debugging? → workflows-chrome-devtools skill [bdg CLI tool, through Code Mode]
 External MCP tools? → call_tool_chain() [Code Mode - Webflow, Figma, ClickUp, etc.]
-Multi-step workflow? → Skill() or openskills read [see Section 6]
+Multi-step workflow? → openskills read [see Section 6]
 2+ domains detected? → Ask user: parallel sub-agents or direct handling? (MANDATORY question)
 
 NATIVE MCP (call directly - NEVER through Code Mode):
@@ -581,35 +603,27 @@ NATIVE MCP (call directly - NEVER through Code Mode):
   │   mcp__semantic_search__semantic_search()
   │   mcp__semantic_search__visit_other_project()
   │
-  ├─ SEMANTIC MEMORY (context/research):
-  │   mcp__semantic_memory__memory_search()
-  │   mcp__semantic_memory__memory_load()
-  │   mcp__semantic_memory__memory_match_triggers()
+  ├─ SEMANTIC MEMORY (context/research - v11.1):
+  │   mcp__semantic_memory__memory_search()        # Hybrid search, tier/type filters
+  │   mcp__semantic_memory__memory_load()          # Load by spec folder/anchor
+  │   mcp__semantic_memory__memory_match_triggers() # Fast trigger matching <50ms
+  │   mcp__semantic_memory__memory_list()          # Browse memories, pagination
+  │   mcp__semantic_memory__memory_update()        # Update importance/metadata
+  │   mcp__semantic_memory__memory_delete()        # Delete by ID or spec folder
+  │   mcp__semantic_memory__memory_validate()      # Validate accuracy, build confidence
+  │   mcp__semantic_memory__memory_stats()         # System statistics
   │
-  └─ SEQUENTIAL THINKING (optional):
-      process_thought(), generate_summary()
+  └─ SEQUENTIAL THINKING (mandatory for complex reasoning):
+      sequential_thinking_sequentialthinking()
 
 CODE MODE (call_tool_chain):
   - Webflow, Figma, ClickUp, Chrome DevTools, etc.
 
 SKILLS (Section 6):
-  - Skill("skill-name") [Claude Code]
-  - openskills read <skill-name> [Other agents]
+  - Use `openskills read <skill-name>` CLI command
 ```
 
-**User Override Phrases:**
-- `"proceed directly"` - Force direct handling
-- `"use parallel agents"` - Force parallel dispatch
-- `"auto-decide"` - Enable session auto-mode
-
-**Example:** Auth + tests + docs = 3 domains (code + testing + docs) → ASK user before dispatch (mandatory question A/B/C)
-
-#### The Iron Law (workflows-code)
-**NO COMPLETION CLAIMS WITHOUT BROWSER VERIFICATION**
-- Open actual browser before saying "works", "fixed", "done"
-- Test Chrome + mobile viewport (375px) minimum
-- Check DevTools console for errors
-- See: workflows-code skill for full 3-phase lifecycle (if available)
+**Skill references:** mcp-semantic-search (code discovery patterns), mcp-code-mode (MCP orchestration)
 
 #### Task Dispatch (Parallel Agent Logic)
 
@@ -622,12 +636,26 @@ SKILLS (Section 6):
 | 1       | Handle direct | Single domain      |
 | 2+      | Ask user      | MANDATORY question |
 
+**User Override Phrases:**
+- `"proceed directly"` - Force direct handling
+- `"use parallel agents"` - Force parallel dispatch
+- `"auto-decide"` - Enable session auto-mode
+
+**Example:** Auth + tests + docs = 3 domains (code + testing + docs) → ASK user before dispatch
+
+#### The Iron Law (workflows-code)
+**NO COMPLETION CLAIMS WITHOUT BROWSER VERIFICATION**
+- Open actual browser before saying "works", "fixed", "done"
+- Test Chrome + mobile viewport (375px) minimum
+- Check DevTools console for errors
+- See: workflows-code skill for full 3-phase lifecycle (if available)
+
 #### Project-Specific MCP Configuration
 
 **Two MCP Configuration Systems**:
 
 1. **Native MCP** (`.mcp.json` / `opencode.json`) - Direct tools, called natively
-   - **Sequential Thinking**: Configured in `.mcp.json`, called via `process_thought()`, `generate_summary()` - NOT Code Mode
+   - **Sequential Thinking**: Configured in `.mcp.json`, called via `sequential_thinking_sequentialthinking()` - NOT Code Mode
    - **Semantic Search**: Configured in `.mcp.json`, called via `semantic_search()`, `visit_other_project()` - NOT Code Mode
    - **Code Mode server**: The Code Mode tool itself (for accessing external tools)
 
@@ -646,36 +674,36 @@ All Code Mode tool calls follow the pattern: `{manual_name}.{manual_name}_{tool_
 - Use `list_tools()` to see all available tools from active MCP servers
 - Read `.utcp_config.json` to see which servers are configured and enabled
 
+**Full details:** mcp-code-mode skill (TypeScript patterns, call_tool_chain usage)
+
 ---
 
 ## 6. 🧩 SKILLS SYSTEM
 
-Skills are specialized, on-demand capabilities that extend AI agents with domain expertise. Unlike hooks (automated triggers) or knowledge files (passive references), skills are explicitly invoked to handle complex, multi-step workflows.
+Skills are specialized, on-demand capabilities that extend AI agents with domain expertise. Unlike knowledge files (passive references), skills are explicitly invoked to handle complex, multi-step workflows.
 
-### Skills vs Hooks vs Knowledge vs MCP Tools
+### Skills vs Knowledge vs MCP Tools
 
-| Type          | Purpose                           | Execution                                  | Examples                                 |
-| ------------- | --------------------------------- | ------------------------------------------ | ---------------------------------------- |
-| **Skills**    | Multi-step workflow orchestration | AI-invoked when needed                     | `workflows-code`, `create-documentation` |
-| **Hooks**     | Automated quality checks          | System-triggered (before/after operations) | `enforce-spec-folder`, `validate-bash`   |
-| **Knowledge** | Reference documentation           | Passive context during responses           | Code standards, MCP patterns             |
-| **MCP Tools** | External integrations             | Direct API/protocol calls                  | Webflow, Figma, ClickUp, Semantic Search |
+| Type          | Purpose                           | Execution                        | Examples                                 |
+| ------------- | --------------------------------- | -------------------------------- | ---------------------------------------- |
+| **Skills**    | Multi-step workflow orchestration | AI-invoked when needed           | `workflows-code`, `create-documentation` |
+| **Knowledge** | Reference documentation           | Passive context during responses | Code standards, MCP patterns             |
+| **MCP Tools** | External integrations             | Direct API/protocol calls        | Webflow, Figma, ClickUp, Semantic Search |
 
 ### How Skills Work
 
 ```
 Task Received → Agent scans <available_skills>
                     ↓
-         Match Found → Invoke skill via CLI or Skill tool
+         Match Found → Invoke skill via CLI
                     ↓
     Instructions Load → SKILL.md content + resource paths
                     ↓
       Agent Follows → Complete task using skill guidance
 ```
 
-**Invocation Methods:**
-- **Claude Code**: `Skill("skill-name")` tool (native)
-- **Other Agents**: `openskills read <skill-name>` CLI command
+**Invocation Method:**
+- Use `openskills read <skill-name>` CLI command
 
 ### Skill Loading Protocol
 
@@ -694,8 +722,7 @@ Task Received → Agent scans <available_skills>
 When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge.
 
 How to use skills:
-- Claude Code: Skill("skill-name") tool
-- Other agents: Bash("openskills read <skill-name>")
+- Bash("openskills read <skill-name>")
 - The skill content will load with detailed instructions on how to complete the task
 - Base directory provided in output for resolving bundled resources (references/, scripts/, assets/)
 
@@ -757,13 +784,13 @@ Usage notes:
 
 <skill>
 <name>workflows-memory</name>
-<description>Saves expanded conversation context with full dialogue, decision rationale, visual flowcharts, and file changes. Auto-triggers on keywords or every 20 messages. Includes semantic vector search.</description>
+<description>Context preservation with semantic memory v11.1: six-tier importance system (constitutional/critical/important/normal/temporary/deprecated), hybrid search (FTS5 + vector), 90-day half-life decay for recency boosting, checkpoint save/restore for context safety, constitutional memories (always surfaced), confidence-based promotion (90% threshold), session validation logging, context type filtering (research/implementation/decision/discovery/general). Auto-triggers on keywords or every 20 messages.</description>
 <location>project</location>
 </skill>
 
 <skill>
 <name>workflows-spec-kit</name>
-<description>Mandatory spec folder workflow orchestrating documentation level selection (1-3), template selection, and folder creation for all file modifications through hook-assisted enforcement and context auto-save.</description>
+<description>Mandatory spec folder workflow orchestrating documentation level selection (1-3), template selection, and folder creation for all file modifications through documentation enforcement and context auto-save.</description>
 <location>project</location>
 </skill>
 
