@@ -4,10 +4,6 @@
 .DS_Store
 
 # Development
-.env
-.mcp.json
-.utcp_config.json
-opencode.json
 package-lock.json
 package.json
 postcss.config.js
@@ -15,9 +11,6 @@ tailwind.config.js
 tsconfig.json
 node_modules/
 lib/
-
-# Exception: Allow semantic-memory lib in Code Environment
-
 
 # IDE and AI folders (ignored at all levels)
 .vscode/
@@ -27,8 +20,26 @@ lib/
 .gemini/
 
 # Configuration files (ignored at all levels)
+.env
+.mcp.json
+.utcp_config.json
+opencode.json
 mcp_servers.json
 settings.local.json
+
+# Database files (contain personal memory/session data)
+memory/database/*.sqlite
+memory/database/*.sqlite-shm
+memory/database/*.sqlite-wal
+
+# Working directories (ignored at all levels)
+context/
+export/
+memory/
+specs/
+
+# Archive folder (root level only)
+/z — Archive/
 
 # Exception: Allow specific files in Code Environment
 !Code Environment/mcp.json
@@ -38,12 +49,6 @@ settings.local.json
 !Code Environment/z — MCP Servers/semantic-memory/lib/
 !Code Environment/z — MCP Servers/semantic-memory/lib/**
 
-# Working directories (ignored at all levels)
-context/
-export/
-memory/
-specs/
-
 # Exception: Allow memory command folders in Code Environment
 !Code Environment/
 !Code Environment/command/
@@ -51,10 +56,6 @@ specs/
 !Code Environment/command/memory/**
 !Code Environment/memory/
 !Code Environment/memory/**
-
-
-# Archive folder (root level only)
-/z — Archive/
 
 # Complete folder ignore
 AI Systems/Barter - Copywriter
