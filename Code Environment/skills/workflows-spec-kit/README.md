@@ -1,1 +1,1 @@
-/Users/.opencode/speckit/README.md
+../../../.opencode/speckit/README.md
