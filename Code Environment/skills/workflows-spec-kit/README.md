@@ -1,1 +1,1 @@
-/Users/michelkerkmeester/MEGA/Development/Websites/anobel.com/.opencode/speckit/README.md
+../../../.opencode/speckit/README.md
