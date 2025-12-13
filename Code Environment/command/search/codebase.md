@@ -1,7 +1,7 @@
 ---
 description: Semantic code search - find code by intent, manage indexer
 argument-hint: "[action|query] [options]"
-allowed-tools: Bash(codesql:*), mcp__semantic-search__semantic_search
+allowed-tools: Bash(codesql:*), mcp__semantic_search__semantic_search, mcp__semantic_search__visit_other_project
 ---
 
 # Semantic Search
@@ -298,7 +298,7 @@ STATUS=OK ACTION=stats TRACKED_FILES=251 INDEXED_COMMITS=50 WATCHER=watching
    - If no tracked files, warn user and suggest `/semantic_search start`
 
 3. **Execute semantic search:**
-   Call MCP tool: `mcp__semantic-search__semantic_search`
+   Call MCP tool: `mcp__semantic_search__semantic_search`
    ```yaml
    workspace_path: <current_workspace>
    query: <extracted_query>

@@ -194,6 +194,42 @@ parallel_dispatch_config:
     - step_6_planning  # Has inline_parallel_exploration - 4 agents dispatched directly
 
 # ─────────────────────────────────────────────────────────────────
+# WORKFLOW ENFORCEMENT (CRITICAL)
+# ─────────────────────────────────────────────────────────────────
+workflow_enforcement:
+  mode: strict
+  step_order: sequential_mandatory
+  skip_allowed: false
+  
+  planning_gate:
+    location: "After Step 6"
+    purpose: "Verify all planning artifacts complete before context save"
+    requirements:
+      - "spec.md exists and has no [NEEDS CLARIFICATION] markers"
+      - "plan.md exists with technical approach"
+    action_if_failed: "STOP and return to incomplete step"
+  
+  step_completion_rule: |
+    FOR EACH STEP:
+    1. Execute ALL activities listed
+    2. Verify ALL outputs exist
+    3. Present checkpoint to user for approval
+    4. Mark step ✅ in tracking after approval
+    5. ONLY THEN proceed to next step
+    
+    ⛔ NEVER skip a step
+    ⛔ NEVER proceed without user approval at checkpoint
+    ⛔ NEVER proceed to implementation without running /spec_kit:implement
+
+  critical_steps:
+    step_3_specification:
+      enforcement: "MUST create spec.md with all required sections"
+      verification: "File exists and contains acceptance criteria"
+    step_6_planning:
+      enforcement: "MUST create plan.md with technical approach"
+      verification: "File exists and contains implementation phases"
+
+# ─────────────────────────────────────────────────────────────────
 # CHECKPOINT OPTIONS
 # ─────────────────────────────────────────────────────────────────
 checkpoint_options:

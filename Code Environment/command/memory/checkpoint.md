@@ -1,7 +1,7 @@
 ---
 description: Save and restore memory states for context switching and safety nets
 argument-hint: "<subcommand> [name]"
-allowed-tools: Read, Bash, mcp__semantic_memory__memory_list, mcp__semantic_memory__memory_search, mcp__semantic_memory__memory_load, mcp__semantic_memory__memory_stats, mcp__semantic_memory__memory_delete
+allowed-tools: Read, Bash, mcp__semantic_memory__memory_list, mcp__semantic_memory__memory_search, mcp__semantic_memory__memory_load, mcp__semantic_memory__memory_stats, mcp__semantic_memory__memory_delete, mcp__semantic_memory__checkpoint_create, mcp__semantic_memory__checkpoint_restore, mcp__semantic_memory__checkpoint_list, mcp__semantic_memory__checkpoint_delete
 ---
 
 # Memory Checkpoint Management

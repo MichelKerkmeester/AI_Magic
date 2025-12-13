@@ -351,7 +351,6 @@ STATUS=OK TYPE=review TOKENS=2450 SPEC=specs/042-auth-security
 
 - `/cli:codex_quick` — Fast execution, no spec tracking
 - `/cli:gemini` — Gemini with web search + spec tracking
-- `/cli:query` — Unified AI interface
-- `/memory:save` — Manual context save
-- `/memory:search` — Search saved memories
+- `/memory/save` — Manual context save
+- `/memory/search` — Search saved memories
 - `/spec_kit:complete` — Full SpecKit workflow

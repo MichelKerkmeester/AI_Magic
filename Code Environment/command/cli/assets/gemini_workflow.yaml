@@ -30,7 +30,7 @@ gemini:
 
   models:
     default:
-      name: "gemini-3-pro"
+      name: "gemini-2.5-pro"
       description: "Full capabilities with Google Search grounding"
       use_when: "Complex analysis, research, detailed responses"
     fast:
@@ -444,8 +444,8 @@ error_handling:
     message: "Gemini CLI not installed"
     action: |
       Install Gemini CLI:
-      1. Visit: https://github.com/google/gemini-cli
-      2. npm install -g @anthropic-ai/gemini-cli (or equivalent)
+      1. Visit: https://github.com/google-gemini/gemini-cli
+      2. npm install -g @anthropic-ai/gemini-cli
       3. Run: gemini init
 
   authentication_error:

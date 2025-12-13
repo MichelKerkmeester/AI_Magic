@@ -134,4 +134,3 @@ Sources: nextjs.org, Vercel blog
 
 - `/cli:gemini` — Interactive mode with prompts and memory
 - `/cli:codex_quick` — Fast Codex with deep reasoning
-- `/cli:quick` — Unified fast AI interface

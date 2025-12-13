@@ -24,6 +24,27 @@ operating_mode:
 
 ---
 
+## MCP ENFORCEMENT MATRIX
+
+**CRITICAL:** This command uses local scripts for context generation, not MCP tools directly. The memory is indexed after file creation.
+
+```
+┌─────────────────┬─────────────────────────────────────┬──────────┬─────────────────┐
+│ SCREEN          │ REQUIRED CALLS                      │ MODE     │ ON FAILURE      │
+├─────────────────┼─────────────────────────────────────┼──────────┼─────────────────┤
+│ FOLDER DETECT   │ Bash (ls, cat .spec-active)         │ SINGLE   │ Prompt user     │
+├─────────────────┼─────────────────────────────────────┼──────────┼─────────────────┤
+│ CONTEXT SAVE    │ Bash (node generate-context.js)     │ SINGLE   │ Show error msg  │
+└─────────────────┴─────────────────────────────────────┴──────────┴─────────────────┘
+```
+
+**Script Location:**
+```
+.opencode/memory/scripts/generate-context.js
+```
+
+---
+
 ## 1. CONTRACT
 
 **Inputs:** `$ARGUMENTS` - Optional spec folder (e.g., "011-semantic-memory" or full path)

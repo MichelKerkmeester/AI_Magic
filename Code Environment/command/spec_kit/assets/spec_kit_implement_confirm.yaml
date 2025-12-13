@@ -186,6 +186,42 @@ parallel_dispatch_config:
     - step_6_development
 
 # ─────────────────────────────────────────────────────────────────
+# WORKFLOW ENFORCEMENT (CRITICAL)
+# ─────────────────────────────────────────────────────────────────
+workflow_enforcement:
+  mode: strict
+  step_order: sequential_mandatory
+  skip_allowed: false
+  
+  prerequisites_gate:
+    location: "Before Step 1"
+    purpose: "Verify planning artifacts exist before implementation"
+    requirements:
+      - "spec.md exists in SPEC_FOLDER"
+      - "plan.md exists in SPEC_FOLDER"
+    action_if_failed: "STOP - run /spec_kit:plan first"
+  
+  step_completion_rule: |
+    FOR EACH STEP:
+    1. Execute ALL activities listed
+    2. Verify ALL outputs exist
+    3. Present checkpoint to user for approval
+    4. Mark step ✅ in tracking after approval
+    5. ONLY THEN proceed to next step
+    
+    ⛔ NEVER skip a step
+    ⛔ NEVER proceed without user approval at checkpoint
+    ⛔ NEVER jump to coding before Step 5 (implementation check)
+
+  critical_steps:
+    step_6_development:
+      enforcement: "MUST mark tasks [x] in tasks.md as completed"
+      verification: "Count [x] vs [ ] - all must be [x]"
+    step_7_completion:
+      enforcement: "MUST create implementation-summary.md"
+      verification: "File must exist in spec folder"
+
+# ─────────────────────────────────────────────────────────────────
 # CHECKPOINT OPTIONS
 # ─────────────────────────────────────────────────────────────────
 checkpoint_options:

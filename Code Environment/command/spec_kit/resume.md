@@ -12,6 +12,43 @@ Resume work on an existing spec folder by automatically detecting the last activ
 
 ---
 
+## 1.5 ⛔ MANDATORY GATES
+
+Before executing resume workflow, verify these gates pass:
+
+### GATE 0: Input Validation
+```
+$ARGUMENTS parsing:
+  ├─ Empty → Auto-detect active session
+  ├─ Path provided → Validate path exists as directory
+  └─ Invalid path → STOP with error message
+```
+
+### GATE 1: Session Detection
+```
+Session detection priority:
+  1. Check .spec-active marker (project root)
+  2. Check $ARGUMENTS path if provided
+  3. Find most recent memory file in specs/
+  
+  If NO session found → STOP with helpful message
+```
+
+### GATE 2: Artifact Validation
+```
+Required artifacts for valid session:
+  □ spec.md exists
+  □ plan.md exists OR tasks.md exists
+  
+  If artifacts missing → Warn user, offer to run /spec_kit:plan
+```
+
+### Gate Bypass
+- `:auto` suffix skips memory file selection prompt (Step 5)
+- Direct path argument bypasses auto-detection (Step 1)
+
+---
+
 ## 2. 🔍 USAGE
 
 | Command                        | Result                                     |

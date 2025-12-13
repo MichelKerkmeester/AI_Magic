@@ -355,7 +355,6 @@ STATUS=OK TYPE=research SPEC=specs/045-nextjs-upgrade
 
 - `/cli:gemini_quick` — Fast execution, no spec tracking
 - `/cli:codex` — Codex with deep reasoning + spec tracking
-- `/cli:query` — Unified AI interface
-- `/memory:save` — Manual context save
-- `/memory:search` — Search saved memories
+- `/memory/save` — Manual context save
+- `/memory/search` — Search saved memories
 - `/spec_kit:complete` — Full SpecKit workflow

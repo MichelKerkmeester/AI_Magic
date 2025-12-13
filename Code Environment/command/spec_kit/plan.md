@@ -64,12 +64,21 @@ EXECUTE AFTER GATE 0 PASSES:
 
 5. SET STATUS: ✅ PASSED
 
+6. UPDATE SPEC MARKER (after status passes):
+   ├─ IF spec_choice IN [A, B, C]:
+   │   ├─ Write spec_path to project root marker file
+   │   │   Command: echo "$spec_path" > .spec-active
+   │   └─ This enables /spec_kit:resume to detect the active session
+   │
+   └─ IF spec_choice == D (Skip):
+       └─ Clean up any existing marker: rm -f .spec-active
+
 ⛔ HARD STOP: DO NOT proceed until user explicitly selects A, B, C, or D
 ⛔ NEVER auto-create spec folders without user confirmation
 ⛔ NEVER assume or infer the user's choice
 ```
 
-**Gate 1 Output:** `spec_choice = ___` | `spec_path = ________________`
+**Gate 1 Output:** `spec_choice = ___` | `spec_path = ________________` | `.spec-active = [updated/cleared]`
 
 ---
 
@@ -371,15 +380,15 @@ See AGENTS.md Section 2 for full memory file handling details.
 
 ## 10. 📁 DOCUMENTATION LEVELS (PROGRESSIVE ENHANCEMENT)
 
-| Level                      | Required Files               | LOC Guidance | Use Case                               |
-| -------------------------- | ---------------------------- | ------------ | -------------------------------------- |
-| **Level 1 (Baseline)**     | spec.md + plan.md + tasks.md | <100 LOC     | Simple changes, bug fixes              |
-| **Level 2 (Verification)** | Level 1 + checklist.md       | 100-499 LOC  | Medium features, refactoring           |
-| **Level 3 (Full)**         | Level 2 + decision-record.md | >=500 LOC    | Complex features, architecture changes |
+| Level                      | Required Files                           | LOC Guidance | Use Case                               |
+| -------------------------- | ---------------------------------------- | ------------ | -------------------------------------- |
+| **Level 1 (Baseline)**     | spec.md + plan.md (tasks.md in implement)| <100 LOC     | Simple changes, bug fixes              |
+| **Level 2 (Verification)** | Level 1 + checklist.md                   | 100-499 LOC  | Medium features, refactoring           |
+| **Level 3 (Full)**         | Level 2 + decision-record.md             | >=500 LOC    | Complex features, architecture changes |
 
 **Note:** LOC thresholds are soft guidance. Choose level based on complexity and risk.
 
-**Important:** This workflow creates `spec.md` and `plan.md` only. The `tasks.md` file is created during the subsequent `/spec_kit:implement` phase. Use `/spec_kit:complete` if you need all artifacts in one workflow.
+**Important:** This workflow creates `spec.md`, `plan.md`, and `checklist.md` (Level 2+). The `tasks.md` file is created during the subsequent `/spec_kit:implement` phase. Use `/spec_kit:complete` if you need all artifacts in one workflow.
 
 **Important:** For Level 2+, `checklist.md` will be created during planning and is MANDATORY for verification during the subsequent `/spec_kit:implement` phase. The AI must actively use it to verify all work before claiming completion.
 

@@ -194,6 +194,41 @@ parallel_dispatch_config:
     - step_5_technical_analysis
 
 # ─────────────────────────────────────────────────────────────────
+# WORKFLOW ENFORCEMENT (CRITICAL)
+# ─────────────────────────────────────────────────────────────────
+workflow_enforcement:
+  mode: strict
+  step_order: sequential_mandatory
+  skip_allowed: false
+  
+  research_gate:
+    location: "After Step 8"
+    purpose: "Verify research documentation complete before context save"
+    requirements:
+      - "research.md exists with all 17 sections populated"
+      - "Key questions from Step 1 are answered"
+    action_if_failed: "STOP and return to incomplete step"
+  
+  step_completion_rule: |
+    FOR EACH STEP:
+    1. Execute ALL activities listed
+    2. Verify ALL outputs exist
+    3. Mark step ✅ in tracking
+    4. ONLY THEN proceed to next step
+    
+    ⛔ NEVER skip a step
+    ⛔ NEVER proceed without marking previous step complete
+    ⛔ NEVER submit incomplete research
+
+  critical_steps:
+    step_5_technical_analysis:
+      enforcement: "MUST complete feasibility and risk assessment"
+      verification: "All analysis outputs documented"
+    step_8_research_compilation:
+      enforcement: "MUST create research.md with all 17 sections"
+      verification: "File exists and all sections populated"
+
+# ─────────────────────────────────────────────────────────────────
 # WORKFLOW (9 STEPS)
 # ─────────────────────────────────────────────────────────────────
 workflow:

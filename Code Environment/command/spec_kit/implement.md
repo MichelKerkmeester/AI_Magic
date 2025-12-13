@@ -84,11 +84,16 @@ EXECUTE AFTER GATE 0 PASSES:
 
 6. SET STATUS: ✅ PASSED
 
+7. UPDATE SPEC MARKER (after status passes):
+   ├─ Write spec_path to project root marker file
+   │   Command: echo "$spec_path" > .spec-active
+   └─ This enables /spec_kit:resume to detect the active session
+
 ⛔ HARD STOP: DO NOT proceed until user explicitly confirms A
 ⛔ NEVER assume spec folder is correct without validation
 ```
 
-**Gate 1 Output:** `spec_path = ________________` | `prerequisites_valid = [yes/no]`
+**Gate 1 Output:** `spec_path = ________________` | `prerequisites_valid = [yes/no]` | `.spec-active = [updated]`
 
 ---
 

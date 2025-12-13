@@ -64,12 +64,21 @@ EXECUTE AFTER GATE 0 PASSES:
 
 5. SET STATUS: ✅ PASSED
 
+6. UPDATE SPEC MARKER (after status passes):
+   ├─ IF spec_choice IN [A, B, C]:
+   │   ├─ Write spec_path to project root marker file
+   │   │   Command: echo "$spec_path" > .spec-active
+   │   └─ This enables /spec_kit:resume to detect the active session
+   │
+   └─ IF spec_choice == D (Skip):
+       └─ Clean up any existing marker: rm -f .spec-active
+
 ⛔ HARD STOP: DO NOT proceed until user explicitly selects A, B, C, or D
 ⛔ NEVER auto-create spec folders without user confirmation
 ⛔ NEVER assume or infer the user's choice
 ```
 
-**Gate 1 Output:** `spec_choice = ___` | `spec_path = ________________`
+**Gate 1 Output:** `spec_choice = ___` | `spec_path = ________________` | `.spec-active = [updated/cleared]`
 
 ---
 

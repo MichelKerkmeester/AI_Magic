@@ -131,4 +131,3 @@ Session: abc123 | Tokens: 1,842
 
 - `/cli:codex` — Interactive mode with prompts and memory
 - `/cli:gemini_quick` — Fast Gemini with Google Search
-- `/cli:quick` — Unified fast AI interface
