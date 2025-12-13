@@ -16,7 +16,7 @@
 6. [ClickUp Agent](#6-clickup-agent)
 
 #### 🤖 Context Engineering for Developers
-7. [DEV: Context, Prompts & Workflows](#8-dev-context-prompts-workflows)
+7. [OpenCode Dev Environment](#7-opencode-dev-environment)
 
 #### 📚 Resources
 - [Claude Desktop](https://claude.ai/desktop)
@@ -149,20 +149,26 @@ Automate ClickUp task management and agile workflows through natural language.
 
 ---
 
-<a id="7-dev-context-prompts-workflows"></a>
-### 🤖 7. Development: Context, Prompts & Workflows
+<a id="7-opencode-dev-environment"></a>
+### 🤖 7. OpenCode Dev Environment
 
-AI guardrails, anti-hallucination, quality validation, and workflow tooling.
+Your local coding setup for OpenCode, MCP servers, SpecKit, memory, skills, and commands.
 
-**Smart development with quality enforcement**:
-  - AI behavior guardrails with confidence gates and anti-pattern prevention
-  - Hook-based validation (PreToolUse, PostToolUse, UserPromptSubmit)
-  - Structured prompts for code workflows and GitHub SpecKit integration
-  - Claude Skills for browser automation, Git workflows, and visual documentation
+**Smart dev environment for AI-assisted coding**:
+  - Root-level `opencode.json` with `opencode-skills` 
+  - Preconfigured MCP servers: `code_mode` for code edits, `sequential_thinking` for deep planning, `semantic_memory` for long-term recall
 
-**Core Components**:
-  - **AGENTS.md**: Collaboration-first framework, explicit uncertainty handling, request analysis methodology
-  - **Prompts**: Code debugger, implementer, performance improvement, GitHub SpecKit workflows
-  - **Skills**: Chrome DevTools, Git commit/worktrees, Mermaid flowcharts, SpecKit automation
-  - **Hooks**: Bash validation, post-edit risk checks, skill activation suggestions
-  - **Knowledge Base**: Code standards, animation strategy, debugging, platform constraints, initialization patterns
+**SpecKit (Custom fork of the GitHub version)**:
+  - **SpecKit Framework** in `Code Environment/speckit` with 9 templates, 6 scripts, and 5 workflow commands
+  - 3 documentation levels (1–3) with progressive templates: `spec`, `plan`, `tasks`, `checklist`, `decision-record`, `research`, `research-spike`, `handover`, `debug-delegation`
+  - Mandatory spec-folder flow enforced via workflows and AGENTS rules whenever you modify files
+
+**Memory System (MCP + Commands)**:
+  - Semantic memory skill (`workflows-memory`) with 6-tier importance (constitutional → deprecated) and hybrid FTS5 + vector search
+  - Commands in `command/memory` (`save`, `status`, `search`, `cleanup`, `checkpoint`, `triggers`) for saving conversations into `specs/###-feature/memory/*.md` and searching them later
+  - Automatic triggers (keywords / intervals) and health checks via `memory_stats` dashboards
+
+**Skills & Commands (how you drive it)**:
+  - Skills in `Code Environment/skills`: workflows for SpecKit, Memory, Code, Git, Chrome DevTools, plus CLI helpers for Codex and Gemini
+  - Command templates in `Code Environment/command`: `/spec_kit:*` for full spec workflows, `/memory:*` for context save/search, `/cli:*` for Codex/Gemini integration, `/search:*` for codebase exploration
+  - Pairs with the specialized systems in `AI Systems/AI Systems` (Product Owner, Media Editor, Webflow, Notion, ClickUp) so each agent can work inside this documented, searchable environment
